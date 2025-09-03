@@ -1,0 +1,137 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Region {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  code        String   @unique
+  coefficient Float    @default(1.0)
+  floor       Float    @default(0.8)
+  ceiling     Float    @default(1.2)
+  increment   Float    @default(0.01)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  teams       Team[]
+  tournaments Tournament[]
+
+  @@map("regions")
+}
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  regionId    String
+  email       String?
+  logo        String?
+  isFilial    Boolean  @default(false)
+  parentTeamId String?
+  hasDifferentNames Boolean @default(false)
+  nameOpen    String?
+  nameWomen   String?
+  nameMixed   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  region      Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  parentTeam  Team?    @relation("TeamFilials", fields: [parentTeamId], references: [id])
+  filialTeams Team[]   @relation("TeamFilials")
+  positions   Position[]
+  rankingHistory RankingHistory[]
+
+  @@map("teams")
+}
+
+model Tournament {
+  id        String        @id @default(cuid())
+  name      String
+  type      String
+  year      Int
+  surface   String
+  modality  String
+  regionId  String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  region    Region?       @relation(fields: [regionId], references: [id])
+  positions Position[]
+
+  @@unique([name, year])
+  @@map("tournaments")
+}
+
+model Position {
+  id           String   @id @default(cuid())
+  position     Int
+  teamId       String
+  tournamentId String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, tournamentId])
+  @@map("positions")
+}
+
+model RankingHistory {
+  id        String   @id @default(cuid())
+  teamId    String
+  year      Int
+  points    Float
+  rank      Int
+  details   String?  // Detalles del cálculo por año (JSON string)
+  createdAt DateTime @default(now())
+
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, year])
+  @@map("ranking_history")
+}
+
+model Configuration {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("configurations")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  resource  String
+  resourceId String?
+  details   String?
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+

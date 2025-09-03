@@ -1,0 +1,107 @@
+El archivo adjunto es un dossier que describe el funcionamiento del nuevo Ranking FEDV de equipos de Ultimate Frisbee en España. Necesito que desarrolles una web-app que permita consultar el Ranking, los resultados de los campeonatos, que haga de calculadora de la puntuación de los equipos, y permita explorar los distintos equipos, sus resultados, puntos, histórico, gráficas, etc. Tiene que ser un diseño muy moderno y atractivo, con mucha atención en UX. Te voy a poner una descripción técnica:
+-------------------------
+### Requisitos funcionales (alto nivel)
+1. Webapp con **frontend (React)**
+* **Backoffice/Admin**: CRUD de torneos (Campeonato de España 1ª División, Campeonato de España 2ª División, Campeonatos Regionales), equipos, resultados por torneo (posiciones), regiones, configuración (ponderadores temporales, tabla de puntos, coeficiente suelo/techo/incremento).
+* **Cálculo automático del Ranking**: cuando se ingresen/actualicen resultados de un torneo el sistema recalcula el ranking de clubes según reglas (ver sección “Reglas de cálculo”).
+* **Sección pública**: muestra ranking actual, historial por club, filtros (superficie, categoría, año, región), página de equipo con resultados por año, página de región con coeficiente y resumen.
+* **Import / Export**: importar resultados CSV/Excel para una temporada; exportar ranking a Excel/PDF.
+* **Gráficas**: evolución histórica en el ranking (comparativas de equipos, filtro de torneos de césped/playa, o torneos Open/Mixto/Women, etc.)
+* **Autenticación y autorizaciones**: cuentas admin con login (email+password) para backoffice; usuarios públicos sin login.
+* **UI/UX**: responsive, accesible, diseño claro, diseño vanguardista y muy moderno, usa Tailwind CSS; puede usar shadcn/ui y lucide-react para componentes e iconos.
+2. Proyecto debe incluir:
+* Seed de datos de ejemplo (equipos, regiones, torneos 2021-2024, posiciones simuladas).
+* Tests unitarios básicos para funciones de cálculo (algoritmo de ranking, coeficiente regional, pruebas edge cases).
+### Reglas de cálculo (implementarlas exactamente)
+Implementa el cálculo del ranking con este algoritmo:
+**Datos base:**
+* Tablas de puntos por posición:
+* **1ª división (24 puestos)**: \[1:1000, 2:850, 3:725, 4:625, 5:520, 6:450, 7:380, 8:320, 9:270, 10:230, 11:195, 12:165, 13:140, 14:120, 15:105, 16:90, 17:75, 18:65, 19:55, 20:46, 21:39, 22:34, 23:30, 24:27]
+* **2ª división (24 puestos)**: \[1:230, 2:195, 3:165, 4:140, 5:120, 6:103, 7:86, 8:74, 9:63, 10:54, 11:46, 12:39, 13:34, 14:29, 15:25, 16:21, 17:18, 18:15, 19:13, 20:11, 21:9, 22:8, 23:7, 24:6]
+* **Regionales**: \[1:140, 2:120, 3:100, 4:85, 5:72, 6:60, 7:50, 8:42, 9:35, 10:30, 11:25, 12:21, 13:18, 14:15, 15:13, 16:11, 17:9, 18:8, 19:7, 20:6, ... hasta 24 opcional]
+**Ponderación temporal (permanente configurable):**
+* Último año (año actual): ×1.0
+* Año -1: ×0.8
+* Año -2: ×0.5
+* Año -3: ×0.2
+**Coeficiente regional (fórmula aplicada automáticamente):**
+* Parámetros configurables: suelo, techo, incremento (ejemplo: suelo=0.8, techo=1.2, incremento=0.01)
+* Para cada región: puntos_totales_region = suma de puntos (CE 1ª + CE 2ª) de **todos los equipos** de la región en la temporada actual (o periodo que elijas).
+* Coeficiente calculado como: coef = clamp(suelo + puntos_totales_region * incremento, suelo, techo)
+(equivalente a: coef = MAX(suelo, MIN(techo, suelo + puntos_totales_region * incremento)))
+* Aplicar el coeficiente solo a los **puntos regionales** antes de ponderación temporal.
+* El sistema debe permitir **override manual** del coeficiente en la admin.
+**Aclaraciones**
+Coeficientes regionales: se calculan cada año y afectan únicamente a los resultados de ese año.
+Clasificaciones:
+General 4 años: suma los resultados de los últimos 4 años (CE 1ª, CE 2ª y regionales) aplicando la ponderación temporal indicada.
+Global histórica: incluye todos los años registrados sin ponderación de antigüedad.
+Logos: usar logos oficiales de FEDV y crear un nuevo logo para “Ranking FEDV”.
+Para la base de datos utilizaremos o bien PostgreSQL con Supabase, o bien MongoDB o Firebase. ¿Cuál es tu recomendación para este proyecto?
+**Cálculo ranking para un equipo:**
+1. Para cada año en el rango de 4 años:
+* Obtener puntos CE: buscar tabla (1ª o 2ª) por posición y sumar.
+* Obtener puntos regionales: tabla regional por posición, multiplicada por coeficiente regional de ese año/edición.
+* Sumar CE + regional (ya con coeficiente).
+* Multiplicar por el ponderador temporal del año.
+2. Sumar los valores ponderados de los 4 años → total acumulado del equipo.
+3. Ranking = ordenar equipos por total acumulado descendente.
+4. Guardar detalle del cálculo (desglose por año) para auditoría y visualización histórica.
+### Requisitos técnicos / stack recomendados (obligatorio seguir directrices)
+* **Frontend**: React (Vite), TypeScript, Tailwind CSS, shadcn/ui para componentes (si disponible), lucide-react para iconos. Usa React Router para rutas. Utiliza Recharts o similar para gráficos.
+* **Backend**: Node.js + Express o Next.js API routes, TypeScript recomendado. Base de datos PostgreSQL+Supabase o MongoDB o Firebase (dime tu recomendación para este proyecto) y migraciones con Prisma ORMs (o TypeORM). Implementa una capa de servicios con la lógica de cálculo desacoplada.
+* **Autenticación**: JSON Web Tokens (JWT) para sesión admin, endpoints protegidos para backoffice. Implementa registro solo por invitación o seeded admin.
+* **Export Excel**: usar exceljs para generar export del ranking y descarga.
+* **Import CSV/Excel**: parsing con papaparse / exceljs para cargar resultados masivos.
+* **Tests**: Jest + testing-library: tests unitarios para funciones de cálculo (coeficiente, ponderación, total), e2e básicos con Playwright o Cypress opcional.
+* **Linting / Formatting**: ESLint + Prettier.
+* **Scripts**: npm run dev, npm run build, npm start, npm run seed, npm run test.
+* **Deployment**: instrucciones para desplegar en Vercel + preparar variables de entorno.
+### UX / Backoffice / Public
+* **Backoffice** (ruta /admin):
+* Login admin.
+* Dashboard con KPIs: número de equipos, torneos recientes, regiones con coeficientes.
+* CRUD equipos (nombre, club, región, email contacto), CRUD regiones, CRUD torneos (tipo: CE1/CE2/Regional; año; superficie; modalidad), formulario para introducir posiciones (orden de equipos).
+* Importar resultados (CSV/Excel).
+* Configuración: editar tablas de puntos, ponderadores temporales, params de coeficiente (suelo, techo, incremento).
+* Botón recalcular ranking (recalcula y persiste).
+* Historial de recalculados y audit logs.
+* **Público** (ruta /):
+* Página ranking global (tabla + paginación + filtros por superficie/categoría/año).
+* Ficha de equipo: datos, puntos por año, gráfico evolución.
+* Ficha región: coeficiente actual, histórico, resumen de puntos.
+* Download ranking Excel.
+* Visualizaciones: comparación 1ª vs 2ª, distribución de puntos, top 10 por región.
+* **Validaciones**: evitar duplicados, checks: no permitir posiciones repetidas en el mismo torneo.
+### Interfaces API (sugeridas)
+* POST /api/auth/login (admin)
+* GET /api/teams
+* POST /api/teams
+* PUT /api/teams/:id
+* GET /api/regions
+* POST /api/regions
+* GET /api/tournaments
+* POST /api/tournaments (payload incluye type, year, surface, positions: \[{teamId, position}])
+* POST /api/import (CSV/Excel)
+* POST /api/ranking/recalculate (protected)
+* GET /api/ranking (with filters)
+* GET /api/team/:id
+* GET /api/region/:id
+* GET /api/export/ranking.xlsx
+### Requisitos no funcionales / seguridad
+* Sanitizar inputs, prevenir injection, limitar tamaños de upload.
+* Razonable manejo de concurrencia: si hay recalculado en curso, encolar petición.
+* Indicar en README las env vars necesarias: JWT\_SECRET, DATABASE\_URL, PORT, ADMIN\_EMAIL, ADMIN\_PASS.
+* Implementar CORS con whitelist para frontend.
+### Calidad del código
+* Código TypeScript tipado donde aplique.
+* Componentes React bien estructurados, separación containers/components.
+* Lógica de cálculo en servicios reutilizables y testables (no dentro de components).
+* Buena UX básica: loaders, manejo de errores, mensajes de confirmación.
+---
+### Resultado esperado del sistema
+* Recalculo exacto del ranking conforme al algoritmo descrito.
+* Admin puede editar tablas (puntos/ponderadores) y ver cómo cambian los rankings en tiempo real.
+* Regiones tienen coeficiente calculado automáticamente según suelo + puntos_totales * incremento, con clamp entre suelo y techo.
+* Export/Import funcionales.
+* Tests que validen la lógica core.
