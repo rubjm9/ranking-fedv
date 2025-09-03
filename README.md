@@ -1,40 +1,82 @@
-# Ranking FEDV - Sistema de Ranking de Ultimate Frisbee
+# 🥏 FEDV Ultimate Frisbee Ranking System
 
-Sistema completo para gestionar y visualizar el ranking de equipos de Ultimate Frisbee en España, desarrollado para la Federación Española de Deportes de Vuelo (FEDV).
+Sistema de ranking oficial de la Federación Española de Disco Volador (FEDV) para equipos de Ultimate Frisbee en España.
 
-## 🏆 Características
+## 🚀 Características
 
-- **Ranking Automático**: Cálculo automático del ranking según las reglas FEDV
-- **Panel de Administración**: Gestión completa de equipos, torneos y configuraciones
-- **Sección Pública**: Visualización del ranking con filtros y gráficas
-- **Import/Export**: Carga masiva de resultados y exportación de rankings
-- **Gráficas Interactivas**: Evolución histórica y comparativas
-- **Diseño Moderno**: UI/UX vanguardista con Tailwind CSS
+### ✨ Funcionalidades Principales
+- **Sistema de Ranking Automático**: Cálculo automático de puntos basado en resultados de torneos
+- **Gestión de Equipos**: CRUD completo con soporte para equipos filiales y nombres específicos por modalidad
+- **Gestión de Regiones**: Coeficientes regionales configurables
+- **Gestión de Torneos**: Tipos de torneo, superficies y modalidades
+- **Panel de Administración**: Interfaz completa para gestión del sistema
+- **Sitio Público**: Consulta de rankings y resultados para usuarios públicos
+
+### 🎯 Funcionalidades Avanzadas
+- **Equipos Filiales**: Sistema jerárquico de equipos (club principal + equipos filiales)
+- **Nombres Específicos**: Soporte para nombres distintos en Open, Women y Mixed
+- **Import/Export**: Funcionalidad completa para importar/exportar datos en CSV y Excel
+- **Autenticación JWT**: Sistema seguro de autenticación para administradores
+- **Responsive Design**: Interfaz adaptada a todos los dispositivos
+
+## 🏗️ Arquitectura
+
+### 📁 Estructura del Proyecto
+```
+ranking-fedv/
+├── frontend/          # Aplicación React (Vite + TypeScript)
+├── backend/           # API Node.js (Express + Prisma)
+├── shared/            # Tipos y utilidades compartidas
+├── docs/             # Documentación del proyecto
+└── tests/            # Tests automatizados
+```
+
+### 🛠️ Stack Tecnológico
+
+#### Frontend
+- **React 18** con TypeScript
+- **Vite** como bundler
+- **Tailwind CSS** para estilos
+- **React Query** para gestión de estado
+- **React Router** para navegación
+- **Lucide React** para iconos
+- **React Hook Form** para formularios
+
+#### Backend
+- **Node.js** con Express
+- **TypeScript** para tipado
+- **Prisma ORM** para base de datos
+- **PostgreSQL** con Supabase
+- **JWT** para autenticación
+- **Jest** para testing
 
 ## 🚀 Instalación
 
 ### Prerrequisitos
-
 - Node.js 18+ 
-- PostgreSQL (recomendado Supabase)
 - npm o yarn
+- PostgreSQL (o Supabase)
 
-### Configuración
-
-1. **Clonar el repositorio**
+### 1. Clonar el repositorio
 ```bash
-git clone <repository-url>
+git clone https://github.com/rubjm9/ranking-fedv.git
 cd ranking-fedv
 ```
 
-2. **Instalar dependencias**
+### 2. Instalar dependencias
 ```bash
-npm run install:all
+# Instalar dependencias del frontend
+cd frontend
+npm install
+
+# Instalar dependencias del backend
+cd ../backend
+npm install
 ```
 
-3. **Configurar variables de entorno**
+### 3. Configurar variables de entorno
 
-Crear archivo `.env` en la raíz del proyecto:
+#### Backend (.env)
 ```env
 # Base de datos
 DATABASE_URL="postgresql://user:password@localhost:5432/ranking_fedv"
@@ -50,212 +92,171 @@ NODE_ENV=development
 ADMIN_EMAIL="admin@fedv.es"
 ADMIN_PASSWORD="admin123"
 
-# Supabase (opcional)
-SUPABASE_URL="https://tu-proyecto.supabase.co"
-SUPABASE_ANON_KEY="tu-anon-key"
-SUPABASE_SERVICE_ROLE_KEY="tu-service-role-key"
-
-# Frontend
-VITE_API_URL="http://localhost:3001"
+# Frontend URL (para CORS)
+FRONTEND_URL="http://localhost:5173"
 ```
 
-4. **Configurar base de datos**
+### 4. Configurar base de datos
 ```bash
-# Ejecutar migraciones
-npm run seed
-
-# O manualmente:
 cd backend
-npm run db:migrate
-npm run seed
+npx prisma generate
+npx prisma db push
+npx prisma db seed
 ```
 
-5. **Iniciar desarrollo**
+### 5. Ejecutar el proyecto
 ```bash
+# Terminal 1 - Backend
+cd backend
+npm run dev
+
+# Terminal 2 - Frontend
+cd frontend
 npm run dev
 ```
 
-El frontend estará disponible en `http://localhost:5173` y el backend en `http://localhost:3001`.
+## 📖 Uso
 
-## 📊 Estructura del Proyecto
+### 🔐 Acceso al Sistema
+- **URL Frontend**: http://localhost:5173
+- **URL Backend**: http://localhost:3001
+- **Admin por defecto**: admin@fedv.es / admin123
 
-```
-ranking-fedv/
-├── frontend/          # React + Vite + TypeScript
-├── backend/           # Node.js + Express + TypeScript
-├── shared/            # Tipos y utilidades compartidas
-├── docs/              # Documentación
-└── tests/             # Tests end-to-end
-```
+### 🎯 Funcionalidades Principales
 
-## 🎯 Funcionalidades Principales
+#### Panel de Administración
+- **Dashboard**: Vista general del sistema
+- **Equipos**: Gestión completa de equipos y equipos filiales
+- **Regiones**: Configuración de regiones y coeficientes
+- **Torneos**: Gestión de torneos y resultados
+- **Ranking**: Visualización y gestión del ranking
+- **Import/Export**: Funcionalidad de importación y exportación de datos
 
-### Panel de Administración (`/admin`)
-- **Dashboard**: KPIs y métricas del sistema
-- **Gestión de Equipos**: CRUD completo de equipos
-- **Gestión de Torneos**: Crear y gestionar torneos
-- **Resultados**: Introducir posiciones y resultados
-- **Configuración**: Tablas de puntos y ponderadores
-- **Import/Export**: Carga masiva y exportación
+#### Sitio Público
+- **Ranking**: Consulta del ranking actual
+- **Equipos**: Información detallada de equipos
+- **Regiones**: Estadísticas por región
+- **Torneos**: Historial de torneos y resultados
 
-### Sección Pública (`/`)
-- **Ranking Global**: Tabla principal con filtros
-- **Ficha de Equipo**: Detalles, histórico y gráficas
-- **Ficha de Región**: Coeficientes y resumen
-- **Gráficas**: Evolución histórica y comparativas
-- **Exportación**: Descarga del ranking en Excel
+## 🎨 Características de UX/UI
 
-## 🧮 Algoritmo de Ranking
+### ✨ Diseño Moderno
+- **Interfaz limpia**: Diseño minimalista y profesional
+- **Tipografía DM Sans**: Legibilidad optimizada
+- **Paleta de colores**: Consistente y accesible
+- **Iconografía**: Lucide React para iconos modernos
 
-### Reglas de Cálculo
-1. **Puntos por Posición**:
-   - 1ª División: 1000, 850, 725, 625, 520, 450...
-   - 2ª División: 230, 195, 165, 140, 120, 103...
-   - Regionales: 140, 120, 100, 85, 72, 60...
+### 📱 Responsive Design
+- **Mobile First**: Optimizado para dispositivos móviles
+- **Tablet**: Interfaz adaptada para tablets
+- **Desktop**: Experiencia completa en pantallas grandes
 
-2. **Ponderación Temporal**:
-   - Año actual: ×1.0
-   - Año -1: ×0.8
-   - Año -2: ×0.5
-   - Año -3: ×0.2
+### 🎯 Experiencia de Usuario
+- **Navegación intuitiva**: Estructura clara y lógica
+- **Feedback visual**: Estados de carga y confirmaciones
+- **Validación en tiempo real**: Errores y validaciones inmediatas
+- **Accesibilidad**: Cumple estándares de accesibilidad web
 
-3. **Coeficiente Regional**:
-   - Fórmula: `clamp(suelo + puntos_totales_region * incremento, suelo, techo)`
-   - Se aplica solo a puntos regionales
+## 🔧 Desarrollo
 
-### Proceso de Cálculo
-1. Para cada año en los últimos 4 años:
-   - Obtener puntos CE (1ª + 2ª división)
-   - Obtener puntos regionales × coeficiente regional
-   - Sumar CE + regional
-   - Multiplicar por ponderador temporal
-2. Sumar los 4 años → total acumulado
-3. Ordenar por total descendente
+### Scripts Disponibles
 
-## 🛠️ Tecnologías
-
-### Frontend
-- **React 18** + **TypeScript**
-- **Vite** para build y dev
-- **Tailwind CSS** para estilos
-- **shadcn/ui** para componentes
-- **React Router** para navegación
-- **Recharts** para gráficas
-- **Lucide React** para iconos
-
-### Backend
-- **Node.js** + **Express**
-- **TypeScript**
-- **PostgreSQL** + **Supabase**
-- **Prisma** ORM
-- **JWT** para autenticación
-- **ExcelJS** para exportación
-- **PapaParse** para importación CSV
-
-### Testing
-- **Jest** + **Testing Library**
-- **Playwright** para e2e (opcional)
-
-## 📝 API Endpoints
-
-### Autenticación
-- `POST /api/auth/login` - Login admin
-
-### Equipos
-- `GET /api/teams` - Listar equipos
-- `POST /api/teams` - Crear equipo
-- `PUT /api/teams/:id` - Actualizar equipo
-- `GET /api/teams/:id` - Obtener equipo
-
-### Regiones
-- `GET /api/regions` - Listar regiones
-- `POST /api/regions` - Crear región
-- `GET /api/regions/:id` - Obtener región
-
-### Torneos
-- `GET /api/tournaments` - Listar torneos
-- `POST /api/tournaments` - Crear torneo
-- `POST /api/tournaments/:id/positions` - Añadir posiciones
-
-### Ranking
-- `GET /api/ranking` - Obtener ranking (con filtros)
-- `POST /api/ranking/recalculate` - Recalcular ranking
-- `GET /api/export/ranking.xlsx` - Exportar ranking
-
-### Import/Export
-- `POST /api/import` - Importar resultados CSV/Excel
-
-## 🚀 Deployment
-
-### Vercel (Recomendado)
-
-1. **Configurar Vercel**
+#### Frontend
 ```bash
-npm install -g vercel
-vercel login
+npm run dev          # Desarrollo
+npm run build        # Build de producción
+npm run preview      # Preview del build
+npm run lint         # Linting
 ```
 
-2. **Variables de entorno en Vercel**
-```env
-DATABASE_URL=your-supabase-url
-JWT_SECRET=your-jwt-secret
-ADMIN_EMAIL=admin@fedv.es
-ADMIN_PASSWORD=secure-password
-```
-
-3. **Deploy**
+#### Backend
 ```bash
-vercel --prod
+npm run dev          # Desarrollo con hot reload
+npm run build        # Build de producción
+npm run start        # Producción
+npm run test         # Tests
+npm run lint         # Linting
 ```
 
-### Supabase
+### Estructura de Código
+- **TypeScript**: Tipado estricto en todo el proyecto
+- **ESLint + Prettier**: Formateo y linting automático
+- **Conventional Commits**: Estándar de commits
+- **Modular Architecture**: Código organizado y reutilizable
 
-1. Crear proyecto en Supabase
-2. Configurar variables de entorno
-3. Ejecutar migraciones
-4. Deploy frontend en Vercel/Netlify
+## 📊 Base de Datos
+
+### Esquema Principal
+- **Teams**: Equipos con soporte para filiales
+- **Regions**: Regiones con coeficientes
+- **Tournaments**: Torneos y resultados
+- **Positions**: Posiciones en torneos
+- **RankingHistory**: Historial de rankings
+- **Users**: Usuarios administradores
+
+### Relaciones
+- Equipos pueden tener equipos filiales
+- Equipos pertenecen a regiones
+- Torneos pueden estar asociados a regiones
+- Posiciones vinculan equipos y torneos
 
 ## 🧪 Testing
 
+### Frontend
+- **React Testing Library**: Tests de componentes
+- **Jest**: Framework de testing
+- **MSW**: Mock Service Worker para APIs
+
+### Backend
+- **Jest**: Framework de testing
+- **Supertest**: Testing de APIs
+- **Prisma**: Testing de base de datos
+
+## 🚀 Despliegue
+
+### Frontend (Vercel)
 ```bash
-# Tests unitarios
-npm test
-
-# Tests frontend
-npm run test:frontend
-
-# Tests backend
-npm run test:backend
-
-# Tests e2e (opcional)
-npm run test:e2e
+npm run build
+# Subir dist/ a Vercel
 ```
 
-## 📈 Monitoreo y Logs
-
-- **Audit Logs**: Todas las operaciones admin se registran
-- **Cálculo History**: Historial de recálculos del ranking
-- **Error Tracking**: Logs de errores y excepciones
+### Backend (Railway/Heroku)
+```bash
+npm run build
+# Configurar variables de entorno
+# Deploy automático desde GitHub
+```
 
 ## 🤝 Contribución
 
+### Guías de Contribución
 1. Fork el proyecto
-2. Crear feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit cambios (`git commit -m 'Add AmazingFeature'`)
-4. Push al branch (`git push origin feature/AmazingFeature`)
-5. Abrir Pull Request
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+### Estándares de Código
+- **TypeScript**: Tipado estricto
+- **ESLint**: Reglas de linting
+- **Prettier**: Formateo automático
+- **Conventional Commits**: Estándar de commits
 
 ## 📄 Licencia
 
-Este proyecto está bajo la licencia MIT. Ver `LICENSE` para más detalles.
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
 
-## 📞 Soporte
+## 👥 Equipo
 
-Para soporte técnico o consultas:
-- Email: admin@fedv.es
-- Documentación: `/docs`
-- Issues: GitHub Issues
+- **Desarrollo**: Sistema completo de ranking FEDV
+- **Diseño**: Interfaz moderna y accesible
+- **Arquitectura**: Monorepo escalable
+
+## 📞 Contacto
+
+- **GitHub**: [@rubjm9](https://github.com/rubjm9)
+- **Proyecto**: [ranking-fedv](https://github.com/rubjm9/ranking-fedv)
 
 ---
 
-**Desarrollado para la Federación Española de Deportes de Vuelo (FEDV)**
+**FEDV Ultimate Frisbee Ranking System** - Sistema oficial de ranking de la Federación Española de Disco Volador 🥏
