@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users } from 'lucide-react'
+import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Plus, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface Region {
@@ -21,6 +21,8 @@ const NewTournamentPage: React.FC = () => {
     regionId: ''
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [results, setResults] = useState<Array<{ teamId: string; position: number; points: number }>>([])
+  const [showResultsSection, setShowResultsSection] = useState(false)
 
   // Mock data - en producción vendría de la API
   const regions: Region[] = [
@@ -59,6 +61,16 @@ const NewTournamentPage: React.FC = () => {
     { value: 'OPEN', label: 'Open' },
     { value: 'MIXED', label: 'Mixto' },
     { value: 'WOMEN', label: 'Women' }
+  ]
+
+  // Mock teams - en producción vendría de la API
+  const teams = [
+    { id: '1', name: 'Sevilla Ultimate', region: 'Andalucía' },
+    { id: '2', name: 'Málaga Frisbee', region: 'Andalucía' },
+    { id: '3', name: 'Granada Flying Disc', region: 'Andalucía' },
+    { id: '4', name: 'Barcelona Ultimate', region: 'Cataluña' },
+    { id: '5', name: 'Madrid Ultimate', region: 'Madrid' },
+    { id: '6', name: 'Valencia Ultimate', region: 'Valencia' }
   ]
 
   const validateForm = () => {
@@ -116,6 +128,20 @@ const NewTournamentPage: React.FC = () => {
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
+  }
+
+  const addResult = () => {
+    setResults(prev => [...prev, { teamId: '', position: 1, points: 0 }])
+  }
+
+  const removeResult = (index: number) => {
+    setResults(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const updateResult = (index: number, field: string, value: string | number) => {
+    setResults(prev => prev.map((result, i) => 
+      i === index ? { ...result, [field]: value } : result
+    ))
   }
 
   return (
@@ -319,6 +345,95 @@ const NewTournamentPage: React.FC = () => {
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Results Section */}
+          <div className="border-t border-gray-200 pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Resultados del Torneo</h3>
+              <button
+                type="button"
+                onClick={() => setShowResultsSection(!showResultsSection)}
+                className="text-sm text-blue-600 hover:text-blue-800"
+              >
+                {showResultsSection ? 'Ocultar' : 'Mostrar'} resultados
+              </button>
+            </div>
+            
+            {showResultsSection && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-600">
+                    Agrega los resultados finales del torneo (opcional)
+                  </p>
+                  <button
+                    type="button"
+                    onClick={addResult}
+                    className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Agregar Resultado</span>
+                  </button>
+                </div>
+
+                {results.length > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="grid grid-cols-12 gap-4 mb-3 text-sm font-medium text-gray-700">
+                      <div className="col-span-4">Equipo</div>
+                      <div className="col-span-3">Posición</div>
+                      <div className="col-span-3">Puntos</div>
+                      <div className="col-span-2">Acciones</div>
+                    </div>
+                    
+                    {results.map((result, index) => (
+                      <div key={index} className="grid grid-cols-12 gap-4 items-center py-2 border-b border-gray-200 last:border-b-0">
+                        <div className="col-span-4">
+                          <select
+                            value={result.teamId}
+                            onChange={(e) => updateResult(index, 'teamId', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          >
+                            <option value="">Seleccionar equipo</option>
+                            {teams.map((team) => (
+                              <option key={team.id} value={team.id}>
+                                {team.name} ({team.region})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="col-span-3">
+                          <input
+                            type="number"
+                            value={result.position}
+                            onChange={(e) => updateResult(index, 'position', parseInt(e.target.value))}
+                            min="1"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          />
+                        </div>
+                        <div className="col-span-3">
+                          <input
+                            type="number"
+                            value={result.points}
+                            onChange={(e) => updateResult(index, 'points', parseFloat(e.target.value))}
+                            step="0.1"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          />
+                        </div>
+                        <div className="col-span-2">
+                          <button
+                            type="button"
+                            onClick={() => removeResult(index)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Actions */}

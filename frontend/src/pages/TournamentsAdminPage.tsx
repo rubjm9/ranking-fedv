@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
@@ -18,7 +18,20 @@ import {
   Loader2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { tournamentsService, Tournament } from '@/services/apiService'
+import tournamentsService from '@/services/tournamentsService'
+
+interface Tournament {
+  id: string
+  name: string
+  type: string
+  year: number
+  surface: string
+  modality: string
+  regionId?: string
+  region?: any
+  createdAt: string
+  updatedAt: string
+}
 
 const TournamentsAdminPage: React.FC = () => {
   const navigate = useNavigate()
@@ -31,17 +44,29 @@ const TournamentsAdminPage: React.FC = () => {
 
   // Obtener torneos desde la API
   const { data: tournamentsData, isLoading, error } = useQuery({
-    queryKey: ['tournaments', searchTerm, selectedType, selectedYear],
-    queryFn: () => tournamentsService.getAll({
-      search: searchTerm || undefined,
-      type: selectedType !== 'all' ? selectedType : undefined,
-      year: selectedYear !== 'all' ? parseInt(selectedYear) : undefined
-    })
+    queryKey: ['tournaments'],
+    queryFn: async () => {
+      const response = await fetch('/api/tournaments')
+      const result = await response.json()
+      return result
+    }
   })
 
   // Mutación para eliminar torneo
   const deleteTournamentMutation = useMutation({
-    mutationFn: (id: string) => tournamentsService.delete(id),
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/tournaments/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response.json()
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
       toast.success('Torneo eliminado exitosamente')
@@ -49,11 +74,17 @@ const TournamentsAdminPage: React.FC = () => {
       setSelectedTournament(null)
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Error al eliminar el torneo')
+      console.error('Error al eliminar torneo:', error)
+      if (error.response?.status === 409) {
+        toast.error('No se puede eliminar el torneo porque tiene resultados asociados. Elimina primero todos los resultados.')
+      } else {
+        toast.error(error.response?.data?.message || 'Error al eliminar el torneo')
+      }
     }
   })
 
   const tournaments = tournamentsData?.data || []
+
 
   const handleDelete = (tournament: Tournament) => {
     setSelectedTournament(tournament)
@@ -66,12 +97,16 @@ const TournamentsAdminPage: React.FC = () => {
     }
   }
 
-  const filteredTournaments = tournaments.filter(tournament => {
-    const matchesSearch = tournament.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredTournaments = tournaments.filter((tournament: Tournament) => {
+    const matchesSearch = !searchTerm || tournament.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesType = selectedType === 'all' || tournament.type === selectedType
     const matchesYear = selectedYear === 'all' || tournament.year.toString() === selectedYear
     return matchesSearch && matchesType && matchesYear
   })
+  
+
+
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -115,6 +150,17 @@ const TournamentsAdminPage: React.FC = () => {
     )
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Cargando torneos...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -128,7 +174,7 @@ const TournamentsAdminPage: React.FC = () => {
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Nuevo Torneo
+          Nuevo torneo
         </button>
       </div>
 
@@ -169,9 +215,24 @@ const TournamentsAdminPage: React.FC = () => {
       </div>
 
       {/* Tabla */}
-      {isLoading ? (
+      {filteredTournaments.length === 0 ? (
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          <div className="text-center">
+            <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay torneos</h3>
+            <p className="text-gray-600 mb-4">
+              {searchTerm || selectedType !== 'all' || selectedYear !== 'all' 
+                ? 'No se encontraron torneos con los filtros aplicados.' 
+                : 'Aún no se han creado torneos en el sistema.'}
+            </p>
+            <button
+              onClick={() => navigate('/admin/tournaments/new')}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors mx-auto"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Crear Primer Torneo</span>
+            </button>
+          </div>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -202,7 +263,7 @@ const TournamentsAdminPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredTournaments.map((tournament) => (
+              {filteredTournaments.map((tournament: Tournament) => (
                 <tr key={tournament.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">

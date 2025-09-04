@@ -81,11 +81,8 @@ export interface Tournament {
   year: number
   surface: string
   modality: string
-  region: string
-  status: string
-  startDate?: string
-  endDate?: string
-  teams: string[]
+  regionId?: string
+  region?: Region
   createdAt: string
   updatedAt: string
 }

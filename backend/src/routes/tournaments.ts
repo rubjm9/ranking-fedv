@@ -135,7 +135,6 @@ router.get('/:id', asyncHandler(async (req, res) => {
             select: {
               id: true,
               name: true,
-              club: true,
               region: {
                 select: {
                   id: true,

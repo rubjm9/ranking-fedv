@@ -29,26 +29,56 @@ const TournamentDetailAdminPage: React.FC = () => {
   // Obtener datos del torneo
   const { data: tournamentData, isLoading: tournamentLoading } = useQuery({
     queryKey: ['tournament', id],
-    queryFn: () => tournamentsService.getById(id!),
+    queryFn: async () => {
+      const response = await fetch(`/api/tournaments/${id}`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response.json()
+    },
     enabled: !!id
   })
 
   // Obtener posiciones del torneo
   const { data: positionsData, isLoading: positionsLoading } = useQuery({
     queryKey: ['positions', 'tournament', id],
-    queryFn: () => positionsService.getByTournament(id!),
+    queryFn: async () => {
+      const response = await fetch(`/api/positions?tournamentId=${id}`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response.json()
+    },
     enabled: !!id
   })
 
   // Obtener equipos para el formulario de nuevo resultado
   const { data: teamsData } = useQuery({
     queryKey: ['teams'],
-    queryFn: () => teamsService.getAll()
+    queryFn: async () => {
+      const response = await fetch('/api/teams')
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response.json()
+    }
   })
 
   // Mutation para eliminar torneo
   const deleteTournamentMutation = useMutation({
-    mutationFn: (tournamentId: string) => tournamentsService.delete(tournamentId),
+    mutationFn: async (tournamentId: string) => {
+      const response = await fetch(`/api/tournaments/${tournamentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response.json()
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
       navigate('/admin/tournaments')
@@ -126,24 +156,7 @@ const TournamentDetailAdminPage: React.FC = () => {
     return <Trophy className="h-4 w-4 text-gray-400" />
   }
 
-  const handleDeletePosition = (positionId: string) => {
-    if (confirm('¿Estás seguro de que quieres eliminar este resultado?')) {
-      deletePositionMutation.mutate(positionId)
-    }
-  }
 
-  const handleEditPosition = (position: Position) => {
-    navigate(`/admin/results/${position.id}/edit`)
-  }
-
-  const getPositionIcon = (position: number) => {
-    switch (position) {
-      case 1: return <Trophy className="h-5 w-5 text-yellow-500" />
-      case 2: return <Award className="h-5 w-5 text-gray-400" />
-      case 3: return <Award className="h-5 w-5 text-amber-600" />
-      default: return <span className="text-gray-500">{position}º</span>
-    }
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
