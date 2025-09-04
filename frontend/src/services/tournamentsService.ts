@@ -93,6 +93,18 @@ const tournamentsService = {
   delete: async (id: string): Promise<{ success: boolean; message: string }> => {
     const response = await api.delete(`/tournaments/${id}`)
     return response.data
+  },
+
+  // Eliminar todas las posiciones de un torneo
+  deletePositions: async (id: string): Promise<{ success: boolean; data: { tournamentId: string; deletedPositions: number }; message: string }> => {
+    const response = await api.delete(`/tournaments/${id}/positions`)
+    return response.data
+  },
+
+  // Añadir posiciones a un torneo
+  addPositions: async (tournamentId: string, positions: Array<{ teamId: string; position: number; points: number }>): Promise<{ success: boolean; data: any; message: string }> => {
+    const response = await api.post(`/tournaments/${tournamentId}/positions`, { positions })
+    return response.data
   }
 }
 

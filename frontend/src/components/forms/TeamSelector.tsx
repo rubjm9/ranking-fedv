@@ -1,0 +1,159 @@
+import React, { useState, useRef, useEffect } from 'react'
+import { ChevronDown, Search, X } from 'lucide-react'
+
+interface Team {
+  id: string
+  name: string
+  region?: {
+    name: string
+  }
+}
+
+interface TeamSelectorProps {
+  teams: Team[]
+  value: string
+  onChange: (teamId: string) => void
+  placeholder?: string
+  disabled?: boolean
+  error?: boolean
+}
+
+const TeamSelector: React.FC<TeamSelectorProps> = ({
+  teams,
+  value,
+  onChange,
+  placeholder = 'Seleccionar equipo',
+  disabled = false,
+  error = false
+}) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filteredTeams, setFilteredTeams] = useState<Team[]>(teams)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const selectedTeam = teams.find(team => team.id === value)
+
+  useEffect(() => {
+    const filtered = teams.filter(team =>
+      team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      team.region?.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    setFilteredTeams(filtered)
+  }, [teams, searchTerm])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSelect = (team: Team) => {
+    onChange(team.id)
+    setIsOpen(false)
+    setSearchTerm('')
+  }
+
+  const handleClear = () => {
+    onChange('')
+    setSearchTerm('')
+  }
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <div
+        className={`relative cursor-pointer ${
+          disabled ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+      >
+        <div
+          className={`flex items-center justify-between w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
+            error ? 'border-red-300 bg-red-50' : 'border-gray-300'
+          } ${disabled ? 'bg-gray-100' : 'bg-white'}`}
+        >
+          <div className="flex items-center flex-1 min-w-0">
+            {selectedTeam ? (
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-gray-900 truncate">
+                  {selectedTeam.name}
+                </div>
+                {selectedTeam.region && (
+                  <div className="text-xs text-gray-500 truncate">
+                    {selectedTeam.region.name}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <span className="text-gray-500">{placeholder}</span>
+            )}
+          </div>
+          
+          <div className="flex items-center ml-2">
+            {selectedTeam && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleClear()
+                }}
+                className="p-1 text-gray-400 hover:text-gray-600 mr-1"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+            <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          </div>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
+          <div className="p-2 border-b border-gray-200">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar equipo..."
+                className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          </div>
+          
+          <div className="max-h-48 overflow-y-auto">
+            {filteredTeams.length === 0 ? (
+              <div className="px-3 py-2 text-sm text-gray-500">
+                No se encontraron equipos
+              </div>
+            ) : (
+              filteredTeams.map((team) => (
+                <div
+                  key={team.id}
+                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => handleSelect(team)}
+                >
+                  <div className="text-sm font-medium text-gray-900">
+                    {team.name}
+                  </div>
+                  {team.region && (
+                    <div className="text-xs text-gray-500">
+                      {team.region.name}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default TeamSelector

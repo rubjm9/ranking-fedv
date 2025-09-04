@@ -60,39 +60,39 @@ async function main() {
   console.log('🏆 Creando equipos de ejemplo...');
   const teams = [
     // Andalucía
-    { name: 'Sevilla Ultimate', club: 'Sevilla Ultimate Club', regionCode: 'AND' },
-    { name: 'Málaga Frisbee', club: 'Málaga Frisbee Club', regionCode: 'AND' },
-    { name: 'Granada Flying Disc', club: 'Granada Flying Disc', regionCode: 'AND' },
+    { name: 'Sevilla Ultimate', regionCode: 'AND' },
+    { name: 'Málaga Frisbee', regionCode: 'AND' },
+    { name: 'Granada Flying Disc', regionCode: 'AND' },
     
     // Cataluña
-    { name: 'Barcelona Ultimate', club: 'Barcelona Ultimate Club', regionCode: 'CAT' },
-    { name: 'Girona Frisbee', club: 'Girona Frisbee Club', regionCode: 'CAT' },
-    { name: 'Lleida Flying Disc', club: 'Lleida Flying Disc', regionCode: 'CAT' },
+    { name: 'Barcelona Ultimate', regionCode: 'CAT' },
+    { name: 'Girona Frisbee', regionCode: 'CAT' },
+    { name: 'Lleida Flying Disc', regionCode: 'CAT' },
     
     // Madrid
-    { name: 'Madrid Ultimate', club: 'Madrid Ultimate Club', regionCode: 'MAD' },
-    { name: 'Alcalá Frisbee', club: 'Alcalá Frisbee Club', regionCode: 'MAD' },
-    { name: 'Getafe Flying Disc', club: 'Getafe Flying Disc', regionCode: 'MAD' },
+    { name: 'Madrid Ultimate', regionCode: 'MAD' },
+    { name: 'Alcalá Frisbee', regionCode: 'MAD' },
+    { name: 'Getafe Flying Disc', regionCode: 'MAD' },
     
     // Valencia
-    { name: 'Valencia Ultimate', club: 'Valencia Ultimate Club', regionCode: 'VAL' },
-    { name: 'Alicante Frisbee', club: 'Alicante Frisbee Club', regionCode: 'VAL' },
-    { name: 'Castellón Flying Disc', club: 'Castellón Flying Disc', regionCode: 'VAL' },
+    { name: 'Valencia Ultimate', regionCode: 'VAL' },
+    { name: 'Alicante Frisbee', regionCode: 'VAL' },
+    { name: 'Castellón Flying Disc', regionCode: 'VAL' },
     
     // País Vasco
-    { name: 'Bilbao Ultimate', club: 'Bilbao Ultimate Club', regionCode: 'PV' },
-    { name: 'Vitoria Frisbee', club: 'Vitoria Frisbee Club', regionCode: 'PV' },
-    { name: 'San Sebastián Flying Disc', club: 'San Sebastián Flying Disc', regionCode: 'PV' },
+    { name: 'Bilbao Ultimate', regionCode: 'PV' },
+    { name: 'Vitoria Frisbee', regionCode: 'PV' },
+    { name: 'San Sebastián Flying Disc', regionCode: 'PV' },
     
     // Galicia
-    { name: 'Santiago Ultimate', club: 'Santiago Ultimate Club', regionCode: 'GAL' },
-    { name: 'Vigo Frisbee', club: 'Vigo Frisbee Club', regionCode: 'GAL' },
-    { name: 'A Coruña Flying Disc', club: 'A Coruña Flying Disc', regionCode: 'GAL' },
+    { name: 'Santiago Ultimate', regionCode: 'GAL' },
+    { name: 'Vigo Frisbee', regionCode: 'GAL' },
+    { name: 'A Coruña Flying Disc', regionCode: 'GAL' },
     
     // Aragón
-    { name: 'Zaragoza Ultimate', club: 'Zaragoza Ultimate Club', regionCode: 'ARA' },
-    { name: 'Huesca Frisbee', club: 'Huesca Frisbee Club', regionCode: 'ARA' },
-    { name: 'Teruel Flying Disc', club: 'Teruel Flying Disc', regionCode: 'ARA' }
+    { name: 'Zaragoza Ultimate', regionCode: 'ARA' },
+    { name: 'Huesca Frisbee', regionCode: 'ARA' },
+    { name: 'Teruel Flying Disc', regionCode: 'ARA' }
   ];
 
   const createdTeams = [];
@@ -108,7 +108,6 @@ async function main() {
         const team = await prisma.team.create({
           data: {
             name: teamData.name,
-            club: teamData.club,
             regionId: region.id,
             email: `${teamData.name.toLowerCase().replace(/\s+/g, '.')}@example.com`
           }

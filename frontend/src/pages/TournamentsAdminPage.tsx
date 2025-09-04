@@ -40,6 +40,7 @@ const TournamentsAdminPage: React.FC = () => {
   const [selectedType, setSelectedType] = useState('all')
   const [selectedYear, setSelectedYear] = useState('all')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showDeletePositionsModal, setShowDeletePositionsModal] = useState(false)
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null)
 
   // Obtener torneos desde la API
@@ -75,11 +76,39 @@ const TournamentsAdminPage: React.FC = () => {
     },
     onError: (error: any) => {
       console.error('Error al eliminar torneo:', error)
-      if (error.response?.status === 409) {
-        toast.error('No se puede eliminar el torneo porque tiene resultados asociados. Elimina primero todos los resultados.')
+      if (error.message?.includes('409')) {
+        setShowDeleteModal(false)
+        setShowDeletePositionsModal(true)
       } else {
-        toast.error(error.response?.data?.message || 'Error al eliminar el torneo')
+        toast.error('Error al eliminar el torneo')
       }
+    }
+  })
+
+  // Mutación para eliminar posiciones de un torneo
+  const deletePositionsMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/tournaments/${id}/positions`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response.json()
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['tournaments'] })
+      toast.success(`Se eliminaron ${data.data.deletedPositions} posiciones del torneo`)
+      setShowDeletePositionsModal(false)
+      setSelectedTournament(null)
+    },
+    onError: (error: any) => {
+      console.error('Error al eliminar posiciones:', error)
+      toast.error('Error al eliminar las posiciones del torneo')
     }
   })
 
@@ -94,6 +123,12 @@ const TournamentsAdminPage: React.FC = () => {
   const confirmDelete = () => {
     if (selectedTournament) {
       deleteTournamentMutation.mutate(selectedTournament.id)
+    }
+  }
+
+  const confirmDeletePositions = () => {
+    if (selectedTournament) {
+      deletePositionsMutation.mutate(selectedTournament.id)
     }
   }
 
@@ -356,6 +391,40 @@ const TournamentsAdminPage: React.FC = () => {
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   'Eliminar'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación de eliminación de posiciones */}
+      {showDeletePositionsModal && selectedTournament && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Eliminar posiciones del torneo
+            </h3>
+            <p className="text-gray-600 mb-6">
+              El torneo "{selectedTournament.name}" tiene posiciones asociadas que impiden su eliminación. 
+              ¿Quieres eliminar todas las posiciones del torneo para poder eliminarlo después?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeletePositionsModal(false)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDeletePositions}
+                disabled={deletePositionsMutation.isPending}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
+              >
+                {deletePositionsMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  'Eliminar posiciones'
                 )}
               </button>
             </div>

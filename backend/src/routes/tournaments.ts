@@ -14,7 +14,10 @@ const createTournamentValidation = [
   body('year').isInt({ min: 2020, max: 2030 }).withMessage('Año debe estar entre 2020 y 2030'),
   body('surface').isIn(['GRASS', 'BEACH', 'INDOOR']).withMessage('Superficie inválida'),
   body('modality').isIn(['OPEN', 'MIXED', 'WOMEN']).withMessage('Modalidad inválida'),
-  body('regionId').optional().isString().withMessage('ID de región inválido')
+  body('regionId').optional().isString().withMessage('ID de región inválido'),
+  body('startDate').optional().isISO8601().withMessage('Fecha de inicio inválida'),
+  body('endDate').optional().isISO8601().withMessage('Fecha de fin inválida'),
+  body('location').optional().trim().isLength({ min: 2, max: 200 }).withMessage('Ubicación debe tener entre 2 y 200 caracteres')
 ];
 
 const updateTournamentValidation = [
@@ -23,7 +26,10 @@ const updateTournamentValidation = [
   body('year').optional().isInt({ min: 2020, max: 2030 }).withMessage('Año debe estar entre 2020 y 2030'),
   body('surface').optional().isIn(['GRASS', 'BEACH', 'INDOOR']).withMessage('Superficie inválida'),
   body('modality').optional().isIn(['OPEN', 'MIXED', 'WOMEN']).withMessage('Modalidad inválida'),
-  body('regionId').optional().isString().withMessage('ID de región inválido')
+  body('regionId').optional().isString().withMessage('ID de región inválido'),
+  body('startDate').optional().isISO8601().withMessage('Fecha de inicio inválida'),
+  body('endDate').optional().isISO8601().withMessage('Fecha de fin inválida'),
+  body('location').optional().trim().isLength({ min: 2, max: 200 }).withMessage('Ubicación debe tener entre 2 y 200 caracteres')
 ];
 
 // Validaciones para posiciones
@@ -555,6 +561,37 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
     success: true,
     data: stats,
     message: 'Estadísticas del torneo obtenidas exitosamente'
+  });
+}));
+
+/**
+ * DELETE /api/tournaments/:id/positions
+ * Eliminar todas las posiciones de un torneo (protegido, solo admin)
+ */
+router.delete('/:id/positions', authMiddleware, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  // Verificar que el torneo existe
+  const tournament = await prisma.tournament.findUnique({
+    where: { id }
+  });
+
+  if (!tournament) {
+    throw Errors.NOT_FOUND('Torneo no encontrado');
+  }
+
+  // Eliminar todas las posiciones del torneo
+  const deletedCount = await prisma.position.deleteMany({
+    where: { tournamentId: id }
+  });
+
+  res.json({
+    success: true,
+    data: {
+      tournamentId: id,
+      deletedPositions: deletedCount.count
+    },
+    message: `Se eliminaron ${deletedCount.count} posiciones del torneo`
   });
 }));
 
