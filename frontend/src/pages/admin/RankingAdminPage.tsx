@@ -14,7 +14,6 @@ import {
   Plus
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { importExportService } from '@/services/apiService'
 import * as XLSX from 'xlsx'
 
 interface Team {
@@ -43,7 +42,6 @@ interface Tournament {
 
 const RankingAdminPage: React.FC = () => {
   const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
   const [isRecalculating, setIsRecalculating] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRegion, setSelectedRegion] = useState('all')
@@ -54,7 +52,7 @@ const RankingAdminPage: React.FC = () => {
   const [position, setPosition] = useState(1)
 
   // Mock data - en producción vendría de la API
-  const [teams, setTeams] = useState<Team[]>([
+  const [teams] = useState<Team[]>([
     {
       id: '1',
       name: 'Madrid Ultimate Club',

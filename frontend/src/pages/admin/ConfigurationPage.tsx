@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Save, RefreshCw, Download, Upload, Settings, BarChart3, Target, TrendingUp } from 'lucide-react'
+import { Save, RefreshCw, Download, Settings, BarChart3, Target, TrendingUp } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface Configuration {

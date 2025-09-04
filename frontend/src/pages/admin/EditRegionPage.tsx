@@ -5,6 +5,15 @@ import toast from 'react-hot-toast'
 import { regionsService } from '@/services/apiService'
 import { Region } from '@/types'
 
+// Interfaz extendida para el admin con propiedades adicionales
+interface RegionWithDetails extends Region {
+  description?: string;
+  _count?: {
+    teams: number;
+    tournaments: number;
+  };
+}
+
 const EditRegionPage: React.FC = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
@@ -12,7 +21,7 @@ const EditRegionPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [formData, setFormData] = useState<Region>({
+  const [formData, setFormData] = useState<RegionWithDetails>({
     id: '',
     name: '',
     code: '',

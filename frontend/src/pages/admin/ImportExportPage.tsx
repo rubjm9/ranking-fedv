@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import { Upload, Download, FileText, AlertCircle, CheckCircle, X, Trash2, Eye, Save, RefreshCw } from 'lucide-react'
+import { Upload, Download, FileText, AlertCircle, X, Trash2, Eye, Save, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { importExportService } from '@/services/apiService'
 import * as XLSX from 'xlsx'
@@ -331,37 +331,7 @@ Equipo Ejemplo 1,Club Deportivo A,Madrid,equipo1@ejemplo.com`
     }
   }
 
-  const convertToCSV = (data: any): string => {
-    const csvRows: string[] = []
-    
-    if (data.teams) {
-      csvRows.push('=== EQUIPOS ===')
-      csvRows.push('name,club,region,email')
-      data.teams.forEach((team: any) => {
-        csvRows.push(`${team.name},${team.club},${team.region},${team.email}`)
-      })
-      csvRows.push('')
-    }
 
-    if (data.tournaments) {
-      csvRows.push('=== TORNEOS ===')
-      csvRows.push('name,type,year,surface,modality')
-      data.tournaments.forEach((tournament: any) => {
-        csvRows.push(`${tournament.name},${tournament.type},${tournament.year},${tournament.surface},${tournament.modality}`)
-      })
-      csvRows.push('')
-    }
-
-    if (data.results) {
-      csvRows.push('=== RESULTADOS ===')
-      csvRows.push('tournament,team,position,points')
-      data.results.forEach((result: any) => {
-        csvRows.push(`${result.tournament},${result.team},${result.position},${result.points}`)
-      })
-    }
-
-    return csvRows.join('\n')
-  }
 
   const removeFile = (index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index))
