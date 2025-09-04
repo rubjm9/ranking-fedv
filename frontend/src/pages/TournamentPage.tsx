@@ -24,8 +24,8 @@ const mockTournamentData: Tournament = {
   name: 'Campeonato de España 1ª División',
   type: TournamentType.CE1,
   year: 2024,
-  surface: Surface.Grass,
-  modality: Modality.Open,
+  surface: Surface.GRASS,
+  modality: Modality.OPEN,
   regionId: null,
   region: null,
   positions: []
@@ -198,7 +198,7 @@ const TournamentPage = () => {
         return <Crown className="w-6 h-6 text-yellow-600" />
       case TournamentType.CE2:
         return <Medal className="w-6 h-6 text-gray-600" />
-      case TournamentType.Regional:
+      case TournamentType.REGIONAL:
         return <Award className="w-6 h-6 text-blue-600" />
       default:
         return <Trophy className="w-6 h-6 text-primary-600" />
@@ -211,7 +211,7 @@ const TournamentPage = () => {
         return 'CE 1ª División'
       case TournamentType.CE2:
         return 'CE 2ª División'
-      case TournamentType.Regional:
+      case TournamentType.REGIONAL:
         return 'Regional'
       default:
         return type
@@ -220,9 +220,9 @@ const TournamentPage = () => {
 
   const getSurfaceLabel = (surface: Surface) => {
     switch (surface) {
-      case Surface.Grass:
+      case Surface.GRASS:
         return 'Césped'
-      case Surface.Beach:
+      case Surface.BEACH:
         return 'Playa'
       default:
         return surface
@@ -231,11 +231,11 @@ const TournamentPage = () => {
 
   const getModalityLabel = (modality: Modality) => {
     switch (modality) {
-      case Modality.Open:
+      case Modality.OPEN:
         return 'Open'
-      case Modality.Women:
+      case Modality.WOMEN:
         return 'Women'
-      case Modality.Mixed:
+      case Modality.MIXED:
         return 'Mixed'
       default:
         return modality

@@ -21,7 +21,11 @@ import { Region, Team } from '@/types'
 const mockRegionData: Region = {
   id: '1',
   name: 'Madrid',
-  coefficient: 1.20
+  code: 'MAD',
+  coefficient: 1.20,
+  floor: 0.8,
+  ceiling: 1.5,
+  increment: 0.1,
 }
 
 // Mock data para equipos de la región
@@ -32,7 +36,7 @@ const mockRegionTeams: Team[] = [
     club: 'MUC',
     regionId: '1',
     email: 'info@muc.es',
-    region: { id: '1', name: 'Madrid', coefficient: 1.2 },
+    region: { id: '1', name: 'Madrid', code: 'MAD', coefficient: 1.2, floor: 0.8, ceiling: 1.5, increment: 0.1 },
     positions: []
   },
   {
@@ -41,7 +45,7 @@ const mockRegionTeams: Team[] = [
     club: 'MFM',
     regionId: '1',
     email: 'contact@mfm.es',
-    region: { id: '1', name: 'Madrid', coefficient: 1.2 },
+    region: { id: '1', name: 'Madrid', code: 'MAD', coefficient: 1.2, floor: 0.8, ceiling: 1.5, increment: 0.1 },
     positions: []
   },
   {
@@ -50,7 +54,7 @@ const mockRegionTeams: Team[] = [
     club: 'UM',
     regionId: '1',
     email: 'info@ultimatemadrid.com',
-    region: { id: '1', name: 'Madrid', coefficient: 1.2 },
+    region: { id: '1', name: 'Madrid', code: 'MAD', coefficient: 1.2, floor: 0.8, ceiling: 1.5, increment: 0.1 },
     positions: []
   },
   {

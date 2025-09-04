@@ -31,12 +31,12 @@ const mockTeamData: Team = {
 
 // Mock data para posiciones históricas
 const mockPositions: Position[] = [
-  { id: '1', tournamentId: '1', teamId: '1', position: 3, points: 725, year: 2024 },
-  { id: '2', tournamentId: '2', teamId: '1', position: 5, points: 520, year: 2024 },
-  { id: '3', tournamentId: '3', teamId: '1', position: 1, points: 1000, year: 2023 },
-  { id: '4', tournamentId: '4', teamId: '1', position: 2, points: 850, year: 2023 },
-  { id: '5', tournamentId: '5', teamId: '1', position: 4, points: 625, year: 2022 },
-  { id: '6', tournamentId: '6', teamId: '1', position: 3, points: 725, year: 2022 }
+  { id: '1', tournamentId: '1', teamId: '1', position: 3, points: 725 },
+  { id: '2', tournamentId: '2', teamId: '1', position: 5, points: 520 },
+  { id: '3', tournamentId: '3', teamId: '1', position: 1, points: 1000 },
+  { id: '4', tournamentId: '4', teamId: '1', position: 2, points: 850 },
+  { id: '5', tournamentId: '5', teamId: '1', position: 4, points: 625 },
+  { id: '6', tournamentId: '6', teamId: '1', position: 3, points: 725 }
 ]
 
 // Mock data para evolución de puntos
@@ -260,8 +260,10 @@ const TeamPage = () => {
           {/* Historial de posiciones por año */}
           {Object.entries(
             positions?.reduce((acc, pos) => {
-              if (!acc[pos.year]) acc[pos.year] = []
-              acc[pos.year].push(pos)
+              // Usar el tournamentId como año por ahora (mock data)
+              const year = parseInt(pos.tournamentId) + 2020 // Mock: tournamentId 1 = 2021
+              if (!acc[year]) acc[year] = []
+              acc[year].push(pos)
               return acc
             }, {} as Record<number, Position[]>) || {}
           ).map(([year, yearPositions]) => (

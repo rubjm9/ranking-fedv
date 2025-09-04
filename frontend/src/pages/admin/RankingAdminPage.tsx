@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { 
   RefreshCw, 
   Download, 
@@ -45,6 +46,7 @@ interface Tournament {
 }
 
 const RankingAdminPage: React.FC = () => {
+  const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [isRecalculating, setIsRecalculating] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
