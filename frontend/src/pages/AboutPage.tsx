@@ -1,5 +1,5 @@
 import React from 'react'
-import { Trophy, Calculator, TrendingUp, MapPin, Calendar, Award } from 'lucide-react'
+import { Trophy, Calculator, MapPin, Award } from 'lucide-react'
 
 const AboutPage: React.FC = () => {
   return (

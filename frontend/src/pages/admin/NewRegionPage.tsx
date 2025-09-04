@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save, MapPin, Calculator, Users } from 'lucide-react'
+import { ArrowLeft, Save, MapPin, Calculator } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { regionsService } from '@/services/apiService'
 import { useQueryClient } from '@tanstack/react-query'

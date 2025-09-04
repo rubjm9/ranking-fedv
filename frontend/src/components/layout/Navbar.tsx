@@ -5,7 +5,7 @@ import { Menu, X, Trophy, Users, MapPin, Calendar, Settings } from 'lucide-react
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { isAuthenticated, user, logout } = useAuth()
+  const { isAuthenticated, logout } = useAuth()
   const location = useLocation()
 
   const navigation = [
