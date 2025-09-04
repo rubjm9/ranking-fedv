@@ -4,12 +4,16 @@ interface Props {
   children: ReactNode
 }
 
+interface ErrorBoundaryProps {
+  children: ReactNode
+}
+
 interface State {
   hasError: boolean
   error?: Error
 }
 
-class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundary extends Component<ErrorBoundaryProps, State> {
   public state: State = {
     hasError: false
   }
