@@ -52,6 +52,14 @@ const TournamentDetailAdminPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
       navigate('/admin/tournaments')
+    },
+    onError: (error: any) => {
+      console.error('Error al eliminar torneo:', error)
+      if (error.response?.status === 409) {
+        alert('No se puede eliminar el torneo porque tiene resultados asociados. Elimina primero todos los resultados.')
+      } else {
+        alert('Error al eliminar el torneo: ' + (error.response?.data?.message || error.message))
+      }
     }
   })
 
@@ -80,6 +88,7 @@ const TournamentDetailAdminPage: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600">Torneo no encontrado</p>
+          <p className="text-sm text-gray-500 mt-2">ID: {id}</p>
           <button
             onClick={() => navigate('/admin/tournaments')}
             className="mt-4 text-blue-600 hover:text-blue-800"
@@ -98,6 +107,23 @@ const TournamentDetailAdminPage: React.FC = () => {
     if (id) {
       deleteTournamentMutation.mutate(id)
     }
+  }
+
+  const handleEditPosition = (position: Position) => {
+    navigate(`/admin/results/${position.id}/edit`)
+  }
+
+  const handleDeletePosition = (positionId: string) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este resultado?')) {
+      deletePositionMutation.mutate(positionId)
+    }
+  }
+
+  const getPositionIcon = (position: number) => {
+    if (position === 1) return <Award className="h-5 w-5 text-yellow-500" />
+    if (position === 2) return <Award className="h-5 w-5 text-gray-400" />
+    if (position === 3) return <Award className="h-5 w-5 text-orange-500" />
+    return <Trophy className="h-4 w-4 text-gray-400" />
   }
 
   const handleDeletePosition = (positionId: string) => {
@@ -229,7 +255,10 @@ const TournamentDetailAdminPage: React.FC = () => {
                   <Plus className="h-4 w-4" />
                   <span>Agregar Resultado</span>
                 </button>
-                <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                <button 
+                  onClick={() => navigate(`/admin/tournaments/${id}/results/import`)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
                   <Upload className="h-4 w-4" />
                   <span>Importar</span>
                 </button>

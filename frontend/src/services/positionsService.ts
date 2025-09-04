@@ -56,6 +56,13 @@ export interface PositionResponse {
   message: string
 }
 
+export interface ImportResult {
+  success: boolean
+  imported: number
+  errors: string[]
+  warnings: string[]
+}
+
 const positionsService = {
   // Obtener todas las posiciones con filtros
   getAll: async (params?: {
@@ -115,6 +122,16 @@ const positionsService = {
   // Obtener posiciones de un equipo específico
   getByTeam: async (teamId: string): Promise<PositionsResponse> => {
     return positionsService.getAll({ teamId })
+  },
+
+  // Importar resultados masivamente
+  importResults: async (formData: FormData): Promise<ImportResult> => {
+    const response = await api.post('/positions/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    return response.data
   }
 }
 

@@ -31,6 +31,7 @@ import NewRegionPage from '@/pages/admin/NewRegionPage'
 import NewResultPage from '@/pages/admin/NewResultPage'
 import EditResultPage from '@/pages/admin/EditResultPage'
 import TournamentDetailAdminPage from '@/pages/admin/TournamentDetailAdminPage'
+import ImportResultsPage from '@/pages/admin/ImportResultsPage'
 import EditTeamPage from '@/pages/admin/EditTeamPage'
 import EditTournamentPage from '@/pages/admin/EditTournamentPage'
 import EditRegionPage from '@/pages/admin/EditRegionPage'
@@ -100,6 +101,7 @@ function App() {
               <Route path="tournaments/:id" element={<TournamentDetailAdminPage />} />
               <Route path="tournaments/:id/edit" element={<EditTournamentPage />} />
               <Route path="tournaments/:tournamentId/results/new" element={<NewResultPage />} />
+              <Route path="tournaments/:tournamentId/results/import" element={<ImportResultsPage />} />
               <Route path="results/:id/edit" element={<EditResultPage />} />
               <Route path="ranking" element={<RankingAdminPage />} />
               <Route path="configuration" element={<ConfigurationPage />} />
