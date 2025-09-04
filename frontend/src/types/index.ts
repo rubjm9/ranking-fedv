@@ -119,6 +119,7 @@ export interface UpdateTournamentRequest extends Partial<CreateTournamentRequest
 export interface Position {
   id: string;
   position: number;
+  points: number;
   teamId: string;
   tournamentId: string;
   team?: Team;

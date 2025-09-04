@@ -8,11 +8,11 @@ import AdminLayout from '@/components/layout/AdminLayout'
 import HomePage from '@/pages/HomePage'
 import RankingPage from '@/pages/RankingPage'
 import TeamsPage from '@/pages/TeamsPage'
-import TeamPage from '@/pages/TeamPage'
+// import TeamPage from '@/pages/TeamPage'
 import RegionsPage from '@/pages/RegionsPage'
-import RegionPage from '@/pages/RegionPage'
+// import RegionPage from '@/pages/RegionPage'
 import TournamentsPage from '@/pages/TournamentsPage'
-import TournamentPage from '@/pages/TournamentPage'
+// import TournamentPage from '@/pages/TournamentPage'
 import AboutPage from '@/pages/AboutPage'
 
 // Páginas de autenticación
@@ -49,7 +49,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutos
-      cacheTime: 10 * 60 * 1000, // 10 minutos
+      gcTime: 10 * 60 * 1000, // 10 minutos (antes cacheTime)
       retry: 1,
       refetchOnWindowFocus: false,
     },
