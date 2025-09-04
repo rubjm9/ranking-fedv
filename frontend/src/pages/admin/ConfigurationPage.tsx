@@ -157,7 +157,7 @@ const ConfigurationPage: React.FC = () => {
             </label>
             <input
               type="number"
-              value={config[division][position] || 0}
+              value={(config[division] as Record<number, number>)[position] || 0}
               onChange={(e) => handlePointChange(division, position, e.target.value)}
               className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               min="0"

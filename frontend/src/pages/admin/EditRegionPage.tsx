@@ -2,26 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Save, MapPin, Calculator, Users, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { regionsService, Region } from '@/services/apiService'
-
-interface Region {
-  id: string
-  name: string
-  code: string
-  coefficient: number
-  description?: string
-  floor?: number
-  ceiling?: number
-  increment?: number
-  createdAt: string
-  updatedAt?: string
-  teams?: any[]
-  tournaments?: any[]
-  _count?: {
-    teams: number
-    tournaments: number
-  }
-}
+import { regionsService } from '@/services/apiService'
+import { Region } from '@/types'
 
 const EditRegionPage: React.FC = () => {
   const navigate = useNavigate()
