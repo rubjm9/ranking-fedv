@@ -50,7 +50,7 @@ const TournamentDetailAdminPage: React.FC = () => {
   const deleteTournamentMutation = useMutation({
     mutationFn: (tournamentId: string) => tournamentsService.delete(tournamentId),
     onSuccess: () => {
-      queryClient.invalidateQueries(['tournaments'])
+      queryClient.invalidateQueries({ queryKey: ['tournaments'] })
       navigate('/admin/tournaments')
     }
   })
@@ -59,8 +59,8 @@ const TournamentDetailAdminPage: React.FC = () => {
   const deletePositionMutation = useMutation({
     mutationFn: (positionId: string) => positionsService.delete(positionId),
     onSuccess: () => {
-      queryClient.invalidateQueries(['positions'])
-      queryClient.invalidateQueries(['tournament', id])
+      queryClient.invalidateQueries({ queryKey: ['positions'] })
+      queryClient.invalidateQueries({ queryKey: ['tournament', id] })
     }
   })
 

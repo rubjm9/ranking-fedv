@@ -42,8 +42,8 @@ const NewResultPage: React.FC = () => {
   const createPositionMutation = useMutation({
     mutationFn: (data: CreatePositionData) => positionsService.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['positions'])
-      queryClient.invalidateQueries(['tournaments'])
+      queryClient.invalidateQueries({ queryKey: ['positions'] })
+      queryClient.invalidateQueries({ queryKey: ['tournaments'] })
       navigate(`/admin/tournaments/${formData.tournamentId}`)
     },
     onError: (error: any) => {

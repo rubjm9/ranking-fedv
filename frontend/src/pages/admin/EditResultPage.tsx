@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Save, X } from 'lucide-react'
@@ -19,20 +19,24 @@ const EditResultPage: React.FC = () => {
   const { data: positionData, isLoading: positionLoading } = useQuery({
     queryKey: ['position', id],
     queryFn: () => positionsService.getById(id!),
-    enabled: !!id,
-    onSuccess: (data) => {
+    enabled: !!id
+  })
+
+  // Actualizar formData cuando se cargan los datos
+  React.useEffect(() => {
+    if (positionData?.data) {
       setFormData({
-        position: data.data.position
+        position: positionData.data.position
       })
     }
-  })
+  }, [positionData])
 
   // Mutation para actualizar posición
   const updatePositionMutation = useMutation({
     mutationFn: (data: UpdatePositionData) => positionsService.update(id!, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['positions'])
-      queryClient.invalidateQueries(['tournament', positionData?.data.tournamentId])
+      queryClient.invalidateQueries({ queryKey: ['positions'] })
+      queryClient.invalidateQueries({ queryKey: ['tournament', positionData?.data.tournamentId] })
       navigate(`/admin/tournaments/${positionData?.data.tournamentId}`)
     },
     onError: (error: any) => {
