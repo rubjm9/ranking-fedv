@@ -15,6 +15,7 @@ import tournamentRoutes from './routes/tournaments';
 import rankingRoutes from './routes/ranking';
 import importExportRoutes from './routes/importExport';
 import configurationRoutes from './routes/configuration';
+import positionRoutes from './routes/positions';
 
 // Importar middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -74,6 +75,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/regions', regionRoutes);
 app.use('/api/tournaments', tournamentRoutes);
+app.use('/api/positions', positionRoutes);
 app.use('/api/ranking', rankingRoutes);
 app.use('/api/import', importExportRoutes);
 

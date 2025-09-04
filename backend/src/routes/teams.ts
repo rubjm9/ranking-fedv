@@ -56,10 +56,10 @@ router.get('/', asyncHandler(async (req, res) => {
 
   if (search) {
     where.OR = [
-      { name: { contains: search as string, mode: 'insensitive' } },
-      { nameOpen: { contains: search as string, mode: 'insensitive' } },
-      { nameWomen: { contains: search as string, mode: 'insensitive' } },
-      { nameMixed: { contains: search as string, mode: 'insensitive' } }
+      { name: { contains: search as string } },
+      { nameOpen: { contains: search as string } },
+      { nameWomen: { contains: search as string } },
+      { nameMixed: { contains: search as string } }
     ];
   }
 
