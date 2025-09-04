@@ -11,8 +11,6 @@
     "noImplicitOverride": false,
     "exactOptionalPropertyTypes": false,
     "noUncheckedIndexedAccess": false,
-    "suppressImplicitAnyIndexErrors": true,
-    "suppressExcessPropertyErrors": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",
