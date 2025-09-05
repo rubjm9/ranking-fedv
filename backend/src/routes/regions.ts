@@ -10,7 +10,6 @@ const prisma = new PrismaClient();
 // Validaciones para regiones
 const createRegionValidation = [
   body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Nombre debe tener entre 2 y 100 caracteres'),
-  body('code').trim().isLength({ min: 2, max: 10 }).withMessage('Código debe tener entre 2 y 10 caracteres'),
   body('coefficient').optional().isFloat({ min: 0.1, max: 2.0 }).withMessage('Coeficiente debe estar entre 0.1 y 2.0'),
   body('floor').optional().isFloat({ min: 0.1, max: 1.0 }).withMessage('Suelo debe estar entre 0.1 y 1.0'),
   body('ceiling').optional().isFloat({ min: 1.0, max: 3.0 }).withMessage('Techo debe estar entre 1.0 y 3.0'),
@@ -19,7 +18,6 @@ const createRegionValidation = [
 
 const updateRegionValidation = [
   body('name').optional().trim().isLength({ min: 2, max: 100 }).withMessage('Nombre debe tener entre 2 y 100 caracteres'),
-  body('code').optional().trim().isLength({ min: 2, max: 10 }).withMessage('Código debe tener entre 2 y 10 caracteres'),
   body('coefficient').optional().isFloat({ min: 0.1, max: 2.0 }).withMessage('Coeficiente debe estar entre 0.1 y 2.0'),
   body('floor').optional().isFloat({ min: 0.1, max: 1.0 }).withMessage('Suelo debe estar entre 0.1 y 1.0'),
   body('ceiling').optional().isFloat({ min: 1.0, max: 3.0 }).withMessage('Techo debe estar entre 1.0 y 3.0'),
@@ -66,7 +64,9 @@ router.get('/:id', asyncHandler(async (req, res) => {
         select: {
           id: true,
           name: true,
-          club: true,
+          email: true,
+          logo: true,
+          isFilial: true,
           _count: {
             select: {
               positions: true
@@ -118,26 +118,22 @@ router.post('/', authMiddleware, createRegionValidation, asyncHandler(async (req
     throw Errors.VALIDATION_ERROR(errors.array()[0].msg);
   }
 
-  const { name, code, coefficient = 1.0, floor = 0.8, ceiling = 1.2, increment = 0.01 } = req.body;
+  const { name, coefficient = 1.0, floor = 0.8, ceiling = 1.2, increment = 0.01 } = req.body;
 
-  // Verificar que no existe una región con el mismo nombre o código
+  // Verificar que no existe una región con el mismo nombre
   const existingRegion = await prisma.region.findFirst({
     where: {
-      OR: [
-        { name },
-        { code }
-      ]
+      name
     }
   });
 
   if (existingRegion) {
-    throw Errors.CONFLICT('Ya existe una región con ese nombre o código');
+    throw Errors.CONFLICT('Ya existe una región con ese nombre');
   }
 
   const region = await prisma.region.create({
     data: {
       name,
-      code,
       coefficient,
       floor,
       ceiling,
@@ -164,7 +160,7 @@ router.put('/:id', authMiddleware, updateRegionValidation, asyncHandler(async (r
   }
 
   const { id } = req.params;
-  const { name, code, coefficient, floor, ceiling, increment } = req.body;
+  const { name, coefficient, floor, ceiling, increment } = req.body;
 
   // Verificar que la región existe
   const existingRegion = await prisma.region.findUnique({
@@ -175,20 +171,17 @@ router.put('/:id', authMiddleware, updateRegionValidation, asyncHandler(async (r
     throw Errors.NOT_FOUND('Región no encontrada');
   }
 
-  // Verificar conflictos de nombre o código
-  if (name || code) {
+  // Verificar conflictos de nombre
+  if (name) {
     const conflict = await prisma.region.findFirst({
       where: {
-        OR: [
-          name ? { name } : {},
-          code ? { code } : {}
-        ],
+        name,
         id: { not: id }
       }
     });
 
     if (conflict) {
-      throw Errors.CONFLICT('Ya existe una región con ese nombre o código');
+      throw Errors.CONFLICT('Ya existe una región con ese nombre');
     }
   }
 
@@ -196,7 +189,6 @@ router.put('/:id', authMiddleware, updateRegionValidation, asyncHandler(async (r
     where: { id },
     data: {
       name,
-      code,
       coefficient,
       floor,
       ceiling,
@@ -308,7 +300,6 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
   const stats = {
     regionId: region.id,
     regionName: region.name,
-    regionCode: region.code,
     coefficient: region.coefficient,
     floor: region.floor,
     ceiling: region.ceiling,

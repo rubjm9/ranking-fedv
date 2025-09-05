@@ -233,8 +233,7 @@ export class RankingService {
           club: team.club || undefined,
           region: {
             id: team.region.id,
-            name: team.region.name,
-            code: team.region.code
+            name: team.region.name
           }
         },
         totalPoints: result.totalPoints,
@@ -337,8 +336,7 @@ export class RankingService {
         club: entry.team.club || undefined,
         region: {
           id: entry.team.region.id,
-          name: entry.team.region.name,
-          code: entry.team.region.code
+          name: entry.team.region.name
         }
       },
       totalPoints: entry.points,
@@ -386,9 +384,9 @@ export class RankingService {
     // Desglose por regiones
     const regionMap = new Map();
     for (const entry of ranking) {
-      const regionCode = entry.team.region.code;
-      if (!regionMap.has(regionCode)) {
-        regionMap.set(regionCode, {
+      const regionName = entry.team.region.name;
+      if (!regionMap.has(regionName)) {
+        regionMap.set(regionName, {
           name: entry.team.region.name,
           teams: 0,
           totalPoints: 0,
@@ -396,15 +394,15 @@ export class RankingService {
         });
       }
       
-      const regionStats = regionMap.get(regionCode);
+      const regionStats = regionMap.get(regionName);
       regionStats.teams++;
       regionStats.totalPoints += entry.totalPoints;
     }
 
     // Calcular promedios por región
-    for (const [code, stats] of regionMap) {
+    for (const [name, stats] of regionMap) {
       stats.averagePoints = stats.totalPoints / stats.teams;
-      stats.regionBreakdown[code] = stats;
+      stats.regionBreakdown[name] = stats;
     }
 
     return stats;

@@ -531,13 +531,13 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
   const totalTeams = tournament.positions.length;
   
   const teamsByRegion = tournament.positions.reduce((acc, pos) => {
-    const regionCode = pos.team.region.code;
-    acc[regionCode] = (acc[regionCode] || 0) + 1;
+    const regionName = pos.team.region.name;
+    acc[regionName] = (acc[regionName] || 0) + 1;
     return acc;
   }, {} as any);
 
-  const regionBreakdown = Object.entries(teamsByRegion).map(([code, count]) => ({
-    regionCode: code,
+  const regionBreakdown = Object.entries(teamsByRegion).map(([name, count]) => ({
+    regionName: name,
     teamCount: count
   }));
 
@@ -550,8 +550,7 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
     modality: tournament.modality,
     region: tournament.region ? {
       id: tournament.region.id,
-      name: tournament.region.name,
-      code: tournament.region.code
+      name: tournament.region.name
     } : null,
     totalTeams,
     regionBreakdown

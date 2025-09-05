@@ -12,6 +12,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    strictPort: true, // Falla si el puerto está ocupado en lugar de usar otro
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

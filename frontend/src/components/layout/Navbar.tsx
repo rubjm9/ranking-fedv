@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/SupabaseAuthContext'
 import { Menu, X, Trophy, Users, MapPin, Calendar, Settings } from 'lucide-react'
 
 const Navbar: React.FC = () => {

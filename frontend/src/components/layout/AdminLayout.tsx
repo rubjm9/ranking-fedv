@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
+import { useAuth } from '../../contexts/SupabaseAuthContext'
 import { 
   BarChart3, 
   Users, 
@@ -19,7 +19,7 @@ import toast from 'react-hot-toast'
 
 const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { user, logout } = useAuth()
+  const { user, logout, debugAuth } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -120,6 +120,13 @@ const AdminLayout: React.FC = () => {
               </div>
             </div>
             
+            <button
+              onClick={debugAuth}
+              className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200"
+              title="Debug Auth"
+            >
+              <Shield className="h-5 w-5" />
+            </button>
             <button
               onClick={handleLogout}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"

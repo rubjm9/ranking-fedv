@@ -3,7 +3,6 @@ import api from './apiService'
 export interface Region {
   id: string
   name: string
-  code: string
   coefficient: number
   floor?: number
   ceiling?: number

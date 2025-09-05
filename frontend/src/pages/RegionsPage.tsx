@@ -163,7 +163,6 @@ const RegionsPage = () => {
                     <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                       {region.name}
                     </h3>
-                    <p className="text-sm text-gray-600">{region.code}</p>
                   </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors" />

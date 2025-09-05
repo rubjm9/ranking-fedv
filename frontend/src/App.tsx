@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AuthProvider } from '@/contexts/AuthContext'
+import { AuthProvider } from '@/contexts/SupabaseAuthContext'
 import PublicLayout from '@/components/layout/PublicLayout'
 import AdminLayout from '@/components/layout/AdminLayout'
 

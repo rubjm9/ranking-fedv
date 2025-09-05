@@ -53,7 +53,6 @@ export interface UpdateTeamRequest extends Partial<CreateTeamRequest> {}
 export interface Region {
   id: string;
   name: string;
-  code: string;
   coefficient: number;
   floor: number;
   ceiling: number;
@@ -64,7 +63,6 @@ export interface Region {
 
 export interface CreateRegionRequest {
   name: string;
-  code: string;
   coefficient?: number;
   floor?: number;
   ceiling?: number;
@@ -155,7 +153,6 @@ export interface RankingEntry {
     region: {
       id: string;
       name: string;
-      code: string;
     };
   };
   totalPoints: number;

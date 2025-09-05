@@ -173,7 +173,6 @@ const RegionDetailPage: React.FC = () => {
           </Link>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{region.name}</h1>
-            <p className="text-gray-600">Código: {region.code}</p>
           </div>
         </div>
       </div>

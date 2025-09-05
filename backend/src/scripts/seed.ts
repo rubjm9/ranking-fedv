@@ -25,29 +25,17 @@ async function main() {
   // Crear regiones
   console.log('🏛️ Creando regiones...');
   const regions = [
-    { name: 'Andalucía', code: 'AND', coefficient: 1.0 },
-    { name: 'Aragón', code: 'ARA', coefficient: 1.0 },
-    { name: 'Asturias', code: 'AST', coefficient: 1.0 },
-    { name: 'Baleares', code: 'BAL', coefficient: 1.0 },
-    { name: 'Canarias', code: 'CAN', coefficient: 1.0 },
-    { name: 'Cantabria', code: 'CAN', coefficient: 1.0 },
-    { name: 'Castilla-La Mancha', code: 'CLM', coefficient: 1.0 },
-    { name: 'Castilla y León', code: 'CYL', coefficient: 1.0 },
-    { name: 'Cataluña', code: 'CAT', coefficient: 1.0 },
-    { name: 'Extremadura', code: 'EXT', coefficient: 1.0 },
-    { name: 'Galicia', code: 'GAL', coefficient: 1.0 },
-    { name: 'La Rioja', code: 'RIO', coefficient: 1.0 },
-    { name: 'Madrid', code: 'MAD', coefficient: 1.0 },
-    { name: 'Murcia', code: 'MUR', coefficient: 1.0 },
-    { name: 'Navarra', code: 'NAV', coefficient: 1.0 },
-    { name: 'País Vasco', code: 'PV', coefficient: 1.0 },
-    { name: 'Valencia', code: 'VAL', coefficient: 1.0 }
+    { name: 'centro', coefficient: 1.0 },
+    { name: 'canarias', coefficient: 1.0 },
+    { name: 'nordeste', coefficient: 1.0 },
+    { name: 'norte', coefficient: 1.0 },
+    { name: 'sur', coefficient: 1.0 }
   ];
 
   const createdRegions = [];
   for (const regionData of regions) {
     const region = await prisma.region.upsert({
-      where: { code: regionData.code },
+      where: { name: regionData.name },
       update: {},
       create: regionData
     });
@@ -59,45 +47,35 @@ async function main() {
   // Crear equipos de ejemplo
   console.log('🏆 Creando equipos de ejemplo...');
   const teams = [
-    // Andalucía
-    { name: 'Sevilla Ultimate', regionCode: 'AND' },
-    { name: 'Málaga Frisbee', regionCode: 'AND' },
-    { name: 'Granada Flying Disc', regionCode: 'AND' },
+    // Centro
+    { name: 'Madrid Ultimate', regionName: 'centro' },
+    { name: 'Alcalá Frisbee', regionName: 'centro' },
+    { name: 'Getafe Flying Disc', regionName: 'centro' },
     
-    // Cataluña
-    { name: 'Barcelona Ultimate', regionCode: 'CAT' },
-    { name: 'Girona Frisbee', regionCode: 'CAT' },
-    { name: 'Lleida Flying Disc', regionCode: 'CAT' },
+    // Canarias
+    { name: 'Las Palmas Ultimate', regionName: 'canarias' },
+    { name: 'Tenerife Frisbee', regionName: 'canarias' },
+    { name: 'Lanzarote Flying Disc', regionName: 'canarias' },
     
-    // Madrid
-    { name: 'Madrid Ultimate', regionCode: 'MAD' },
-    { name: 'Alcalá Frisbee', regionCode: 'MAD' },
-    { name: 'Getafe Flying Disc', regionCode: 'MAD' },
+    // Nordeste
+    { name: 'Barcelona Ultimate', regionName: 'nordeste' },
+    { name: 'Girona Frisbee', regionName: 'nordeste' },
+    { name: 'Lleida Flying Disc', regionName: 'nordeste' },
     
-    // Valencia
-    { name: 'Valencia Ultimate', regionCode: 'VAL' },
-    { name: 'Alicante Frisbee', regionCode: 'VAL' },
-    { name: 'Castellón Flying Disc', regionCode: 'VAL' },
+    // Norte
+    { name: 'Bilbao Ultimate', regionName: 'norte' },
+    { name: 'Vitoria Frisbee', regionName: 'norte' },
+    { name: 'San Sebastián Flying Disc', regionName: 'norte' },
     
-    // País Vasco
-    { name: 'Bilbao Ultimate', regionCode: 'PV' },
-    { name: 'Vitoria Frisbee', regionCode: 'PV' },
-    { name: 'San Sebastián Flying Disc', regionCode: 'PV' },
-    
-    // Galicia
-    { name: 'Santiago Ultimate', regionCode: 'GAL' },
-    { name: 'Vigo Frisbee', regionCode: 'GAL' },
-    { name: 'A Coruña Flying Disc', regionCode: 'GAL' },
-    
-    // Aragón
-    { name: 'Zaragoza Ultimate', regionCode: 'ARA' },
-    { name: 'Huesca Frisbee', regionCode: 'ARA' },
-    { name: 'Teruel Flying Disc', regionCode: 'ARA' }
+    // Sur
+    { name: 'Sevilla Ultimate', regionName: 'sur' },
+    { name: 'Málaga Frisbee', regionName: 'sur' },
+    { name: 'Granada Flying Disc', regionName: 'sur' }
   ];
 
   const createdTeams = [];
   for (const teamData of teams) {
-    const region = createdRegions.find(r => r.code === teamData.regionCode);
+    const region = createdRegions.find(r => r.name === teamData.regionName);
     if (region) {
       // Verificar si el equipo ya existe
       const existingTeam = await prisma.team.findFirst({
@@ -142,28 +120,28 @@ async function main() {
     },
     // Regionales 2024
     {
-      name: 'Campeonato Regional Andalucía 2024',
+      name: 'Campeonato Regional Sur 2024',
       type: 'REGIONAL',
       year: 2024,
       surface: 'GRASS',
       modality: 'OPEN',
-      regionCode: 'AND'
+      regionName: 'sur'
     },
     {
-      name: 'Campeonato Regional Cataluña 2024',
+      name: 'Campeonato Regional Nordeste 2024',
       type: 'REGIONAL',
       year: 2024,
       surface: 'GRASS',
       modality: 'OPEN',
-      regionCode: 'CAT'
+      regionName: 'nordeste'
     },
     {
-      name: 'Campeonato Regional Madrid 2024',
+      name: 'Campeonato Regional Centro 2024',
       type: 'REGIONAL',
       year: 2024,
       surface: 'GRASS',
       modality: 'OPEN',
-      regionCode: 'MAD'
+      regionName: 'centro'
     },
     // CE1 2023
     {
@@ -183,35 +161,35 @@ async function main() {
     },
     // Regionales 2023
     {
-      name: 'Campeonato Regional Andalucía 2023',
+      name: 'Campeonato Regional Sur 2023',
       type: 'REGIONAL',
       year: 2023,
       surface: 'GRASS',
       modality: 'OPEN',
-      regionCode: 'AND'
+      regionName: 'sur'
     },
     {
-      name: 'Campeonato Regional Cataluña 2023',
+      name: 'Campeonato Regional Nordeste 2023',
       type: 'REGIONAL',
       year: 2023,
       surface: 'GRASS',
       modality: 'OPEN',
-      regionCode: 'CAT'
+      regionName: 'nordeste'
     },
     {
-      name: 'Campeonato Regional Madrid 2023',
+      name: 'Campeonato Regional Centro 2023',
       type: 'REGIONAL',
       year: 2023,
       surface: 'GRASS',
       modality: 'OPEN',
-      regionCode: 'MAD'
+      regionName: 'centro'
     }
   ];
 
   const createdTournaments = [];
   for (const tournamentData of tournaments) {
-    const region = tournamentData.regionCode 
-      ? createdRegions.find(r => r.code === tournamentData.regionCode)
+    const region = tournamentData.regionName 
+      ? createdRegions.find(r => r.name === tournamentData.regionName)
       : null;
 
     const tournament = await prisma.tournament.upsert({
@@ -290,8 +268,8 @@ async function main() {
 
   for (const tournament of regionalTournaments2024) {
     const regionTeams = createdTeams.filter(t => 
-      createdRegions.find(r => r.id === t.regionId)?.code === 
-      createdRegions.find(r => r.id === tournament.regionId)?.code
+      createdRegions.find(r => r.id === t.regionId)?.name === 
+      createdRegions.find(r => r.id === tournament.regionId)?.name
     ).slice(0, 8); // Top 8 equipos por región
 
     for (let i = 0; i < regionTeams.length; i++) {
@@ -361,8 +339,8 @@ async function main() {
 
   for (const tournament of regionalTournaments2023) {
     const regionTeams = createdTeams.filter(t => 
-      createdRegions.find(r => r.id === t.regionId)?.code === 
-      createdRegions.find(r => r.id === tournament.regionId)?.code
+      createdRegions.find(r => r.id === t.regionId)?.name === 
+      createdRegions.find(r => r.id === tournament.regionId)?.name
     ).slice(0, 8);
 
     for (let i = 0; i < regionTeams.length; i++) {

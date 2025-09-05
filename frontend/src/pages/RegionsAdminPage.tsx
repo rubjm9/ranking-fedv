@@ -92,8 +92,7 @@ const RegionsAdminPage: React.FC = () => {
   }
 
   const filteredRegions = regions.filter(region => {
-    const matchesSearch = region.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         region.code.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = region.name.toLowerCase().includes(searchTerm.toLowerCase())
     return matchesSearch
   })
 
@@ -174,9 +173,6 @@ const RegionsAdminPage: React.FC = () => {
                   Región
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Código
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Coeficiente
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -201,11 +197,6 @@ const RegionsAdminPage: React.FC = () => {
                         <div className="text-sm font-medium text-gray-900">{region.name}</div>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      {region.code}
-                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">

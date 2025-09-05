@@ -89,12 +89,6 @@ const RegionDetailAdminPage: React.FC = () => {
                 <p className="text-lg font-medium text-gray-900">{region.name}</p>
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Código</label>
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                  {region.code}
-                </span>
-              </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Coeficiente</label>

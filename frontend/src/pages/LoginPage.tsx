@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../contexts/SupabaseAuthContext'
 import { Eye, EyeOff, Lock, Mail, AlertCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 

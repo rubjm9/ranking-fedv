@@ -527,7 +527,6 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
     region: {
       id: team.region.id,
       name: team.region.name,
-      code: team.region.code,
       coefficient: team.region.coefficient
     }
   };
