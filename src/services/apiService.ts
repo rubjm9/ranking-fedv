@@ -9,6 +9,7 @@ export interface Team {
   id: string
   name: string
   regionId: string
+  location?: string
   email?: string
   logo?: string
   isFilial: boolean
@@ -26,6 +27,7 @@ export interface Region {
   id: string
   name: string
   coefficient: number
+  description?: string
   floor: number
   ceiling: number
   increment: number
@@ -73,36 +75,53 @@ export const regionsService = {
   // Obtener todas las regiones
   getAll: async (params?: { search?: string }) => {
     try {
+      // Primero obtener las regiones
       let query = supabase
         .from('regions')
-        .select(`
-          *,
-          teams(count),
-          tournaments(count)
-        `)
+        .select('*')
         .order('name')
 
       if (params?.search) {
         query = query.ilike('name', `%${params.search}%`)
       }
 
-      const { data, error } = await query
+      const { data: regions, error } = await query
       
       if (error) {
         console.warn('Supabase error, usando datos mock:', error.message)
         return await mockRegionsService.getAll()
       }
+
+      if (!regions || regions.length === 0) {
+        return { success: true, data: [], message: 'No hay regiones' }
+      }
+
+      // Obtener conteos reales para cada región
+      const regionsWithCounts = await Promise.all(
+        regions.map(async (region) => {
+          // Contar equipos
+          const { count: teamCount } = await supabase
+            .from('teams')
+            .select('*', { count: 'exact', head: true })
+            .eq('regionId', region.id)
+
+          // Contar torneos
+          const { count: tournamentCount } = await supabase
+            .from('tournaments')
+            .select('*', { count: 'exact', head: true })
+            .eq('regionId', region.id)
+
+          return {
+            ...region,
+            _count: {
+              teams: teamCount || 0,
+              tournaments: tournamentCount || 0
+            }
+          }
+        })
+      )
       
-      // Transformar los datos para que coincidan con la estructura esperada
-      const transformedData = (data || []).map(region => ({
-        ...region,
-        _count: {
-          teams: region.teams?.length || 0,
-          tournaments: region.tournaments?.length || 0
-        }
-      }))
-      
-      return { success: true, data: transformedData, message: 'Regiones obtenidas exitosamente' }
+      return { success: true, data: regionsWithCounts, message: 'Regiones obtenidas exitosamente' }
     } catch (error) {
       console.warn('Error de conexión, usando datos mock:', error)
       return await mockRegionsService.getAll()
@@ -195,7 +214,7 @@ export const teamsService = {
         .from('teams')
         .select(`
           *,
-          regions!inner(name, coefficient)
+          region:regions(name, coefficient)
         `)
         .order('name')
 
@@ -210,10 +229,13 @@ export const teamsService = {
       const { data, error } = await query
       
       if (error) {
-        console.warn('Supabase error, usando datos mock:', error.message)
+        console.warn('Supabase error en teams.getAll:', error.message)
+        console.warn('Error details:', error)
         return await mockTeamsService.getAll()
       }
       
+      console.log('Teams data from Supabase:', data)
+      console.log('First team region data:', data?.[0]?.region)
       return { success: true, data: data || [], message: 'Equipos obtenidos exitosamente' }
     } catch (error) {
       console.warn('Error de conexión, usando datos mock:', error)
@@ -227,10 +249,10 @@ export const teamsService = {
       .from('teams')
       .select(`
         *,
-        regions!inner(name, coefficient),
+        region:regions(name, coefficient),
         positions(
           *,
-          tournaments!inner(name, year, type)
+          tournaments(name, year, type)
         )
       `)
       .eq('id', id)
@@ -286,7 +308,7 @@ export const tournamentsService = {
         .from('tournaments')
         .select(`
           *,
-          regions(name)
+          region:regions(name)
         `)
         .order('year', { ascending: false })
 
@@ -322,10 +344,10 @@ export const tournamentsService = {
       .from('tournaments')
       .select(`
         *,
-        regions(name),
+        region:regions(name),
         positions(
           *,
-          teams(name, regions(name))
+          teams(name, region:regions(name))
         )
       `)
       .eq('id', id)
@@ -387,6 +409,17 @@ export const tournamentsService = {
     
     if (error) throw error
     return { success: true, data, message: 'Posiciones agregadas exitosamente' }
+  },
+
+  // Eliminar todas las posiciones de un torneo
+  deletePositions: async (tournamentId: string) => {
+    const { error } = await supabase
+      .from('positions')
+      .delete()
+      .eq('tournamentId', tournamentId)
+    
+    if (error) throw error
+    return { success: true, message: 'Posiciones eliminadas exitosamente' }
   }
 }
 
@@ -566,8 +599,8 @@ export const positionsService = {
       .from('positions')
       .select(`
         *,
-        teams!inner(name, regions(name)),
-        tournaments!inner(name, year, type)
+        teams(name, regions(name)),
+        tournaments(name, year, type)
       `)
       .order('position')
 

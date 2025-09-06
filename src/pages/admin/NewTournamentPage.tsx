@@ -2,6 +2,24 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Plus, Trash2, Eye } from 'lucide-react'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import {
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import toast from 'react-hot-toast'
 import TeamSelector from '@/components/forms/TeamSelector'
 import {
@@ -79,8 +97,8 @@ const NewTournamentPage: React.FC = () => {
 
   const modalities = [
     { value: 'OPEN', label: 'Open' },
-    { value: 'MIXED', label: 'Mixto' },
-    { value: 'WOMEN', label: 'Women' }
+    { value: 'WOMEN', label: 'Women' },
+    { value: 'MIXED', label: 'Mixto' }
   ]
 
   // Generar nombre automático cuando cambien los campos relevantes
@@ -172,8 +190,8 @@ const NewTournamentPage: React.FC = () => {
         surface: formData.surface,
         modality: formData.modality,
         regionId: formData.regionId || null,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
+        startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
+        endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
         location: formData.location
       }
 
@@ -234,6 +252,112 @@ const NewTournamentPage: React.FC = () => {
         points: getPointsForPosition(i + 1, formData.type)
       }))
     })
+  }
+
+  // Sensores para drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  // Manejar drag and drop
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event
+
+    if (active.id !== over.id) {
+      setPositions((items) => {
+        const oldIndex = items.findIndex((item) => `position-${item.position}` === active.id)
+        const newIndex = items.findIndex((item) => `position-${item.position}` === over.id)
+
+        const newPositions = arrayMove(items, oldIndex, newIndex)
+        
+        // Actualizar números de posición y puntos
+        return newPositions.map((pos, index) => ({
+          ...pos,
+          position: index + 1,
+          points: getPointsForPosition(index + 1, formData.type)
+        }))
+      })
+    }
+  }
+
+  // Componente SortableItem
+  const SortableItem = ({ position, index }: { position: PositionRow; index: number }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: `position-${position.position}` })
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+    }
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`grid grid-cols-12 gap-4 items-center py-2 border-b border-gray-200 last:border-b-0 ${
+          isDragging ? 'bg-blue-50 shadow-md' : ''
+        }`}
+      >
+        <div className="col-span-1 flex items-center justify-center">
+          <div 
+            {...attributes} 
+            {...listeners}
+            className="text-gray-400 hover:text-gray-600 cursor-grab"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
+            </svg>
+          </div>
+        </div>
+        <div className="col-span-2">
+          <div className="text-sm font-medium text-gray-900">
+            {position.position}º
+          </div>
+        </div>
+        <div className="col-span-6">
+          <TeamSelector
+            teams={teams.filter(team => {
+              // Filtrar equipos ya seleccionados
+              const notSelected = !positions.some((pos, i) => i !== index && pos.teamId === team.id)
+              
+              // Para torneos regionales, solo mostrar equipos de esa región
+              if (formData.type === 'REGIONAL' && formData.regionId) {
+                return notSelected && team.regionId === formData.regionId
+              }
+              
+              // Para torneos nacionales, mostrar todos los equipos
+              return notSelected
+            })}
+            value={position.teamId}
+            onChange={(teamId) => updatePosition(index, 'teamId', teamId)}
+            placeholder="Seleccionar equipo"
+          />
+        </div>
+        <div className="col-span-2">
+          <div className="text-sm font-medium text-gray-900">
+            {position.points}
+          </div>
+        </div>
+        <div className="col-span-1">
+          <button
+            type="button"
+            onClick={() => removePosition(index)}
+            className="text-red-600 hover:text-red-800"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -545,43 +669,27 @@ const NewTournamentPage: React.FC = () => {
                 {positions.length > 0 && (
                   <div className="bg-gray-50 rounded-lg p-4">
                     <div className="grid grid-cols-12 gap-4 mb-3 text-sm font-medium text-gray-700">
+                      <div className="col-span-1">Orden</div>
                       <div className="col-span-2">Posición</div>
-                      <div className="col-span-7">Equipo</div>
+                      <div className="col-span-6">Equipo</div>
                       <div className="col-span-2">Puntos</div>
                       <div className="col-span-1">Acciones</div>
                     </div>
                     
-                    {positions.map((position, index) => (
-                      <div key={index} className="grid grid-cols-12 gap-4 items-center py-2 border-b border-gray-200 last:border-b-0">
-                        <div className="col-span-2">
-                          <div className="text-sm font-medium text-gray-900">
-                            {position.position}º
-                          </div>
-                        </div>
-                        <div className="col-span-7">
-                          <TeamSelector
-                            teams={teams}
-                            value={position.teamId}
-                            onChange={(teamId) => updatePosition(index, 'teamId', teamId)}
-                            placeholder="Seleccionar equipo"
-                          />
-                        </div>
-                        <div className="col-span-2">
-                          <div className="text-sm font-medium text-gray-900">
-                            {position.points}
-                          </div>
-                        </div>
-                        <div className="col-span-1">
-                          <button
-                            type="button"
-                            onClick={() => removePosition(index)}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={positions.map(pos => `position-${pos.position}`)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {positions.map((position, index) => (
+                          <SortableItem key={`position-${position.position}`} position={position} index={index} />
+                        ))}
+                      </SortableContext>
+                    </DndContext>
                   </div>
                 )}
               </div>
