@@ -91,7 +91,7 @@ export const regionsService = {
         console.warn('Supabase error, usando datos mock:', error.message)
         return await mockRegionsService.getAll()
       }
-
+      
       if (!regions || regions.length === 0) {
         return { success: true, data: [], message: 'No hay regiones' }
       }
@@ -112,11 +112,11 @@ export const regionsService = {
             .eq('regionId', region.id)
 
           return {
-            ...region,
-            _count: {
+        ...region,
+        _count: {
               teams: teamCount || 0,
               tournaments: tournamentCount || 0
-            }
+        }
           }
         })
       )
