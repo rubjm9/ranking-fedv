@@ -124,7 +124,7 @@ export const getPointsForPosition = (position: number, tournamentType: string): 
 
 // Generar filas de posiciones por defecto
 export const generateDefaultPositions = (tournamentType: string): PositionRow[] => {
-  return Array.from({ length: 5 }, (_, i) => ({
+  return Array.from({ length: 3 }, (_, i) => ({
     position: i + 1,
     teamId: '',
     points: getPointsForPosition(i + 1, tournamentType)

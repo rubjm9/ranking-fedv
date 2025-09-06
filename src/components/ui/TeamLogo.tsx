@@ -4,9 +4,15 @@ interface TeamLogoProps {
   name: string
   logo?: string | null
   size?: 'sm' | 'md' | 'lg'
+  className?: string
 }
 
-const TeamLogo: React.FC<TeamLogoProps> = ({ name, logo, size = 'md' }) => {
+const TeamLogo: React.FC<TeamLogoProps> = ({ 
+  name, 
+  logo, 
+  size = 'md', 
+  className = '' 
+}) => {
   const [imageError, setImageError] = useState(false)
 
   const getInitials = (name: string) => {
@@ -41,7 +47,7 @@ const TeamLogo: React.FC<TeamLogoProps> = ({ name, logo, size = 'md' }) => {
       <img
         src={logo}
         alt={`${name} logo`}
-        className={`rounded-full object-cover ${getSizeClasses()}`}
+        className={`rounded-full object-cover ${getSizeClasses()} ${className}`}
         onError={() => setImageError(true)}
       />
     )
@@ -49,7 +55,7 @@ const TeamLogo: React.FC<TeamLogoProps> = ({ name, logo, size = 'md' }) => {
 
   return (
     <div
-      className={`rounded-full flex items-center justify-center text-white font-bold ${getSizeClasses()} ${getColorClass(name)}`}
+      className={`rounded-full flex items-center justify-center text-white font-bold ${getSizeClasses()} ${getColorClass(name)} ${className}`}
     >
       {getInitials(name)}
     </div>

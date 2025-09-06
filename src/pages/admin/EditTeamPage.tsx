@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Save, Users, MapPin, Mail, Image, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { teamsService, regionsService } from '@/services/apiService'
+import TeamLogo from '@/components/ui/TeamLogo'
 
 interface Region {
   id: string
@@ -12,14 +14,22 @@ interface Region {
 interface Team {
   id: string
   name: string
-  club: string
   regionId: string
-  email: string
-  logo: string
+  location?: string
+  email?: string
+  logo?: string
+  isFilial: boolean
+  parentTeamId?: string
+  hasDifferentNames: boolean
+  nameOpen?: string
+  nameWomen?: string
+  nameMixed?: string
   createdAt: string
-  tournaments: number
-  currentRank: number
-  points: number
+  updatedAt: string
+  region?: {
+    name: string
+    coefficient: number
+  }
 }
 
 const EditTeamPage: React.FC = () => {
@@ -32,65 +42,68 @@ const EditTeamPage: React.FC = () => {
   const [formData, setFormData] = useState<Team>({
     id: '',
     name: '',
-    club: '',
     regionId: '',
+    location: '',
     email: '',
     logo: '',
+    isFilial: false,
+    parentTeamId: '',
+    hasDifferentNames: false,
+    nameOpen: '',
+    nameWomen: '',
+    nameMixed: '',
     createdAt: '',
-    tournaments: 0,
-    currentRank: 0,
-    points: 0
+    updatedAt: ''
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Mock data - en producción vendría de la API
-  const regions: Region[] = [
-    { id: '1', name: 'Andalucía', code: 'AND' },
-    { id: '2', name: 'Aragón', code: 'ARA' },
-    { id: '3', name: 'Asturias', code: 'AST' },
-    { id: '4', name: 'Baleares', code: 'BAL' },
-    { id: '5', name: 'Canarias', code: 'CAN' },
-    { id: '6', name: 'Cantabria', code: 'CAN' },
-    { id: '7', name: 'Castilla-La Mancha', code: 'CLM' },
-    { id: '8', name: 'Castilla y León', code: 'CYL' },
-    { id: '9', name: 'Cataluña', code: 'CAT' },
-    { id: '10', name: 'Extremadura', code: 'EXT' },
-    { id: '11', name: 'Galicia', code: 'GAL' },
-    { id: '12', name: 'La Rioja', code: 'RIO' },
-    { id: '13', name: 'Madrid', code: 'MAD' },
-    { id: '14', name: 'Murcia', code: 'MUR' },
-    { id: '15', name: 'Navarra', code: 'NAV' },
-    { id: '16', name: 'País Vasco', code: 'PV' },
-    { id: '17', name: 'Valencia', code: 'VAL' }
-  ]
-
-  // Mock team data - en producción vendría de la API
-  const mockTeam: Team = {
-    id: '1',
-    name: 'Madrid Ultimate Club',
-    club: 'Madrid Ultimate Club',
-    regionId: '13',
-    email: 'info@madridultimate.com',
-    logo: 'https://via.placeholder.com/40',
-    createdAt: '2024-01-15',
-    tournaments: 8,
-    currentRank: 1,
-    points: 1250.5
-  }
+  const [regions, setRegions] = useState<Region[]>([])
+  const [teams, setTeams] = useState<Team[]>([])
 
   useEffect(() => {
-    loadTeam()
+    if (id) {
+      loadTeam()
+      loadRegions()
+      loadTeams()
+    }
   }, [id])
 
+  const loadRegions = async () => {
+    try {
+      const response = await regionsService.getAll()
+      if (response.success) {
+        setRegions(response.data)
+      }
+    } catch (error) {
+      console.error('Error al cargar regiones:', error)
+    }
+  }
+
+  const loadTeams = async () => {
+    try {
+      const response = await teamsService.getAll()
+      if (response.success) {
+        setTeams(response.data)
+      }
+    } catch (error) {
+      console.error('Error al cargar equipos:', error)
+    }
+  }
+
   const loadTeam = async () => {
+    if (!id) return
+    
     setIsLoading(true)
     try {
-      // Mock API call - en producción sería una llamada real
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setFormData(mockTeam)
-    } catch (error) {
+      const response = await teamsService.getById(id)
+      if (response.success) {
+        setFormData(response.data)
+      } else {
+        throw new Error('No se pudo cargar el equipo')
+      }
+    } catch (error: any) {
       console.error('Error al cargar equipo:', error)
-      toast.error('Error al cargar el equipo')
+      toast.error(error.response?.data?.message || 'Error al cargar el equipo')
       navigate('/admin/teams')
     } finally {
       setIsLoading(false)
@@ -126,12 +139,23 @@ const EditTeamPage: React.FC = () => {
     setIsSaving(true)
 
     try {
-      // Mock API call - en producción sería una llamada real
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await teamsService.update(formData.id, {
+        name: formData.name,
+        regionId: formData.regionId,
+        location: formData.location,
+        email: formData.email,
+        logo: formData.logo,
+        isFilial: formData.isFilial,
+        parentTeamId: formData.parentTeamId,
+        hasDifferentNames: formData.hasDifferentNames,
+        nameOpen: formData.nameOpen,
+        nameWomen: formData.nameWomen,
+        nameMixed: formData.nameMixed
+      })
       
       toast.success('Equipo actualizado exitosamente')
       navigate('/admin/teams')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al actualizar equipo:', error)
       toast.error('Error al actualizar el equipo')
     } finally {
@@ -143,22 +167,37 @@ const EditTeamPage: React.FC = () => {
     setIsDeleting(true)
 
     try {
-      // Mock API call - en producción sería una llamada real
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await teamsService.delete(formData.id)
       
       toast.success('Equipo eliminado exitosamente')
       navigate('/admin/teams')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al eliminar equipo:', error)
-      toast.error('Error al eliminar el equipo')
+      toast.error(error.response?.data?.message || 'Error al eliminar el equipo')
     } finally {
       setIsDeleting(false)
       setShowDeleteModal(false)
     }
   }
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value }
+      
+      // Si se selecciona un club padre, auto-rellenar campos
+      if (field === 'parentTeamId' && value && typeof value === 'string') {
+        const parentTeam = teams.find(team => team.id === value)
+        if (parentTeam) {
+          newData.regionId = parentTeam.regionId
+          newData.location = parentTeam.location || ''
+          newData.email = parentTeam.email || ''
+          newData.logo = parentTeam.logo || ''
+        }
+      }
+      
+      return newData
+    })
+    
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
@@ -169,6 +208,23 @@ const EditTeamPage: React.FC = () => {
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
         <span className="ml-3 text-gray-600">Cargando equipo...</span>
+      </div>
+    )
+  }
+
+  // Verificar que tenemos datos del equipo
+  if (!formData.id) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">No se encontró el equipo</p>
+          <button 
+            onClick={() => navigate('/admin/teams')}
+            className="mt-4 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+          >
+            Volver a equipos
+          </button>
+        </div>
       </div>
     )
   }
@@ -209,7 +265,7 @@ const EditTeamPage: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Torneos Participados</p>
-              <p className="text-2xl font-bold text-gray-900">{formData.tournaments}</p>
+              <p className="text-2xl font-bold text-gray-900">0</p>
             </div>
           </div>
         </div>
@@ -220,7 +276,7 @@ const EditTeamPage: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Ranking Actual</p>
-              <p className="text-2xl font-bold text-gray-900">#{formData.currentRank}</p>
+              <p className="text-2xl font-bold text-gray-900">#0</p>
             </div>
           </div>
         </div>
@@ -231,7 +287,7 @@ const EditTeamPage: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Puntos Totales</p>
-              <p className="text-2xl font-bold text-gray-900">{formData.points.toFixed(1)}</p>
+              <p className="text-2xl font-bold text-gray-900">0.0</p>
             </div>
           </div>
         </div>
@@ -240,6 +296,63 @@ const EditTeamPage: React.FC = () => {
       {/* Form */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Team Type Selection */}
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Tipo de Equipo</h3>
+            
+            {/* Is Filial */}
+            <div className="flex items-center mb-2">
+              <input
+                type="checkbox"
+                id="isFilial"
+                checked={formData.isFilial}
+                onChange={(e) => handleInputChange('isFilial', e.target.checked)}
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+              />
+              <label htmlFor="isFilial" className="ml-2 block text-sm text-gray-900">
+                Es un equipo filial
+              </label>
+            </div>
+            <p className="text-xs text-gray-500 mb-4">
+              Marca esta opción si este equipo es una filial de otro equipo principal
+            </p>
+
+            {/* Parent Team Selection - Solo si es filial */}
+            {formData.isFilial && (
+              <div className="mb-4">
+                <label htmlFor="parentTeamId" className="block text-sm font-medium text-gray-700 mb-2">
+                  Club Principal *
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Users className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <select
+                    id="parentTeamId"
+                    value={formData.parentTeamId || ''}
+                    onChange={(e) => handleInputChange('parentTeamId', e.target.value)}
+                    className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
+                      errors.parentTeamId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
+                  >
+                    <option value="">Seleccionar club principal</option>
+                    {teams.filter(team => !team.isFilial && team.id !== formData.id).map((team) => (
+                      <option key={team.id} value={team.id}>
+                        {team.name} {team.region?.name && `(${team.region.name})`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {errors.parentTeamId && (
+                  <p className="mt-1 text-sm text-red-600">{errors.parentTeamId}</p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  Selecciona el club principal del cual es filial este equipo
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Basic Information */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Información Básica</h3>
@@ -270,104 +383,315 @@ const EditTeamPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Club */}
-              <div>
-                <label htmlFor="club" className="block text-sm font-medium text-gray-700 mb-2">
-                  Club
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Users className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    id="club"
-                    value={formData.club}
-                    onChange={(e) => handleInputChange('club', e.target.value)}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                    placeholder="Ej: Madrid Ultimate Club"
-                  />
-                </div>
-              </div>
 
-              {/* Region */}
-              <div>
-                <label htmlFor="regionId" className="block text-sm font-medium text-gray-700 mb-2">
-                  Región *
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400" />
+              {/* Region - Solo si NO es filial */}
+              {!formData.isFilial && (
+                <div>
+                  <label htmlFor="regionId" className="block text-sm font-medium text-gray-700 mb-2">
+                    Región *
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <MapPin className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <select
+                      id="regionId"
+                      value={formData.regionId}
+                      onChange={(e) => handleInputChange('regionId', e.target.value)}
+                      className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
+                        errors.regionId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                    >
+                      <option value="">Seleccionar región</option>
+                      {regions.map((region) => (
+                        <option key={region.id} value={region.id}>
+                          {region.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <select
-                    id="regionId"
-                    value={formData.regionId}
-                    onChange={(e) => handleInputChange('regionId', e.target.value)}
-                    className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.regionId ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="">Seleccionar región</option>
-                    {regions.map((region) => (
-                      <option key={region.id} value={region.id}>
-                        {region.name}
-                      </option>
-                    ))}
-                  </select>
+                  {errors.regionId && (
+                    <p className="mt-1 text-sm text-red-600">{errors.regionId}</p>
+                  )}
                 </div>
-                {errors.regionId && (
-                  <p className="mt-1 text-sm text-red-600">{errors.regionId}</p>
-                )}
-              </div>
+              )}
 
-              {/* Email */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email de Contacto
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
+              {/* Region Display - Solo si es filial */}
+              {formData.isFilial && formData.regionId && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Región (heredada del club principal)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <MapPin className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      value={regions.find(r => r.id === formData.regionId)?.name || ''}
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                      disabled
+                    />
                   </div>
-                  <input
-                    type="email"
-                    id="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
-                    placeholder="equipo@ejemplo.com"
-                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    La región se hereda automáticamente del club principal
+                  </p>
                 </div>
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                )}
-              </div>
+              )}
+
+              {/* Location - Solo si NO es filial */}
+              {!formData.isFilial && (
+                <div>
+                  <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+                    Ubicación
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <MapPin className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      id="location"
+                      value={formData.location || ''}
+                      onChange={(e) => handleInputChange('location', e.target.value)}
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                      placeholder="Ej: Madrid, Barcelona, Valencia..."
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Ciudad o localidad donde se encuentra el equipo
+                  </p>
+                </div>
+              )}
+
+              {/* Location Display - Solo si es filial */}
+              {formData.isFilial && formData.location && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ubicación (heredada del club principal)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <MapPin className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      value={formData.location}
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                      disabled
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    La ubicación se hereda automáticamente del club principal
+                  </p>
+                </div>
+              )}
+
+              {/* Email - Solo si NO es filial */}
+              {!formData.isFilial && (
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email de Contacto
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="email"
+                      id="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
+                        errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                      placeholder="equipo@ejemplo.com"
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Email Display - Solo si es filial */}
+              {formData.isFilial && formData.email && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email de Contacto (heredado del club principal)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                      disabled
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    El email se hereda automáticamente del club principal
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Logo */}
-          <div>
-            <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-2">
-              Logo del Equipo
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Image className="h-5 w-5 text-gray-400" />
+          {/* Logo - Solo si NO es filial */}
+          {!formData.isFilial && (
+            <div>
+              <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-2">
+                Logo del Equipo
+              </label>
+              
+              {/* Preview del logo */}
+              <div className="mb-4 flex items-center space-x-4">
+                <TeamLogo 
+                  name={formData.name || 'Equipo'} 
+                  logo={formData.logo} 
+                  size="lg"
+                />
+                <div>
+                  <p className="text-sm text-gray-600">
+                    Vista previa del logo
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Si no hay logo, se mostrará un círculo con la inicial del equipo
+                  </p>
+                </div>
               </div>
-              <input
-                type="url"
-                id="logo"
-                value={formData.logo}
-                onChange={(e) => handleInputChange('logo', e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                placeholder="https://ejemplo.com/logo.png"
-              />
+              
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Image className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="url"
+                  id="logo"
+                  value={formData.logo}
+                  onChange={(e) => handleInputChange('logo', e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                  placeholder="https://ejemplo.com/logo.png"
+                />
+              </div>
+              <p className="mt-1 text-sm text-gray-500">
+                URL de la imagen del logo (opcional)
+              </p>
             </div>
-            <p className="mt-1 text-sm text-gray-500">
-              URL de la imagen del logo (opcional)
+          )}
+
+          {/* Logo Display - Solo si es filial */}
+          {formData.isFilial && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Logo del Equipo (heredado del club principal)
+              </label>
+              
+              {/* Preview del logo heredado */}
+              <div className="mb-4 flex items-center space-x-4">
+                <TeamLogo 
+                  name={formData.name || 'Equipo'} 
+                  logo={formData.logo} 
+                  size="lg"
+                />
+                <div>
+                  <p className="text-sm text-gray-600">
+                    Logo heredado del club principal
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Este logo se hereda automáticamente del club principal
+                  </p>
+                </div>
+              </div>
+              
+              {formData.logo && (
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Image className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="url"
+                    value={formData.logo}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                    disabled
+                  />
+                </div>
+              )}
+              <p className="mt-1 text-xs text-gray-500">
+                El logo se hereda automáticamente del club principal
+              </p>
+            </div>
+          )}
+
+          {/* Team Configuration */}
+          <div className="space-y-6">
+            <h3 className="text-lg font-medium text-gray-900">Configuración del Equipo</h3>
+            
+            {/* Has Different Names */}
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="hasDifferentNames"
+                checked={formData.hasDifferentNames}
+                onChange={(e) => handleInputChange('hasDifferentNames', e.target.checked)}
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+              />
+              <label htmlFor="hasDifferentNames" className="ml-2 block text-sm text-gray-900">
+                Tiene nombres diferentes para cada modalidad
+              </label>
+            </div>
+            <p className="text-xs text-gray-500">
+              Marca esta opción si el equipo usa nombres diferentes para Open, Femenino y Mixto
             </p>
+
+            {/* Different Names Fields */}
+            {formData.hasDifferentNames && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pl-6 border-l-2 border-gray-200">
+                <div>
+                  <label htmlFor="nameMixed" className="block text-sm font-medium text-gray-700 mb-2">
+                    Nombre para Mixto
+                  </label>
+                  <input
+                    type="text"
+                    id="nameMixed"
+                    value={formData.nameMixed || ''}
+                    onChange={(e) => handleInputChange('nameMixed', e.target.value)}
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Nombre específico para modalidad Mixto"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="nameWomen" className="block text-sm font-medium text-gray-700 mb-2">
+                    Nombre para Femenino
+                  </label>
+                  <input
+                    type="text"
+                    id="nameWomen"
+                    value={formData.nameWomen || ''}
+                    onChange={(e) => handleInputChange('nameWomen', e.target.value)}
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Nombre específico para modalidad Femenino"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="nameOpen" className="block text-sm font-medium text-gray-700 mb-2">
+                    Nombre para Open
+                  </label>
+                  <input
+                    type="text"
+                    id="nameOpen"
+                    value={formData.nameOpen || ''}
+                    onChange={(e) => handleInputChange('nameOpen', e.target.value)}
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Nombre específico para modalidad Open"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Actions */}
