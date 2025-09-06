@@ -7,7 +7,6 @@ import { Region } from '@/types'
 
 // Interfaz extendida para el admin con propiedades adicionales
 interface RegionWithDetails extends Region {
-  description?: string;
   _count?: {
     teams: number;
     tournaments: number;

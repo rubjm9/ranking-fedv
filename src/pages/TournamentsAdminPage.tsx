@@ -316,15 +316,24 @@ const TournamentsAdminPage: React.FC = () => {
                     {tournament.year}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {tournament.surface}
+                    {tournament.surface === 'GRASS' ? 'Césped' : 
+                     tournament.surface === 'BEACH' ? 'Playa' : 
+                     tournament.surface === 'INDOOR' ? 'Indoor' : tournament.surface}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {tournament.modality}
+                    {tournament.modality === 'OPEN' ? 'Open' : 
+                     tournament.modality === 'WOMEN' ? 'Women' : 
+                     tournament.modality === 'MIXED' ? 'Mixto' : tournament.modality}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <MapPin className="w-4 h-4 text-gray-400 mr-2" />
-                      <span className="text-sm text-gray-900">{tournament.region?.name || 'Sin región'}</span>
+                      <span className="text-sm text-gray-900">
+                        {tournament.type === 'REGIONAL' 
+                          ? (tournament.region?.name || 'Sin región')
+                          : 'Nacional'
+                        }
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

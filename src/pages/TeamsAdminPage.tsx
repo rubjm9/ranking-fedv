@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { teamsService, Team } from '@/services/apiService'
+import TeamLogo from '@/components/ui/TeamLogo'
 
 const TeamsAdminPage: React.FC = () => {
   const navigate = useNavigate()
@@ -65,7 +66,7 @@ const TeamsAdminPage: React.FC = () => {
 
   const filteredTeams = teams.filter(team => {
     const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         team.club?.toLowerCase().includes(searchTerm.toLowerCase())
+                         team.location?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesRegion = selectedRegion === 'all' || team.region?.id === selectedRegion
     return matchesSearch && matchesRegion
   })
@@ -163,16 +164,16 @@ const TeamsAdminPage: React.FC = () => {
                 <tr key={team.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <img
-                          className="h-10 w-10 rounded-full"
-                          src={team.logo || 'https://via.placeholder.com/40'}
-                          alt={team.name}
+                      <div className="flex-shrink-0">
+                        <TeamLogo 
+                          name={team.name} 
+                          logo={team.logo} 
+                          size="md"
                         />
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{team.name}</div>
-                        <div className="text-sm text-gray-500">{team.club}</div>
+                        <div className="text-sm text-gray-500">{team.location || 'Sin ubicación'}</div>
                       </div>
                     </div>
                   </td>
