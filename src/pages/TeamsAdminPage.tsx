@@ -17,7 +17,7 @@ import {
   Loader2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { teamsService, Team } from '@/services/apiService'
+import { teamsService, regionsService, Team } from '@/services/apiService'
 import TeamLogo from '@/components/ui/TeamLogo'
 
 const TeamsAdminPage: React.FC = () => {
@@ -35,6 +35,12 @@ const TeamsAdminPage: React.FC = () => {
       search: searchTerm || undefined,
       region: selectedRegion !== 'all' ? selectedRegion : undefined
     })
+  })
+
+  // Obtener regiones desde la API
+  const { data: regionsData } = useQuery({
+    queryKey: ['regions'],
+    queryFn: () => regionsService.getAll()
   })
 
   // Mutación para eliminar equipo
@@ -124,11 +130,11 @@ const TeamsAdminPage: React.FC = () => {
           className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
           <option value="all">Todas las regiones</option>
-          <option value="Madrid">Madrid</option>
-          <option value="Cataluña">Cataluña</option>
-          <option value="Valencia">Valencia</option>
-          <option value="Andalucía">Andalucía</option>
-          <option value="País Vasco">País Vasco</option>
+          {regionsData?.data?.map((region) => (
+            <option key={region.id} value={region.id}>
+              {region.name}
+            </option>
+          ))}
         </select>
       </div>
 

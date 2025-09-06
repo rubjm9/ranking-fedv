@@ -214,7 +214,7 @@ export const teamsService = {
         .from('teams')
         .select(`
           *,
-          region:regions(name, coefficient)
+          region:regions(id, name, coefficient)
         `)
         .order('name')
 
@@ -260,6 +260,32 @@ export const teamsService = {
     
     if (error) throw error
     return { success: true, data, message: 'Equipo obtenido exitosamente' }
+  },
+
+  // Obtener datos detallados de un equipo para la página de vista
+  getTeamDetails: async (id: string) => {
+    const { data, error } = await supabase
+      .from('teams')
+      .select(`
+        *,
+        region:regions(name, coefficient),
+        parentTeam:teams!parentTeamId(name),
+        positions(
+          *,
+          tournaments(
+            name,
+            year,
+            type,
+            startDate,
+            endDate
+          )
+        )
+      `)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return { success: true, data, message: 'Datos del equipo obtenidos exitosamente' }
   },
 
   // Crear un nuevo equipo
@@ -921,12 +947,14 @@ export const importExportService = {
         // Mapear logo
         mapped.logo = row.logo || ''
         
-        // Mapear es_filial
-        mapped.isFilial = row.es_filial === 'Sí' || row.es_filial === 'Si' || row.es_filial === 'Yes' || row.es_filial === 'true'
+        // Mapear isFilial (también acepta es_filial para compatibilidad)
+        const filialValue = row.isFilial || row.es_filial
+        console.log(`Equipo ${row.name}: isFilial/es_filial = "${filialValue}" (tipo: ${typeof filialValue})`)
+        mapped.isFilial = filialValue === 'Sí' || filialValue === 'Si' || filialValue === 'Yes' || filialValue === 'true' || filialValue === '1' || filialValue === 1
         
-        // Mapear club_principal (necesitaríamos buscar el ID)
+        // Mapear club_principal (puede ser nombre o ID)
         if (row.club_principal) {
-          mapped.parentTeamId = row.club_principal // Asumimos que es el ID
+          mapped.parentTeamId = row.club_principal // Se resolverá más tarde por nombre
         }
         
         // Mapear nombres diferentes
@@ -948,12 +976,13 @@ export const importExportService = {
       
       console.log('Equipos principales:', equiposPrincipales.length)
       console.log('Equipos filiales:', equiposFiliales.length)
+      console.log('Equipos filiales encontrados:', equiposFiliales.map(team => ({ name: team.name, parentTeamId: team.parentTeamId })))
 
       // Crear equipos en la base de datos
       const results = []
       const createdTeams = new Map() // Para mapear nombres a IDs
 
-      // 1. PRIMERO: Crear equipos principales
+      // 1. PRIMERO: Crear/actualizar equipos principales
       for (const teamData of equiposPrincipales) {
         try {
           // Si regionId es un nombre, necesitamos buscar el ID real
@@ -971,31 +1000,73 @@ export const importExportService = {
             }
           }
 
-          const { data, error } = await supabase
+          // Verificar si el equipo ya existe
+          const { data: existingTeam } = await supabase
             .from('teams')
-            .insert({
-              name: teamData.name,
-              regionId: regionId || null,
-              location: teamData.location,
-              email: teamData.email,
-              logo: teamData.logo,
-              isFilial: teamData.isFilial,
-              parentTeamId: null, // Los principales no tienen padre
-              hasDifferentNames: teamData.hasDifferentNames,
-              nameOpen: teamData.nameOpen,
-              nameWomen: teamData.nameWomen,
-              nameMixed: teamData.nameMixed
-            })
-            .select()
+            .select('id')
+            .eq('name', teamData.name)
+            .single()
 
-          if (error) {
-            console.error('Error al crear equipo principal:', teamData.name, error)
-            results.push({ success: false, team: teamData.name, error: error.message })
+          let result
+          if (existingTeam) {
+            // Modo "Combinar datos": actualizar equipo existente
+            if (options.mode === 'merge') {
+              const { data, error } = await supabase
+                .from('teams')
+                .update({
+                  regionId: regionId || null,
+                  location: teamData.location || null,
+                  email: teamData.email || null,
+                  logo: teamData.logo || null,
+                  hasDifferentNames: teamData.hasDifferentNames,
+                  nameOpen: teamData.nameOpen || null,
+                  nameWomen: teamData.nameWomen || null,
+                  nameMixed: teamData.nameMixed || null
+                })
+                .eq('id', existingTeam.id)
+                .select()
+
+              if (error) {
+                console.error('Error al actualizar equipo principal:', teamData.name, error)
+                results.push({ success: false, team: teamData.name, error: error.message })
+              } else {
+                console.log('Equipo principal actualizado:', data)
+                createdTeams.set(teamData.name, existingTeam.id)
+                results.push({ success: true, team: teamData.name, data, action: 'updated' })
+              }
+            } else {
+              // Modo "Crear nuevos": saltar equipo existente
+              console.log('Equipo principal ya existe, saltando:', teamData.name)
+              createdTeams.set(teamData.name, existingTeam.id)
+              results.push({ success: true, team: teamData.name, data: [existingTeam], action: 'skipped' })
+            }
           } else {
-            console.log('Equipo principal creado:', data)
-            // Guardar el ID para los filiales
-            createdTeams.set(teamData.name, data[0].id)
-            results.push({ success: true, team: teamData.name, data })
+            // Crear nuevo equipo
+            const { data, error } = await supabase
+              .from('teams')
+              .insert({
+                name: teamData.name,
+                regionId: regionId || null,
+                location: teamData.location,
+                email: teamData.email,
+                logo: teamData.logo,
+                isFilial: teamData.isFilial,
+                parentTeamId: null, // Los principales no tienen padre
+                hasDifferentNames: teamData.hasDifferentNames,
+                nameOpen: teamData.nameOpen,
+                nameWomen: teamData.nameWomen,
+                nameMixed: teamData.nameMixed
+              })
+              .select()
+
+            if (error) {
+              console.error('Error al crear equipo principal:', teamData.name, error)
+              results.push({ success: false, team: teamData.name, error: error.message })
+            } else {
+              console.log('Equipo principal creado:', data)
+              createdTeams.set(teamData.name, data[0].id)
+              results.push({ success: true, team: teamData.name, data, action: 'created' })
+            }
           }
         } catch (error: any) {
           console.error('Error al procesar equipo principal:', teamData.name, error)
@@ -1003,7 +1074,7 @@ export const importExportService = {
         }
       }
 
-      // 2. SEGUNDO: Crear equipos filiales
+      // 2. SEGUNDO: Crear/actualizar equipos filiales
       for (const teamData of equiposFiliales) {
         try {
           // Si regionId es un nombre, necesitamos buscar el ID real
@@ -1026,7 +1097,22 @@ export const importExportService = {
           if (teamData.parentTeamId) {
             // Si parentTeamId es un nombre, buscar el ID
             if (isNaN(Number(teamData.parentTeamId))) {
+              // Primero buscar en los equipos creados en esta importación
               parentTeamId = createdTeams.get(teamData.parentTeamId)
+              
+              // Si no se encuentra, buscar en la base de datos existente
+              if (!parentTeamId) {
+                const { data: existingParentTeam } = await supabase
+                  .from('teams')
+                  .select('id')
+                  .eq('name', teamData.parentTeamId)
+                  .eq('isFilial', false) // Solo equipos principales
+                  .single()
+                
+                if (existingParentTeam) {
+                  parentTeamId = existingParentTeam.id
+                }
+              }
             } else {
               parentTeamId = teamData.parentTeamId
             }
@@ -1034,6 +1120,7 @@ export const importExportService = {
 
           if (teamData.parentTeamId && !parentTeamId) {
             console.warn(`No se encontró el equipo padre "${teamData.parentTeamId}" para "${teamData.name}"`)
+            console.log('Equipos creados disponibles:', Array.from(createdTeams.keys()))
             results.push({ 
               success: false, 
               team: teamData.name, 
@@ -1042,9 +1129,57 @@ export const importExportService = {
             continue
           }
 
-          const { data, error } = await supabase
+          console.log(`Equipo filial "${teamData.name}" -> Club principal: "${teamData.parentTeamId}" (ID: ${parentTeamId})`)
+
+          // Verificar si el equipo filial ya existe (buscar solo por nombre)
+          console.log(`[Import] Buscando equipo filial existente: name="${teamData.name}"`)
+          
+          const { data: existingTeam } = await supabase
             .from('teams')
-            .insert({
+            .select('id, parentTeamId, isFilial')
+            .eq('name', teamData.name)
+            .single()
+            
+          console.log(`[Import] Equipo existente encontrado:`, existingTeam)
+
+          if (existingTeam) {
+            // Modo "Combinar datos": actualizar equipo filial existente
+            if (options.mode === 'merge') {
+              const updateData = {
+                regionId: regionId || null,
+                location: teamData.location || null,
+                email: teamData.email || null,
+                logo: teamData.logo || null,
+                parentTeamId: parentTeamId, // Asegurar que se actualice el parentTeamId
+                hasDifferentNames: teamData.hasDifferentNames,
+                nameOpen: teamData.nameOpen || null,
+                nameWomen: teamData.nameWomen || null,
+                nameMixed: teamData.nameMixed || null
+              }
+              
+              console.log('Actualizando equipo filial con datos:', updateData)
+              
+              const { data, error } = await supabase
+                .from('teams')
+                .update(updateData)
+                .eq('id', existingTeam.id)
+                .select()
+
+              if (error) {
+                console.error('Error al actualizar equipo filial:', teamData.name, error)
+                results.push({ success: false, team: teamData.name, error: error.message })
+              } else {
+                console.log('Equipo filial actualizado:', data)
+                results.push({ success: true, team: teamData.name, data, action: 'updated' })
+              }
+            } else {
+              // Modo "Crear nuevos": saltar equipo filial existente
+              console.log('Equipo filial ya existe, saltando:', teamData.name)
+              results.push({ success: true, team: teamData.name, data: [existingTeam], action: 'skipped' })
+            }
+          } else {
+            // Crear nuevo equipo filial
+            const insertData = {
               name: teamData.name,
               regionId: regionId || null,
               location: teamData.location,
@@ -1056,15 +1191,22 @@ export const importExportService = {
               nameOpen: teamData.nameOpen,
               nameWomen: teamData.nameWomen,
               nameMixed: teamData.nameMixed
-            })
-            .select()
+            }
+            
+            console.log('Creando equipo filial con datos:', insertData)
+            
+            const { data, error } = await supabase
+              .from('teams')
+              .insert(insertData)
+              .select()
 
-          if (error) {
-            console.error('Error al crear equipo filial:', teamData.name, error)
-            results.push({ success: false, team: teamData.name, error: error.message })
-          } else {
-            console.log('Equipo filial creado:', data)
-            results.push({ success: true, team: teamData.name, data })
+            if (error) {
+              console.error('Error al crear equipo filial:', teamData.name, error)
+              results.push({ success: false, team: teamData.name, error: error.message })
+            } else {
+              console.log('Equipo filial creado:', data)
+              results.push({ success: true, team: teamData.name, data, action: 'created' })
+            }
           }
         } catch (error: any) {
           console.error('Error al procesar equipo filial:', teamData.name, error)
@@ -1074,15 +1216,28 @@ export const importExportService = {
 
       const successCount = results.filter(r => r.success).length
       const errorCount = results.filter(r => !r.success).length
+      const createdCount = results.filter(r => r.success && r.action === 'created').length
+      const updatedCount = results.filter(r => r.success && r.action === 'updated').length
+      const skippedCount = results.filter(r => r.success && r.action === 'skipped').length
+
+      let message = `Importación completada: ${successCount} equipos procesados, ${errorCount} errores`
+      if (options.mode === 'merge') {
+        message += ` (${createdCount} creados, ${updatedCount} actualizados, ${skippedCount} sin cambios)`
+      } else {
+        message += ` (${createdCount} creados, ${skippedCount} ya existían)`
+      }
 
       return {
         success: true,
-        message: `Importación completada: ${successCount} equipos creados, ${errorCount} errores`,
+        message,
         results,
         summary: {
           total: mappedData.length,
           success: successCount,
-          errors: errorCount
+          errors: errorCount,
+          created: createdCount,
+          updated: updatedCount,
+          skipped: skippedCount
         }
       }
 

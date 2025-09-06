@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 interface TeamLogoProps {
   name: string
   logo?: string | null
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
 }
 
@@ -18,6 +18,7 @@ const TeamLogo: React.FC<TeamLogoProps> = ({
   const getInitials = (name: string) => {
     return name
       .split(' ')
+      .filter(word => word.length > 3) // Solo palabras de más de 3 letras
       .map(n => n[0])
       .join('')
       .toUpperCase()
@@ -29,6 +30,7 @@ const TeamLogo: React.FC<TeamLogoProps> = ({
       case 'sm': return 'h-8 w-8 text-xs'
       case 'md': return 'h-10 w-10 text-sm'
       case 'lg': return 'h-12 w-12 text-base'
+      case 'xl': return 'h-16 w-16 text-lg'
       default: return 'h-10 w-10 text-sm'
     }
   }

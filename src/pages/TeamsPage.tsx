@@ -1,14 +1,17 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Search, Filter, Users, MapPin, Trophy, ChevronRight, Loader2 } from 'lucide-react'
-import { teamsService } from '@/services/apiService'
+import { Search, Filter, Users, MapPin, Trophy, ChevronUp, ChevronDown, Loader2, ArrowUpDown } from 'lucide-react'
+import { teamsService, regionsService } from '@/services/apiService'
+import TeamLogo from '@/components/ui/TeamLogo'
 
 const TeamsPage = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRegion, setSelectedRegion] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const teamsPerPage = 12
+  const [sortField, setSortField] = useState<keyof any>('name')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+  const teamsPerPage = 20
 
   // Obtener equipos desde la API
   const { data: teamsData, isLoading, error } = useQuery({
@@ -19,23 +22,93 @@ const TeamsPage = () => {
     })
   })
 
-  const teams = teamsData?.data || []
-
-  // Filtrar equipos
-  const filteredTeams = teams.filter(team => {
-    const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         team.club?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesRegion = !selectedRegion || team.region?.name === selectedRegion
-    return matchesSearch && matchesRegion
+  // Obtener regiones desde la API
+  const { data: regionsData } = useQuery({
+    queryKey: ['regions'],
+    queryFn: () => regionsService.getAll()
   })
 
-  // Paginación
-  const totalPages = Math.ceil(filteredTeams.length / teamsPerPage)
-  const startIndex = (currentPage - 1) * teamsPerPage
-  const paginatedTeams = filteredTeams.slice(startIndex, startIndex + teamsPerPage)
+  const teams = teamsData?.data || []
 
-  // Regiones únicas para el filtro
+  // Función para calcular puntos totales de un equipo
+  const getTeamTotalPoints = (team: any) => {
+    if (!team.positions || team.positions.length === 0) return 0
+    return team.positions.reduce((total: number, position: any) => total + (position.points || 0), 0)
+  }
+
+  // Filtrar y ordenar equipos
+  const filteredAndSortedTeams = useMemo(() => {
+    let filtered = teams.filter(team => {
+      const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           team.location?.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesRegion = !selectedRegion || team.region?.id === selectedRegion
+      return matchesSearch && matchesRegion
+    })
+
+    // Ordenar
+    filtered.sort((a, b) => {
+      let aValue = a[sortField]
+      let bValue = b[sortField]
+      
+      // Manejar valores anidados
+      if (sortField === 'region') {
+        aValue = a.region?.name || ''
+        bValue = b.region?.name || ''
+      } else if (sortField === 'points') {
+        aValue = getTeamTotalPoints(a)
+        bValue = getTeamTotalPoints(b)
+      }
+      
+      // Para puntos, comparar numéricamente
+      if (sortField === 'points') {
+        if (sortDirection === 'asc') {
+          return aValue - bValue
+        } else {
+          return bValue - aValue
+        }
+      }
+      
+      // Para otros campos, convertir a string para comparación
+      aValue = String(aValue || '').toLowerCase()
+      bValue = String(bValue || '').toLowerCase()
+      
+      if (sortDirection === 'asc') {
+        return aValue.localeCompare(bValue)
+      } else {
+        return bValue.localeCompare(aValue)
+      }
+    })
+
+    return filtered
+  }, [teams, searchTerm, selectedRegion, sortField, sortDirection])
+
+  // Paginación
+  const totalPages = Math.ceil(filteredAndSortedTeams.length / teamsPerPage)
+  const startIndex = (currentPage - 1) * teamsPerPage
+  const paginatedTeams = filteredAndSortedTeams.slice(startIndex, startIndex + teamsPerPage)
+
+  // Regiones únicas para el filtro (ya no se usa, pero mantenemos para compatibilidad)
   const regions = Array.from(new Set(teams.map(team => team.region?.name))).filter(Boolean)
+
+  // Función para manejar el ordenamiento
+  const handleSort = (field: keyof any) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  // Función para obtener el icono de ordenamiento
+  const getSortIcon = (field: keyof any) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-4 w-4 text-gray-400" />
+    }
+    return sortDirection === 'asc' 
+      ? <ChevronUp className="h-4 w-4 text-blue-600" />
+      : <ChevronDown className="h-4 w-4 text-blue-600" />
+  }
 
   if (error) {
     return (
@@ -85,7 +158,7 @@ const TeamsPage = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Regiones</p>
-              <p className="text-2xl font-bold text-gray-900">{regions.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{regionsData?.data?.length || 0}</p>
             </div>
           </div>
         </div>
@@ -123,54 +196,104 @@ const TeamsPage = () => {
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="">Todas las regiones</option>
-            {regions.map(region => (
-              <option key={region} value={region}>{region}</option>
+            {regionsData?.data?.map(region => (
+              <option key={region.id} value={region.id}>{region.name}</option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* Lista de equipos */}
+      {/* Tabla de equipos */}
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {paginatedTeams.map((team) => (
-              <Link
-                key={team.id}
-                to={`/teams/${team.id}`}
-                className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-200 p-6 group"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                      <Users className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                        {team.name}
-                      </h3>
-                      <p className="text-sm text-gray-600">{team.club}</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    <span>{team.region?.name}</span>
-                  </div>
-                  {team.email && (
-                    <div className="text-sm text-gray-600">
-                      {team.email}
-                    </div>
-                  )}
-                </div>
-              </Link>
-            ))}
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('name')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>Equipo</span>
+                        {getSortIcon('name')}
+                      </div>
+                    </th>
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('region')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>Región</span>
+                        {getSortIcon('region')}
+                      </div>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Ubicación
+                    </th>
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('points')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>Puntos</span>
+                        {getSortIcon('points')}
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {paginatedTeams.map((team) => (
+                    <tr 
+                      key={team.id}
+                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => window.location.href = `/teams/${team.id}`}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <TeamLogo 
+                            logo={team.logo} 
+                            name={team.name} 
+                            size="sm"
+                            className="mr-3"
+                          />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {team.name}
+                            </div>
+                            {team.isFilial && (
+                              <div className="text-xs text-blue-600">
+                                Equipo filial
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {team.region?.name || 'Sin región'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {team.location || '-'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {getTeamTotalPoints(team).toFixed(1)}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Paginación */}

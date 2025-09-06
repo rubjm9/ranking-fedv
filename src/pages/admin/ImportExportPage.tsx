@@ -46,6 +46,7 @@ const ImportExportPage: React.FC = () => {
   const [previewData, setPreviewData] = useState<any[]>([])
   const [previewHeaders, setPreviewHeaders] = useState<string[]>([])
   const [showPreview, setShowPreview] = useState(false)
+  const [importMode, setImportMode] = useState<'create' | 'update' | 'merge'>('create')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,7 +135,7 @@ const ImportExportPage: React.FC = () => {
       // Importar datos usando el servicio real
       const importOptions = {
         dataType: 'auto',
-        mode: 'create',
+        mode: importMode,
         validate: true
       }
       
@@ -556,7 +557,11 @@ const ImportExportPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Modo de Importación
                 </label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                <select 
+                  value={importMode}
+                  onChange={(e) => setImportMode(e.target.value as 'create' | 'update' | 'merge')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
                   <option value="create">Crear nuevos registros</option>
                   <option value="update">Actualizar existentes</option>
                   <option value="merge">Combinar datos</option>

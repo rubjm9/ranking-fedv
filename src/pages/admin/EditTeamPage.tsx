@@ -97,6 +97,8 @@ const EditTeamPage: React.FC = () => {
     try {
       const response = await teamsService.getById(id)
       if (response.success) {
+        console.log('Equipo cargado:', response.data)
+        console.log('parentTeamId:', response.data.parentTeamId)
         setFormData(response.data)
       } else {
         throw new Error('No se pudo cargar el equipo')

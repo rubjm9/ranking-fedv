@@ -2,21 +2,45 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Users, MapPin, Trophy, Calendar, TrendingUp, BarChart3, Mail, ExternalLink } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
+import { teamsService } from '@/services/apiService'
+import TeamLogo from '@/components/ui/TeamLogo'
 
 interface Team {
   id: string
   name: string
-  club: string
-  region: string
-  regionCode: string
-  email: string
-  logo: string
-  currentRank: number
-  previousRank: number
-  points: number
-  tournaments: number
+  regionId: string
+  location?: string
+  email?: string
+  logo?: string
+  isFilial: boolean
+  parentTeamId?: string
+  hasDifferentNames: boolean
+  nameOpen?: string
+  nameWomen?: string
+  nameMixed?: string
   createdAt: string
-  description: string
+  updatedAt: string
+  region?: {
+    name: string
+    coefficient: number
+  }
+  parentTeam?: {
+    name: string
+  }
+  positions?: Position[]
+}
+
+interface Position {
+  id: string
+  position: number
+  points: number
+  tournaments: {
+    name: string
+    year: number
+    type: string
+    startDate?: string
+    endDate?: string
+  }
 }
 
 interface TournamentResult {
@@ -81,13 +105,33 @@ const TeamDetailPage: React.FC = () => {
   }, [id])
 
   const loadTeamData = async () => {
+    if (!id) return
+    
     setIsLoading(true)
     try {
-      // Mock API call - en producción sería una llamada real
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setTeam(mockTeam)
-      setTournamentResults(mockTournamentResults)
-      setRankingHistory(mockRankingHistory)
+      const response = await teamsService.getTeamDetails(id)
+      if (response.success) {
+        setTeam(response.data)
+        
+        // Convertir posiciones a resultados de torneos
+        const tournamentResults = response.data.positions?.map(position => ({
+          id: position.id,
+          name: position.tournaments.name,
+          year: position.tournaments.year,
+          type: position.tournaments.type,
+          position: position.position,
+          points: position.points,
+          date: position.tournaments.startDate || position.tournaments.endDate || ''
+        })) || []
+        
+        setTournamentResults(tournamentResults)
+        
+        // Generar historial de ranking basado en los resultados
+        const rankingHistory = generateRankingHistory(tournamentResults)
+        setRankingHistory(rankingHistory)
+      } else {
+        throw new Error('No se pudo cargar el equipo')
+      }
     } catch (error) {
       console.error('Error al cargar datos del equipo:', error)
     } finally {
@@ -95,23 +139,47 @@ const TeamDetailPage: React.FC = () => {
     }
   }
 
-  const getRankChange = () => {
-    if (!team) return 0
-    return team.previousRank - team.currentRank
+  const generateRankingHistory = (results: TournamentResult[]) => {
+    // Ordenar resultados por fecha
+    const sortedResults = results.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    
+    // Generar historial acumulativo de puntos
+    let cumulativePoints = 0
+    return sortedResults.map((result, index) => {
+      cumulativePoints += result.points
+      return {
+        date: new Date(result.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'short' }),
+        rank: index + 1, // Ranking basado en orden cronológico
+        points: cumulativePoints
+      }
+    })
   }
 
-  const getRankChangeIcon = () => {
-    const change = getRankChange()
-    if (change > 0) return <TrendingUp className="h-4 w-4 text-green-500" />
-    if (change < 0) return <TrendingUp className="h-4 w-4 text-red-500 rotate-180" />
-    return <BarChart3 className="h-4 w-4 text-gray-400" />
+  const getTotalPoints = () => {
+    return tournamentResults.reduce((total, result) => total + result.points, 0)
   }
 
-  const getRankChangeText = () => {
-    const change = getRankChange()
-    if (change > 0) return `+${change}`
-    if (change < 0) return `${change}`
-    return '-'
+  const getBestPosition = () => {
+    if (tournamentResults.length === 0) return null
+    return Math.min(...tournamentResults.map(r => r.position))
+  }
+
+  const getWorstPosition = () => {
+    if (tournamentResults.length === 0) return null
+    return Math.max(...tournamentResults.map(r => r.position))
+  }
+
+  const getAveragePoints = () => {
+    if (tournamentResults.length === 0) return 0
+    return getTotalPoints() / tournamentResults.length
+  }
+
+  const getTournamentsWon = () => {
+    return tournamentResults.filter(r => r.position === 1).length
+  }
+
+  const getPodiums = () => {
+    return tournamentResults.filter(r => r.position <= 3).length
   }
 
   const getTournamentTypeLabel = (type: string) => {
@@ -153,7 +221,7 @@ const TeamDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center">
@@ -164,16 +232,22 @@ const TeamDetailPage: React.FC = () => {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex items-center">
-            {team.logo && (
-              <img
-                src={team.logo}
-                alt={`Logo de ${team.name}`}
-                className="w-16 h-16 rounded-lg object-cover mr-4"
+            <div className="mr-4">
+              <TeamLogo 
+                logo={team.logo} 
+                name={team.name} 
+                size="xl"
               />
-            )}
+            </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">{team.name}</h1>
-              <p className="text-gray-600">{team.club}</p>
+              <p className="text-gray-600">
+                {team.isFilial && team.parentTeam ? (
+                  <>Equipo filial de <span className="font-medium">{team.parentTeam.name}</span></>
+                ) : (
+                  team.location || team.region?.name || 'Sin ubicación'
+                )}
+              </p>
             </div>
           </div>
         </div>
@@ -187,19 +261,8 @@ const TeamDetailPage: React.FC = () => {
               <Trophy className="h-6 w-6 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Ranking Actual</p>
-              <div className="flex items-center">
-                <p className="text-2xl font-bold text-gray-900">#{team.currentRank}</p>
-                <div className="flex items-center ml-2">
-                  {getRankChangeIcon()}
-                  <span className={`ml-1 text-sm font-medium ${
-                    getRankChange() > 0 ? 'text-green-600' : 
-                    getRankChange() < 0 ? 'text-red-600' : 'text-gray-500'
-                  }`}>
-                    {getRankChangeText()}
-                  </span>
-                </div>
-              </div>
+              <p className="text-sm font-medium text-gray-600">Torneos Ganados</p>
+              <p className="text-2xl font-bold text-gray-900">{getTournamentsWon()}</p>
             </div>
           </div>
         </div>
@@ -210,7 +273,7 @@ const TeamDetailPage: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Puntos Totales</p>
-              <p className="text-2xl font-bold text-gray-900">{team.points.toFixed(1)}</p>
+              <p className="text-2xl font-bold text-gray-900">{getTotalPoints().toFixed(1)}</p>
             </div>
           </div>
         </div>
@@ -221,7 +284,7 @@ const TeamDetailPage: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Torneos</p>
-              <p className="text-2xl font-bold text-gray-900">{team.tournaments}</p>
+              <p className="text-2xl font-bold text-gray-900">{tournamentResults.length}</p>
             </div>
           </div>
         </div>
@@ -232,7 +295,7 @@ const TeamDetailPage: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Región</p>
-              <p className="text-lg font-bold text-gray-900">{(team.region as any)?.name || team.region || 'Sin región'}</p>
+              <p className="text-lg font-bold text-gray-900">{team.region?.name || 'Sin región'}</p>
             </div>
           </div>
         </div>
@@ -243,26 +306,45 @@ const TeamDetailPage: React.FC = () => {
         {/* Team Description */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Sobre el Equipo</h3>
-            <p className="text-gray-600 leading-relaxed">{team.description}</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Información del Equipo</h3>
             
-            <div className="mt-6 flex items-center space-x-4">
-              {team.email && (
-                <a
-                  href={`mailto:${team.email}`}
-                  className="flex items-center text-primary-600 hover:text-primary-700"
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Contactar
-                </a>
+            <div className="space-y-3">
+              <div className="flex items-center">
+                <Users className="h-4 w-4 text-gray-400 mr-3" />
+                <span className="text-gray-600">Tipo:</span>
+                <span className="ml-2 font-medium">
+                  {team.isFilial ? 'Equipo Filial' : 'Equipo Principal'}
+                </span>
+              </div>
+              
+              {team.location && (
+                <div className="flex items-center">
+                  <MapPin className="h-4 w-4 text-gray-400 mr-3" />
+                  <span className="text-gray-600">Ubicación:</span>
+                  <span className="ml-2 font-medium">{team.location}</span>
+                </div>
               )}
-              <Link
-                to={`/regions/${team.regionCode}`}
-                className="flex items-center text-gray-600 hover:text-gray-700"
-              >
-                <MapPin className="h-4 w-4 mr-2" />
-                Ver región
-              </Link>
+              
+              {team.email && (
+                <div className="flex items-center">
+                  <Mail className="h-4 w-4 text-gray-400 mr-3" />
+                  <span className="text-gray-600">Email:</span>
+                  <a href={`mailto:${team.email}`} className="ml-2 font-medium text-primary-600 hover:text-primary-700">
+                    {team.email}
+                  </a>
+                </div>
+              )}
+              
+              {team.hasDifferentNames && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Nombres por Modalidad:</h4>
+                  <div className="space-y-1 text-sm">
+                    {team.nameOpen && <div><span className="text-gray-600">Open:</span> {team.nameOpen}</div>}
+                    {team.nameWomen && <div><span className="text-gray-600">Women:</span> {team.nameWomen}</div>}
+                    {team.nameMixed && <div><span className="text-gray-600">Mixed:</span> {team.nameMixed}</div>}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -273,23 +355,27 @@ const TeamDetailPage: React.FC = () => {
           <div className="space-y-4">
             <div className="flex justify-between">
               <span className="text-gray-600">Mejor posición:</span>
-              <span className="font-medium">1º lugar</span>
+              <span className="font-medium">
+                {getBestPosition() ? `${getBestPosition()}º lugar` : 'N/A'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Peor posición:</span>
-              <span className="font-medium">5º lugar</span>
+              <span className="font-medium">
+                {getWorstPosition() ? `${getWorstPosition()}º lugar` : 'N/A'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Promedio puntos:</span>
-              <span className="font-medium">130.0</span>
+              <span className="font-medium">{getAveragePoints().toFixed(1)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Torneos ganados:</span>
-              <span className="font-medium">2</span>
+              <span className="font-medium">{getTournamentsWon()}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Podios:</span>
-              <span className="font-medium">4</span>
+              <span className="font-medium">{getPodiums()}</span>
             </div>
           </div>
         </div>
@@ -384,6 +470,9 @@ const TeamDetailPage: React.FC = () => {
           </table>
         </div>
       </div>
+      
+      {/* Bottom spacing */}
+      <div className="mb-8"></div>
     </div>
   )
 }
