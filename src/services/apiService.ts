@@ -644,25 +644,554 @@ export const positionsService = {
 
 // Servicios de importación/exportación usando Supabase
 export const importExportService = {
-  // Importar datos
-  import: async (files: File[], options: any) => {
-    // Implementación básica para importar datos
-    console.log('Importando archivos:', files.length, 'con opciones:', options)
-    return { success: true, message: 'Importación completada' }
+  // Exportar equipos
+  exportTeams: async (options: { format: 'csv' | 'excel' | 'json' } = { format: 'csv' }) => {
+    const { data: teams, error } = await supabase
+      .from('teams')
+      .select(`
+        id,
+        name,
+        regionId,
+        location,
+        email,
+        logo,
+        isFilial,
+        parentTeamId,
+        hasDifferentNames,
+        nameOpen,
+        nameWomen,
+        nameMixed,
+        createdAt,
+        updatedAt,
+        region:regions(name)
+      `)
+      .order('name')
+
+    if (error) throw error
+
+    // Transformar datos para exportación
+    const exportData = teams.map(team => ({
+      id: team.id,
+      nombre: team.name,
+      region: team.region?.name || 'Sin región',
+      ubicacion: team.location || '',
+      email: team.email || '',
+      logo: team.logo || '',
+      es_filial: team.isFilial ? 'Sí' : 'No',
+      club_principal: team.parentTeamId || '',
+      nombres_diferentes: team.hasDifferentNames ? 'Sí' : 'No',
+      nombre_open: team.nameOpen || '',
+      nombre_women: team.nameWomen || '',
+      nombre_mixed: team.nameMixed || '',
+      fecha_creacion: new Date(team.createdAt).toLocaleDateString('es-ES'),
+      fecha_actualizacion: new Date(team.updatedAt).toLocaleDateString('es-ES')
+    }))
+
+    return exportData
   },
 
-  // Exportar datos
-  export: async (options: any) => {
-    // Implementación básica para exportar datos
-    console.log('Exportando con opciones:', options)
-    return new Blob(['Datos exportados'], { type: 'text/plain' })
+  // Exportar regiones
+  exportRegions: async (options: { format: 'csv' | 'excel' | 'json' } = { format: 'csv' }) => {
+    const { data: regions, error } = await supabase
+      .from('regions')
+      .select('*')
+      .order('name')
+
+    if (error) throw error
+
+    // Transformar datos para exportación
+    const exportData = regions.map(region => ({
+      id: region.id,
+      nombre: region.name,
+      descripcion: region.description || '',
+      coeficiente: region.coefficient || 1.0,
+      fecha_creacion: new Date(region.createdAt).toLocaleDateString('es-ES'),
+      fecha_actualizacion: new Date(region.updatedAt).toLocaleDateString('es-ES')
+    }))
+
+    return exportData
+  },
+
+  // Exportar torneos
+  exportTournaments: async (options: { format: 'csv' | 'excel' | 'json' } = { format: 'csv' }) => {
+    const { data: tournaments, error } = await supabase
+      .from('tournaments')
+      .select(`
+        id,
+        name,
+        type,
+        year,
+        season,
+        surface,
+        modality,
+        regionId,
+        startDate,
+        endDate,
+        location,
+        createdAt,
+        updatedAt,
+        region:regions(name)
+      `)
+      .order('year', { ascending: false })
+
+    if (error) throw error
+
+    // Transformar datos para exportación
+    const exportData = tournaments.map(tournament => ({
+      id: tournament.id,
+      nombre: tournament.name,
+      tipo: tournament.type,
+      año: tournament.year,
+      temporada: tournament.season || '',
+      superficie: tournament.surface === 'GRASS' ? 'Césped' : 
+                  tournament.surface === 'BEACH' ? 'Playa' : 
+                  tournament.surface === 'INDOOR' ? 'Indoor' : tournament.surface,
+      modalidad: tournament.modality === 'OPEN' ? 'Open' : 
+                 tournament.modality === 'WOMEN' ? 'Women' : 
+                 tournament.modality === 'MIXED' ? 'Mixto' : tournament.modality,
+      region: tournament.type === 'REGIONAL' ? (tournament.region?.name || 'Sin región') : 'Nacional',
+      fecha_inicio: tournament.startDate ? new Date(tournament.startDate).toLocaleDateString('es-ES') : '',
+      fecha_fin: tournament.endDate ? new Date(tournament.endDate).toLocaleDateString('es-ES') : '',
+      ubicacion: tournament.location || '',
+      fecha_creacion: new Date(tournament.createdAt).toLocaleDateString('es-ES'),
+      fecha_actualizacion: new Date(tournament.updatedAt).toLocaleDateString('es-ES')
+    }))
+
+    return exportData
+  },
+
+  // Exportar posiciones/resultados
+  exportPositions: async (options: { format: 'csv' | 'excel' | 'json' } = { format: 'csv' }) => {
+    const { data: positions, error } = await supabase
+      .from('positions')
+      .select(`
+        id,
+        position,
+        points,
+        createdAt,
+        tournament:tournaments(name, year, type),
+        team:teams(name, region:regions(name))
+      `)
+      .order('tournament.year', { ascending: false })
+
+    if (error) throw error
+
+    // Transformar datos para exportación
+    const exportData = positions.map(pos => ({
+      id: pos.id,
+      torneo: pos.tournament?.name || 'Sin torneo',
+      año: pos.tournament?.year || '',
+      tipo_torneo: pos.tournament?.type || '',
+      equipo: pos.team?.name || 'Sin equipo',
+      region_equipo: pos.team?.region?.name || 'Sin región',
+      posicion: pos.position,
+      puntos: pos.points,
+      fecha_creacion: new Date(pos.createdAt).toLocaleDateString('es-ES')
+    }))
+
+    return exportData
+  },
+
+  // Exportar todos los datos
+  exportAll: async (options: { format: 'csv' | 'excel' | 'json' } = { format: 'csv' }) => {
+    const [teams, regions, tournaments, positions] = await Promise.all([
+      importExportService.exportTeams(options),
+      importExportService.exportRegions(options),
+      importExportService.exportTournaments(options),
+      importExportService.exportPositions(options)
+    ])
+
+    return {
+      equipos: teams,
+      regiones: regions,
+      torneos: tournaments,
+      posiciones: positions,
+      metadata: {
+        fecha_exportacion: new Date().toISOString(),
+        total_equipos: teams.length,
+        total_regiones: regions.length,
+        total_torneos: tournaments.length,
+        total_posiciones: positions.length
+      }
+    }
+  },
+
+  // Importar datos
+  import: async (files: File[], options: any) => {
+    try {
+      if (files.length === 0) {
+        throw new Error('No se proporcionaron archivos')
+      }
+
+      const file = files[0]
+      const content = await file.text()
+      const lines = content.split('\n').filter(line => line.trim())
+      
+      if (lines.length < 2) {
+        throw new Error('El archivo debe tener al menos una fila de encabezados y una fila de datos')
+      }
+
+      // Función para parsear CSV correctamente
+      const parseCSVLine = (line: string): string[] => {
+        const result: string[] = []
+        let current = ''
+        let inQuotes = false
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i]
+          
+          if (char === '"') {
+            inQuotes = !inQuotes
+          } else if (char === ',' && !inQuotes) {
+            result.push(current.trim())
+            current = ''
+          } else {
+            current += char
+          }
+        }
+        
+        result.push(current.trim())
+        return result
+      }
+
+      const headers = parseCSVLine(lines[0]).map(h => h.replace(/"/g, '').trim())
+      const dataRows = lines.slice(1).map(line => {
+        const values = parseCSVLine(line).map(v => v.replace(/"/g, '').trim())
+        const row: any = {}
+        headers.forEach((header, index) => {
+          row[header] = values[index] || ''
+        })
+        return row
+      })
+
+      console.log('Headers:', headers)
+      console.log('Primera fila de datos:', dataRows[0])
+
+      // Mapear campos del CSV a campos de la base de datos
+      const mappedData = dataRows.map(row => {
+        const mapped: any = {}
+        
+        // Mapear nombre (name -> nombre)
+        mapped.name = row.name || row.nombre || row.nombres || ''
+        
+        // Mapear región (buscar por ID o nombre)
+        if (row.region) {
+          mapped.regionId = row.region // Asumimos que es el ID, si es nombre necesitamos buscar
+        }
+        
+        // Mapear ubicación
+        mapped.location = row.ubicacion || row.location || ''
+        
+        // Mapear email
+        mapped.email = row.email || ''
+        
+        // Mapear logo
+        mapped.logo = row.logo || ''
+        
+        // Mapear es_filial
+        mapped.isFilial = row.es_filial === 'Sí' || row.es_filial === 'Si' || row.es_filial === 'Yes' || row.es_filial === 'true'
+        
+        // Mapear club_principal (necesitaríamos buscar el ID)
+        if (row.club_principal) {
+          mapped.parentTeamId = row.club_principal // Asumimos que es el ID
+        }
+        
+        // Mapear nombres diferentes
+        mapped.hasDifferentNames = row.nombres_diferentes === 'Sí' || row.nombres_diferentes === 'Si' || row.nombres_diferentes === 'Yes' || row.nombres_diferentes === 'true'
+        
+        // Mapear nombres específicos
+        mapped.nameOpen = row.nombre_open || ''
+        mapped.nameWomen = row.nombre_women || ''
+        mapped.nameMixed = row.nombre_mixed || ''
+        
+        return mapped
+      }).filter(row => row.name) // Solo filas con nombre
+
+      console.log('Datos mapeados:', mappedData)
+
+      // Separar equipos principales y filiales
+      const equiposPrincipales = mappedData.filter(team => !team.isFilial)
+      const equiposFiliales = mappedData.filter(team => team.isFilial)
+      
+      console.log('Equipos principales:', equiposPrincipales.length)
+      console.log('Equipos filiales:', equiposFiliales.length)
+
+      // Crear equipos en la base de datos
+      const results = []
+      const createdTeams = new Map() // Para mapear nombres a IDs
+
+      // 1. PRIMERO: Crear equipos principales
+      for (const teamData of equiposPrincipales) {
+        try {
+          // Si regionId es un nombre, necesitamos buscar el ID real
+          let regionId = teamData.regionId
+          if (teamData.regionId && isNaN(Number(teamData.regionId))) {
+            // Es un nombre, buscar la región
+            const { data: regions } = await supabase
+              .from('regions')
+              .select('id')
+              .eq('name', teamData.regionId)
+              .single()
+            
+            if (regions) {
+              regionId = regions.id
+            }
+          }
+
+          const { data, error } = await supabase
+            .from('teams')
+            .insert({
+              name: teamData.name,
+              regionId: regionId || null,
+              location: teamData.location,
+              email: teamData.email,
+              logo: teamData.logo,
+              isFilial: teamData.isFilial,
+              parentTeamId: null, // Los principales no tienen padre
+              hasDifferentNames: teamData.hasDifferentNames,
+              nameOpen: teamData.nameOpen,
+              nameWomen: teamData.nameWomen,
+              nameMixed: teamData.nameMixed
+            })
+            .select()
+
+          if (error) {
+            console.error('Error al crear equipo principal:', teamData.name, error)
+            results.push({ success: false, team: teamData.name, error: error.message })
+          } else {
+            console.log('Equipo principal creado:', data)
+            // Guardar el ID para los filiales
+            createdTeams.set(teamData.name, data[0].id)
+            results.push({ success: true, team: teamData.name, data })
+          }
+        } catch (error: any) {
+          console.error('Error al procesar equipo principal:', teamData.name, error)
+          results.push({ success: false, team: teamData.name, error: error.message })
+        }
+      }
+
+      // 2. SEGUNDO: Crear equipos filiales
+      for (const teamData of equiposFiliales) {
+        try {
+          // Si regionId es un nombre, necesitamos buscar el ID real
+          let regionId = teamData.regionId
+          if (teamData.regionId && isNaN(Number(teamData.regionId))) {
+            // Es un nombre, buscar la región
+            const { data: regions } = await supabase
+              .from('regions')
+              .select('id')
+              .eq('name', teamData.regionId)
+              .single()
+            
+            if (regions) {
+              regionId = regions.id
+            }
+          }
+
+          // Buscar el ID del equipo padre
+          let parentTeamId = null
+          if (teamData.parentTeamId) {
+            // Si parentTeamId es un nombre, buscar el ID
+            if (isNaN(Number(teamData.parentTeamId))) {
+              parentTeamId = createdTeams.get(teamData.parentTeamId)
+            } else {
+              parentTeamId = teamData.parentTeamId
+            }
+          }
+
+          if (teamData.parentTeamId && !parentTeamId) {
+            console.warn(`No se encontró el equipo padre "${teamData.parentTeamId}" para "${teamData.name}"`)
+            results.push({ 
+              success: false, 
+              team: teamData.name, 
+              error: `Equipo padre "${teamData.parentTeamId}" no encontrado` 
+            })
+            continue
+          }
+
+          const { data, error } = await supabase
+            .from('teams')
+            .insert({
+              name: teamData.name,
+              regionId: regionId || null,
+              location: teamData.location,
+              email: teamData.email,
+              logo: teamData.logo,
+              isFilial: teamData.isFilial,
+              parentTeamId: parentTeamId,
+              hasDifferentNames: teamData.hasDifferentNames,
+              nameOpen: teamData.nameOpen,
+              nameWomen: teamData.nameWomen,
+              nameMixed: teamData.nameMixed
+            })
+            .select()
+
+          if (error) {
+            console.error('Error al crear equipo filial:', teamData.name, error)
+            results.push({ success: false, team: teamData.name, error: error.message })
+          } else {
+            console.log('Equipo filial creado:', data)
+            results.push({ success: true, team: teamData.name, data })
+          }
+        } catch (error: any) {
+          console.error('Error al procesar equipo filial:', teamData.name, error)
+          results.push({ success: false, team: teamData.name, error: error.message })
+        }
+      }
+
+      const successCount = results.filter(r => r.success).length
+      const errorCount = results.filter(r => !r.success).length
+
+      return {
+        success: true,
+        message: `Importación completada: ${successCount} equipos creados, ${errorCount} errores`,
+        results,
+        summary: {
+          total: mappedData.length,
+          success: successCount,
+          errors: errorCount
+        }
+      }
+
+    } catch (error: any) {
+      console.error('Error en importación:', error)
+      return {
+        success: false,
+        message: error.message || 'Error al importar datos',
+        results: [],
+        summary: { total: 0, success: 0, errors: 1 }
+      }
+    }
   },
 
   // Validar archivo de importación
   validateFile: async (file: File) => {
-    // Implementación básica para validar archivos
-    console.log('Validando archivo:', file.name)
-    return { success: true, message: 'Archivo válido' }
+    try {
+      const fileExtension = file.name.split('.').pop()?.toLowerCase()
+      
+      // Validar tipo de archivo
+      if (!['csv', 'xlsx', 'xls'].includes(fileExtension || '')) {
+        return {
+          success: false,
+          message: 'Tipo de archivo no válido. Solo se permiten archivos CSV y Excel.',
+          errors: ['Tipo de archivo no soportado'],
+          warnings: []
+        }
+      }
+
+      // Validar tamaño (máximo 10MB)
+      const maxSize = 10 * 1024 * 1024 // 10MB
+      if (file.size > maxSize) {
+        return {
+          success: false,
+          message: 'El archivo es demasiado grande. Máximo 10MB permitido.',
+          errors: ['Archivo demasiado grande'],
+          warnings: []
+        }
+      }
+
+      // Leer contenido del archivo
+      const content = await file.text()
+      
+      // Validaciones básicas para CSV
+      if (fileExtension === 'csv') {
+        const lines = content.split('\n').filter(line => line.trim())
+        
+        if (lines.length < 2) {
+          return {
+            success: false,
+            message: 'El archivo CSV debe tener al menos una fila de encabezados y una fila de datos.',
+            errors: ['Archivo CSV incompleto'],
+            warnings: []
+          }
+        }
+
+        // Función para parsear CSV correctamente (maneja comas dentro de campos)
+        const parseCSVLine = (line: string): string[] => {
+          const result: string[] = []
+          let current = ''
+          let inQuotes = false
+          
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i]
+            
+            if (char === '"') {
+              inQuotes = !inQuotes
+            } else if (char === ',' && !inQuotes) {
+              result.push(current.trim())
+              current = ''
+            } else {
+              current += char
+            }
+          }
+          
+          result.push(current.trim())
+          return result
+        }
+
+        const headers = parseCSVLine(lines[0]).map(h => h.replace(/"/g, '').trim().toLowerCase())
+        
+        console.log('Headers encontrados:', headers) // Debug
+        
+        // Validar que tenga al menos algunos campos básicos
+        const requiredFields = ['nombre', 'name', 'nombres', 'team', 'equipo']
+        const hasRequiredField = requiredFields.some(field => 
+          headers.some(header => header.toLowerCase().includes(field.toLowerCase()))
+        )
+
+        console.log('¿Tiene campo requerido?', hasRequiredField) // Debug
+
+        if (!hasRequiredField) {
+          return {
+            success: false,
+            message: `El archivo CSV debe contener al menos un campo de nombre. Campos encontrados: ${headers.join(', ')}`,
+            errors: ['Falta campo de nombre'],
+            warnings: []
+          }
+        }
+
+        // Simular datos de ejemplo para preview
+        const mockData = lines.slice(1, Math.min(4, lines.length)).map(line => {
+          const values = parseCSVLine(line).map(v => v.replace(/"/g, '').trim())
+          const row: any = {}
+          headers.forEach((header, index) => {
+            row[header] = values[index] || ''
+          })
+          return row
+        })
+
+        return {
+          success: true,
+          message: 'Archivo válido',
+          errors: [],
+          warnings: [],
+          teams: mockData,
+          tournaments: [],
+          results: [],
+          headers: headers // Agregar headers para la vista previa
+        }
+      }
+
+      // Para archivos Excel, validación básica
+      return {
+        success: true,
+        message: 'Archivo Excel válido',
+        errors: [],
+        warnings: ['Validación completa de Excel requiere procesamiento adicional'],
+        teams: [],
+        tournaments: [],
+        results: []
+      }
+
+    } catch (error) {
+      console.error('Error al validar archivo:', error)
+      return {
+        success: false,
+        message: 'Error al procesar el archivo',
+        errors: ['Error de procesamiento'],
+        warnings: []
+      }
+    }
   }
 }
 

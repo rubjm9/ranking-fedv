@@ -44,6 +44,7 @@ const ImportExportPage: React.FC = () => {
   })
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [previewData, setPreviewData] = useState<any[]>([])
+  const [previewHeaders, setPreviewHeaders] = useState<string[]>([])
   const [showPreview, setShowPreview] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -64,15 +65,35 @@ const ImportExportPage: React.FC = () => {
       // Validar archivo usando el servicio real
       const validationResult = await importExportService.validateFile(file)
       
-      setImportData(validationResult)
-      setPreviewData(validationResult.teams || [])
+      if (validationResult.success) {
+        setImportData({
+          teams: validationResult.teams || [],
+          tournaments: validationResult.tournaments || [],
+          results: validationResult.results || [],
+          errors: validationResult.errors || [],
+          warnings: validationResult.warnings || []
+        })
+        setPreviewData(validationResult.teams || [])
+        setPreviewHeaders(validationResult.headers || [])
+        toast.success(validationResult.message)
+      } else {
+        setImportData({
+          teams: [],
+          tournaments: [],
+          results: [],
+          errors: validationResult.errors || [],
+          warnings: validationResult.warnings || []
+        })
+        setPreviewData([])
+        toast.error(validationResult.message)
+      }
+      
       setIsImporting(false)
-      toast.success('Archivo procesado correctamente')
     } catch (error: any) {
       setIsImporting(false)
-      toast.error(error.response?.data?.message || 'Error al procesar el archivo')
+      toast.error('Error al procesar el archivo')
       
-      // Fallback a datos mock si el backend no está disponible
+      // Fallback a datos mock si hay error
       const mockData = {
         teams: [
           { name: 'Nuevo Equipo 1', club: 'Club A', region: 'Madrid', email: 'equipo1@test.com' },
@@ -86,12 +107,13 @@ const ImportExportPage: React.FC = () => {
           { tournament: 'Torneo Test 1', team: 'Nuevo Equipo 1', position: 1, points: 200 },
           { tournament: 'Torneo Test 1', team: 'Nuevo Equipo 2', position: 2, points: 180 }
         ],
-        errors: ['Email inválido en línea 3'],
-        warnings: ['Región no encontrada: "Nueva Región"']
+        errors: ['Error al procesar el archivo'],
+        warnings: ['Usando datos de ejemplo']
       }
       
       setImportData(mockData)
       setPreviewData(mockData.teams)
+      setPreviewHeaders(['name', 'club', 'region', 'email'])
     }
   }
 
@@ -116,13 +138,32 @@ const ImportExportPage: React.FC = () => {
         validate: true
       }
       
-      await importExportService.import(selectedFiles, importOptions)
+      const result = await importExportService.import(selectedFiles, importOptions)
       
-      toast.success('Datos importados exitosamente')
-      setSelectedFiles([])
-      setImportData({ teams: [], tournaments: [], results: [], errors: [], warnings: [] })
-      setPreviewData([])
-      setShowPreview(false)
+      if (result.success) {
+        toast.success(result.message)
+        
+        // Mostrar detalles de la importación
+        if (result.summary) {
+          console.log('Resumen de importación:', result.summary)
+          console.log('Resultados detallados:', result.results)
+          
+          // Mostrar errores específicos si los hay
+          const errors = result.results?.filter(r => !r.success) || []
+          if (errors.length > 0) {
+            console.log('Equipos con errores:', errors)
+            toast.warning(`${errors.length} equipos tuvieron errores. Revisa la consola para detalles.`)
+          }
+        }
+        
+        setSelectedFiles([])
+        setImportData({ teams: [], tournaments: [], results: [], errors: [], warnings: [] })
+        setPreviewData([])
+        setPreviewHeaders([])
+        setShowPreview(false)
+      } else {
+        toast.error(result.message)
+      }
       
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
@@ -150,7 +191,7 @@ const ImportExportPage: React.FC = () => {
       
       if (exportOptions.format === 'csv') {
         // Para CSV, generar directamente en frontend
-        const csvContent = generateCSVFromOptions(options)
+        const csvContent = await generateCSVFromOptions(options)
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
@@ -165,7 +206,7 @@ const ImportExportPage: React.FC = () => {
       } else if (exportOptions.format === 'excel') {
         // Para Excel, generar directamente en frontend usando XLSX
         try {
-          const excelData = generateExcelDataFromOptions(options)
+          const excelData = await generateExcelDataFromOptions(options)
           const ws = XLSX.utils.json_to_sheet(excelData)
           const wb = XLSX.utils.book_new()
           XLSX.utils.book_append_sheet(wb, ws, 'Datos')
@@ -213,123 +254,163 @@ const ImportExportPage: React.FC = () => {
     }
   }
 
-  const generateCSVFromOptions = (options: any) => {
-    const csvRows: string[] = []
-    
-    // Generar datos de ejemplo según el tipo
-    switch (options.dataType) {
-      case 'teams':
-        csvRows.push('name,club,region,email')
-        csvRows.push('Equipo Ejemplo 1,Club Deportivo A,Madrid,equipo1@ejemplo.com')
-        csvRows.push('Equipo Ejemplo 2,Club Deportivo B,Cataluña,equipo2@ejemplo.com')
-        break
-      case 'tournaments':
-        csvRows.push('name,type,year,surface,modality')
-        csvRows.push('CE1 2024,CE1,2024,GRASS,MIXED')
-        csvRows.push('CE2 2024,CE2,2024,GRASS,MIXED')
-        break
-      case 'results':
-        csvRows.push('tournament,team,position,points')
-        csvRows.push('CE1 2024,Equipo Ejemplo 1,1,200')
-        csvRows.push('CE1 2024,Equipo Ejemplo 2,2,180')
-        break
-      default:
-        csvRows.push('=== EQUIPOS ===')
-        csvRows.push('name,club,region,email')
-        csvRows.push('Equipo Ejemplo 1,Club Deportivo A,Madrid,equipo1@ejemplo.com')
-        csvRows.push('')
-        csvRows.push('=== TORNEOS ===')
-        csvRows.push('name,type,year,surface,modality')
-        csvRows.push('CE1 2024,CE1,2024,GRASS,MIXED')
-        csvRows.push('')
-        csvRows.push('=== RESULTADOS ===')
-        csvRows.push('tournament,team,position,points')
-        csvRows.push('CE1 2024,Equipo Ejemplo 1,1,200')
-    }
-    
-    return csvRows.join('\n')
-  }
-
-  const generateExcelDataFromOptions = (options: any) => {
-    // Generar datos de ejemplo según el tipo
-    switch (options.dataType) {
-      case 'teams':
-        return [
-          { name: 'Equipo Ejemplo 1', club: 'Club Deportivo A', region: 'Madrid', email: 'equipo1@ejemplo.com' },
-          { name: 'Equipo Ejemplo 2', club: 'Club Deportivo B', region: 'Cataluña', email: 'equipo2@ejemplo.com' },
-          { name: 'Equipo Ejemplo 3', club: 'Club Deportivo C', region: 'Valencia', email: 'equipo3@ejemplo.com' }
-        ]
-      case 'tournaments':
-        return [
-          { name: 'CE1 2024', type: 'CE1', year: 2024, surface: 'GRASS', modality: 'MIXED' },
-          { name: 'CE2 2024', type: 'CE2', year: 2024, surface: 'GRASS', modality: 'MIXED' },
-          { name: 'Regional Madrid 2024', type: 'REGIONAL', year: 2024, surface: 'GRASS', modality: 'MIXED' }
-        ]
-      case 'results':
-        return [
-          { tournament: 'CE1 2024', team: 'Equipo Ejemplo 1', position: 1, points: 200 },
-          { tournament: 'CE1 2024', team: 'Equipo Ejemplo 2', position: 2, points: 180 },
-          { tournament: 'CE2 2024', team: 'Equipo Ejemplo 3', position: 1, points: 150 }
-        ]
-      default:
-        return [
-          { name: 'Equipo Ejemplo 1', club: 'Club Deportivo A', region: 'Madrid', email: 'equipo1@ejemplo.com' },
-          { name: 'CE1 2024', type: 'CE1', year: 2024, surface: 'GRASS', modality: 'MIXED' },
-          { tournament: 'CE1 2024', team: 'Equipo Ejemplo 1', position: 1, points: 200 }
-        ]
-    }
-  }
-
-  const handleExportTemplate = async (dataType: string) => {
-    setIsExporting(true)
-    
+  const generateCSVFromOptions = async (options: any) => {
     try {
-      // Crear datos de ejemplo según el tipo
-      let csvContent = ''
+      let data: any[] = []
       
-      switch (dataType) {
+      // Obtener datos reales según el tipo
+      switch (options.dataType) {
         case 'teams':
-          csvContent = `name,club,region,email
-Equipo Ejemplo 1,Club Deportivo A,Madrid,equipo1@ejemplo.com
-Equipo Ejemplo 2,Club Deportivo B,Cataluña,equipo2@ejemplo.com
-Equipo Ejemplo 3,Club Deportivo C,Valencia,equipo3@ejemplo.com`
+          data = await importExportService.exportTeams({ format: 'csv' })
+          break
+        case 'regions':
+          data = await importExportService.exportRegions({ format: 'csv' })
           break
         case 'tournaments':
-          csvContent = `name,type,year,surface,modality
-CE1 2024,CE1,2024,GRASS,MIXED
-CE2 2024,CE2,2024,GRASS,MIXED
-Regional Madrid 2024,REGIONAL,2024,GRASS,MIXED`
+          data = await importExportService.exportTournaments({ format: 'csv' })
           break
         case 'results':
-          csvContent = `tournament,team,position,points
-CE1 2024,Equipo Ejemplo 1,1,200
-CE1 2024,Equipo Ejemplo 2,2,180
-CE2 2024,Equipo Ejemplo 3,1,150`
+        case 'positions':
+          data = await importExportService.exportPositions({ format: 'csv' })
+          break
+        case 'ranking':
+          data = await importExportService.exportPositions({ format: 'csv' })
           break
         default:
-          csvContent = `name,club,region,email
-Equipo Ejemplo 1,Club Deportivo A,Madrid,equipo1@ejemplo.com`
+          const allData = await importExportService.exportAll({ format: 'csv' })
+          // Para CSV completo, crear múltiples secciones
+          const csvRows: string[] = []
+          
+          // Sección Equipos
+          csvRows.push('=== EQUIPOS ===')
+          if (allData.equipos.length > 0) {
+            const teamHeaders = Object.keys(allData.equipos[0]).join(',')
+            csvRows.push(teamHeaders)
+            allData.equipos.forEach(team => {
+              csvRows.push(Object.values(team).join(','))
+            })
+          }
+          csvRows.push('')
+          
+          // Sección Regiones
+          csvRows.push('=== REGIONES ===')
+          if (allData.regiones.length > 0) {
+            const regionHeaders = Object.keys(allData.regiones[0]).join(',')
+            csvRows.push(regionHeaders)
+            allData.regiones.forEach(region => {
+              csvRows.push(Object.values(region).join(','))
+            })
+          }
+          csvRows.push('')
+          
+          // Sección Torneos
+          csvRows.push('=== TORNEOS ===')
+          if (allData.torneos.length > 0) {
+            const tournamentHeaders = Object.keys(allData.torneos[0]).join(',')
+            csvRows.push(tournamentHeaders)
+            allData.torneos.forEach(tournament => {
+              csvRows.push(Object.values(tournament).join(','))
+            })
+          }
+          csvRows.push('')
+          
+          // Sección Posiciones
+          csvRows.push('=== POSICIONES ===')
+          if (allData.posiciones.length > 0) {
+            const positionHeaders = Object.keys(allData.posiciones[0]).join(',')
+            csvRows.push(positionHeaders)
+            allData.posiciones.forEach(position => {
+              csvRows.push(Object.values(position).join(','))
+            })
+          }
+          
+          return csvRows.join('\n')
       }
       
-      // Generar archivo CSV directamente
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `template-${dataType}-${new Date().toISOString().split('T')[0]}.csv`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+      // Para tipos específicos, generar CSV simple
+      if (data.length === 0) {
+        return 'No hay datos disponibles para exportar'
+      }
       
-      toast.success(`Plantilla de ${getDataTypeLabel(dataType)} exportada correctamente`)
-    } catch (error: any) {
-      console.error('Error al exportar plantilla:', error)
-      toast.error('Error al exportar la plantilla')
-    } finally {
-      setIsExporting(false)
+      const headers = Object.keys(data[0]).join(',')
+      const rows = data.map(item => Object.values(item).join(','))
+      
+      return [headers, ...rows].join('\n')
+    } catch (error) {
+      console.error('Error al generar CSV:', error)
+      throw error
     }
   }
+
+  const generateExcelDataFromOptions = async (options: any) => {
+    try {
+      let data: any[] = []
+      
+      // Obtener datos reales según el tipo
+      switch (options.dataType) {
+        case 'teams':
+          data = await importExportService.exportTeams({ format: 'excel' })
+          break
+        case 'regions':
+          data = await importExportService.exportRegions({ format: 'excel' })
+          break
+        case 'tournaments':
+          data = await importExportService.exportTournaments({ format: 'excel' })
+          break
+        case 'results':
+        case 'positions':
+          data = await importExportService.exportPositions({ format: 'excel' })
+          break
+        case 'ranking':
+          data = await importExportService.exportPositions({ format: 'excel' })
+          break
+        default:
+          const allData = await importExportService.exportAll({ format: 'excel' })
+          // Para Excel completo, combinar todos los datos en una sola hoja
+          const combinedData: any[] = []
+          
+          // Agregar equipos con prefijo
+          allData.equipos.forEach(team => {
+            combinedData.push({
+              tipo: 'EQUIPO',
+              ...team
+            })
+          })
+          
+          // Agregar regiones con prefijo
+          allData.regiones.forEach(region => {
+            combinedData.push({
+              tipo: 'REGION',
+              ...region
+            })
+          })
+          
+          // Agregar torneos con prefijo
+          allData.torneos.forEach(tournament => {
+            combinedData.push({
+              tipo: 'TORNEO',
+              ...tournament
+            })
+          })
+          
+          // Agregar posiciones con prefijo
+          allData.posiciones.forEach(position => {
+            combinedData.push({
+              tipo: 'POSICION',
+              ...position
+            })
+          })
+          
+          return combinedData
+      }
+      
+      return data
+    } catch (error) {
+      console.error('Error al generar datos Excel:', error)
+      throw error
+    }
+  }
+
 
 
 
@@ -346,8 +427,10 @@ Equipo Ejemplo 1,Club Deportivo A,Madrid,equipo1@ejemplo.com`
   const getDataTypeLabel = (type: string) => {
     switch (type) {
       case 'teams': return 'Equipos'
+      case 'regions': return 'Regiones'
       case 'tournaments': return 'Torneos'
       case 'results': return 'Resultados'
+      case 'positions': return 'Posiciones'
       case 'ranking': return 'Ranking'
       case 'all': return 'Todos los datos'
       default: return type
@@ -549,27 +632,21 @@ Equipo Ejemplo 1,Club Deportivo A,Madrid,equipo1@ejemplo.com`
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Nombre
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Club
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Región
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Email
-                        </th>
+                        {previewHeaders.map((header, index) => (
+                          <th key={index} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            {header}
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {previewData.map((item, index) => (
                         <tr key={index}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.name}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.club}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.region}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.email}</td>
+                          {previewHeaders.map((header, headerIndex) => (
+                            <td key={headerIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {item[header] || ''}
+                            </td>
+                          ))}
                         </tr>
                       ))}
                     </tbody>
@@ -586,6 +663,7 @@ Equipo Ejemplo 1,Club Deportivo A,Madrid,equipo1@ejemplo.com`
                 setSelectedFiles([])
                 setImportData({ teams: [], tournaments: [], results: [], errors: [], warnings: [] })
                 setPreviewData([])
+                setPreviewHeaders([])
                 setShowPreview(false)
                 if (fileInputRef.current) {
                   fileInputRef.current.value = ''
@@ -616,94 +694,72 @@ Equipo Ejemplo 1,Club Deportivo A,Madrid,equipo1@ejemplo.com`
 
           {/* Templates Section */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Plantillas y Guías de Importación</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Plantillas de Importación</h3>
             <p className="text-gray-600 mb-4">
-              Descarga plantillas con el formato correcto para importar datos. Estas plantillas te mostrarán exactamente qué columnas necesitas y en qué formato.
+              Descarga plantillas con el formato correcto para importar datos. Estas plantillas incluyen todos los campos necesarios y ejemplos de datos.
             </p>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <button
-                onClick={() => handleExportTemplate('teams')}
-                disabled={isExporting}
-                className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors disabled:opacity-50"
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <a
+                href="/templates/equipos-ejemplo.csv"
+                download
+                className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
               >
                 <FileText className="h-5 w-5 mr-2 text-blue-600" />
                 <div className="text-left">
                   <div className="font-medium text-gray-900">Plantilla Equipos</div>
-                  <div className="text-sm text-gray-500">Formato para importar equipos</div>
+                  <div className="text-sm text-gray-500">Formato completo para equipos</div>
                 </div>
-              </button>
+              </a>
               
-              <button
-                onClick={() => handleExportTemplate('tournaments')}
-                disabled={isExporting}
-                className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors disabled:opacity-50"
+              <a
+                href="/templates/regiones-ejemplo.csv"
+                download
+                className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              >
+                <FileText className="h-5 w-5 mr-2 text-orange-600" />
+                <div className="text-left">
+                  <div className="font-medium text-gray-900">Plantilla Regiones</div>
+                  <div className="text-sm text-gray-500">Formato completo para regiones</div>
+                </div>
+              </a>
+              
+              <a
+                href="/templates/torneos-ejemplo.csv"
+                download
+                className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
               >
                 <FileText className="h-5 w-5 mr-2 text-green-600" />
                 <div className="text-left">
                   <div className="font-medium text-gray-900">Plantilla Torneos</div>
-                  <div className="text-sm text-gray-500">Formato para importar torneos</div>
+                  <div className="text-sm text-gray-500">Formato completo para torneos</div>
                 </div>
-              </button>
+              </a>
               
-              <button
-                onClick={() => handleExportTemplate('results')}
-                disabled={isExporting}
-                className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors disabled:opacity-50"
+              <a
+                href="/templates/resultados-ejemplo.csv"
+                download
+                className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
               >
                 <FileText className="h-5 w-5 mr-2 text-purple-600" />
                 <div className="text-left">
                   <div className="font-medium text-gray-900">Plantilla Resultados</div>
-                  <div className="text-sm text-gray-500">Formato para importar resultados</div>
+                  <div className="text-sm text-gray-500">Formato completo para resultados</div>
                 </div>
-              </button>
+              </a>
             </div>
 
-            {/* Archivos de ejemplo estáticos */}
+            {/* Documentación */}
             <div className="border-t pt-4">
-              <h4 className="text-sm font-medium text-gray-900 mb-3">Archivos de Ejemplo Estáticos</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <a
-                  href="/templates/equipos-ejemplo.csv"
-                  download
-                  className="flex items-center px-3 py-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  equipos-ejemplo.csv
-                </a>
-                <a
-                  href="/templates/torneos-ejemplo.csv"
-                  download
-                  className="flex items-center px-3 py-2 text-sm text-green-600 hover:text-green-800 border border-green-200 rounded-lg hover:bg-green-50 transition-colors"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  torneos-ejemplo.csv
-                </a>
-                <a
-                  href="/templates/resultados-ejemplo.csv"
-                  download
-                  className="flex items-center px-3 py-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  resultados-ejemplo.csv
-                </a>
-              </div>
-              <div className="mt-3 space-y-2">
+              <h4 className="text-sm font-medium text-gray-900 mb-3">Documentación</h4>
+              <div className="space-y-2">
                 <a
                   href="/templates/README-importacion.md"
                   download
                   className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <FileText className="h-4 w-4 mr-2" />
-                  Guía de Importación (README.md)
-                </a>
-                <a
-                  href="/templates/DIFERENCIA-BOTONES.md"
-                  download
-                  className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Diferencia entre Botones (DIFERENCIA-BOTONES.md)
+                  Guía Completa de Importación
                 </a>
               </div>
             </div>
@@ -745,6 +801,7 @@ Equipo Ejemplo 1,Club Deportivo A,Madrid,equipo1@ejemplo.com`
                 >
                   <option value="all">Todos los datos</option>
                   <option value="teams">Solo equipos</option>
+                  <option value="regions">Solo regiones</option>
                   <option value="tournaments">Solo torneos</option>
                   <option value="results">Solo resultados</option>
                   <option value="ranking">Solo ranking actual</option>
