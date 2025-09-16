@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { tournamentsService, supabase } from '@/services/apiService'
+import ActionButtonGroup from '@/components/ui/ActionButtonGroup'
 
 interface Tournament {
   id: string
@@ -337,28 +338,15 @@ const TournamentsAdminPage: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => navigate(`/admin/tournaments/${tournament.id}`)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Ver detalles"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => navigate(`/admin/tournaments/${tournament.id}/edit`)}
-                        className="text-indigo-600 hover:text-indigo-900"
-                        title="Editar"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(tournament)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Eliminar"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    <div className="flex justify-end">
+                      <ActionButtonGroup
+                        onView={() => window.open(`/tournaments/${tournament.id}`, '_blank')}
+                        onEdit={() => navigate(`/admin/tournaments/${tournament.id}/edit`)}
+                        onDelete={() => handleDelete(tournament)}
+                        viewTooltip="Ver en página pública"
+                        editTooltip="Editar torneo"
+                        deleteTooltip="Eliminar torneo"
+                      />
                     </div>
                   </td>
                 </tr>

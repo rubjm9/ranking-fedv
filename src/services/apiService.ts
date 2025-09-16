@@ -46,6 +46,13 @@ export interface Tournament {
   modality: string
   regionId?: string
   region?: Region
+  startDate?: string
+  endDate?: string
+  description?: string
+  season?: string
+  split?: string
+  is_finished?: boolean
+  regional_coefficient?: number
   createdAt: string
   updatedAt: string
 }
@@ -60,6 +67,15 @@ export interface RankingEntry {
   change: number
   tournaments: number
   lastUpdate: string
+}
+
+export interface SplitRanking {
+  team_id: string
+  team_name: string
+  region_name: string
+  total_points: number
+  tournaments_count: number
+  rank: number
 }
 
 export interface Configuration {
@@ -353,34 +369,45 @@ export const tournamentsService = {
       const { data, error } = await query
       
       if (error) {
-        console.warn('Supabase error, usando datos mock:', error.message)
-        return await mockTournamentsService.getAll()
+        console.error('❌ Supabase error:', error.message)
+        throw error
       }
       
       return { success: true, data: data || [], message: 'Torneos obtenidos exitosamente' }
     } catch (error) {
-      console.warn('Error de conexión, usando datos mock:', error)
-      return await mockTournamentsService.getAll()
+      console.error('❌ Error de conexión:', error)
+      throw error
     }
   },
 
   // Obtener un torneo por ID
   getById: async (id: string) => {
-    const { data, error } = await supabase
-      .from('tournaments')
-      .select(`
-        *,
-        region:regions(name),
-        positions(
-          *,
-          teams(name, region:regions(name))
-        )
-      `)
-      .eq('id', id)
-      .single()
+    if (!supabase) {
+      throw new Error('Supabase client not initialized')
+    }
     
-    if (error) throw error
-    return { success: true, data, message: 'Torneo obtenido exitosamente' }
+    try {
+      const { data, error } = await supabase
+        .from('tournaments')
+        .select(`
+          *,
+          region:regions(id, name, coefficient),
+          positions(
+            *,
+            teams(id, name, region:regions(name))
+          )
+        `)
+        .eq('id', id)
+        .single()
+      
+      if (error) {
+        throw error
+      }
+      
+      return { success: true, data, message: 'Torneo obtenido exitosamente' }
+    } catch (error) {
+      throw error
+    }
   },
 
   // Crear un nuevo torneo
@@ -449,77 +476,6 @@ export const tournamentsService = {
   }
 }
 
-// Servicios de ranking usando Supabase
-export const rankingService = {
-  // Obtener ranking general usando función SQL
-  getRanking: async (year?: number) => {
-    const currentYear = year || new Date().getFullYear()
-    
-    const { data, error } = await supabase
-      .rpc('calculate_team_ranking_simple', { year_param: currentYear })
-    
-    if (error) {
-      console.error('Error obteniendo ranking:', error)
-      throw error
-    }
-    
-    return { success: true, data: data || [], message: 'Ranking obtenido exitosamente' }
-  },
-
-  // Obtener ranking por región
-  getRegionRanking: async (regionId: string, year?: number) => {
-    const currentYear = year || new Date().getFullYear()
-    
-    const { data, error } = await supabase
-      .rpc('get_region_ranking', { region_id_param: regionId, year_param: currentYear })
-    
-    if (error) {
-      console.error('Error obteniendo ranking regional:', error)
-      throw error
-    }
-    
-    return { success: true, data: data || [], message: 'Ranking regional obtenido exitosamente' }
-  },
-
-  // Obtener estadísticas de región
-  getRegionStats: async (regionId: string) => {
-    const { data, error } = await supabase
-      .rpc('get_region_stats', { region_id_param: regionId })
-    
-    if (error) {
-      console.error('Error obteniendo estadísticas de región:', error)
-      throw error
-    }
-    
-    return { success: true, data: data?.[0] || null, message: 'Estadísticas de región obtenidas exitosamente' }
-  },
-
-  // Obtener historial de ranking de un equipo
-  getTeamHistory: async (teamId: string) => {
-    const { data, error } = await supabase
-      .rpc('get_team_ranking_history', { team_id_param: teamId })
-    
-    if (error) {
-      console.error('Error obteniendo historial del equipo:', error)
-      throw error
-    }
-    
-    return { success: true, data: data || [], message: 'Historial del equipo obtenido exitosamente' }
-  },
-
-  // Obtener estadísticas generales del sistema
-  getSystemStats: async () => {
-    const { data, error } = await supabase
-      .rpc('get_basic_stats')
-    
-    if (error) {
-      console.error('Error obteniendo estadísticas del sistema:', error)
-      throw error
-    }
-    
-    return { success: true, data: data?.[0] || null, message: 'Estadísticas del sistema obtenidas exitosamente' }
-  }
-}
 
 // Función auxiliar para multiplicadores de torneo
 function getTournamentMultiplier(type: string): number {
@@ -662,6 +618,22 @@ export const positionsService = {
     
     if (error) throw error
     return { success: true, data, message: 'Posición obtenida exitosamente' }
+  },
+
+  // Obtener posiciones por torneo
+  getByTournament: async (tournamentId: string) => {
+    const { data, error } = await supabase
+      .from('positions')
+      .select(`
+        *,
+        teams(name, regions(name)),
+        tournaments(name, year, type)
+      `)
+      .eq('tournamentId', tournamentId)
+      .order('position')
+    
+    if (error) throw error
+    return { success: true, data: data || [], message: 'Posiciones del torneo obtenidas exitosamente' }
   },
 
   // Crear una nueva posición
@@ -1399,6 +1371,52 @@ export interface CreatePositionData {
   teamId: string
   position: number
   points: number
+}
+
+// Servicio de ranking
+export const rankingService = {
+  // Obtener ranking por split
+  getSplitRanking: async (season: string, split: string): Promise<SplitRanking[]> => {
+    const { data, error } = await supabase.rpc('calculate_split_ranking', {
+      season_param: season,
+      split_param: split
+    })
+    
+    if (error) throw error
+    return data || []
+  },
+
+  // Obtener ranking general
+  getGeneralRanking: async (season: string): Promise<SplitRanking[]> => {
+    const { data, error } = await supabase.rpc('calculate_general_ranking', {
+      season_param: season
+    })
+    
+    if (error) throw error
+    return data || []
+  },
+
+  // Obtener configuración del sistema
+  getConfiguration: async () => {
+    const { data, error } = await supabase
+      .from('configuration')
+      .select('*')
+      .order('key')
+    
+    if (error) throw error
+    return { success: true, data: data || [], message: 'Configuración obtenida exitosamente' }
+  },
+
+  // Calcular coeficiente regional
+  calculateRegionalCoefficient: async (regionId: string, season: string): Promise<number> => {
+    const { data, error } = await supabase.rpc('calculate_regional_coefficient', {
+      region_id_param: regionId,
+      season_param: season
+    })
+    
+    if (error) throw error
+    return data || 1.0
+  }
 }
 
 export interface UpdatePositionData {

@@ -19,6 +19,7 @@ import {
 import toast from 'react-hot-toast'
 import { teamsService, regionsService, Team } from '@/services/apiService'
 import TeamLogo from '@/components/ui/TeamLogo'
+import ActionButtonGroup from '@/components/ui/ActionButtonGroup'
 
 const TeamsAdminPage: React.FC = () => {
   const navigate = useNavigate()
@@ -199,28 +200,15 @@ const TeamsAdminPage: React.FC = () => {
                     {new Date(team.createdAt).toLocaleDateString('es-ES')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => navigate(`/teams/${team.id}`)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Ver detalles"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => navigate(`/admin/teams/${team.id}/edit`)}
-                        className="text-indigo-600 hover:text-indigo-900"
-                        title="Editar"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(team)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Eliminar"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    <div className="flex justify-end">
+                      <ActionButtonGroup
+                        onView={() => navigate(`/teams/${team.id}`)}
+                        onEdit={() => navigate(`/admin/teams/${team.id}/edit`)}
+                        onDelete={() => handleDelete(team)}
+                        viewTooltip="Ver detalles"
+                        editTooltip="Editar equipo"
+                        deleteTooltip="Eliminar equipo"
+                      />
                     </div>
                   </td>
                 </tr>

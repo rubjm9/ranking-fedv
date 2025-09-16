@@ -1,23 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
+import { getSupabaseConfig } from '@/config/supabase';
 
-// Configuración de Supabase
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// Cliente de Supabase para el frontend
-let supabase: any = null;
-
-if (supabaseUrl && supabaseAnonKey) {
+// Función para obtener el cliente de Supabase
+const getSupabaseClient = () => {
+  const config = getSupabaseConfig();
+  
   try {
-    supabase = createClient(supabaseUrl, supabaseAnonKey);
-    console.log('✅ Cliente de Supabase inicializado correctamente');
+    const client = createClient(config.url, config.anonKey);
+    return client;
   } catch (error) {
     console.error('❌ Error inicializando Supabase:', error);
-    supabase = null;
+    return null;
   }
-} else {
-  console.warn('⚠️ Variables de entorno de Supabase no configuradas');
-}
+};
+
+// Cliente de Supabase para el frontend
+const supabase = getSupabaseClient();
 
 export { supabase };
 export default supabase;

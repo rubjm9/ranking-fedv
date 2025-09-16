@@ -41,6 +41,7 @@ import TeamDetailPage from '@/pages/TeamDetailPage'
 import TournamentDetailPage from '@/pages/TournamentDetailPage'
 import RegionDetailPage from '@/pages/RegionDetailPage'
 import TestSupabasePage from '@/pages/TestSupabasePage'
+import DiagnosticPage from '@/pages/DiagnosticPage'
 
 // Componentes
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
@@ -76,6 +77,7 @@ function App() {
               <Route path="tournaments/:id" element={<TournamentDetailPage />} />
               <Route path="about" element={<AboutPage />} />
               <Route path="test-supabase" element={<TestSupabasePage />} />
+              <Route path="diagnostic" element={<DiagnosticPage />} />
             </Route>
 
             {/* Rutas de autenticación */}

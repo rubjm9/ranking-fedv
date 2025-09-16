@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import * as XLSX from 'xlsx'
+import ActionButtonGroup from '@/components/ui/ActionButtonGroup'
 
 interface Team {
   id: string
@@ -484,28 +485,18 @@ const RankingAdminPage: React.FC = () => {
                     <div className="text-sm text-gray-500">{team.lastUpdate}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      <button 
-                        onClick={() => navigate(`/teams/${team.id}`)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      <button 
-                        onClick={() => navigate(`/admin/teams/${team.id}/edit`)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button 
-                        onClick={() => {
+                    <div className="flex justify-end">
+                      <ActionButtonGroup
+                        onView={() => navigate(`/teams/${team.id}`)}
+                        onEdit={() => navigate(`/admin/teams/${team.id}/edit`)}
+                        onDelete={() => {
                           setSelectedTeam(team)
                           setShowDeleteModal(true)
                         }}
-                        className="text-gray-400 hover:text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                        viewTooltip="Ver detalles"
+                        editTooltip="Editar equipo"
+                        deleteTooltip="Eliminar equipo"
+                      />
                     </div>
                   </td>
                 </tr>

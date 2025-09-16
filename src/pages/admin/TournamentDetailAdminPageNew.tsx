@@ -301,3 +301,5 @@ const TournamentDetailAdminPage: React.FC = () => {
 }
 
 export default TournamentDetailAdminPage
+
+

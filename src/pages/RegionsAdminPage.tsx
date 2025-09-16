@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { regionsService, Region } from '@/services/apiService'
+import ActionButtonGroup from '@/components/ui/ActionButtonGroup'
 
 const RegionsAdminPage: React.FC = () => {
   const navigate = useNavigate()
@@ -207,28 +208,15 @@ const RegionsAdminPage: React.FC = () => {
                     <span className="font-medium">{region._count?.teams || 0}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => navigate(`/admin/regions/${region.id}`)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Ver detalles"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => navigate(`/admin/regions/${region.id}/edit`)}
-                        className="text-indigo-600 hover:text-indigo-900"
-                        title="Editar"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(region)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Eliminar"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    <div className="flex justify-end">
+                      <ActionButtonGroup
+                        onView={() => navigate(`/admin/regions/${region.id}`)}
+                        onEdit={() => navigate(`/admin/regions/${region.id}/edit`)}
+                        onDelete={() => handleDelete(region)}
+                        viewTooltip="Ver detalles"
+                        editTooltip="Editar región"
+                        deleteTooltip="Eliminar región"
+                      />
                     </div>
                   </td>
                 </tr>

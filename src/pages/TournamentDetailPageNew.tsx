@@ -5,7 +5,6 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { useQuery } from '@tanstack/react-query'
 import { tournamentsService } from '../services/apiService'
 import { translateSurface, translateModality, translateTournamentType, getStatusLabel, getStatusColor } from '../utils/translations'
-import TeamLogo from '../components/ui/TeamLogo'
 
 interface Tournament {
   id: string
@@ -83,15 +82,14 @@ const TournamentDetailPage: React.FC = () => {
     id: pos.id,
     position: pos.position,
     team: {
-      id: pos.teams?.id || `unknown-${pos.position}`,
-      name: pos.teams?.name || `Equipo Posición ${pos.position}`,
-      region: pos.teams?.region?.name || 'Sin región',
+      id: pos.team?.id || '',
+      name: pos.team?.name || 'Equipo desconocido',
+      region: pos.team?.region?.name || 'Sin región',
       logo: 'https://via.placeholder.com/40'
     },
-    points: pos.points || 0,
+    points: pos.points,
     coefficient: tournament.regional_coefficient || 1.0
   })).sort((a, b) => a.position - b.position) || []
-
 
   // Calcular estadísticas de región basadas en datos reales
   const regionStats: RegionStats[] = React.useMemo(() => {
@@ -125,17 +123,7 @@ const TournamentDetailPage: React.FC = () => {
   // Función para formatear fechas
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Sin fecha'
-    
-    // Si ya tiene formato ISO completo, usarlo directamente
-    let date: Date
-    if (dateString.includes('T')) {
-      date = new Date(dateString)
-    } else {
-      // Si solo tiene fecha, agregar hora para evitar zona horaria
-      date = new Date(dateString + 'T00:00:00')
-    }
-    
-    return date.toLocaleDateString('es-ES', {
+    return new Date(dateString).toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -148,21 +136,6 @@ const TournamentDetailPage: React.FC = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Cargando torneo...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (tournamentError) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Trophy className="w-16 h-16 text-red-300 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Error al cargar el torneo</h1>
-          <p className="text-gray-600 mb-4">No se pudo cargar la información del torneo.</p>
-          <Link to="/tournaments" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Volver a torneos
-          </Link>
         </div>
       </div>
     )
@@ -190,169 +163,154 @@ const TournamentDetailPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-12">
           <Link
             to="/tournaments"
-            className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+            className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-8 transition-colors"
           >
             <ArrowLeft className="h-5 w-5 mr-2" />
             Volver a torneos
           </Link>
           
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">{tournament.name}</h1>
-          <p className="text-gray-600">{translateTournamentType(tournament.type)}</p>
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">{tournament.name}</h1>
+            <p className="text-xl text-gray-600">{translateTournamentType(tournament.type)}</p>
+          </div>
         </div>
 
         {/* Estadísticas principales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-center">
-              <Calendar className="h-5 w-5 text-gray-400 mr-3" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">Año</p>
-                <p className="text-lg font-semibold text-gray-900">{tournament.year}</p>
-              </div>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+            <Calendar className="h-8 w-8 text-blue-600 mx-auto mb-3" />
+            <h3 className="text-sm font-medium text-gray-600 mb-1">Año</h3>
+            <p className="text-2xl font-bold text-gray-900">{tournament.year}</p>
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-center">
-              <Users className="h-5 w-5 text-gray-400 mr-3" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">Equipos</p>
-                <p className="text-lg font-semibold text-gray-900">{totalTeams}</p>
-              </div>
-            </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+            <Users className="h-8 w-8 text-green-600 mx-auto mb-3" />
+            <h3 className="text-sm font-medium text-gray-600 mb-1">Equipos</h3>
+            <p className="text-2xl font-bold text-gray-900">{totalTeams}</p>
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-center">
-              <BarChart3 className="h-5 w-5 text-gray-400 mr-3" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">Puntos Totales</p>
-                <p className="text-lg font-semibold text-gray-900">{totalPoints.toLocaleString()}</p>
-              </div>
-            </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+            <BarChart3 className="h-8 w-8 text-purple-600 mx-auto mb-3" />
+            <h3 className="text-sm font-medium text-gray-600 mb-1">Puntos Totales</h3>
+            <p className="text-2xl font-bold text-gray-900">{totalPoints.toLocaleString()}</p>
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-center">
-              <Trophy className="h-5 w-5 text-gray-400 mr-3" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">Estado</p>
-                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(tournament.is_finished)}`}>
-                  {getStatusLabel(tournament.is_finished)}
-                </span>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+            <Trophy className="h-8 w-8 text-orange-600 mx-auto mb-3" />
+            <h3 className="text-sm font-medium text-gray-600 mb-1">Estado</h3>
+            <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(tournament.is_finished)}`}>
+              {getStatusLabel(tournament.is_finished)}
+            </span>
+          </div>
+        </div>
+
+        {/* Información del torneo */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Sobre el torneo</h2>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+              <p className="text-gray-700 text-lg leading-relaxed mb-6">
+                {tournament.description || 'El campeonato más importante de España para equipos de primera división. Celebrado en diferentes ciudades cada año con la participación de los mejores equipos del país.'}
+              </p>
+              
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <Trophy className="h-5 w-5 text-gray-400 mr-3" />
+                  <span className="text-gray-600">Tipo:</span>
+                  <span className="ml-2 font-medium text-gray-900">{translateTournamentType(tournament.type)}</span>
+                </div>
+                
+                <div className="flex items-center">
+                  <MapPin className="h-5 w-5 text-gray-400 mr-3" />
+                  <span className="text-gray-600">Superficie:</span>
+                  <span className="ml-2 font-medium text-gray-900">{translateSurface(tournament.surface)}</span>
+                </div>
+                
+                <div className="flex items-center">
+                  <Users className="h-5 w-5 text-gray-400 mr-3" />
+                  <span className="text-gray-600">Modalidad:</span>
+                  <span className="ml-2 font-medium text-gray-900">{translateModality(tournament.modality)}</span>
+                </div>
+                
+                <div className="flex items-center">
+                  <MapPin className="h-5 w-5 text-gray-400 mr-3" />
+                  <span className="text-gray-600">Región:</span>
+                  <span className="ml-2 font-medium text-gray-900">{tournament.region?.name || 'Sin región'}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Fechas</h3>
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <Clock className="h-5 w-5 text-gray-400 mr-3" />
+                  <span className="text-gray-600">Inicio:</span>
+                  <span className="ml-2 font-medium text-gray-900">{formatDate(tournament.startDate)}</span>
+                </div>
+                
+                <div className="flex items-center">
+                  <Clock className="h-5 w-5 text-gray-400 mr-3" />
+                  <span className="text-gray-600">Fin:</span>
+                  <span className="ml-2 font-medium text-gray-900">{formatDate(tournament.endDate)}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Información del torneo y distribución por regiones */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          {/* Información del torneo - 2/3 */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Sobre el torneo</h2>
-              
-              <p className="text-gray-700 leading-relaxed mb-6">
-                {tournament.description || 'El campeonato más importante de España para equipos de primera división. Celebrado en diferentes ciudades cada año con la participación de los mejores equipos del país.'}
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-4">
-                  <div className="flex items-center">
-                    <Trophy className="h-5 w-5 text-gray-400 mr-3" />
-                    <span className="text-gray-600">Tipo:</span>
-                    <span className="ml-2 font-medium text-gray-900">{translateTournamentType(tournament.type)}</span>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <MapPin className="h-5 w-5 text-gray-400 mr-3" />
-                    <span className="text-gray-600">Superficie:</span>
-                    <span className="ml-2 font-medium text-gray-900">{translateSurface(tournament.surface)}</span>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <Users className="h-5 w-5 text-gray-400 mr-3" />
-                    <span className="text-gray-600">Modalidad:</span>
-                    <span className="ml-2 font-medium text-gray-900">{translateModality(tournament.modality)}</span>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <MapPin className="h-5 w-5 text-gray-400 mr-3" />
-                    <span className="text-gray-600">Región:</span>
-                    <span className="ml-2 font-medium text-gray-900">
-                      {tournament.type === 'REGIONAL' ? (tournament.region?.name || 'Sin región') : 'Nacional'}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center">
-                    <Clock className="h-5 w-5 text-gray-400 mr-3" />
-                    <span className="text-gray-600">Inicio:</span>
-                    <span className="ml-2 font-medium text-gray-900">{formatDate(tournament.startDate)}</span>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <Clock className="h-5 w-5 text-gray-400 mr-3" />
-                    <span className="text-gray-600">Fin:</span>
-                    <span className="ml-2 font-medium text-gray-900">{formatDate(tournament.endDate)}</span>
-                  </div>
-                </div>
+        {/* Distribución por regiones */}
+        {regionStats.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Distribución por regiones</h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="flex justify-center">
+                <ResponsiveContainer width={300} height={300}>
+                  <PieChart>
+                    <Pie
+                      data={regionStats}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={120}
+                      paddingAngle={5}
+                      dataKey="teams"
+                    >
+                      {regionStats.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            </div>
-          </div>
-          
-          {/* Distribución por regiones - 1/3 */}
-          {regionStats.length > 0 && (
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Distribución por regiones</h2>
-                
-                <div className="flex justify-center mb-4">
-                  <ResponsiveContainer width={200} height={200}>
-                    <PieChart>
-                      <Pie
-                        data={regionStats}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={80}
-                        paddingAngle={1}
-                        dataKey="teams"
-                      >
-                        {regionStats.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                
-                <div className="space-y-2">
+              
+              <div className="flex flex-col justify-center">
+                <div className="space-y-3">
                   {regionStats.map((region, index) => (
                     <div key={index} className="flex items-center">
                       <div 
-                        className="w-3 h-3 rounded-full mr-2" 
+                        className="w-4 h-4 rounded-full mr-3" 
                         style={{ backgroundColor: region.color }}
                       />
-                      <span className="text-sm text-gray-900">{region.name}</span>
-                      <span className="ml-auto text-sm text-gray-600">{region.teams}</span>
+                      <span className="text-gray-900 font-medium">{region.name}</span>
+                      <span className="ml-auto text-gray-600">{region.teams} equipos</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Resultados finales */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Resultados finales</h2>
-          
           
           {positions.length === 0 ? (
             <div className="text-center py-12">
@@ -395,11 +353,11 @@ const TournamentDetailPage: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0">
-                            <TeamLogo 
-                              name={position.team.name} 
-                              logo={position.team.logo} 
-                              size="md"
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <img
+                              className="h-10 w-10 rounded-full"
+                              src={position.team.logo}
+                              alt={position.team.name}
                             />
                           </div>
                           <div className="ml-4">
@@ -431,3 +389,5 @@ const TournamentDetailPage: React.FC = () => {
 }
 
 export default TournamentDetailPage
+
+
