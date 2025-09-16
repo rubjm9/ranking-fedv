@@ -39,7 +39,7 @@ export const generateSeasons = (): Season[] => {
   for (let year = 2016; year <= endYear; year++) {
     const startYear = year
     const endYearSeason = year + 1
-    const value = `${startYear}/${endYearSeason.toString().slice(-2)}`
+    const value = `${startYear}-${endYearSeason.toString().slice(-2)}`
     const label = `${startYear}/${endYearSeason}`
     
     seasons.push({
@@ -149,5 +149,5 @@ export const validateTournamentDates = (startDate: string, endDate: string): str
 
 // Obtener año de la temporada para el backend
 export const getYearFromSeason = (season: string): number => {
-  return parseInt(season.split('/')[0])
+  return parseInt(season.split('-')[0])
 }
