@@ -30,6 +30,7 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredTeams, setFilteredTeams] = useState<Team[]>(teams)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const selectedTeam = teams.find(team => team.id === value)
 
@@ -51,6 +52,16 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  // Auto-focus en el input de búsqueda cuando se abre el desplegable
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      // Pequeño delay para asegurar que el DOM se haya actualizado
+      setTimeout(() => {
+        searchInputRef.current?.focus()
+      }, 0)
+    }
+  }, [isOpen])
 
   const handleSelect = (team: Team) => {
     onChange(team.id)
@@ -116,6 +127,7 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
+                ref={searchInputRef}
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}

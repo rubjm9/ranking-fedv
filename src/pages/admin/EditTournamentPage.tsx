@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Trash2, Plus, Eye } from 'lucide-react'
+import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Trash2, Plus, Eye, Clipboard } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
@@ -22,6 +22,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import toast from 'react-hot-toast'
 import TeamSelector from '@/components/forms/TeamSelector'
+import PastePositionsModal from '@/components/forms/PastePositionsModal'
 import {
   generateSeasons,
   generateTournamentName,
@@ -84,7 +85,7 @@ const EditTournamentPage: React.FC = () => {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [positions, setPositions] = useState<PositionRow[]>([])
-  const [showPositionsSection, setShowPositionsSection] = useState(false)
+  const [showPasteModal, setShowPasteModal] = useState(false)
   
   // Verificar si el torneo ya terminó (incluyendo el mismo día)
   const isTournamentFinished = () => {
@@ -194,7 +195,6 @@ const EditTournamentPage: React.FC = () => {
           points: pos.points
         }))
         setPositions(existingPositions)
-        setShowPositionsSection(true)
       }
     } catch (error) {
       console.error('Error al cargar torneo:', error)
@@ -371,6 +371,26 @@ const EditTournamentPage: React.FC = () => {
         points: getPointsForPosition(i + 1, formData.type)
       }))
     })
+  }
+
+  const handlePastePositions = (teamNames: string[]) => {
+    // Crear mapa de nombres de equipos a IDs
+    const teamNameToId = new Map(teams.map(team => [team.name.toLowerCase(), team.id]))
+    
+    // Convertir nombres de equipos a posiciones
+    const newPositions: PositionRow[] = teamNames.map((teamName, index) => {
+      const teamId = teamNameToId.get(teamName.toLowerCase()) || ''
+      return {
+        position: index + 1,
+        teamId: teamId,
+        points: getPointsForPosition(index + 1, formData.type)
+      }
+    })
+
+    // Reemplazar todas las posiciones existentes
+    setPositions(newPositions)
+    
+    toast.success(`${teamNames.length} posiciones aplicadas correctamente`)
   }
 
   // Sensores para drag and drop
@@ -813,7 +833,15 @@ const EditTournamentPage: React.FC = () => {
               )}
               
               {/* Botón agregar posición al final */}
-              <div className="flex justify-center">
+              <div className="flex justify-center space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setShowPasteModal(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  <Clipboard className="h-4 w-4" />
+                  <span>Pegar listado</span>
+                </button>
                 <button
                   type="button"
                   onClick={addPosition}
@@ -912,6 +940,14 @@ const EditTournamentPage: React.FC = () => {
           </div>
         </div>
       )}
+      
+      {/* Paste Positions Modal */}
+      <PastePositionsModal
+        isOpen={showPasteModal}
+        onClose={() => setShowPasteModal(false)}
+        onApply={handlePastePositions}
+        teams={teams}
+      />
     </div>
   )
 }

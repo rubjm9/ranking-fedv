@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Plus, Trash2, Eye } from 'lucide-react'
+import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Plus, Trash2, Eye, Clipboard } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
@@ -22,6 +22,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import toast from 'react-hot-toast'
 import TeamSelector from '@/components/forms/TeamSelector'
+import PastePositionsModal from '@/components/forms/PastePositionsModal'
 import {
   generateSeasons,
   generateTournamentName,
@@ -65,7 +66,7 @@ const NewTournamentPage: React.FC = () => {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [positions, setPositions] = useState<PositionRow[]>([])
-  const [showPositionsSection, setShowPositionsSection] = useState(false)
+  const [showPasteModal, setShowPasteModal] = useState(false)
   const [generatedName, setGeneratedName] = useState('')
 
   // Obtener datos desde la API
@@ -252,6 +253,26 @@ const NewTournamentPage: React.FC = () => {
         points: getPointsForPosition(i + 1, formData.type)
       }))
     })
+  }
+
+  const handlePastePositions = (teamNames: string[]) => {
+    // Crear mapa de nombres de equipos a IDs
+    const teamNameToId = new Map(teams.map(team => [team.name.toLowerCase(), team.id]))
+    
+    // Convertir nombres de equipos a posiciones
+    const newPositions: PositionRow[] = teamNames.map((teamName, index) => {
+      const teamId = teamNameToId.get(teamName.toLowerCase()) || ''
+      return {
+        position: index + 1,
+        teamId: teamId,
+        points: getPointsForPosition(index + 1, formData.type)
+      }
+    })
+
+    // Reemplazar todas las posiciones existentes
+    setPositions(newPositions)
+    
+    toast.success(`${teamNames.length} posiciones aplicadas correctamente`)
   }
 
   // Sensores para drag and drop
@@ -639,23 +660,27 @@ const NewTournamentPage: React.FC = () => {
 
           {/* Positions Section */}
           <div className="border-t border-gray-200 pt-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4">
               <h3 className="text-lg font-medium text-gray-900">Posiciones del Torneo</h3>
-              <button
-                type="button"
-                onClick={() => setShowPositionsSection(!showPositionsSection)}
-                className="text-sm text-blue-600 hover:text-blue-800"
-              >
-                {showPositionsSection ? 'Ocultar' : 'Mostrar'} posiciones
-              </button>
+              <p className="text-sm text-gray-600 mt-1">
+                Configura las posiciones finales del torneo (opcional)
+              </p>
             </div>
             
-            {showPositionsSection && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-600">
-                    Configura las posiciones finales del torneo (opcional)
-                  </p>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  Usa los botones para agregar posiciones individualmente o pegar un listado completo
+                </p>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPasteModal(true)}
+                    className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    <Clipboard className="h-4 w-4" />
+                    <span>Pegar listado</span>
+                  </button>
                   <button
                     type="button"
                     onClick={addPosition}
@@ -665,35 +690,35 @@ const NewTournamentPage: React.FC = () => {
                     <span>Agregar Posición</span>
                   </button>
                 </div>
-
-                {positions.length > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="grid grid-cols-12 gap-4 mb-3 text-sm font-medium text-gray-700">
-                      <div className="col-span-1">Orden</div>
-                      <div className="col-span-2">Posición</div>
-                      <div className="col-span-6">Equipo</div>
-                      <div className="col-span-2">Puntos</div>
-                      <div className="col-span-1">Acciones</div>
-                    </div>
-                    
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEnd}
-                    >
-                      <SortableContext
-                        items={positions.map(pos => `position-${pos.position}`)}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        {positions.map((position, index) => (
-                          <SortableItem key={`position-${position.position}`} position={position} index={index} />
-                        ))}
-                      </SortableContext>
-                    </DndContext>
-                  </div>
-                )}
               </div>
-            )}
+
+              {positions.length > 0 && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="grid grid-cols-12 gap-4 mb-3 text-sm font-medium text-gray-700">
+                    <div className="col-span-1">Orden</div>
+                    <div className="col-span-2">Posición</div>
+                    <div className="col-span-6">Equipo</div>
+                    <div className="col-span-2">Puntos</div>
+                    <div className="col-span-1">Acciones</div>
+                  </div>
+                  
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={positions.map(pos => `position-${pos.position}`)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {positions.map((position, index) => (
+                        <SortableItem key={`position-${position.position}`} position={position} index={index} />
+                      ))}
+                    </SortableContext>
+                  </DndContext>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Actions */}
@@ -725,6 +750,14 @@ const NewTournamentPage: React.FC = () => {
           </div>
         </form>
       </div>
+
+      {/* Paste Positions Modal */}
+      <PastePositionsModal
+        isOpen={showPasteModal}
+        onClose={() => setShowPasteModal(false)}
+        onApply={handlePastePositions}
+        teams={teams}
+      />
     </div>
   )
 }
