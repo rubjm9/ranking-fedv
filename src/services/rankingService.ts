@@ -27,6 +27,30 @@ export interface RankingResponse {
   summary: RankingSummary
 }
 
+export interface RankingHistoryEntry {
+  id: string
+  team_id: string
+  team_name: string
+  ranking_category: string
+  position: number
+  total_points: number
+  change_from_previous: number
+  calculated_at: string
+  season: string
+}
+
+export interface RankingEvolution {
+  team_id: string
+  team_name: string
+  category: string
+  data: {
+    season: string
+    position: number
+    points: number
+    change: number
+  }[]
+}
+
 const rankingService = {
   // Obtener ranking por categoría
   getRanking: async (category: string = 'beach_mixed'): Promise<RankingResponse> => {
@@ -126,6 +150,172 @@ const rankingService = {
     } catch (error) {
       console.error('Error al recalcular ranking:', error)
       throw error
+    }
+  },
+
+  // Obtener historial de cambios de ranking
+  getRankingHistory: async (category?: string, teamId?: string, limit: number = 50): Promise<RankingHistoryEntry[]> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      let query = supabase
+        .from('team_season_rankings')
+        .select(`
+          *,
+          teams:team_id(
+            id,
+            name
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+      if (category) {
+        // Filtrar por categoría específica basada en los puntos
+        query = query.not(`${category}_points`, 'is', null)
+      }
+
+      if (teamId) {
+        query = query.eq('team_id', teamId)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Error al obtener historial de ranking:', error)
+        throw error
+      }
+
+      // Transformar datos para incluir información del equipo y cambios
+      const historyData: RankingHistoryEntry[] = (data || []).map((entry, index) => {
+        // Calcular posición basada en puntos de la categoría
+        const points = category ? entry[`${category}_points`] || 0 : 
+          (entry.beach_mixed_points || 0) + (entry.beach_open_points || 0) + 
+          (entry.beach_women_points || 0) + (entry.grass_mixed_points || 0) + 
+          (entry.grass_open_points || 0) + (entry.grass_women_points || 0)
+
+        return {
+          id: entry.id,
+          team_id: entry.team_id,
+          team_name: entry.teams?.name || 'Equipo desconocido',
+          ranking_category: category || 'general',
+          position: index + 1, // Simplificado por ahora
+          total_points: points,
+          change_from_previous: 0, // Se calcularía comparando con el anterior
+          calculated_at: entry.created_at,
+          season: entry.season
+        }
+      })
+
+      return historyData
+    } catch (error) {
+      console.error('Error al obtener historial de ranking:', error)
+      return []
+    }
+  },
+
+  // Obtener evolución de un equipo específico
+  getTeamEvolution: async (teamId: string, category: string = 'beach_mixed'): Promise<RankingEvolution> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      // Obtener datos del equipo
+      const { data: teamData } = await supabase
+        .from('teams')
+        .select('id, name')
+        .eq('id', teamId)
+        .single()
+
+      // Obtener historial de temporadas del equipo
+      const { data: seasonData, error } = await supabase
+        .from('team_season_rankings')
+        .select('*')
+        .eq('team_id', teamId)
+        .order('season', { ascending: true })
+
+      if (error) {
+        console.error('Error al obtener evolución del equipo:', error)
+        throw error
+      }
+
+      // Transformar datos para el gráfico
+      const evolutionData = (seasonData || []).map((entry, index) => ({
+        season: entry.season,
+        position: index + 1, // Simplificado
+        points: entry[`${category}_points`] || 0,
+        change: index > 0 ? 
+          (entry[`${category}_points`] || 0) - (seasonData[index - 1][`${category}_points`] || 0) : 0
+      }))
+
+      return {
+        team_id: teamId,
+        team_name: teamData?.name || 'Equipo desconocido',
+        category,
+        data: evolutionData
+      }
+    } catch (error) {
+      console.error('Error al obtener evolución del equipo:', error)
+      return {
+        team_id: teamId,
+        team_name: 'Equipo desconocido',
+        category,
+        data: []
+      }
+    }
+  },
+
+  // Obtener comparación entre temporadas
+  getSeasonComparison: async (category: string = 'beach_mixed'): Promise<any> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      // Obtener datos de las últimas 4 temporadas
+      const { data: seasonData, error } = await supabase
+        .from('team_season_rankings')
+        .select(`
+          *,
+          teams:team_id(
+            id,
+            name
+          )
+        `)
+        .not(`${category}_points`, 'is', null)
+        .order('season', { ascending: false })
+        .limit(100)
+
+      if (error) {
+        console.error('Error al obtener comparación de temporadas:', error)
+        throw error
+      }
+
+      // Agrupar por temporada y equipo
+      const comparisonData = (seasonData || []).reduce((acc, entry) => {
+        const season = entry.season
+        const teamId = entry.team_id
+        
+        if (!acc[season]) {
+          acc[season] = {}
+        }
+        
+        acc[season][teamId] = {
+          team_name: entry.teams?.name || 'Equipo desconocido',
+          points: entry[`${category}_points`] || 0,
+          position: 0 // Se calcularía ordenando por puntos
+        }
+        
+        return acc
+      }, {} as any)
+
+      return comparisonData
+    } catch (error) {
+      console.error('Error al obtener comparación de temporadas:', error)
+      return {}
     }
   }
 }
