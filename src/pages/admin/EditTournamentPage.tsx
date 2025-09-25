@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Trash2, Plus, Eye, Clipboard } from 'lucide-react'
+import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Trash2, Plus, Eye, Clipboard, Copy } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
@@ -23,6 +23,7 @@ import { CSS } from '@dnd-kit/utilities'
 import toast from 'react-hot-toast'
 import TeamSelector from '@/components/forms/TeamSelector'
 import PastePositionsModal from '@/components/forms/PastePositionsModal'
+import LocationAutocomplete from '@/components/forms/LocationAutocomplete'
 import {
   generateSeasons,
   generateTournamentName,
@@ -261,6 +262,76 @@ const EditTournamentPage: React.FC = () => {
     return Object.keys(newErrors).length === 0
   }
 
+  // Validación en tiempo real
+  const validateField = (field: keyof TournamentFormData, value: string) => {
+    const newErrors = { ...errors }
+    
+    switch (field) {
+      case 'type':
+        if (!value) {
+          newErrors.type = 'El tipo de torneo es requerido'
+        } else {
+          delete newErrors.type
+        }
+        break
+        
+      case 'season':
+        if (!value) {
+          newErrors.season = 'La temporada es requerida'
+        } else {
+          delete newErrors.season
+        }
+        break
+        
+      case 'surface':
+        if (!value) {
+          newErrors.surface = 'La superficie es requerida'
+        } else {
+          delete newErrors.surface
+        }
+        break
+        
+      case 'modality':
+        if (!value) {
+          newErrors.modality = 'La modalidad es requerida'
+        } else {
+          delete newErrors.modality
+        }
+        break
+        
+      case 'regionId':
+        if (formData.type === 'REGIONAL' && !value) {
+          newErrors.regionId = 'La región es requerida para torneos regionales'
+        } else {
+          delete newErrors.regionId
+        }
+        break
+        
+      case 'startDate':
+      case 'endDate':
+        const dateError = validateTournamentDates(
+          field === 'startDate' ? value : formData.startDate,
+          field === 'endDate' ? value : formData.endDate
+        )
+        if (dateError) {
+          newErrors.startDate = dateError
+        } else {
+          delete newErrors.startDate
+        }
+        break
+        
+      case 'location':
+        if (!value.trim()) {
+          newErrors.location = 'La ubicación es requerida'
+        } else {
+          delete newErrors.location
+        }
+        break
+    }
+    
+    setErrors(newErrors)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -319,9 +390,7 @@ const EditTournamentPage: React.FC = () => {
 
   const handleInputChange = (field: keyof TournamentFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
-    }
+    validateField(field, value)
   }
 
   const updatePosition = (index: number, field: keyof PositionRow, value: string | number) => {
@@ -391,6 +460,31 @@ const EditTournamentPage: React.FC = () => {
     setPositions(newPositions)
     
     toast.success(`${teamNames.length} posiciones aplicadas correctamente`)
+  }
+
+  const handleDuplicateTournament = () => {
+    if (window.confirm('¿Estás seguro de que quieres duplicar este torneo? Se creará una copia con un nuevo nombre.')) {
+      // Crear datos del torneo duplicado
+      const duplicatedData = {
+        ...formData,
+        // Generar nuevo nombre agregando "Copia" al final
+        name: `${generatedName} - Copia`
+      }
+      
+      // Navegar a la página de nuevo torneo con los datos pre-rellenados
+      const queryParams = new URLSearchParams({
+        duplicate: 'true',
+        type: duplicatedData.type,
+        season: duplicatedData.season,
+        surface: duplicatedData.surface,
+        modality: duplicatedData.modality,
+        regionId: duplicatedData.regionId || '',
+        location: duplicatedData.location
+      })
+      
+      navigate(`/admin/tournaments/new?${queryParams.toString()}`)
+      toast.success('Torneo duplicado. Puedes editarlo antes de guardar.')
+    }
   }
 
   // Sensores para drag and drop
@@ -526,6 +620,14 @@ const EditTournamentPage: React.FC = () => {
               <p className="text-gray-600">Modificar información del torneo</p>
             </div>
           </div>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={handleDuplicateTournament}
+              className="flex items-center space-x-2 px-4 py-2 text-sm text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
+            >
+              <Copy className="h-4 w-4" />
+              <span>Duplicar</span>
+            </button>
           <button
             onClick={() => setShowDeleteModal(true)}
             className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors flex items-center"
@@ -533,6 +635,7 @@ const EditTournamentPage: React.FC = () => {
             <Trash2 className="h-4 w-4 mr-2" />
             Eliminar Torneo
           </button>
+          </div>
         </div>
       </div>
 
@@ -772,24 +875,12 @@ const EditTournamentPage: React.FC = () => {
                 <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
                   Ubicación *
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    id="location"
+                <LocationAutocomplete
                     value={formData.location}
-                    onChange={(e) => handleInputChange('location', e.target.value)}
-                    className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.location ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
+                  onChange={(value) => handleInputChange('location', value)}
                     placeholder="Ej: Madrid, España"
+                  error={errors.location}
                   />
-                </div>
-                {errors.location && (
-                  <p className="mt-1 text-sm text-red-600">{errors.location}</p>
-                )}
               </div>
             </div>
           </div>
@@ -907,35 +998,77 @@ const EditTournamentPage: React.FC = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
-                <Trash2 className="h-6 w-6 text-red-600" />
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+          <div className="relative bg-white rounded-lg shadow-xl p-8 w-full max-w-md mx-auto">
+            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 rounded-full mb-6">
+              <Trash2 className="h-8 w-8 text-red-600" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 text-center mt-4">
+            
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
                 Eliminar Torneo
               </h3>
-              <p className="text-sm text-gray-500 text-center mt-2">
-                ¿Estás seguro de que quieres eliminar <strong>{generatedName}</strong>? 
-                Esta acción no se puede deshacer.
+              <p className="text-gray-600 mb-4">
+                ¿Estás seguro de que quieres eliminar este torneo?
               </p>
               
-              <div className="flex items-center justify-end space-x-3 mt-6">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center justify-center space-x-2 mb-2">
+                  <Trophy className="h-5 w-5 text-red-600" />
+                  <span className="font-semibold text-red-800">{generatedName}</span>
+                </div>
+                <div className="text-sm text-red-700 space-y-1">
+                  <p><strong>Tipo:</strong> {tournamentTypes.find(t => t.value === formData.type)?.label}</p>
+                  <p><strong>Temporada:</strong> {formData.season}</p>
+                  <p><strong>Ubicación:</strong> {formData.location}</p>
+                  {positions.length > 0 && (
+                    <p><strong>Posiciones:</strong> {positions.length} equipos</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center justify-center space-x-2 mb-2">
+                  <svg className="h-5 w-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="font-semibold text-yellow-800">Advertencia</span>
+                </div>
+                <p className="text-sm text-yellow-700">
+                  Esta acción <strong>no se puede deshacer</strong>. Se eliminarán permanentemente:
+                </p>
+                <ul className="text-sm text-yellow-700 mt-2 text-left list-disc list-inside">
+                  <li>El torneo y toda su información</li>
+                  <li>Todas las posiciones y resultados</li>
+                  <li>Los puntos de ranking asociados</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-center space-x-4">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting || deleteTournamentMutation.isPending}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isDeleting || deleteTournamentMutation.isPending ? 'Eliminando...' : 'Eliminar'}
+                className="px-6 py-3 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {isDeleting || deleteTournamentMutation.isPending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Eliminando...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Eliminar Definitivamente
+                  </>
+                )}
                 </button>
-              </div>
             </div>
           </div>
         </div>

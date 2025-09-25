@@ -61,7 +61,7 @@ const RankingAdminPage: React.FC = () => {
 
   // Mutación para recalcular ranking
   const recalculateMutation = useMutation({
-    mutationFn: () => rankingService.recalculateCurrentRanking(),
+    mutationFn: () => rankingService.recalculateRanking(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ranking'] })
       toast.success('Ranking recalculado exitosamente')
@@ -101,6 +101,18 @@ const RankingAdminPage: React.FC = () => {
     toast.info('Función de exportación en desarrollo')
   }
 
+  const handleDiagnose = async () => {
+    try {
+      console.log('🔍 Ejecutando diagnóstico...')
+      const result = await rankingService.diagnoseRanking()
+      console.log('📋 Resultado del diagnóstico:', result)
+      toast.success('Diagnóstico completado. Revisa la consola para ver los resultados.')
+    } catch (error) {
+      console.error('Error en diagnóstico:', error)
+      toast.error('Error al ejecutar diagnóstico')
+    }
+  }
+
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -130,6 +142,13 @@ const RankingAdminPage: React.FC = () => {
               >
                 <Download className="h-4 w-4" />
                 <span>Exportar</span>
+            </button>
+            <button
+              onClick={handleDiagnose}
+              className="flex items-center space-x-2 px-4 py-2 text-sm text-white bg-orange-600 rounded-md hover:bg-orange-700 transition-colors"
+            >
+              <BarChart3 className="h-4 w-4" />
+              <span>Diagnosticar</span>
             </button>
             <button
               onClick={handleRecalculate}
@@ -198,43 +217,43 @@ const RankingAdminPage: React.FC = () => {
         {/* Estadísticas */}
         {statsData && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center">
                 <Users className="h-8 w-8 text-blue-500" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Total Equipos</p>
-                  <p className="text-2xl font-bold text-gray-900">{statsData.data?.total_teams || 0}</p>
+                  <p className="text-2xl font-bold text-gray-900">{statsData.total_teams || 0}</p>
                 </div>
               </div>
             </div>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex items-center">
                 <Trophy className="h-8 w-8 text-yellow-500" />
-            <div className="ml-4">
+                <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Con Puntos</p>
-                  <p className="text-2xl font-bold text-gray-900">{statsData.data?.teams_with_points || 0}</p>
+                  <p className="text-2xl font-bold text-gray-900">{statsData.teams_with_points || 0}</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center">
                 <TrendingUp className="h-8 w-8 text-green-500" />
-            <div className="ml-4">
+                <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Max Puntos</p>
-                  <p className="text-2xl font-bold text-gray-900">{statsData.data?.max_points || 0}</p>
+                  <p className="text-2xl font-bold text-gray-900">{statsData.max_points || 0}</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center">
                 <Calendar className="h-8 w-8 text-purple-500" />
-            <div className="ml-4">
+                <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Promedio</p>
-                  <p className="text-2xl font-bold text-gray-900">{statsData.data?.avg_points || 0}</p>
+                  <p className="text-2xl font-bold text-gray-900">{statsData.avg_points || 0}</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
         )}
 
         {/* Ranking */}
@@ -295,7 +314,7 @@ const RankingAdminPage: React.FC = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
                   {rankingData.map((team: any, index: number) => (
-                    <tr key={team.id} className={getPositionColor(team.ranking_position || index + 1)}>
+                    <tr key={team.team_id || team.id || index} className={getPositionColor(team.ranking_position || index + 1)}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                           {getPositionIcon(team.ranking_position || index + 1)}

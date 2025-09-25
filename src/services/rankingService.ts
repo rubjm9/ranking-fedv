@@ -11,6 +11,15 @@ export interface RankingEntry {
   total_points: number
   ranking_position: number
   last_calculated: string
+  team?: {
+    id: string
+    name: string
+    regionId: string
+    region?: {
+      id: string
+      name: string
+    }
+  }
 }
 
 export interface RankingSummary {
@@ -139,16 +148,176 @@ const rankingService = {
         throw new Error('Supabase no está configurado')
       }
 
-      const { error } = await supabase.rpc('recalculate_current_rankings')
-      
-      if (error) {
-        console.error('Error al recalcular ranking:', error)
-        throw error
+      // Intentar usar la función RPC si existe
+      try {
+        const { error } = await supabase.rpc('recalculate_current_rankings')
+        
+        if (error) {
+          console.warn('Función RPC no disponible, usando método alternativo:', error)
+          // Si la función RPC no existe, usar método alternativo
+          return await rankingService.recalculateRankingAlternative()
+        }
+        
+        return { message: 'Ranking recalculado exitosamente' }
+      } catch (rpcError) {
+        console.warn('Error con función RPC, usando método alternativo:', rpcError)
+        // Si hay error con RPC, usar método alternativo
+        return await rankingService.recalculateRankingAlternative()
       }
-      
-      return { message: 'Ranking recalculado exitosamente' }
     } catch (error) {
       console.error('Error al recalcular ranking:', error)
+      throw error
+    }
+  },
+
+  // Método alternativo para recalcular ranking
+  recalculateRankingAlternative: async (): Promise<any> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      console.log('🔄 Iniciando recálculo alternativo...')
+
+      // Obtener todas las posiciones de torneos
+      const { data: positions, error: positionsError } = await supabase
+        .from('positions')
+        .select(`
+          *,
+          tournaments:tournamentId(
+            id,
+            name,
+            type,
+            year,
+            surface,
+            modality,
+            regionId
+          ),
+          teams:teamId(
+            id,
+            name,
+            regionId
+          )
+        `)
+
+      if (positionsError) {
+        console.error('Error al obtener posiciones:', positionsError)
+        throw positionsError
+      }
+
+      console.log('📊 Posiciones obtenidas:', positions?.length || 0)
+
+      if (!positions || positions.length === 0) {
+        console.log('⚠️ No hay posiciones para recalcular')
+        return { message: 'No hay posiciones para recalcular' }
+      }
+
+      // Agrupar puntos por equipo y categoría
+      const teamPoints: { [key: string]: { [key: string]: number } } = {}
+
+      positions.forEach(position => {
+        const tournament = position.tournaments
+        const team = position.teams
+        
+        console.log('🏆 Procesando posición:', {
+          position: position.position,
+          points: position.points,
+          tournament: tournament?.name || 'Sin torneo',
+          team: team?.name || 'Sin equipo'
+        })
+
+        if (!tournament || !team) {
+          console.warn('⚠️ Posición sin torneo o equipo:', position)
+          return
+        }
+
+        // Determinar categoría basada en superficie y modalidad
+        const category = `${tournament.surface.toLowerCase()}_${tournament.modality.toLowerCase()}`
+        const teamKey = team.id
+
+        if (!teamPoints[teamKey]) {
+          teamPoints[teamKey] = {}
+        }
+
+        if (!teamPoints[teamKey][category]) {
+          teamPoints[teamKey][category] = 0
+        }
+
+        teamPoints[teamKey][category] += position.points || 0
+      })
+
+      console.log('📈 Puntos agrupados:', teamPoints)
+
+      // Limpiar rankings actuales
+      console.log('🗑️ Limpiando rankings actuales...')
+      const { error: deleteError } = await supabase
+        .from('current_rankings')
+        .delete()
+        .not('id', 'is', null) // Delete all records
+
+      if (deleteError) {
+        console.error('Error al limpiar rankings:', deleteError)
+        throw deleteError
+      }
+
+      console.log('✅ Rankings limpiados exitosamente')
+
+      // Insertar nuevos rankings
+      const rankingEntries = []
+      
+      Object.keys(teamPoints).forEach(teamId => {
+        Object.keys(teamPoints[teamId]).forEach(category => {
+          const totalPoints = teamPoints[teamId][category]
+          
+          rankingEntries.push({
+            team_id: teamId,
+            ranking_category: category,
+            current_season_points: totalPoints,
+            previous_season_points: 0,
+            two_seasons_ago_points: 0,
+            three_seasons_ago_points: 0,
+            total_points: totalPoints,
+            ranking_position: 0, // Se calculará después
+            last_calculated: new Date().toISOString()
+          })
+        })
+      })
+
+      console.log('📝 Entradas de ranking a insertar:', rankingEntries.length)
+
+      // Ordenar por puntos y asignar posiciones
+      rankingEntries.sort((a, b) => b.total_points - a.total_points)
+      
+      rankingEntries.forEach((entry, index) => {
+        entry.ranking_position = index + 1
+      })
+
+      console.log('🏆 Rankings ordenados:', rankingEntries.slice(0, 5)) // Mostrar solo los primeros 5
+
+      // Insertar en lotes
+      const batchSize = 100
+      console.log('💾 Insertando rankings en lotes...')
+      for (let i = 0; i < rankingEntries.length; i += batchSize) {
+        const batch = rankingEntries.slice(i, i + batchSize)
+        console.log(`📦 Insertando lote ${Math.floor(i/batchSize) + 1}: ${batch.length} entradas`)
+        
+        const { error: insertError } = await supabase
+          .from('current_rankings')
+          .insert(batch)
+
+        if (insertError) {
+          console.error('Error al insertar ranking:', insertError)
+          throw insertError
+        }
+      }
+
+      console.log('✅ Rankings insertados exitosamente')
+
+      return { 
+        message: `Ranking recalculado exitosamente. ${rankingEntries.length} entradas procesadas.` 
+      }
+    } catch (error) {
+      console.error('Error en método alternativo:', error)
       throw error
     }
   },
@@ -264,6 +433,272 @@ const rankingService = {
         team_name: 'Equipo desconocido',
         category,
         data: []
+      }
+    }
+  },
+
+  // Obtener ranking actual con información de equipos
+  getCurrentRankingWithTeams: async (category: string = 'beach_mixed'): Promise<RankingResponse> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      // Obtener ranking con información de equipos y regiones
+      const { data: rankingData, error } = await supabase
+        .from('current_rankings')
+        .select(`
+          *,
+          teams:team_id(
+            id,
+            name,
+            regionId,
+            regions:regionId(
+              id,
+              name
+            )
+          )
+        `)
+        .eq('ranking_category', category)
+        .order('ranking_position', { ascending: true })
+
+      if (error) {
+        console.error('Error al obtener ranking actual:', error)
+        throw error
+      }
+
+      console.log('🔍 Datos de ranking obtenidos:', rankingData?.slice(0, 3))
+
+      // Transformar datos para incluir nombres de equipos
+      const transformedData: RankingEntry[] = (rankingData || []).map(ranking => {
+        console.log('🏆 Procesando ranking:', {
+          team_id: ranking.team_id,
+          team_name: ranking.teams?.name,
+          has_team: !!ranking.teams,
+          region_name: ranking.teams?.regions?.name
+        })
+        
+        return {
+          team_id: ranking.team_id,
+          team_name: ranking.teams?.name || 'Equipo desconocido',
+          ranking_category: ranking.ranking_category,
+          current_season_points: ranking.current_season_points || 0,
+          previous_season_points: ranking.previous_season_points || 0,
+          two_seasons_ago_points: ranking.two_seasons_ago_points || 0,
+          three_seasons_ago_points: ranking.three_seasons_ago_points || 0,
+          total_points: ranking.total_points || 0,
+          ranking_position: ranking.ranking_position || 0,
+          last_calculated: ranking.last_calculated || new Date().toISOString(),
+          team: ranking.teams ? {
+            id: ranking.teams.id,
+            name: ranking.teams.name,
+            regionId: ranking.teams.regionId,
+            region: ranking.teams.regions
+          } : undefined
+        }
+      })
+
+      // Calcular estadísticas
+      const totalTeams = await supabase.from('teams').select('id', { count: 'exact', head: true })
+      const teamsWithPoints = transformedData.filter(r => r.total_points > 0).length
+      const maxPoints = transformedData.length > 0 ? Math.max(...transformedData.map(r => r.total_points)) : 0
+      const minPoints = transformedData.length > 0 ? Math.min(...transformedData.map(r => r.total_points)) : 0
+      const avgPoints = transformedData.length > 0 ? 
+        transformedData.reduce((sum, r) => sum + r.total_points, 0) / transformedData.length : 0
+
+      const summary: RankingSummary = {
+        total_teams: totalTeams.count || 0,
+        teams_with_points: teamsWithPoints,
+        teams_without_points: (totalTeams.count || 0) - teamsWithPoints,
+        max_points: maxPoints.toFixed(2),
+        min_points: minPoints.toFixed(2),
+        average_points: avgPoints.toFixed(2)
+      }
+
+      return {
+        data: transformedData,
+        summary
+      }
+    } catch (error) {
+      console.error('Error al obtener ranking actual:', error)
+      return {
+        data: [],
+        summary: {
+          total_teams: 0,
+          teams_with_points: 0,
+          teams_without_points: 0,
+          max_points: "0.00",
+          min_points: "0.00",
+          average_points: "0.00"
+        }
+      }
+    }
+  },
+
+  // Obtener ranking por temporada con información de equipos
+  getSeasonRankingWithTeams: async (season: string): Promise<RankingResponse> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      // Obtener ranking por temporada
+      const { data: rankingData, error } = await supabase
+        .from('team_season_rankings')
+        .select(`
+          *,
+          teams:team_id(
+            id,
+            name,
+            regions:regionId(
+              id,
+              name
+            )
+          )
+        `)
+        .eq('season', season)
+        .order('total_points', { ascending: false })
+
+      if (error) {
+        console.error('Error al obtener ranking de temporada:', error)
+        throw error
+      }
+
+      // Transformar datos
+      const transformedData: RankingEntry[] = (rankingData || []).map((ranking, index) => ({
+        team_id: ranking.team_id,
+        team_name: ranking.teams?.name || 'Equipo desconocido',
+        ranking_category: 'season_ranking',
+        current_season_points: ranking.total_points || 0,
+        previous_season_points: 0,
+        two_seasons_ago_points: 0,
+        three_seasons_ago_points: 0,
+        total_points: ranking.total_points || 0,
+        ranking_position: index + 1,
+        last_calculated: ranking.updated_at || new Date().toISOString()
+      }))
+
+      // Calcular estadísticas
+      const teamsWithPoints = transformedData.filter(r => r.total_points > 0).length
+      const maxPoints = transformedData.length > 0 ? Math.max(...transformedData.map(r => r.total_points)) : 0
+      const minPoints = transformedData.length > 0 ? Math.min(...transformedData.map(r => r.total_points)) : 0
+      const avgPoints = transformedData.length > 0 ? 
+        transformedData.reduce((sum, r) => sum + r.total_points, 0) / transformedData.length : 0
+
+      const summary: RankingSummary = {
+        total_teams: transformedData.length,
+        teams_with_points: teamsWithPoints,
+        teams_without_points: transformedData.length - teamsWithPoints,
+        max_points: maxPoints.toFixed(2),
+        min_points: minPoints.toFixed(2),
+        average_points: avgPoints.toFixed(2)
+      }
+
+      return {
+        data: transformedData,
+        summary
+      }
+    } catch (error) {
+      console.error('Error al obtener ranking de temporada:', error)
+      return {
+        data: [],
+        summary: {
+          total_teams: 0,
+          teams_with_points: 0,
+          teams_without_points: 0,
+          max_points: "0.00",
+          min_points: "0.00",
+          average_points: "0.00"
+        }
+      }
+    }
+  },
+
+  // Método de diagnóstico para verificar el estado de la base de datos
+  diagnoseRanking: async (): Promise<any> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      console.log('🔍 Iniciando diagnóstico del ranking...')
+
+      // Verificar si existe la tabla current_rankings
+      const { data: rankingsData, error: rankingsError } = await supabase
+        .from('current_rankings')
+        .select('*')
+        .limit(5)
+
+      console.log('📊 Datos de current_rankings:', rankingsData)
+      console.log('❌ Error de current_rankings:', rankingsError)
+
+      // Verificar si existe la tabla positions
+      const { data: positionsData, error: positionsError } = await supabase
+        .from('positions')
+        .select('*')
+        .limit(5)
+
+      console.log('🏆 Datos de positions:', positionsData)
+      console.log('❌ Error de positions:', positionsError)
+
+      // Verificar si existe la tabla teams
+      const { data: teamsData, error: teamsError } = await supabase
+        .from('teams')
+        .select('*')
+        .limit(5)
+
+      console.log('👥 Datos de teams:', teamsData)
+      console.log('❌ Error de teams:', teamsError)
+
+      return {
+        current_rankings: { data: rankingsData, error: rankingsError },
+        positions: { data: positionsData, error: positionsError },
+        teams: { data: teamsData, error: teamsError }
+      }
+    } catch (error) {
+      console.error('Error en diagnóstico:', error)
+      return { error: error.message }
+    }
+  },
+
+  // Obtener estadísticas del ranking
+  getRankingStats: async (): Promise<any> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      // Obtener estadísticas básicas
+      const { data: statsData, error } = await supabase
+        .from('current_rankings')
+        .select('total_points, ranking_position')
+        .order('ranking_position', { ascending: true })
+
+      if (error) {
+        console.error('Error al obtener estadísticas:', error)
+        throw error
+      }
+
+      // Calcular estadísticas generales
+      const totalTeams = statsData?.length || 0
+      const teamsWithPoints = statsData?.filter(entry => entry.total_points > 0).length || 0
+      const maxPoints = statsData?.length > 0 ? Math.max(...statsData.map(entry => entry.total_points)) : 0
+      const totalPoints = statsData?.reduce((sum, entry) => sum + entry.total_points, 0) || 0
+      const avgPoints = totalTeams > 0 ? (totalPoints / totalTeams).toFixed(1) : "0.0"
+
+      return {
+        total_teams: totalTeams,
+        teams_with_points: teamsWithPoints,
+        max_points: maxPoints,
+        avg_points: avgPoints
+      }
+    } catch (error) {
+      console.error('Error al obtener estadísticas:', error)
+      return {
+        total_teams: 0,
+        teams_with_points: 0,
+        max_points: 0,
+        avg_points: "0.0"
       }
     }
   },

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Plus, Trash2, Eye, Clipboard } from 'lucide-react'
+import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Plus, Trash2, Clipboard } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
@@ -23,6 +23,7 @@ import { CSS } from '@dnd-kit/utilities'
 import toast from 'react-hot-toast'
 import TeamSelector from '@/components/forms/TeamSelector'
 import PastePositionsModal from '@/components/forms/PastePositionsModal'
+import LocationAutocomplete from '@/components/forms/LocationAutocomplete'
 import {
   generateSeasons,
   generateTournamentName,
@@ -41,17 +42,9 @@ interface Region {
   code: string
 }
 
-interface Team {
-  id: string
-  name: string
-  region?: {
-    id: string
-    name: string
-  }
-}
-
 const NewTournamentPage: React.FC = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<TournamentFormData>({
@@ -68,6 +61,25 @@ const NewTournamentPage: React.FC = () => {
   const [positions, setPositions] = useState<PositionRow[]>([])
   const [showPasteModal, setShowPasteModal] = useState(false)
   const [generatedName, setGeneratedName] = useState('')
+
+  // Cargar datos de duplicación si existen
+  useEffect(() => {
+    const isDuplicate = searchParams.get('duplicate') === 'true'
+    if (isDuplicate) {
+      const duplicateData: TournamentFormData = {
+        type: searchParams.get('type') || '',
+        season: searchParams.get('season') || '',
+        surface: searchParams.get('surface') || '',
+        modality: searchParams.get('modality') || '',
+        regionId: searchParams.get('regionId') || '',
+        startDate: '',
+        endDate: '',
+        location: searchParams.get('location') || ''
+      }
+      setFormData(duplicateData)
+      toast.success('Datos del torneo cargados. Puedes editarlos antes de guardar.')
+    }
+  }, [searchParams])
 
   // Obtener datos desde la API
   const { data: regionsData } = useQuery({
@@ -174,6 +186,76 @@ const NewTournamentPage: React.FC = () => {
     return Object.keys(newErrors).length === 0
   }
 
+  // Validación en tiempo real
+  const validateField = (field: keyof TournamentFormData, value: string) => {
+    const newErrors = { ...errors }
+    
+    switch (field) {
+      case 'type':
+        if (!value) {
+          newErrors.type = 'El tipo de torneo es requerido'
+        } else {
+          delete newErrors.type
+        }
+        break
+        
+      case 'season':
+        if (!value) {
+          newErrors.season = 'La temporada es requerida'
+        } else {
+          delete newErrors.season
+        }
+        break
+        
+      case 'surface':
+        if (!value) {
+          newErrors.surface = 'La superficie es requerida'
+        } else {
+          delete newErrors.surface
+        }
+        break
+        
+      case 'modality':
+        if (!value) {
+          newErrors.modality = 'La modalidad es requerida'
+        } else {
+          delete newErrors.modality
+        }
+        break
+        
+      case 'regionId':
+        if (formData.type === 'REGIONAL' && !value) {
+          newErrors.regionId = 'La región es requerida para torneos regionales'
+        } else {
+          delete newErrors.regionId
+        }
+        break
+        
+      case 'startDate':
+      case 'endDate':
+        const dateError = validateTournamentDates(
+          field === 'startDate' ? value : formData.startDate,
+          field === 'endDate' ? value : formData.endDate
+        )
+        if (dateError) {
+          newErrors.startDate = dateError
+        } else {
+          delete newErrors.startDate
+        }
+        break
+        
+      case 'location':
+        if (!value.trim()) {
+          newErrors.location = 'La ubicación es requerida'
+        } else {
+          delete newErrors.location
+        }
+        break
+    }
+    
+    setErrors(newErrors)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -199,7 +281,7 @@ const NewTournamentPage: React.FC = () => {
       const result = await createTournamentMutation.mutateAsync(tournamentData)
 
       // Si hay posiciones, crearlas también
-      if (showPositionsSection && positions.length > 0) {
+      if (positions.length > 0) {
         const positionsWithTeams = positions.filter(p => p.teamId)
         if (positionsWithTeams.length > 0) {
           await tournamentsService.addPositions(result.data.id, positionsWithTeams)
@@ -215,9 +297,7 @@ const NewTournamentPage: React.FC = () => {
 
   const handleInputChange = (field: keyof TournamentFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
-    }
+    validateField(field, value)
   }
 
   const updatePosition = (index: number, field: keyof PositionRow, value: string | number) => {
@@ -382,21 +462,33 @@ const NewTournamentPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <button
               onClick={() => navigate('/admin/tournaments')}
-              className="mr-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                className="mr-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg transition-all duration-200 shadow-sm"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Nuevo torneo</h1>
-              <p className="text-gray-600">Crear un nuevo torneo en el sistema</p>
+                <h1 className="text-3xl font-bold text-gray-900">Nuevo torneo</h1>
+                <p className="text-gray-600 mt-1">Crear un nuevo torneo en el sistema</p>
+              </div>
             </div>
+            
+            {/* Progress Indicator */}
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1">
+                <div className={`w-2 h-2 rounded-full ${formData.type ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${formData.season && formData.surface && formData.modality ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${formData.startDate && formData.endDate && formData.location ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${positions.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+              </div>
+              <span className="text-sm text-gray-500">Progreso</span>
           </div>
         </div>
       </div>
@@ -636,47 +728,30 @@ const NewTournamentPage: React.FC = () => {
                 <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
                   Ubicación *
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => handleInputChange('location', e.target.value)}
-                    className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.location ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
-                    placeholder="Ej: Madrid, España"
-                  />
-                </div>
-                {errors.location && (
-                  <p className="mt-1 text-sm text-red-600">{errors.location}</p>
-                )}
+                <LocationAutocomplete
+                  value={formData.location}
+                  onChange={(value) => handleInputChange('location', value)}
+                  placeholder="Ej: Madrid, España"
+                  error={errors.location}
+                />
               </div>
             </div>
           </div>
 
           {/* Positions Section */}
-          <div className="border-t border-gray-200 pt-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-medium text-gray-900">Posiciones del Torneo</h3>
-              <p className="text-sm text-gray-600 mt-1">
-                Configura las posiciones finales del torneo (opcional)
-              </p>
-            </div>
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Posiciones del Torneo</h3>
             
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-600">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-600">
                   Usa los botones para agregar posiciones individualmente o pegar un listado completo
                 </p>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <button
                     type="button"
                     onClick={() => setShowPasteModal(true)}
-                    className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md"
                   >
                     <Clipboard className="h-4 w-4" />
                     <span>Pegar listado</span>
@@ -684,56 +759,56 @@ const NewTournamentPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={addPosition}
-                    className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md"
                   >
                     <Plus className="h-4 w-4" />
                     <span>Agregar Posición</span>
                   </button>
                 </div>
-              </div>
-
-              {positions.length > 0 && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="grid grid-cols-12 gap-4 mb-3 text-sm font-medium text-gray-700">
-                    <div className="col-span-1">Orden</div>
-                    <div className="col-span-2">Posición</div>
-                    <div className="col-span-6">Equipo</div>
-                    <div className="col-span-2">Puntos</div>
-                    <div className="col-span-1">Acciones</div>
-                  </div>
-                  
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <SortableContext
-                      items={positions.map(pos => `position-${pos.position}`)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {positions.map((position, index) => (
-                        <SortableItem key={`position-${position.position}`} position={position} index={index} />
-                      ))}
-                    </SortableContext>
-                  </DndContext>
                 </div>
-              )}
-            </div>
+
+                {positions.length > 0 && (
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                  <div className="grid grid-cols-12 gap-4 mb-4 text-sm font-semibold text-gray-700 bg-gray-50 rounded-lg p-3">
+                      <div className="col-span-1">Orden</div>
+                      <div className="col-span-2">Posición</div>
+                      <div className="col-span-6">Equipo</div>
+                      <div className="col-span-2">Puntos</div>
+                      <div className="col-span-1">Acciones</div>
+                    </div>
+                    
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={positions.map(pos => `position-${pos.position}`)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {positions.map((position, index) => (
+                          <SortableItem key={`position-${position.position}`} position={position} index={index} />
+                        ))}
+                      </SortableContext>
+                    </DndContext>
+                  </div>
+                )}
+              </div>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+          <div className="flex items-center justify-end space-x-4 pt-8">
             <button
               type="button"
               onClick={() => navigate('/admin/tournaments')}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isLoading || createTournamentMutation.isPending}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              className="px-6 py-3 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-xl hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center shadow-sm hover:shadow-md"
             >
               {isLoading || createTournamentMutation.isPending ? (
                 <>
@@ -758,6 +833,7 @@ const NewTournamentPage: React.FC = () => {
         onApply={handlePastePositions}
         teams={teams}
       />
+      </div>
     </div>
   )
 }
