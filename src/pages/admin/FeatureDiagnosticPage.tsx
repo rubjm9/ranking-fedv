@@ -8,13 +8,18 @@ import {
   FileText,
   Code,
   Database,
-  Settings
+  Settings,
+  ExternalLink
 } from 'lucide-react'
 import { generateFeatureReport } from '../../utils/featureDetection'
+import rankingService from '../../services/rankingService'
+import toast from 'react-hot-toast'
 
 const FeatureDiagnosticPage: React.FC = () => {
   const [report, setReport] = useState<any>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [systemDiagnostics, setSystemDiagnostics] = useState<any>(null)
+  const [isSystemLoading, setIsSystemLoading] = useState(false)
 
   const generateReport = async () => {
     setIsGenerating(true)
@@ -25,6 +30,20 @@ const FeatureDiagnosticPage: React.FC = () => {
       console.error('Error generando reporte:', error)
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  const runSystemDiagnostics = async () => {
+    setIsSystemLoading(true)
+    try {
+      const result = await rankingService.diagnoseRanking()
+      setSystemDiagnostics(result)
+      toast.success('Diagnóstico del sistema completado')
+    } catch (error) {
+      console.error('Error en diagnóstico del sistema:', error)
+      toast.error('Error al ejecutar diagnóstico del sistema')
+    } finally {
+      setIsSystemLoading(false)
     }
   }
 
@@ -48,15 +67,97 @@ const FeatureDiagnosticPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Diagnóstico de Funcionalidades</h1>
           <p className="text-gray-600">Detecta funcionalidades perdidas o incompletas</p>
         </div>
-        <button
-          onClick={generateReport}
-          disabled={isGenerating}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
-          {isGenerating ? 'Generando...' : 'Generar Reporte'}
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={generateReport}
+            disabled={isGenerating}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
+            {isGenerating ? 'Generando...' : 'Generar Reporte'}
+          </button>
+          <button
+            onClick={runSystemDiagnostics}
+            disabled={isSystemLoading}
+            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${isSystemLoading ? 'animate-spin' : ''}`} />
+            {isSystemLoading ? 'Diagnosticando...' : 'Diagnóstico del Sistema'}
+          </button>
+        </div>
       </div>
+
+      {/* Diagnóstico del Sistema */}
+      {systemDiagnostics && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center space-x-2">
+              <Database className="h-5 w-5 text-blue-500" />
+              <h2 className="text-lg font-semibold text-gray-900">Diagnóstico del Sistema</h2>
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-medium text-blue-900 mb-2">Tablas de Base de Datos</h3>
+                <div className="space-y-1">
+                  {Object.entries(systemDiagnostics.tables || {}).map(([table, data]: [string, any]) => (
+                    <div key={table} className="flex justify-between text-sm">
+                      <span className="capitalize">{table.replace('_', ' ')}</span>
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        data.status === 'ok' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {data.totalRecords} registros
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h3 className="font-medium text-green-900 mb-2">Integridad de Datos</h3>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span>Datos huérfanos:</span>
+                    <span className={systemDiagnostics.dataIntegrity?.hasOrphans ? 'text-red-600' : 'text-green-600'}>
+                      {systemDiagnostics.dataIntegrity?.hasOrphans ? 'Sí' : 'No'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Consistencia:</span>
+                    <span className={systemDiagnostics.dataIntegrity?.rankingConsistency?.isConsistent ? 'text-green-600' : 'text-red-600'}>
+                      {systemDiagnostics.dataIntegrity?.rankingConsistency?.isConsistent ? 'OK' : 'Inconsistente'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <h3 className="font-medium text-purple-900 mb-2">Rendimiento</h3>
+                <div className="text-sm">
+                  <div className="flex justify-between">
+                    <span>Tiempo de consulta:</span>
+                    <span className="text-purple-600">
+                      {systemDiagnostics.performance?.queryTime > 0 ? `${systemDiagnostics.performance.queryTime}ms` : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {systemDiagnostics.recommendations && systemDiagnostics.recommendations.length > 0 && (
+              <div className="mt-4">
+                <h3 className="font-medium text-gray-900 mb-2">Recomendaciones del Sistema:</h3>
+                <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                  {systemDiagnostics.recommendations.map((rec: string, i: number) => (
+                    <li key={i}>{rec}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Reporte */}
       {report && (
@@ -205,6 +306,27 @@ const FeatureDiagnosticPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Enlaces útiles */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Enlaces Útiles</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <a
+            href="/admin/ranking"
+            className="flex items-center space-x-2 p-3 bg-white rounded-lg border hover:bg-gray-50 transition-colors"
+          >
+            <ExternalLink className="h-4 w-4 text-blue-500" />
+            <span className="text-sm font-medium">Administración de Ranking</span>
+          </a>
+          <a
+            href="/admin/tournaments"
+            className="flex items-center space-x-2 p-3 bg-white rounded-lg border hover:bg-gray-50 transition-colors"
+          >
+            <ExternalLink className="h-4 w-4 text-green-500" />
+            <span className="text-sm font-medium">Gestión de Torneos</span>
+          </a>
+        </div>
+      </div>
     </div>
   )
 }

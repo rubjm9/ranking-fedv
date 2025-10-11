@@ -108,15 +108,51 @@ const RankingAdminPage: React.FC = () => {
     }
   }
 
+  const handleRunAllValidations = async () => {
+    try {
+      setIsActionLoading(true)
+      console.log('🔍 Ejecutando todas las validaciones...')
+      const result = await rankingService.runAllValidations()
+      console.log('📋 Resultado de validaciones:', result)
+      
+      if (result.isValid) {
+        toast.success('Todas las validaciones pasaron correctamente')
+      } else {
+        toast.error(`Se encontraron ${result.totalIssues} problemas. Revisa la consola.`)
+      }
+      
+      // Refrescar datos
+      refetch()
+    } catch (error) {
+      console.error('Error en validaciones:', error)
+      toast.error('Error al ejecutar validaciones')
+    } finally {
+      setIsActionLoading(false)
+    }
+  }
+
   const handleDiagnose = async () => {
     try {
+      setIsActionLoading(true)
       console.log('🔍 Ejecutando diagnóstico...')
       const result = await rankingService.diagnoseRanking()
       console.log('📋 Resultado del diagnóstico:', result)
-      toast.success('Diagnóstico completado. Revisa la consola para ver los resultados.')
+      
+      // Mostrar resumen en toast
+      const recommendations = result.recommendations || []
+      if (recommendations.length > 0) {
+        toast.error(`Diagnóstico completado. ${recommendations.length} problemas encontrados. Revisa la consola.`)
+      } else {
+        toast.success('Diagnóstico completado. Sistema funcionando correctamente.')
+      }
+      
+      // Refrescar datos
+      refetch()
     } catch (error) {
       console.error('Error en diagnóstico:', error)
       toast.error('Error al ejecutar diagnóstico')
+    } finally {
+      setIsActionLoading(false)
     }
   }
 
@@ -197,10 +233,19 @@ const RankingAdminPage: React.FC = () => {
             </button>
             <button
               onClick={handleDiagnose}
-              className="flex items-center space-x-2 px-4 py-2 text-sm text-white bg-orange-600 rounded-md hover:bg-orange-700 transition-colors"
+              disabled={isActionLoading}
+              className="flex items-center space-x-2 px-4 py-2 text-sm text-white bg-orange-600 rounded-md hover:bg-orange-700 transition-colors disabled:opacity-50"
             >
               <BarChart3 className="h-4 w-4" />
               <span>Diagnosticar</span>
+            </button>
+            <button
+              onClick={handleRunAllValidations}
+              disabled={isActionLoading}
+              className="flex items-center space-x-2 px-4 py-2 text-sm text-white bg-purple-600 rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50"
+            >
+              <CheckCircle className="h-4 w-4" />
+              <span>Validar Todo</span>
             </button>
             <button
               onClick={handleRecalculate}

@@ -60,13 +60,66 @@ export interface RankingEvolution {
   }[]
 }
 
+// Cache para rankings calculados
+const rankingCache = new Map<string, { data: any, timestamp: number }>()
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutos
+
+// Limpiar cache expirado
+const cleanExpiredCache = (): void => {
+  const now = Date.now()
+  for (const [key, value] of rankingCache.entries()) {
+    if (now - value.timestamp > CACHE_DURATION) {
+      rankingCache.delete(key)
+    }
+  }
+}
+
+// Obtener datos del cache si están disponibles
+const getFromCache = (key: string): any | null => {
+  cleanExpiredCache()
+  const cached = rankingCache.get(key)
+  if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+    return cached.data
+  }
+  return null
+}
+
+// Guardar datos en cache
+const setCache = (key: string, data: any): void => {
+  rankingCache.set(key, { data, timestamp: Date.now() })
+}
+
+// Limpiar cache específico
+const clearCache = (pattern?: string): void => {
+  if (pattern) {
+    for (const key of rankingCache.keys()) {
+      if (key.includes(pattern)) {
+        rankingCache.delete(key)
+      }
+    }
+  } else {
+    rankingCache.clear()
+  }
+}
+
 const rankingService = {
   // Obtener ranking por categoría
+  // Obtener ranking por categoría con cache optimizado
   getRanking: async (category: string = 'beach_mixed'): Promise<RankingResponse> => {
     try {
       if (!supabase) {
         throw new Error('Supabase no está configurado')
       }
+
+      const cacheKey = `ranking_${category}`
+      const cachedData = getFromCache(cacheKey)
+      
+      if (cachedData) {
+        console.log('📦 Usando datos del cache para ranking')
+        return cachedData
+      }
+
+      console.log('🔄 Obteniendo ranking desde base de datos...')
 
       // Obtener ranking con información de equipos
       const { data: rankingData, error } = await supabase
@@ -136,10 +189,16 @@ const rankingService = {
         average_points: avgPoints.toFixed(2)
       }
 
-      return {
+      const result = {
         data: transformedData,
         summary
       }
+
+      // Guardar en cache
+      setCache(cacheKey, result)
+      
+      console.log(`✅ Ranking obtenido: ${transformedData.length} equipos`)
+      return result
     } catch (error) {
       console.error('Error al obtener ranking:', error)
       return {
@@ -153,6 +212,15 @@ const rankingService = {
           average_points: "0.00"
         }
       }
+    }
+  },
+
+  // Limpiar cache cuando se recalculen rankings
+  clearRankingCache: (category?: string) => {
+    if (category) {
+      rankingService.clearCache(`ranking_${category}`)
+    } else {
+      rankingService.clearCache('ranking')
     }
   },
 
@@ -328,6 +396,9 @@ const rankingService = {
 
       console.log('✅ Rankings insertados exitosamente')
 
+      // Limpiar cache después del recálculo
+      clearCache('ranking')
+
       return { 
         message: `Ranking recalculado exitosamente. ${rankingEntries.length} entradas procesadas.` 
       }
@@ -457,6 +528,9 @@ const rankingService = {
 
       console.log(`✅ Categoría ${category} recalculada exitosamente`)
 
+      // Limpiar cache específico de la categoría
+      clearCache(`ranking_${category}`)
+
       return { 
         message: `Categoría ${category} recalculada exitosamente. ${rankingEntries.length} entradas procesadas.` 
       }
@@ -585,7 +659,191 @@ const rankingService = {
     }
   },
 
-  // Obtener historial de cambios de ranking
+  // Limpiar cache cuando se recalculen rankings
+  clearRankingCache: (category?: string) => {
+    if (category) {
+      clearCache(`ranking_${category}`)
+    } else {
+      clearCache('ranking')
+    }
+  },
+
+  // Validación de integridad referencial
+  validateReferentialIntegrity: async (): Promise<any> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      console.log('🔍 Validando integridad referencial...')
+
+      const issues = []
+
+      // 1. Verificar posiciones con equipos inexistentes
+      const { data: orphanPositions } = await supabase
+        .from('positions')
+        .select('id, teamId')
+        .not('teamId', 'in', `(SELECT id FROM teams)`)
+
+      if (orphanPositions && orphanPositions.length > 0) {
+        issues.push({
+          type: 'orphan_positions',
+          count: orphanPositions.length,
+          message: `${orphanPositions.length} posiciones con equipos inexistentes`
+        })
+      }
+
+      // 2. Verificar posiciones con torneos inexistentes
+      const { data: orphanTournaments } = await supabase
+        .from('positions')
+        .select('id, tournamentId')
+        .not('tournamentId', 'in', `(SELECT id FROM tournaments)`)
+
+      if (orphanTournaments && orphanTournaments.length > 0) {
+        issues.push({
+          type: 'orphan_tournaments',
+          count: orphanTournaments.length,
+          message: `${orphanTournaments.length} posiciones con torneos inexistentes`
+        })
+      }
+
+      // 3. Verificar rankings con equipos inexistentes
+      const { data: orphanRankings } = await supabase
+        .from('current_rankings')
+        .select('id, team_id')
+        .not('team_id', 'in', `(SELECT id FROM teams)`)
+
+      if (orphanRankings && orphanRankings.length > 0) {
+        issues.push({
+          type: 'orphan_rankings',
+          count: orphanRankings.length,
+          message: `${orphanRankings.length} rankings con equipos inexistentes`
+        })
+      }
+
+      const result = {
+        isValid: issues.length === 0,
+        issues,
+        totalIssues: issues.length,
+        timestamp: new Date().toISOString()
+      }
+
+      console.log('✅ Validación de integridad completada:', result)
+      return result
+
+    } catch (error) {
+      console.error('Error en validación de integridad:', error)
+      throw error
+    }
+  },
+
+  // Validación de rangos de puntos
+  validatePointRanges: async (): Promise<any> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      console.log('🔍 Validando rangos de puntos...')
+
+      const issues = []
+
+      // 1. Verificar puntos negativos en posiciones
+      const { data: negativePositions } = await supabase
+        .from('positions')
+        .select('id, points, teamId, tournamentId')
+        .lt('points', 0)
+
+      if (negativePositions && negativePositions.length > 0) {
+        issues.push({
+          type: 'negative_points',
+          count: negativePositions.length,
+          message: `${negativePositions.length} posiciones con puntos negativos`,
+          data: negativePositions
+        })
+      }
+
+      // 2. Verificar puntos excesivamente altos (> 10000)
+      const { data: excessivePositions } = await supabase
+        .from('positions')
+        .select('id, points, teamId, tournamentId')
+        .gt('points', 10000)
+
+      if (excessivePositions && excessivePositions.length > 0) {
+        issues.push({
+          type: 'excessive_points',
+          count: excessivePositions.length,
+          message: `${excessivePositions.length} posiciones con puntos excesivos (>10000)`,
+          data: excessivePositions
+        })
+      }
+
+      // 3. Verificar posiciones fuera de rango (1-100)
+      const { data: invalidPositions } = await supabase
+        .from('positions')
+        .select('id, position, teamId, tournamentId')
+        .or('position.lt.1,position.gt.100')
+
+      if (invalidPositions && invalidPositions.length > 0) {
+        issues.push({
+          type: 'invalid_position_range',
+          count: invalidPositions.length,
+          message: `${invalidPositions.length} posiciones fuera del rango válido (1-100)`,
+          data: invalidPositions
+        })
+      }
+
+      const result = {
+        isValid: issues.length === 0,
+        issues,
+        totalIssues: issues.length,
+        timestamp: new Date().toISOString()
+      }
+
+      console.log('✅ Validación de rangos completada:', result)
+      return result
+
+    } catch (error) {
+      console.error('Error en validación de rangos:', error)
+      throw error
+    }
+  },
+
+  // Ejecutar todas las validaciones
+  runAllValidations: async (): Promise<any> => {
+    try {
+      console.log('🔍 Ejecutando todas las validaciones...')
+
+      const [integrity, points] = await Promise.all([
+        rankingService.validateReferentialIntegrity(),
+        rankingService.validatePointRanges()
+      ])
+
+      const allIssues = [
+        ...integrity.issues,
+        ...points.issues
+      ]
+
+      const result = {
+        isValid: allIssues.length === 0,
+        validations: {
+          integrity,
+          points
+        },
+        totalIssues: allIssues.length,
+        allIssues,
+        timestamp: new Date().toISOString()
+      }
+
+      console.log('✅ Todas las validaciones completadas:', result)
+      return result
+
+    } catch (error) {
+      console.error('Error en validaciones completas:', error)
+      throw error
+    }
+  },
+
   getRankingHistory: async (category?: string, teamId?: string, limit: number = 50): Promise<RankingHistoryEntry[]> => {
     try {
       if (!supabase) {
@@ -892,50 +1150,157 @@ const rankingService = {
     }
   },
 
-  // Método de diagnóstico para verificar el estado de la base de datos
+  // Método de diagnóstico mejorado para verificar el estado de la base de datos
   diagnoseRanking: async (): Promise<any> => {
     try {
       if (!supabase) {
         throw new Error('Supabase no está configurado')
       }
 
-      console.log('🔍 Iniciando diagnóstico del ranking...')
+      console.log('🔍 Iniciando diagnóstico completo del ranking...')
 
-      // Verificar si existe la tabla current_rankings
-      const { data: rankingsData, error: rankingsError } = await supabase
-        .from('current_rankings')
-        .select('*')
-        .limit(5)
-
-      console.log('📊 Datos de current_rankings:', rankingsData)
-      console.log('❌ Error de current_rankings:', rankingsError)
-
-      // Verificar si existe la tabla positions
-      const { data: positionsData, error: positionsError } = await supabase
-        .from('positions')
-        .select('*')
-        .limit(5)
-
-      console.log('🏆 Datos de positions:', positionsData)
-      console.log('❌ Error de positions:', positionsError)
-
-      // Verificar si existe la tabla teams
-      const { data: teamsData, error: teamsError } = await supabase
-        .from('teams')
-        .select('*')
-        .limit(5)
-
-      console.log('👥 Datos de teams:', teamsData)
-      console.log('❌ Error de teams:', teamsError)
-
-      return {
-        current_rankings: { data: rankingsData, error: rankingsError },
-        positions: { data: positionsData, error: positionsError },
-        teams: { data: teamsData, error: teamsError }
+      const diagnostics = {
+        timestamp: new Date().toISOString(),
+        tables: {},
+        dataIntegrity: {},
+        performance: {},
+        recommendations: []
       }
+
+      // 1. Verificar tablas principales
+      const tables = ['current_rankings', 'positions', 'teams', 'tournaments', 'regions']
+      
+      for (const table of tables) {
+        try {
+          const { data, error, count } = await supabase
+            .from(table)
+            .select('*', { count: 'exact' })
+        .limit(5)
+
+          diagnostics.tables[table] = {
+            exists: !error,
+            error: error?.message || null,
+            sampleData: data || [],
+            totalRecords: count || 0,
+            status: error ? 'error' : 'ok'
+          }
+        } catch (err) {
+          diagnostics.tables[table] = {
+            exists: false,
+            error: err.message,
+            sampleData: [],
+            totalRecords: 0,
+            status: 'error'
+          }
+        }
+      }
+
+      // 2. Verificar integridad de datos
+      try {
+        // Verificar que todas las posiciones tienen equipos válidos
+        const { data: orphanPositions } = await supabase
+        .from('positions')
+          .select('id, teamId')
+          .is('teamId', null)
+
+        // Verificar que todas las posiciones tienen torneos válidos
+        const { data: orphanTournaments } = await supabase
+          .from('positions')
+          .select('id, tournamentId')
+          .is('tournamentId', null)
+
+        // Verificar rankings sin equipos válidos
+        const { data: orphanRankings } = await supabase
+          .from('current_rankings')
+          .select('id, team_id')
+          .is('team_id', null)
+
+        diagnostics.dataIntegrity = {
+          orphanPositions: orphanPositions?.length || 0,
+          orphanTournaments: orphanTournaments?.length || 0,
+          orphanRankings: orphanRankings?.length || 0,
+          hasOrphans: (orphanPositions?.length || 0) > 0 || (orphanTournaments?.length || 0) > 0 || (orphanRankings?.length || 0) > 0
+        }
+      } catch (err) {
+        diagnostics.dataIntegrity = { error: err.message }
+      }
+
+      // 3. Verificar consistencia de rankings
+      try {
+        const { data: rankings } = await supabase
+          .from('current_rankings')
+        .select('*')
+          .order('ranking_category', { ascending: true })
+          .order('total_points', { ascending: false })
+
+        if (rankings && rankings.length > 0) {
+          const categories = [...new Set(rankings.map(r => r.ranking_category))]
+          let inconsistentCategories = 0
+          let totalInconsistencies = 0
+
+          for (const category of categories) {
+            const categoryRankings = rankings.filter(r => r.ranking_category === category)
+            categoryRankings.sort((a, b) => b.total_points - a.total_points)
+            
+            let categoryInconsistencies = 0
+            categoryRankings.forEach((ranking, index) => {
+              if (ranking.ranking_position !== index + 1) {
+                categoryInconsistencies++
+                totalInconsistencies++
+              }
+            })
+
+            if (categoryInconsistencies > 0) {
+              inconsistentCategories++
+            }
+          }
+
+          diagnostics.dataIntegrity.rankingConsistency = {
+            totalCategories: categories.length,
+            inconsistentCategories,
+            totalInconsistencies,
+            isConsistent: inconsistentCategories === 0
+          }
+        }
+      } catch (err) {
+        diagnostics.dataIntegrity.rankingConsistency = { error: err.message }
+      }
+
+      // 4. Generar recomendaciones
+      if (diagnostics.dataIntegrity.hasOrphans) {
+        diagnostics.recommendations.push('🔧 Limpiar datos huérfanos en posiciones y rankings')
+      }
+
+      if (diagnostics.dataIntegrity.rankingConsistency && !diagnostics.dataIntegrity.rankingConsistency.isConsistent) {
+        diagnostics.recommendations.push('🔧 Ejecutar validación de consistencia de rankings')
+      }
+
+      if (diagnostics.tables.current_rankings.totalRecords === 0) {
+        diagnostics.recommendations.push('⚠️ No hay rankings calculados. Ejecutar recálculo completo.')
+      }
+
+      if (diagnostics.tables.positions.totalRecords === 0) {
+        diagnostics.recommendations.push('⚠️ No hay posiciones registradas. Importar resultados de torneos.')
+      }
+
+      // 5. Estadísticas de rendimiento
+      const startTime = Date.now()
+      try {
+        await supabase.from('current_rankings').select('count').limit(1)
+        diagnostics.performance.queryTime = Date.now() - startTime
+      } catch (err) {
+        diagnostics.performance.queryTime = -1
+      }
+
+      console.log('✅ Diagnóstico completado:', diagnostics)
+      return diagnostics
+
     } catch (error) {
-      console.error('Error en diagnóstico:', error)
-      return { error: error.message }
+      console.error('❌ Error en diagnóstico:', error)
+      return { 
+        error: error.message,
+        timestamp: new Date().toISOString()
+      }
     }
   },
 
