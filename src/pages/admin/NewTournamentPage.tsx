@@ -283,9 +283,7 @@ const NewTournamentPage: React.FC = () => {
       // Si hay posiciones, crearlas también
       if (positions.length > 0) {
         const positionsWithTeams = positions.filter(p => p.teamId)
-        if (positionsWithTeams.length > 0) {
-          await tournamentsService.addPositions(result.data.id, positionsWithTeams)
-        }
+        await tournamentsService.updatePositions(result.data.id, positionsWithTeams)
       }
     } catch (error) {
       console.error('Error al crear torneo:', error)

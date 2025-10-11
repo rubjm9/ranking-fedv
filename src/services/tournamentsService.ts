@@ -93,6 +93,11 @@ const tournamentsService = {
   delete: async (id: string): Promise<{ success: boolean; message: string }> => {
     const response = await api.delete(`/tournaments/${id}`)
     return response.data
+  },
+
+  // Actualizar posiciones de un torneo
+  updatePositions: async (tournamentId: string, positions: any[]): Promise<{ success: boolean; data?: any; message: string }> => {
+    return await api.tournaments.updatePositions(tournamentId, positions)
   }
 }
 

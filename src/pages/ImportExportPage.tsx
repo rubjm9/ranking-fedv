@@ -159,7 +159,6 @@ const ImportExportPage: React.FC = () => {
         </p>
         <ul className="mt-4 space-y-2 text-gray-600">
           <li>• Importar resultados de torneos desde CSV/Excel</li>
-          <li>• Exportar ranking en diferentes formatos</li>
           <li>• Backup y restauración de datos</li>
           <li>• Plantillas para importación</li>
           <li>• Historial de importaciones</li>

@@ -1,5 +1,6 @@
 import { supabase } from './supabaseService'
 import { mockRegionsService, mockTeamsService, mockTournamentsService } from './mockService'
+import { AutoRankingService } from './autoRankingService'
 
 // Servicio principal que usa Supabase con fallback a datos mock
 // Si Supabase no está disponible, usa datos mock automáticamente
@@ -419,6 +420,15 @@ export const tournamentsService = {
       .single()
     
     if (error) throw error
+
+    // Recalcular ranking automáticamente si el torneo se crea con posiciones
+    try {
+      await AutoRankingService.onTournamentCreated(data.id)
+    } catch (rankingError) {
+      console.warn('Error en recálculo automático:', rankingError)
+      // No fallar la operación principal por un error de ranking
+    }
+
     return { success: true, data, message: 'Torneo creado exitosamente' }
   },
 
@@ -461,6 +471,15 @@ export const tournamentsService = {
       .select()
     
     if (error) throw error
+
+    // Recalcular ranking automáticamente
+    try {
+      await AutoRankingService.onPositionsUpdated(tournamentId)
+    } catch (rankingError) {
+      console.warn('Error en recálculo automático:', rankingError)
+      // No fallar la operación principal por un error de ranking
+    }
+
     return { success: true, data, message: 'Posiciones agregadas exitosamente' }
   },
 
@@ -472,7 +491,64 @@ export const tournamentsService = {
       .eq('tournamentId', tournamentId)
     
     if (error) throw error
+
+    // Recalcular ranking automáticamente
+    try {
+      await AutoRankingService.onPositionsDeleted(tournamentId)
+    } catch (rankingError) {
+      console.warn('Error en recálculo automático:', rankingError)
+      // No fallar la operación principal por un error de ranking
+    }
+
     return { success: true, message: 'Posiciones eliminadas exitosamente' }
+  },
+
+  // Actualizar posiciones de un torneo (elimina las existentes y agrega las nuevas)
+  updatePositions: async (tournamentId: string, positions: any[]) => {
+    // Primero eliminar todas las posiciones existentes
+    const { error: deleteError } = await supabase
+      .from('positions')
+      .delete()
+      .eq('tournamentId', tournamentId)
+    
+    if (deleteError) throw deleteError
+
+    // Si hay posiciones nuevas, insertarlas
+    if (positions && positions.length > 0) {
+      const positionsData = positions.map(pos => ({
+        tournamentId: tournamentId,
+        teamId: pos.teamId,
+        position: pos.position,
+        points: pos.points || 0
+      }))
+
+      const { data, error: insertError } = await supabase
+        .from('positions')
+        .insert(positionsData)
+        .select()
+      
+      if (insertError) throw insertError
+
+      // Recalcular ranking automáticamente
+      try {
+        await AutoRankingService.onPositionsUpdated(tournamentId)
+      } catch (rankingError) {
+        console.warn('Error en recálculo automático:', rankingError)
+        // No fallar la operación principal por un error de ranking
+      }
+
+      return { success: true, data, message: 'Posiciones actualizadas exitosamente' }
+    } else {
+      // Si no hay posiciones nuevas, solo recalcular por la eliminación
+      try {
+        await AutoRankingService.onPositionsDeleted(tournamentId)
+      } catch (rankingError) {
+        console.warn('Error en recálculo automático:', rankingError)
+        // No fallar la operación principal por un error de ranking
+      }
+
+      return { success: true, message: 'Posiciones eliminadas exitosamente' }
+    }
   }
 }
 

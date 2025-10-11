@@ -7,7 +7,6 @@ import {
   TrendingUp, 
   Plus, 
   Upload, 
-  Download, 
   RefreshCw,
   Activity,
   Award,
@@ -73,13 +72,6 @@ const DashboardPage: React.FC = () => {
       icon: Upload,
       href: '/admin/import-export',
       color: 'bg-purple-500'
-    },
-    {
-      name: 'Exportar ranking',
-      description: 'Descargar ranking actual',
-      icon: Download,
-      href: '/admin/import-export',
-      color: 'bg-orange-500'
     },
     {
       name: 'Recalcular ranking',

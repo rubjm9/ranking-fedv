@@ -359,12 +359,10 @@ const EditTournamentPage: React.FC = () => {
       // Si hay posiciones, actualizarlas también
       if (positions.length > 0) {
         const positionsWithTeams = positions.filter(p => p.teamId)
-        if (positionsWithTeams.length > 0) {
-          // Primero eliminar posiciones existentes
-          await tournamentsService.deletePositions(id!)
-          // Luego crear las nuevas
-          await tournamentsService.addPositions(id!, positionsWithTeams)
-        }
+        await tournamentsService.updatePositions(id!, positionsWithTeams)
+      } else {
+        // Si no hay posiciones, eliminar las existentes
+        await tournamentsService.updatePositions(id!, [])
       }
     } catch (error) {
       console.error('Error al actualizar torneo:', error)

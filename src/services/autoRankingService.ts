@@ -112,8 +112,8 @@ export class AutoRankingService {
         return
       }
 
-      // Usar el método de recálculo existente pero solo para esta categoría
-      await rankingService.recalculateRankingAlternative()
+      // Usar el método específico para recalcular solo esta categoría
+      await rankingService.recalculateSpecificCategory(category)
 
     } catch (error) {
       console.error(`❌ Error al recalcular categoría ${category}:`, error)

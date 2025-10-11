@@ -15,11 +15,14 @@ import {
   TrendingUp,
   Filter,
   Search,
-  Loader2
+  Loader2,
+  Clock,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { tournamentsService, supabase } from '@/services/apiService'
-import ActionButtonGroup from '@/components/ui/ActionButtonGroup'
+import { tournamentsService, supabase } from '../services/apiService'
+import ActionButtonGroup from '../components/ui/ActionButtonGroup'
 
 interface Tournament {
   id: string
@@ -32,7 +35,11 @@ interface Tournament {
   region?: any
   createdAt: string
   updatedAt: string
+  hasResults?: boolean
 }
+
+type SortField = 'name' | 'type' | 'year' | 'surface' | 'modality' | 'region'
+type SortDirection = 'asc' | 'desc'
 
 const TournamentsAdminPage: React.FC = () => {
   const navigate = useNavigate()
@@ -40,9 +47,13 @@ const TournamentsAdminPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedType, setSelectedType] = useState('all')
   const [selectedYear, setSelectedYear] = useState('all')
+  const [selectedSurface, setSelectedSurface] = useState('all')
+  const [selectedModality, setSelectedModality] = useState('all')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showDeletePositionsModal, setShowDeletePositionsModal] = useState(false)
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null)
+  const [sortField, setSortField] = useState<SortField>('name')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
 
   // Obtener torneos desde Supabase
   const { data: tournamentsData, isLoading, error } = useQuery({
@@ -50,6 +61,19 @@ const TournamentsAdminPage: React.FC = () => {
     queryFn: async () => {
       const result = await tournamentsService.getAll()
       return result
+    }
+  })
+
+  // Obtener posiciones para determinar qué torneos tienen resultados
+  const { data: positionsData } = useQuery({
+    queryKey: ['positions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('positions')
+        .select('tournamentId')
+      
+      if (error) throw error
+      return data
     }
   })
 
@@ -109,7 +133,16 @@ const TournamentsAdminPage: React.FC = () => {
   })
 
   const tournaments = tournamentsData?.data || []
+  const positions = positionsData || []
 
+  // Crear un Set de tournamentIds que tienen posiciones
+  const tournamentsWithResults = new Set(positions.map((p: any) => p.tournamentId))
+
+  // Agregar información de si tiene resultados a cada torneo
+  const tournamentsWithStatus = tournaments.map((tournament: Tournament) => ({
+    ...tournament,
+    hasResults: tournamentsWithResults.has(tournament.id)
+  }))
 
   const handleDelete = (tournament: Tournament) => {
     setSelectedTournament(tournament)
@@ -128,12 +161,65 @@ const TournamentsAdminPage: React.FC = () => {
     }
   }
 
-  const filteredTournaments = tournaments.filter((tournament: Tournament) => {
-    const matchesSearch = !searchTerm || tournament.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesType = selectedType === 'all' || tournament.type === selectedType
-    const matchesYear = selectedYear === 'all' || tournament.year.toString() === selectedYear
-    return matchesSearch && matchesType && matchesYear
-  })
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  const formatSeason = (year: number) => {
+    const nextYear = (year + 1).toString().slice(-2)
+    return `${year}-${nextYear}`
+  }
+
+  const filteredAndSortedTournaments = tournamentsWithStatus
+    .filter((tournament: Tournament) => {
+      const matchesSearch = !searchTerm || tournament.name.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesType = selectedType === 'all' || tournament.type === selectedType
+      const matchesYear = selectedYear === 'all' || tournament.year.toString() === selectedYear
+      const matchesSurface = selectedSurface === 'all' || tournament.surface === selectedSurface
+      const matchesModality = selectedModality === 'all' || tournament.modality === selectedModality
+      return matchesSearch && matchesType && matchesYear && matchesSurface && matchesModality
+    })
+    .sort((a: Tournament, b: Tournament) => {
+      let aValue: any, bValue: any
+      
+      switch (sortField) {
+        case 'name':
+          aValue = a.name.toLowerCase()
+          bValue = b.name.toLowerCase()
+          break
+        case 'type':
+          aValue = a.type
+          bValue = b.type
+          break
+        case 'year':
+          aValue = a.year
+          bValue = b.year
+          break
+        case 'surface':
+          aValue = a.surface
+          bValue = b.surface
+          break
+        case 'modality':
+          aValue = a.modality
+          bValue = b.modality
+          break
+        case 'region':
+          aValue = a.region?.name || ''
+          bValue = b.region?.name || ''
+          break
+        default:
+          return 0
+      }
+      
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
+      return 0
+    })
   
 
 
@@ -210,8 +296,8 @@ const TournamentsAdminPage: React.FC = () => {
       </div>
 
       {/* Filtros */}
-      <div className="flex gap-4">
-        <div className="flex-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+        <div className="lg:col-span-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -238,21 +324,41 @@ const TournamentsAdminPage: React.FC = () => {
           onChange={(e) => setSelectedYear(e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
-          <option value="all">Todos los años</option>
-          <option value="2024">2024</option>
-          <option value="2023">2023</option>
-          <option value="2022">2022</option>
+          <option value="all">Todas las temporadas</option>
+          <option value="2024">2024-25</option>
+          <option value="2023">2023-24</option>
+          <option value="2022">2022-23</option>
+        </select>
+        <select
+          value={selectedSurface}
+          onChange={(e) => setSelectedSurface(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="all">Todas las superficies</option>
+          <option value="BEACH">Playa</option>
+          <option value="GRASS">Césped</option>
+          <option value="INDOOR">Indoor</option>
+        </select>
+        <select
+          value={selectedModality}
+          onChange={(e) => setSelectedModality(e.target.value)}
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          <option value="all">Todas las modalidades</option>
+          <option value="OPEN">Open</option>
+          <option value="WOMEN">Women</option>
+          <option value="MIXED">Mixto</option>
         </select>
       </div>
 
       {/* Tabla */}
-      {filteredTournaments.length === 0 ? (
+      {filteredAndSortedTournaments.length === 0 ? (
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No hay torneos</h3>
             <p className="text-gray-600 mb-4">
-              {searchTerm || selectedType !== 'all' || selectedYear !== 'all' 
+              {searchTerm || selectedType !== 'all' || selectedYear !== 'all' || selectedSurface !== 'all' || selectedModality !== 'all'
                 ? 'No se encontraron torneos con los filtros aplicados.' 
                 : 'Aún no se han creado torneos en el sistema.'}
             </p>
@@ -267,92 +373,130 @@ const TournamentsAdminPage: React.FC = () => {
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Torneo
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tipo
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Año
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Superficie
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Modalidad
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Región
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredTournaments.map((tournament: Tournament) => (
-                <tr key={tournament.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                          <Trophy className="h-5 w-5 text-purple-600" />
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="sticky left-0 bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-1" onClick={() => handleSort('name')}>
+                      <span>TORNEO</span>
+                      {sortField === 'name' && (
+                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-1" onClick={() => handleSort('type')}>
+                      <span>TIPO</span>
+                      {sortField === 'type' && (
+                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-1" onClick={() => handleSort('year')}>
+                      <span>TEMPORADA</span>
+                      {sortField === 'year' && (
+                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-1" onClick={() => handleSort('surface')}>
+                      <span>SUPERFICIE</span>
+                      {sortField === 'surface' && (
+                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-1" onClick={() => handleSort('modality')}>
+                      <span>MODALIDAD</span>
+                      {sortField === 'modality' && (
+                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-1" onClick={() => handleSort('region')}>
+                      <span>REGIÓN</span>
+                      {sortField === 'region' && (
+                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ACCIONES
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredAndSortedTournaments.map((tournament: Tournament) => (
+                  <tr key={tournament.id} className="hover:bg-gray-50 group">
+                    <td className="sticky left-0 bg-white group-hover:bg-gray-50 px-6 py-4 whitespace-nowrap border-r border-gray-200">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                            tournament.hasResults 
+                              ? 'bg-green-100' 
+                              : 'bg-blue-100'
+                          }`}>
+                            {tournament.hasResults ? (
+                              <Trophy className="h-5 w-5 text-green-600" />
+                            ) : (
+                              <Clock className="h-5 w-5 text-blue-600" />
+                            )}
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{tournament.name}</div>
                         </div>
                       </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{tournament.name}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {tournament.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {tournament.year}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {tournament.surface === 'GRASS' ? 'Césped' : 
-                     tournament.surface === 'BEACH' ? 'Playa' : 
-                     tournament.surface === 'INDOOR' ? 'Indoor' : tournament.surface}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {tournament.modality === 'OPEN' ? 'Open' : 
-                     tournament.modality === 'WOMEN' ? 'Women' : 
-                     tournament.modality === 'MIXED' ? 'Mixto' : tournament.modality}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <MapPin className="w-4 h-4 text-gray-400 mr-2" />
-                      <span className="text-sm text-gray-900">
-                        {tournament.type === 'REGIONAL' 
-                          ? (tournament.region?.name || 'Sin región')
-                          : 'Nacional'
-                        }
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end">
-                      <ActionButtonGroup
-                        onView={() => window.open(`/tournaments/${tournament.id}`, '_blank')}
-                        onEdit={() => navigate(`/admin/tournaments/${tournament.id}/edit`)}
-                        onDelete={() => handleDelete(tournament)}
-                        viewTooltip="Ver en página pública"
-                        editTooltip="Editar torneo"
-                        deleteTooltip="Eliminar torneo"
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {formatSeason(tournament.year)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {tournament.surface === 'GRASS' ? 'Césped' : 
+                       tournament.surface === 'BEACH' ? 'Playa' : 
+                       tournament.surface === 'INDOOR' ? 'Indoor' : tournament.surface}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {tournament.modality === 'OPEN' ? 'Open' : 
+                       tournament.modality === 'WOMEN' ? 'Women' : 
+                       tournament.modality === 'MIXED' ? 'Mixto' : tournament.modality}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <MapPin className="w-4 h-4 text-gray-400 mr-2" />
+                        <span className="text-sm text-gray-900">
+                          {tournament.type === 'REGIONAL' 
+                            ? (tournament.region?.name || 'Sin región')
+                            : 'Nacional'
+                          }
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end">
+                        <ActionButtonGroup
+                          onView={() => window.open(`/tournaments/${tournament.id}`, '_blank')}
+                          onEdit={() => navigate(`/admin/tournaments/${tournament.id}/edit`)}
+                          onDelete={() => handleDelete(tournament)}
+                          viewTooltip="Ver en página pública"
+                          editTooltip="Editar torneo"
+                          deleteTooltip="Eliminar torneo"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

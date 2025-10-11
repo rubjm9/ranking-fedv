@@ -8,11 +8,11 @@ import {
   Calendar,
   Filter, 
   RefreshCw,
-  Download,
   BarChart3,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  CheckCircle
 } from 'lucide-react'
 import rankingService from '@/services/rankingService'
 import TeamLogo from '@/components/ui/TeamLogo'
@@ -23,6 +23,7 @@ const RankingAdminPage: React.FC = () => {
   const queryClient = useQueryClient()
   const [selectedCategory, setSelectedCategory] = useState<string>('beach_mixed')
   const [selectedSeason, setSelectedSeason] = useState<string>('current')
+  const [isActionLoading, setIsActionLoading] = useState<boolean>(false)
 
   const categories = [
     { value: 'beach_mixed', label: 'Playa Mixto', icon: '🏖️' },
@@ -40,14 +41,14 @@ const RankingAdminPage: React.FC = () => {
   ]
 
   // Query para obtener ranking actual
-  const { data: currentRankingData, isLoading: isLoadingCurrent, error: currentError } = useQuery({
+  const { data: currentRankingData, isLoading: isLoadingCurrent, error: currentError, refetch: refetchCurrent } = useQuery({
     queryKey: ['ranking', 'current', selectedCategory],
     queryFn: () => rankingService.getCurrentRankingWithTeams(selectedCategory),
     enabled: selectedSeason === 'current'
   })
 
   // Query para obtener ranking por temporada
-  const { data: seasonRankingData, isLoading: isLoadingSeason, error: seasonError } = useQuery({
+  const { data: seasonRankingData, isLoading: isLoadingSeason, error: seasonError, refetch: refetchSeason } = useQuery({
     queryKey: ['ranking', 'season', selectedSeason],
     queryFn: () => rankingService.getSeasonRankingWithTeams(selectedSeason),
     enabled: selectedSeason !== 'current'
@@ -76,6 +77,17 @@ const RankingAdminPage: React.FC = () => {
   const error = currentError || seasonError
   const rankingData = selectedSeason === 'current' ? currentRankingData?.data : seasonRankingData?.data
 
+  // Función para refrescar datos
+  const refetch = () => {
+    if (selectedSeason === 'current') {
+      refetchCurrent()
+    } else {
+      refetchSeason()
+    }
+    // También invalidar todas las queries de ranking
+    queryClient.invalidateQueries({ queryKey: ['ranking'] })
+  }
+
   const getPositionIcon = (position: number) => {
     if (position === 1) return <Trophy className="h-6 w-6 text-yellow-500" />
     if (position === 2) return <Medal className="h-6 w-6 text-gray-400" />
@@ -96,11 +108,6 @@ const RankingAdminPage: React.FC = () => {
     }
   }
 
-  const handleExportRanking = () => {
-    // TODO: Implementar exportación de ranking
-    toast.info('Función de exportación en desarrollo')
-  }
-
   const handleDiagnose = async () => {
     try {
       console.log('🔍 Ejecutando diagnóstico...')
@@ -110,6 +117,42 @@ const RankingAdminPage: React.FC = () => {
     } catch (error) {
       console.error('Error en diagnóstico:', error)
       toast.error('Error al ejecutar diagnóstico')
+    }
+  }
+
+  const handleValidateConsistency = async () => {
+    try {
+      setIsActionLoading(true)
+      console.log('🔍 Validando consistencia de rankings...')
+      const result = await rankingService.validateAndFixRankingConsistency()
+      console.log('📋 Resultado de validación:', result)
+      toast.success(`Validación completada. ${result.totalFixed} posiciones corregidas.`)
+      
+      // Refrescar datos
+      refetch()
+    } catch (error) {
+      console.error('Error en validación:', error)
+      toast.error('Error al validar consistencia')
+    } finally {
+      setIsActionLoading(false)
+    }
+  }
+
+  const handleRecalculateAll = async () => {
+    try {
+      setIsActionLoading(true)
+      console.log('🔄 Recalculando todos los rankings...')
+      const result = await rankingService.recalculateRankingAlternative()
+      console.log('📋 Resultado de recálculo:', result)
+      toast.success('Recálculo completado exitosamente.')
+      
+      // Refrescar datos
+      refetch()
+    } catch (error) {
+      console.error('Error en recálculo:', error)
+      toast.error('Error al recalcular rankings')
+    } finally {
+      setIsActionLoading(false)
     }
   }
 
@@ -137,11 +180,20 @@ const RankingAdminPage: React.FC = () => {
           </div>
             <div className="flex items-center space-x-4">
             <button
-                onClick={handleExportRanking}
-                className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                <Download className="h-4 w-4" />
-                <span>Exportar</span>
+              onClick={handleValidateConsistency}
+              disabled={isActionLoading}
+              className="flex items-center space-x-2 px-4 py-2 text-sm text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
+            >
+              <CheckCircle className="h-4 w-4" />
+              <span>Validar Consistencia</span>
+            </button>
+            <button
+              onClick={handleRecalculateAll}
+              disabled={isActionLoading}
+              className="flex items-center space-x-2 px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${isActionLoading ? 'animate-spin' : ''}`} />
+              <span>Recalcular Todo</span>
             </button>
             <button
               onClick={handleDiagnose}

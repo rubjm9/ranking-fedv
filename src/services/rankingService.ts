@@ -104,6 +104,21 @@ const rankingService = {
         last_calculated: ranking.last_calculated || new Date().toISOString()
       }))
 
+      // Ordenar por puntos como respaldo si las posiciones no están correctas
+      transformedData.sort((a, b) => {
+        // Primero intentar ordenar por ranking_position
+        if (a.ranking_position && b.ranking_position && a.ranking_position !== b.ranking_position) {
+          return a.ranking_position - b.ranking_position
+        }
+        // Si las posiciones son iguales o no existen, ordenar por puntos
+        return b.total_points - a.total_points
+      })
+
+      // Reasignar posiciones correctas basadas en el ordenamiento
+      transformedData.forEach((entry, index) => {
+        entry.ranking_position = index + 1
+      })
+
       // Calcular estadísticas
       const totalTeams = await supabase.from('teams').select('id', { count: 'exact', head: true })
       const teamsWithPoints = transformedData.filter(r => r.total_points > 0).length
@@ -322,6 +337,254 @@ const rankingService = {
     }
   },
 
+  // Método para recalcular solo una categoría específica
+  recalculateSpecificCategory: async (category: string): Promise<any> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      console.log(`🔄 Recalculando categoría específica: ${category}`)
+
+      // Obtener todas las posiciones de la categoría específica
+      const { data: positions, error: positionsError } = await supabase
+        .from('positions')
+        .select(`
+          *,
+          tournaments:tournamentId(
+            id,
+            name,
+            type,
+            year,
+            surface,
+            modality,
+            regionId
+          ),
+          teams:teamId(
+            id,
+            name,
+            regionId
+          )
+        `)
+        .eq('tournaments.surface', category.split('_')[0].toUpperCase())
+        .eq('tournaments.modality', category.split('_')[1].toUpperCase())
+
+      if (positionsError) {
+        console.error('Error al obtener posiciones:', positionsError)
+        throw positionsError
+      }
+
+      console.log(`📊 Posiciones obtenidas para ${category}:`, positions?.length || 0)
+
+      // Eliminar rankings existentes de esta categoría
+      const { error: deleteError } = await supabase
+        .from('current_rankings')
+        .delete()
+        .eq('ranking_category', category)
+
+      if (deleteError) {
+        console.error('Error al eliminar rankings de la categoría:', deleteError)
+        throw deleteError
+      }
+
+      if (!positions || positions.length === 0) {
+        console.log(`ℹ️ No hay posiciones para la categoría ${category}`)
+        return { message: `No hay posiciones para la categoría ${category}` }
+      }
+
+      // Agrupar puntos por equipo
+      const teamPoints: { [key: string]: number } = {}
+
+      positions.forEach(position => {
+        const tournament = position.tournaments
+        const team = position.teams
+
+        if (!tournament || !team) {
+          console.warn('⚠️ Posición sin torneo o equipo:', position)
+          return
+        }
+
+        const teamKey = team.id
+
+        if (!teamPoints[teamKey]) {
+          teamPoints[teamKey] = 0
+        }
+
+        teamPoints[teamKey] += position.points || 0
+      })
+
+      console.log(`📈 Puntos agrupados para ${category}:`, teamPoints)
+
+      // Crear entradas de ranking
+      const rankingEntries = []
+      
+      Object.keys(teamPoints).forEach(teamId => {
+        const totalPoints = teamPoints[teamId]
+        
+        rankingEntries.push({
+          team_id: teamId,
+          ranking_category: category,
+          current_season_points: totalPoints,
+          previous_season_points: 0,
+          two_seasons_ago_points: 0,
+          three_seasons_ago_points: 0,
+          total_points: totalPoints,
+          ranking_position: 0, // Se calculará después
+          last_calculated: new Date().toISOString()
+        })
+      })
+
+      // Ordenar por puntos y asignar posiciones
+      rankingEntries.sort((a, b) => b.total_points - a.total_points)
+      
+      rankingEntries.forEach((entry, index) => {
+        entry.ranking_position = index + 1
+      })
+
+      console.log(`🏆 Rankings ordenados para ${category}:`, rankingEntries.slice(0, 5))
+
+      // Insertar rankings
+      if (rankingEntries.length > 0) {
+        const { error: insertError } = await supabase
+          .from('current_rankings')
+          .insert(rankingEntries)
+
+        if (insertError) {
+          console.error('Error al insertar ranking:', insertError)
+          throw insertError
+        }
+      }
+
+      console.log(`✅ Categoría ${category} recalculada exitosamente`)
+
+      return { 
+        message: `Categoría ${category} recalculada exitosamente. ${rankingEntries.length} entradas procesadas.` 
+      }
+    } catch (error) {
+      console.error(`Error al recalcular categoría ${category}:`, error)
+      throw error
+    }
+  },
+
+  // Validar y corregir consistencia de datos en rankings
+  validateAndFixRankingConsistency: async (category?: string): Promise<any> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      console.log('🔍 Validando consistencia de rankings...')
+
+      // Obtener rankings a validar
+      const query = supabase
+        .from('current_rankings')
+        .select('*')
+        .order('ranking_category', { ascending: true })
+        .order('total_points', { ascending: false })
+
+      if (category) {
+        query.eq('ranking_category', category)
+      }
+
+      const { data: rankings, error } = await query
+
+      if (error) {
+        console.error('Error al obtener rankings:', error)
+        throw error
+      }
+
+      if (!rankings || rankings.length === 0) {
+        console.log('ℹ️ No hay rankings para validar')
+        return { message: 'No hay rankings para validar' }
+      }
+
+      console.log(`📊 Validando ${rankings.length} entradas de ranking`)
+
+      // Agrupar por categoría
+      const rankingsByCategory: { [key: string]: any[] } = {}
+      rankings.forEach(ranking => {
+        if (!rankingsByCategory[ranking.ranking_category]) {
+          rankingsByCategory[ranking.ranking_category] = []
+        }
+        rankingsByCategory[ranking.ranking_category].push(ranking)
+      })
+
+      let totalFixed = 0
+      const inconsistencies: string[] = []
+
+      // Validar cada categoría
+      for (const [category, categoryRankings] of Object.entries(rankingsByCategory)) {
+        console.log(`🔍 Validando categoría: ${category}`)
+        
+        // Ordenar por puntos
+        categoryRankings.sort((a, b) => b.total_points - a.total_points)
+        
+        // Verificar posiciones
+        let needsUpdate = false
+        const updates: any[] = []
+        
+        categoryRankings.forEach((ranking, index) => {
+          const correctPosition = index + 1
+          if (ranking.ranking_position !== correctPosition) {
+            console.log(`⚠️ Posición incorrecta para ${ranking.team_id}: ${ranking.ranking_position} → ${correctPosition}`)
+            inconsistencies.push(`${category}: Equipo ${ranking.team_id} posición ${ranking.ranking_position} → ${correctPosition}`)
+            updates.push({
+              id: ranking.id,
+              ranking_position: correctPosition
+            })
+            needsUpdate = true
+          }
+        })
+
+        // Actualizar posiciones si es necesario
+        if (needsUpdate && updates.length > 0) {
+          console.log(`🔧 Corrigiendo ${updates.length} posiciones en ${category}`)
+          
+          // Función async para procesar lotes
+          const processBatches = async () => {
+            const batchSize = 50
+            for (let i = 0; i < updates.length; i += batchSize) {
+              const batch = updates.slice(i, i + batchSize)
+              
+              // Crear promesas para el lote actual
+              const updatePromises = batch.map(async (update) => {
+                const { error: updateError } = await supabase
+                  .from('current_rankings')
+                  .update({ ranking_position: update.ranking_position })
+                  .eq('id', update.id)
+                
+                if (updateError) {
+                  console.error(`Error actualizando posición ${update.id}:`, updateError)
+                  return false
+                } else {
+                  return true
+                }
+              })
+              
+              // Esperar a que se completen todas las actualizaciones del lote
+              const results = await Promise.all(updatePromises)
+              totalFixed += results.filter(result => result === true).length
+            }
+          }
+          
+          await processBatches()
+        }
+      }
+
+      console.log(`✅ Validación completada. ${totalFixed} posiciones corregidas`)
+
+      return {
+        message: `Validación completada. ${totalFixed} posiciones corregidas.`,
+        totalFixed,
+        inconsistencies,
+        categoriesChecked: Object.keys(rankingsByCategory).length
+      }
+    } catch (error) {
+      console.error('Error en validación de consistencia:', error)
+      throw error
+    }
+  },
+
   // Obtener historial de cambios de ranking
   getRankingHistory: async (category?: string, teamId?: string, limit: number = 50): Promise<RankingHistoryEntry[]> => {
     try {
@@ -496,6 +759,21 @@ const rankingService = {
             region: ranking.teams.regions
           } : undefined
         }
+      })
+
+      // Ordenar por puntos como respaldo si las posiciones no están correctas
+      transformedData.sort((a, b) => {
+        // Primero intentar ordenar por ranking_position
+        if (a.ranking_position && b.ranking_position && a.ranking_position !== b.ranking_position) {
+          return a.ranking_position - b.ranking_position
+        }
+        // Si las posiciones son iguales o no existen, ordenar por puntos
+        return b.total_points - a.total_points
+      })
+
+      // Reasignar posiciones correctas basadas en el ordenamiento
+      transformedData.forEach((entry, index) => {
+        entry.ranking_position = index + 1
       })
 
       // Calcular estadísticas
