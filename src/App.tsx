@@ -29,6 +29,7 @@ import FeatureDiagnosticPage from '@/pages/admin/FeatureDiagnosticPage'
 import DebugRankingPage from '@/pages/admin/DebugRankingPage'
 import SeasonManagementPage from '@/pages/admin/SeasonManagementPage'
 import RankingComparisonPage from '@/pages/admin/RankingComparisonPage'
+import DatabaseDiagnosticPage from '@/pages/admin/DatabaseDiagnosticPage'
 import NewTeamPage from '@/pages/admin/NewTeamPage'
 import NewTournamentPage from '@/pages/admin/NewTournamentPage'
 import NewRegionPage from '@/pages/admin/NewRegionPage'
@@ -118,6 +119,7 @@ function App() {
               <Route path="debug-ranking" element={<DebugRankingPage />} />
               <Route path="seasons" element={<SeasonManagementPage />} />
               <Route path="ranking-comparison" element={<RankingComparisonPage />} />
+              <Route path="database-diagnostic" element={<DatabaseDiagnosticPage />} />
             </Route>
 
             {/* Ruta 404 */}
