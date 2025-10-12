@@ -94,12 +94,12 @@ const DatabaseDiagnosticPage: React.FC = () => {
   const handleRegenerateData = async () => {
     setIsLoading(true)
     try {
-      const result = await seasonPointsService.regenerateAllSeasonPoints()
+      const result = await seasonPointsService.regenerateAllSeasons()
       if (result.success) {
-        toast.success('Datos regenerados exitosamente')
+        toast.success(`${result.message}. Temporadas: ${result.seasons.join(', ')}`)
         refetchTable()
       } else {
-        toast.error(`Error: ${result.error}`)
+        toast.error(`Error: ${result.message}`)
       }
     } catch (error: any) {
       toast.error(`Error: ${error.message}`)
