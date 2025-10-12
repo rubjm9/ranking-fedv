@@ -13,7 +13,8 @@ import {
   X,
   Home,
   TrendingUp,
-  Shield
+  Shield,
+  Clock
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -29,6 +30,7 @@ const AdminLayout: React.FC = () => {
     { name: 'Regiones', href: '/admin/regions', icon: MapPin },
     { name: 'Torneos', href: '/admin/tournaments', icon: Calendar },
     { name: 'Ranking', href: '/admin/ranking', icon: TrendingUp },
+    { name: 'Temporadas', href: '/admin/seasons', icon: Clock },
     { name: 'Importar/Exportar', href: '/admin/import-export', icon: Upload },
     { name: 'Configuración', href: '/admin/configuration', icon: Settings },
   ]
