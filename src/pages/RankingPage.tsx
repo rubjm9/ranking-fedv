@@ -291,30 +291,30 @@ const RankingPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Puntos */}
+                      {/* Desglose por temporadas */}
                       <div className="flex items-center space-x-6">
-                        <div className="text-right">
-                          <p className="text-sm text-gray-500">Puntos totales</p>
+                        {/* Desglose por temporadas */}
+                        <div className="flex space-x-4">
+                          {Object.entries(entry.season_breakdown || {}).map(([season, data]: [string, any]) => (
+                            <div key={season} className="text-center">
+                              <p className="text-xs text-gray-500">{season}</p>
+                              <p className="text-sm font-semibold text-gray-700">
+                                {data.weighted_points?.toFixed(1) || '0.0'}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                (x{data.coefficient?.toFixed(1)})
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Puntos totales */}
+                        <div className="text-right border-l pl-6">
+                          <p className="text-sm text-gray-500">Total</p>
                           <p className="text-2xl font-bold text-gray-900">
                             {entry.total_points?.toFixed(1) || '0.0'}
                           </p>
                         </div>
-                        
-                        <div className="text-right">
-                          <p className="text-sm text-gray-500">Esta temporada</p>
-                          <p className="text-xl font-semibold text-blue-600">
-                            {entry.current_season_points || 0}
-                          </p>
-                        </div>
-
-                        {entry.previous_season_points > 0 && (
-                          <div className="text-right">
-                            <p className="text-sm text-gray-500">Temporada anterior</p>
-                            <p className="text-lg font-medium text-gray-600">
-                              {entry.previous_season_points}
-                            </p>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>

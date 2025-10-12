@@ -388,15 +388,21 @@ const RankingAdminPage: React.FC = () => {
                 </th>
                     {selectedSeason === 'current' && (
                       <>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Esta Temporada
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Temporada Anterior
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          2024-25
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          2023-24
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          2022-23
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          2021-22
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Total
-                </th>
+                        </th>
                       </>
                     )}
                     {selectedSeason !== 'current' && (
@@ -439,14 +445,40 @@ const RankingAdminPage: React.FC = () => {
                       {selectedSeason === 'current' && (
                         <>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {team.current_season_points || 0}
+                            {team.season_breakdown?.['2024-25']?.weighted_points?.toFixed(1) || '0.0'}
+                            {team.season_breakdown?.['2024-25'] && (
+                              <div className="text-xs text-gray-400">
+                                (x{team.season_breakdown['2024-25'].coefficient?.toFixed(1)})
+                              </div>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {team.previous_season_points || 0}
+                            {team.season_breakdown?.['2023-24']?.weighted_points?.toFixed(1) || '0.0'}
+                            {team.season_breakdown?.['2023-24'] && (
+                              <div className="text-xs text-gray-400">
+                                (x{team.season_breakdown['2023-24'].coefficient?.toFixed(1)})
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {team.season_breakdown?.['2022-23']?.weighted_points?.toFixed(1) || '0.0'}
+                            {team.season_breakdown?.['2022-23'] && (
+                              <div className="text-xs text-gray-400">
+                                (x{team.season_breakdown['2022-23'].coefficient?.toFixed(1)})
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {team.season_breakdown?.['2021-22']?.weighted_points?.toFixed(1) || '0.0'}
+                            {team.season_breakdown?.['2021-22'] && (
+                              <div className="text-xs text-gray-400">
+                                (x{team.season_breakdown['2021-22'].coefficient?.toFixed(1)})
+                              </div>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                             {team.total_points?.toFixed(1) || '0.0'}
-                  </td>
+                          </td>
                         </>
                       )}
                       {selectedSeason !== 'current' && (

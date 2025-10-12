@@ -11,6 +11,14 @@ export interface RankingEntry {
   total_points: number
   ranking_position: number
   last_calculated: string
+  // Desglose por temporadas con coeficientes aplicados
+  season_breakdown: {
+    [season: string]: {
+      base_points: number
+      weighted_points: number
+      coefficient: number
+    }
+  }
   team?: {
     id: string
     name: string
@@ -102,6 +110,132 @@ const clearCache = (pattern?: string): void => {
   }
 }
 
+// Obtener coeficiente de antigüedad por temporada
+const getSeasonCoefficient = (season: string, referenceSeason: string): number => {
+  const referenceYear = parseInt(referenceSeason.split('-')[0])
+  const seasonYear = parseInt(season.split('-')[0])
+  const yearsDiff = referenceYear - seasonYear
+  
+  // Coeficientes de antigüedad basados en la temporada de referencia
+  switch (yearsDiff) {
+    case 0: return 1.0  // Temporada de referencia (completa)
+    case 1: return 0.8   // 1 año atrás
+    case 2: return 0.5    // 2 años atrás
+    case 3: return 0.2    // 3 años atrás
+    default: return 0.0  // Más de 3 años
+  }
+}
+
+// Formatear temporada (YYYY-YY)
+const formatSeason = (year: number): string => {
+  const nextYear = (year + 1).toString().slice(-2)
+  return `${year}-${nextYear}`
+}
+
+// Obtener temporada de referencia por modalidad/superficie
+const getCurrentSeason = async (category?: string): Promise<string> => {
+  try {
+    // Si no se especifica categoría, buscar el CE más reciente completado de cualquier modalidad
+    if (!category) {
+      const { data: ceTournaments, error } = await supabase
+        .from('tournaments')
+        .select('id, year, name, surface, modality')
+        .ilike('name', '%campeonato de españa%')
+        .not('year', 'is', null)
+        .order('year', { ascending: false })
+
+      if (error) {
+        console.warn('⚠️ Error obteniendo CE general, usando año calendario:', error.message)
+        const currentYear = new Date().getFullYear()
+        return formatSeason(currentYear - 1) // Usar temporada anterior por defecto
+      }
+
+      if (ceTournaments && ceTournaments.length > 0) {
+        // Buscar el CE más reciente que tenga posiciones completadas
+        for (const ce of ceTournaments) {
+          const { data: positions, error: positionsError } = await supabase
+            .from('positions')
+            .select('id')
+            .eq('tournamentId', ce.id)
+            .limit(1)
+
+          if (!positionsError && positions && positions.length > 0) {
+            const referenceSeason = formatSeason(ce.year)
+            console.log(`📅 Temporada de referencia general detectada: ${referenceSeason} (CE completado: ${ce.name})`)
+            return referenceSeason
+          }
+        }
+      }
+
+      // Si no hay CE completado, usar temporada anterior
+      const currentYear = new Date().getFullYear()
+      return formatSeason(currentYear - 1)
+    }
+
+    // Para categorías específicas, verificar si hay CE de 1ª división completado
+    const categoryParts = category.split('_')
+    const surface = categoryParts[0] // beach o grass
+    const modality = categoryParts[1] // mixed, open, women
+
+    // Buscar el CE de 1ª división más reciente para esta modalidad/superficie específica
+    const { data: ceTournaments, error } = await supabase
+      .from('tournaments')
+      .select('id, year, name, surface, modality')
+      .eq('surface', surface)
+      .eq('modality', modality)
+      .ilike('name', '%campeonato de españa%')
+      .not('year', 'is', null)
+      .order('year', { ascending: false })
+
+    if (error) {
+      console.warn(`⚠️ Error obteniendo CE para ${category}:`, error.message)
+      // Fallback a la lógica general sin categoría
+      return getCurrentSeason()
+    }
+
+    if (ceTournaments && ceTournaments.length > 0) {
+      // Verificar que el CE más reciente tenga posiciones definidas
+      const latestCE = ceTournaments[0]
+      
+      // Verificar si hay posiciones para este torneo
+      const { data: positions, error: positionsError } = await supabase
+        .from('positions')
+        .select('id')
+        .eq('tournamentId', latestCE.id || '')
+        .limit(1)
+
+      if (positionsError) {
+        console.warn(`⚠️ Error verificando posiciones para CE ${latestCE.name}:`, positionsError.message)
+        // Si no podemos verificar, asumir que no está completo
+        const currentYear = new Date().getFullYear()
+        return formatSeason(currentYear - 1) // Usar temporada anterior
+      }
+
+      if (positions && positions.length > 0) {
+        // El CE tiene posiciones, esta temporada está completa
+        const referenceSeason = formatSeason(latestCE.year)
+        console.log(`📅 Temporada de referencia para ${category}: ${referenceSeason} (CE completado: ${latestCE.name} - ${surface}/${modality})`)
+        return referenceSeason
+      } else {
+        // El CE no tiene posiciones, usar temporada anterior
+        const previousYear = latestCE.year - 1
+        const referenceSeason = formatSeason(previousYear)
+        console.log(`📅 Temporada de referencia para ${category}: ${referenceSeason} (CE ${latestCE.name} sin posiciones - ${surface}/${modality})`)
+        return referenceSeason
+      }
+    }
+
+    // Si no hay CE específico, usar la lógica general sin categoría
+    console.log(`📅 No se encontró CE específico para ${category}, usando lógica general`)
+    return getCurrentSeason()
+
+  } catch (error) {
+    console.warn('⚠️ Error obteniendo temporada de referencia por categoría:', error)
+    const currentYear = new Date().getFullYear()
+    return formatSeason(currentYear)
+  }
+}
+
 const rankingService = {
   // Obtener ranking por categoría
   // Obtener ranking por categoría con cache optimizado
@@ -143,8 +277,59 @@ const rankingService = {
         throw error
       }
 
-      // Transformar datos para incluir nombres de equipos
-      const transformedData: RankingEntry[] = (rankingData || []).map(ranking => ({
+      // Transformar datos para incluir nombres de equipos y desglose por temporadas
+      const referenceSeason = await getCurrentSeason(category)
+      const transformedData: RankingEntry[] = (rankingData || []).map(ranking => {
+        // Calcular desglose por temporadas
+        const seasonBreakdown: { [season: string]: { base_points: number, weighted_points: number, coefficient: number } } = {}
+        
+        // Temporada de referencia (la más reciente con datos completos)
+        if (ranking.current_season_points > 0) {
+          const coefficient = getSeasonCoefficient(referenceSeason, referenceSeason)
+          seasonBreakdown[referenceSeason] = {
+            base_points: ranking.current_season_points,
+            weighted_points: ranking.current_season_points * coefficient,
+            coefficient
+          }
+        }
+        
+        // Temporada anterior
+        if (ranking.previous_season_points > 0) {
+          const referenceYear = parseInt(referenceSeason.split('-')[0])
+          const prevSeason = formatSeason(referenceYear - 1)
+          const coefficient = getSeasonCoefficient(prevSeason, referenceSeason)
+          seasonBreakdown[prevSeason] = {
+            base_points: ranking.previous_season_points,
+            weighted_points: ranking.previous_season_points * coefficient,
+            coefficient
+          }
+        }
+        
+        // Dos temporadas atrás
+        if (ranking.two_seasons_ago_points > 0) {
+          const referenceYear = parseInt(referenceSeason.split('-')[0])
+          const twoSeasonsAgo = formatSeason(referenceYear - 2)
+          const coefficient = getSeasonCoefficient(twoSeasonsAgo, referenceSeason)
+          seasonBreakdown[twoSeasonsAgo] = {
+            base_points: ranking.two_seasons_ago_points,
+            weighted_points: ranking.two_seasons_ago_points * coefficient,
+            coefficient
+          }
+        }
+        
+        // Tres temporadas atrás
+        if (ranking.three_seasons_ago_points > 0) {
+          const referenceYear = parseInt(referenceSeason.split('-')[0])
+          const threeSeasonsAgo = formatSeason(referenceYear - 3)
+          const coefficient = getSeasonCoefficient(threeSeasonsAgo, referenceSeason)
+          seasonBreakdown[threeSeasonsAgo] = {
+            base_points: ranking.three_seasons_ago_points,
+            weighted_points: ranking.three_seasons_ago_points * coefficient,
+            coefficient
+          }
+        }
+
+        return {
         team_id: ranking.team_id,
         team_name: ranking.teams?.name || 'Equipo desconocido',
         ranking_category: ranking.ranking_category,
@@ -154,8 +339,10 @@ const rankingService = {
         three_seasons_ago_points: ranking.three_seasons_ago_points || 0,
         total_points: ranking.total_points || 0,
         ranking_position: ranking.ranking_position || 0,
-        last_calculated: ranking.last_calculated || new Date().toISOString()
-      }))
+          last_calculated: ranking.last_calculated || new Date().toISOString(),
+          season_breakdown: seasonBreakdown
+        }
+      })
 
       // Ordenar por puntos como respaldo si las posiciones no están correctas
       transformedData.sort((a, b) => {
@@ -254,7 +441,7 @@ const rankingService = {
   },
 
   // Método alternativo para recalcular ranking
-  recalculateRankingAlternative: async (): Promise<any> => {
+  recalculateRankingAlternative: async (category?: string): Promise<any> => {
     try {
       if (!supabase) {
         throw new Error('Supabase no está configurado')
@@ -295,8 +482,8 @@ const rankingService = {
         return { message: 'No hay posiciones para recalcular' }
       }
 
-      // Agrupar puntos por equipo y categoría
-      const teamPoints: { [key: string]: { [key: string]: number } } = {}
+      // Agrupar puntos por equipo, categoría y temporada
+      const teamPoints: { [key: string]: { [key: string]: { [key: string]: number } } } = {}
 
       positions.forEach(position => {
         const tournament = position.tournaments
@@ -306,7 +493,8 @@ const rankingService = {
           position: position.position,
           points: position.points,
           tournament: tournament?.name || 'Sin torneo',
-          team: team?.name || 'Sin equipo'
+          team: team?.name || 'Sin equipo',
+          year: tournament?.year
         })
 
         if (!tournament || !team) {
@@ -317,16 +505,21 @@ const rankingService = {
         // Determinar categoría basada en superficie y modalidad
         const category = `${tournament.surface.toLowerCase()}_${tournament.modality.toLowerCase()}`
         const teamKey = team.id
+        const season = formatSeason(tournament.year)
 
         if (!teamPoints[teamKey]) {
           teamPoints[teamKey] = {}
         }
 
         if (!teamPoints[teamKey][category]) {
-          teamPoints[teamKey][category] = 0
+          teamPoints[teamKey][category] = {}
         }
 
-        teamPoints[teamKey][category] += position.points || 0
+        if (!teamPoints[teamKey][category][season]) {
+          teamPoints[teamKey][category][season] = 0
+        }
+
+        teamPoints[teamKey][category][season] += position.points || 0
       })
 
       console.log('📈 Puntos agrupados:', teamPoints)
@@ -345,24 +538,53 @@ const rankingService = {
 
       console.log('✅ Rankings limpiados exitosamente')
 
-      // Insertar nuevos rankings
+      // Insertar nuevos rankings con cálculo por temporadas
       const rankingEntries = []
+      const currentSeason = await getCurrentSeason(category)
       
       Object.keys(teamPoints).forEach(teamId => {
-        Object.keys(teamPoints[teamId]).forEach(category => {
-          const totalPoints = teamPoints[teamId][category]
+        Object.keys(teamPoints[teamId]).forEach(categoryKey => {
+          const seasonPoints = teamPoints[teamId][categoryKey]
           
+          // Calcular puntos por temporada con coeficientes
+          let currentSeasonPoints = 0
+          let previousSeasonPoints = 0
+          let twoSeasonsAgoPoints = 0
+          let threeSeasonsAgoPoints = 0
+          let totalPoints = 0
+          
+          Object.keys(seasonPoints).forEach(season => {
+            const basePoints = seasonPoints[season]
+            const coefficient = getSeasonCoefficient(season, currentSeason)
+            const weightedPoints = basePoints * coefficient
+            
+            totalPoints += weightedPoints
+            
+            // Asignar puntos BASE (sin coeficiente) a la temporada correspondiente
+            if (season === currentSeason) {
+              currentSeasonPoints = basePoints
+            } else if (season === formatSeason(parseInt(currentSeason.split('-')[0]) - 1)) {
+              previousSeasonPoints = basePoints
+            } else if (season === formatSeason(parseInt(currentSeason.split('-')[0]) - 2)) {
+              twoSeasonsAgoPoints = basePoints
+            } else if (season === formatSeason(parseInt(currentSeason.split('-')[0]) - 3)) {
+              threeSeasonsAgoPoints = basePoints
+            }
+          })
+          
+          if (totalPoints > 0) {
           rankingEntries.push({
             team_id: teamId,
-            ranking_category: category,
-            current_season_points: totalPoints,
-            previous_season_points: 0,
-            two_seasons_ago_points: 0,
-            three_seasons_ago_points: 0,
+            ranking_category: categoryKey,
+              current_season_points: currentSeasonPoints,
+              previous_season_points: previousSeasonPoints,
+              two_seasons_ago_points: twoSeasonsAgoPoints,
+              three_seasons_ago_points: threeSeasonsAgoPoints,
             total_points: totalPoints,
             ranking_position: 0, // Se calculará después
             last_calculated: new Date().toISOString()
           })
+          }
         })
       })
 
@@ -656,15 +878,6 @@ const rankingService = {
     } catch (error) {
       console.error('Error en validación de consistencia:', error)
       throw error
-    }
-  },
-
-  // Limpiar cache cuando se recalculen rankings
-  clearRankingCache: (category?: string) => {
-    if (category) {
-      clearCache(`ranking_${category}`)
-    } else {
-      clearCache('ranking')
     }
   },
 
@@ -990,7 +1203,8 @@ const rankingService = {
 
       console.log('🔍 Datos de ranking obtenidos:', rankingData?.slice(0, 3))
 
-      // Transformar datos para incluir nombres de equipos
+      // Transformar datos para incluir nombres de equipos y desglose por temporadas
+      const currentSeason = await getCurrentSeason(category)
       const transformedData: RankingEntry[] = (rankingData || []).map(ranking => {
         console.log('🏆 Procesando ranking:', {
           team_id: ranking.team_id,
@@ -998,6 +1212,55 @@ const rankingService = {
           has_team: !!ranking.teams,
           region_name: ranking.teams?.regions?.name
         })
+        
+        // Calcular desglose por temporadas
+        const seasonBreakdown: { [season: string]: { base_points: number, weighted_points: number, coefficient: number } } = {}
+        
+        // Temporada de referencia (la más reciente con datos completos)
+        if (ranking.current_season_points > 0) {
+          const coefficient = getSeasonCoefficient(currentSeason, currentSeason)
+          seasonBreakdown[currentSeason] = {
+            base_points: ranking.current_season_points,
+            weighted_points: ranking.current_season_points * coefficient,
+            coefficient
+          }
+        }
+        
+        // Temporada anterior
+        if (ranking.previous_season_points > 0) {
+          const referenceYear = parseInt(currentSeason.split('-')[0])
+          const prevSeason = formatSeason(referenceYear - 1)
+          const coefficient = getSeasonCoefficient(prevSeason, currentSeason)
+          seasonBreakdown[prevSeason] = {
+            base_points: ranking.previous_season_points,
+            weighted_points: ranking.previous_season_points * coefficient,
+            coefficient
+          }
+        }
+        
+        // Dos temporadas atrás
+        if (ranking.two_seasons_ago_points > 0) {
+          const referenceYear = parseInt(currentSeason.split('-')[0])
+          const twoSeasonsAgo = formatSeason(referenceYear - 2)
+          const coefficient = getSeasonCoefficient(twoSeasonsAgo, currentSeason)
+          seasonBreakdown[twoSeasonsAgo] = {
+            base_points: ranking.two_seasons_ago_points,
+            weighted_points: ranking.two_seasons_ago_points * coefficient,
+            coefficient
+          }
+        }
+        
+        // Tres temporadas atrás
+        if (ranking.three_seasons_ago_points > 0) {
+          const referenceYear = parseInt(currentSeason.split('-')[0])
+          const threeSeasonsAgo = formatSeason(referenceYear - 3)
+          const coefficient = getSeasonCoefficient(threeSeasonsAgo, currentSeason)
+          seasonBreakdown[threeSeasonsAgo] = {
+            base_points: ranking.three_seasons_ago_points,
+            weighted_points: ranking.three_seasons_ago_points * coefficient,
+            coefficient
+          }
+        }
         
         return {
           team_id: ranking.team_id,
@@ -1010,6 +1273,7 @@ const rankingService = {
           total_points: ranking.total_points || 0,
           ranking_position: ranking.ranking_position || 0,
           last_calculated: ranking.last_calculated || new Date().toISOString(),
+          season_breakdown: seasonBreakdown,
           team: ranking.teams ? {
             id: ranking.teams.id,
             name: ranking.teams.name,

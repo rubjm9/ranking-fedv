@@ -26,6 +26,7 @@ import TournamentsAdminPage from '@/pages/TournamentsAdminPage'
 import ConfigurationPage from '@/pages/admin/ConfigurationPage'
 import ImportExportPage from '@/pages/admin/ImportExportPage'
 import FeatureDiagnosticPage from '@/pages/admin/FeatureDiagnosticPage'
+import DebugRankingPage from '@/pages/admin/DebugRankingPage'
 import NewTeamPage from '@/pages/admin/NewTeamPage'
 import NewTournamentPage from '@/pages/admin/NewTournamentPage'
 import NewRegionPage from '@/pages/admin/NewRegionPage'
@@ -112,6 +113,7 @@ function App() {
               <Route path="configuration" element={<ConfigurationPage />} />
               <Route path="import-export" element={<ImportExportPage />} />
               <Route path="feature-diagnostic" element={<FeatureDiagnosticPage />} />
+              <Route path="debug-ranking" element={<DebugRankingPage />} />
             </Route>
 
             {/* Ruta 404 */}
