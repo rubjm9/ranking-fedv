@@ -45,7 +45,7 @@ const DatabaseDiagnosticPage: React.FC = () => {
 
         return {
           exists: true,
-          count: countData?.length || 0,
+          count: countData || 0,
           sample: sampleData || [],
           sampleError: sampleError?.message
         }
@@ -75,6 +75,39 @@ const DatabaseDiagnosticPage: React.FC = () => {
     }
   })
 
+  // Query para verificar torneos disponibles
+  const { data: tournamentsInfo, isLoading: isLoadingTournaments } = useQuery({
+    queryKey: ['tournaments-diagnostic'],
+    queryFn: async () => {
+      if (!supabase) throw new Error('Supabase not configured')
+      
+      const { data, error } = await supabase
+        .from('tournaments')
+        .select('id, name, year, surface, modality')
+        .not('year', 'is', null)
+        .order('year', { ascending: false })
+
+      if (error) throw error
+      return data || []
+    }
+  })
+
+  // Query para verificar la estructura de la tabla teams
+  const { data: teamsInfo, isLoading: isLoadingTeams } = useQuery({
+    queryKey: ['teams-diagnostic'],
+    queryFn: async () => {
+      if (!supabase) throw new Error('Supabase not configured')
+      
+      const { data, error } = await supabase
+        .from('teams')
+        .select('id, name')
+        .limit(5)
+
+      if (error) throw error
+      return data || []
+    }
+  })
+
   // Query para verificar datos en current_rankings
   const { data: rankingsInfo, isLoading: isLoadingRankings } = useQuery({
     queryKey: ['rankings-diagnostic'],
@@ -94,15 +127,23 @@ const DatabaseDiagnosticPage: React.FC = () => {
   const handleRegenerateData = async () => {
     setIsLoading(true)
     try {
+      console.log('🔄 Iniciando regeneración de datos...')
       const result = await seasonPointsService.regenerateAllSeasons()
+      console.log('📊 Resultado de regeneración:', result)
+      
       if (result.success) {
         toast.success(`${result.message}. Temporadas: ${result.seasons.join(', ')}`)
-        refetchTable()
+        // Esperar un poco antes de refrescar para que se complete la transacción
+        setTimeout(() => {
+          refetchTable()
+        }, 1000)
       } else {
         toast.error(`Error: ${result.message}`)
+        console.error('❌ Error en regeneración:', result.message)
       }
     } catch (error: any) {
       toast.error(`Error: ${error.message}`)
+      console.error('❌ Error capturado:', error)
     } finally {
       setIsLoading(false)
     }
@@ -253,6 +294,68 @@ const DatabaseDiagnosticPage: React.FC = () => {
         )}
       </div>
 
+      {/* Estado de torneos */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <Calendar className="w-5 h-5 mr-2" />
+          Torneos disponibles
+        </h2>
+        
+        {isLoadingTournaments ? (
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <span className="text-gray-500">Verificando torneos...</span>
+          </div>
+        ) : tournamentsInfo && tournamentsInfo.length > 0 ? (
+          <div className="space-y-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <CheckCircle className="w-6 h-6 text-green-500 mr-3" />
+                <div>
+                  <h3 className="font-semibold text-green-900">✅ Torneos encontrados</h3>
+                  <p className="text-sm text-green-800">
+                    {tournamentsInfo.length} torneos disponibles para procesar
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Torneos por año:</h4>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                  {tournamentsInfo.slice(0, 10).map((tournament, index) => (
+                    <div key={tournament.id} className="flex justify-between">
+                      <span className="text-gray-600">{tournament.name}</span>
+                      <span className="text-gray-800 font-medium">
+                        {tournament.year} - {tournament.surface}/{tournament.modality}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {tournamentsInfo.length > 10 && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    ... y {tournamentsInfo.length - 10} torneos más
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <AlertTriangle className="w-6 h-6 text-red-500 mr-3" />
+              <div>
+                <h3 className="font-semibold text-red-900">❌ No hay torneos</h3>
+                <p className="text-sm text-red-800">
+                  No se encontraron torneos en la base de datos
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Estado de current_rankings */}
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -285,6 +388,64 @@ const DatabaseDiagnosticPage: React.FC = () => {
                 <h3 className="font-semibold text-yellow-900">⚠️ No hay datos en current_rankings</h3>
                 <p className="text-sm text-yellow-800">
                   La tabla current_rankings está vacía
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Estado de equipos */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <Users className="w-5 h-5 mr-2" />
+          Estructura de equipos
+        </h2>
+        
+        {isLoadingTeams ? (
+          <div className="flex items-center space-x-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <span className="text-gray-500">Verificando equipos...</span>
+          </div>
+        ) : teamsInfo && teamsInfo.length > 0 ? (
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <Users className="w-6 h-6 text-blue-500 mr-3" />
+                <div>
+                  <h3 className="font-semibold text-blue-900">📊 Estructura de equipos</h3>
+                  <p className="text-sm text-blue-800">
+                    Muestra de {teamsInfo.length} equipos (primeros 5)
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Equipos y sus IDs:</h4>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="space-y-2 text-xs">
+                  {teamsInfo.map((team: any) => (
+                    <div key={team.id} className="flex justify-between items-center p-2 bg-white rounded border">
+                      <span className="text-gray-600 font-medium">{team.name}</span>
+                      <div className="text-right">
+                        <div className="text-gray-800 font-mono">{team.id}</div>
+                        <div className="text-gray-500">tipo: {typeof team.id}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <AlertTriangle className="w-6 h-6 text-red-500 mr-3" />
+              <div>
+                <h3 className="font-semibold text-red-900">❌ No se encontraron equipos</h3>
+                <p className="text-sm text-red-800">
+                  No se pudo acceder a la tabla teams o está vacía
                 </p>
               </div>
             </div>
@@ -334,14 +495,37 @@ const DatabaseDiagnosticPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Instrucciones */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-blue-900 mb-2">📋 Instrucciones</h3>
-        <div className="text-sm text-blue-800 space-y-1">
-          <p>1. <strong>Si la tabla team_season_points no existe:</strong> Ejecuta la migración SQL en Supabase</p>
-          <p>2. <strong>Si la tabla existe pero está vacía:</strong> Haz clic en "Regenerar team_season_points"</p>
-          <p>3. <strong>Si team_season_points tiene datos:</strong> Haz clic en "Sincronizar current_rankings"</p>
-          <p>4. <strong>Verifica:</strong> Usa la página de comparación para confirmar que ambos sistemas coinciden</p>
+      {/* Debug adicional */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Debug adicional</h2>
+        
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Información de torneos:</h3>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-600">
+                Revisa la consola del navegador (F12) para ver logs detallados del proceso de regeneración.
+              </p>
+              <p className="text-sm text-gray-600 mt-2">
+                Si ves errores, compártelos para diagnosticar el problema.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Verificación manual:</h3>
+            <div className="bg-blue-50 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                También puedes verificar directamente en Supabase SQL Editor:
+              </p>
+              <div className="mt-2 bg-gray-100 rounded p-2 font-mono text-xs">
+                SELECT COUNT(*) FROM team_season_points;
+              </div>
+              <div className="mt-2 bg-gray-100 rounded p-2 font-mono text-xs">
+                SELECT * FROM team_season_points LIMIT 5;
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

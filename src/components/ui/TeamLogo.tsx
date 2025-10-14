@@ -16,6 +16,9 @@ const TeamLogo: React.FC<TeamLogoProps> = ({
   const [imageError, setImageError] = useState(false)
 
   const getInitials = (name: string) => {
+    if (!name || typeof name !== 'string') {
+      return '??' // Iniciales por defecto para nombres inválidos
+    }
     return name
       .split(' ')
       .filter(word => word.length > 3) // Solo palabras de más de 3 letras
@@ -36,6 +39,9 @@ const TeamLogo: React.FC<TeamLogoProps> = ({
   }
 
   const getColorClass = (name: string) => {
+    if (!name || typeof name !== 'string') {
+      return 'bg-gray-500' // Color por defecto para nombres inválidos
+    }
     const colors = [
       'bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500',
       'bg-pink-500', 'bg-indigo-500', 'bg-teal-500', 'bg-orange-500', 'bg-cyan-500'

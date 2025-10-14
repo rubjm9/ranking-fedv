@@ -169,7 +169,7 @@ const RankingPageHybrid: React.FC = () => {
                       {getRankIcon(team.ranking_position)}
                     </div>
                     <div className="flex items-center space-x-3">
-                      <TeamLogo teamName={team.team_name} size="sm" />
+                      <TeamLogo name={team.team_name} size="sm" />
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">
                           {team.team_name}

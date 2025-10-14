@@ -6,7 +6,7 @@ import AdminLayout from '@/components/layout/AdminLayout'
 
 // Páginas públicas
 import HomePage from '@/pages/HomePage'
-import RankingPage from '@/pages/RankingPage'
+import RankingPageHybrid from '@/pages/RankingPageHybrid'
 import TeamsPage from '@/pages/TeamsPage'
 // import TeamPage from '@/pages/TeamPage'
 import RegionsPage from '@/pages/RegionsPage'
@@ -30,6 +30,7 @@ import DebugRankingPage from '@/pages/admin/DebugRankingPage'
 import SeasonManagementPage from '@/pages/admin/SeasonManagementPage'
 import RankingComparisonPage from '@/pages/admin/RankingComparisonPage'
 import DatabaseDiagnosticPage from '@/pages/admin/DatabaseDiagnosticPage'
+import RankingAdminPageHybrid from '@/pages/admin/RankingAdminPageHybrid'
 import NewTeamPage from '@/pages/admin/NewTeamPage'
 import NewTournamentPage from '@/pages/admin/NewTournamentPage'
 import NewRegionPage from '@/pages/admin/NewRegionPage'
@@ -73,7 +74,7 @@ function App() {
             {/* Rutas públicas */}
             <Route path="/" element={<PublicLayout />}>
               <Route index element={<HomePage />} />
-              <Route path="ranking" element={<RankingPage />} />
+              <Route path="ranking" element={<RankingPageHybrid />} />
               <Route path="teams" element={<TeamsPage />} />
               <Route path="teams/:id" element={<TeamDetailPage />} />
               <Route path="regions" element={<RegionsPage />} />
@@ -112,7 +113,7 @@ function App() {
               <Route path="tournaments/:tournamentId/results/new" element={<NewResultPage />} />
               <Route path="tournaments/:tournamentId/results/import" element={<ImportResultsPage />} />
               <Route path="results/:id/edit" element={<EditResultPage />} />
-              <Route path="ranking" element={<RankingAdminPage />} />
+              <Route path="ranking" element={<RankingAdminPageHybrid />} />
               <Route path="configuration" element={<ConfigurationPage />} />
               <Route path="import-export" element={<ImportExportPage />} />
               <Route path="feature-diagnostic" element={<FeatureDiagnosticPage />} />

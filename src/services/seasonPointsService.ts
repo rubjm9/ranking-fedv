@@ -143,21 +143,23 @@ const seasonPointsService = {
       })
 
       // Preparar datos para upsert
-      const upsertData = Object.keys(teamPointsMap).map(tid => ({
-        team_id: tid,
-        season: season,
-        beach_mixed_points: teamPointsMap[tid].beach_mixed || 0,
-        beach_open_points: teamPointsMap[tid].beach_open || 0,
-        beach_women_points: teamPointsMap[tid].beach_women || 0,
-        grass_mixed_points: teamPointsMap[tid].grass_mixed || 0,
-        grass_open_points: teamPointsMap[tid].grass_open || 0,
-        grass_women_points: teamPointsMap[tid].grass_women || 0,
-        tournaments_played: teamPointsMap[tid].tournaments_played,
-        best_position: teamPointsMap[tid].best_position,
-        last_updated: new Date().toISOString()
-      }))
+      const upsertData = Object.keys(teamPointsMap).map(tid => {
+        return {
+          team_id: tid,
+          season: season,
+          beach_mixed_points: teamPointsMap[tid].beach_mixed || 0,
+          beach_open_points: teamPointsMap[tid].beach_open || 0,
+          beach_women_points: teamPointsMap[tid].beach_women || 0,
+          grass_mixed_points: teamPointsMap[tid].grass_mixed || 0,
+          grass_open_points: teamPointsMap[tid].grass_open || 0,
+          grass_women_points: teamPointsMap[tid].grass_women || 0,
+          tournaments_played: Object.values(teamPointsMap[tid].tournaments_played).reduce((sum, count) => sum + (count || 0), 0),
+          best_position: Math.min(...Object.values(teamPointsMap[tid].best_position).filter(pos => pos !== null && pos !== undefined)),
+          last_updated: new Date().toISOString()
+        }
+      })
 
-      console.log(`💾 Guardando ${upsertData.length} registros...`)
+      console.log(`💾 Guardando ${upsertData.length} registros válidos (de ${Object.keys(teamPointsMap).length} equipos totales)...`)
 
       // Upsert en la base de datos
       const { data: upsertedData, error: upsertError } = await supabase

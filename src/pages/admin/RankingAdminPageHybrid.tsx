@@ -295,7 +295,7 @@ const RankingAdminPageHybrid: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <TeamLogo teamName={team.team_name} size="sm" />
+                        <TeamLogo name={team.team_name} size="sm" />
                         <div className="ml-3">
                           <div className="text-sm font-medium text-gray-900">
                             {team.team_name}
