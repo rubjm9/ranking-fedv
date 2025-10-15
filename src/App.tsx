@@ -8,11 +8,8 @@ import AdminLayout from '@/components/layout/AdminLayout'
 import HomePage from '@/pages/HomePage'
 import RankingPageHybrid from '@/pages/RankingPageHybrid'
 import TeamsPage from '@/pages/TeamsPage'
-// import TeamPage from '@/pages/TeamPage'
 import RegionsPage from '@/pages/RegionsPage'
-// import RegionPage from '@/pages/RegionPage'
 import TournamentsPage from '@/pages/TournamentsPage'
-// import TournamentPage from '@/pages/TournamentPage'
 import AboutPage from '@/pages/AboutPage'
 
 // Páginas de autenticación
@@ -42,12 +39,9 @@ import EditTeamPage from '@/pages/admin/EditTeamPage'
 import EditTournamentPage from '@/pages/admin/EditTournamentPage'
 import EditRegionPage from '@/pages/admin/EditRegionPage'
 import RegionDetailAdminPage from '@/pages/admin/RegionDetailAdminPage'
-import RankingAdminPage from '@/pages/admin/RankingAdminPage'
 import TeamDetailPage from '@/pages/TeamDetailPage'
 import TournamentDetailPage from '@/pages/TournamentDetailPage'
 import RegionDetailPage from '@/pages/RegionDetailPage'
-// import TestSupabasePage from '@/pages/TestSupabasePage'
-// import DiagnosticPage from '@/pages/DiagnosticPage'
 
 // Componentes
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
@@ -82,8 +76,6 @@ function App() {
               <Route path="tournaments" element={<TournamentsPage />} />
               <Route path="tournaments/:id" element={<TournamentDetailPage />} />
               <Route path="about" element={<AboutPage />} />
-              {/* <Route path="test-supabase" element={<TestSupabasePage />} /> */}
-              {/* <Route path="diagnostic" element={<DiagnosticPage />} /> */}
             </Route>
 
             {/* Rutas de autenticación */}
