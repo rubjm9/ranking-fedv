@@ -11,6 +11,8 @@ const RankingPageHybrid: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [selectedRankingType, setSelectedRankingType] = useState<'specific' | 'general'>('specific')
   const [performersTab, setPerformersTab] = useState<'season' | 'growth' | 'consistent'>('season')
+  const [selectedTeamsForAnalysis, setSelectedTeamsForAnalysis] = useState<string[]>([])
+  const [analysisView, setAnalysisView] = useState<'points' | 'positions'>('points')
 
   // Iconos minimalistas (inline SVGs) para garantizar disponibilidad y tamaño reducido
   const IconBeach: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
@@ -160,6 +162,79 @@ const RankingPageHybrid: React.FC = () => {
 
   const handleRefresh = () => {
     refetch()
+  }
+
+  // Funciones para análisis de equipos
+  const handleTeamSelection = (teamId: string, isSelected: boolean) => {
+    if (isSelected) {
+      setSelectedTeamsForAnalysis(prev => [...prev, teamId])
+    } else {
+      setSelectedTeamsForAnalysis(prev => prev.filter(id => id !== teamId))
+    }
+  }
+
+  const getAnalysisData = () => {
+    if (!rankingData || selectedTeamsForAnalysis.length === 0) return []
+
+    const selectedTeamsData = rankingData.filter(team => 
+      selectedTeamsForAnalysis.includes(team.team_id)
+    )
+
+    return selectedTeamsData.map(team => {
+      const seasons = Object.keys(team.season_breakdown || {}).sort()
+      const data = seasons.map(season => ({
+        season,
+        points: team.season_breakdown?.[season]?.base_points || 0,
+        weighted_points: team.season_breakdown?.[season]?.weighted_points || 0,
+        coefficient: team.season_breakdown?.[season]?.coefficient || 0
+      }))
+
+      return {
+        team_id: team.team_id,
+        team_name: team.team_name,
+        region_name: team.region_name,
+        data
+      }
+    })
+  }
+
+  const getPositionAnalysisData = () => {
+    if (!rankingData || selectedTeamsForAnalysis.length === 0) return []
+
+    const selectedTeamsData = rankingData.filter(team => 
+      selectedTeamsForAnalysis.includes(team.team_id)
+    )
+
+    // Calcular posiciones por temporada
+    const seasons = getLastFourSeasons(rankingData)
+    const positionData: { [season: string]: { [teamId: string]: number } } = {}
+
+    seasons.forEach(season => {
+      const seasonRanking = [...rankingData].sort((a, b) => {
+        const pointsA = a.season_breakdown?.[season]?.base_points || 0
+        const pointsB = b.season_breakdown?.[season]?.base_points || 0
+        return pointsB - pointsA
+      })
+
+      positionData[season] = {}
+      seasonRanking.forEach((team, index) => {
+        positionData[season][team.team_id] = index + 1
+      })
+    })
+
+    return selectedTeamsData.map(team => {
+      const data = seasons.map(season => ({
+        season,
+        position: positionData[season]?.[team.team_id] || null
+      })).filter(item => item.position !== null)
+
+      return {
+        team_id: team.team_id,
+        team_name: team.team_name,
+        region_name: team.region_name,
+        data
+      }
+    })
   }
 
   // Funciones para calcular top performers
@@ -645,45 +720,271 @@ const RankingPageHybrid: React.FC = () => {
     </div>
   )
 
-  // Renderizar pestaña de Análisis de Equipos
-  const renderAnalysisTab = () => (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-          <LineChart className="w-5 h-5 mr-2" />
-          Análisis de Equipos
-        </h3>
-        <p className="text-gray-600 mb-6">
-          Selecciona equipos para comparar su evolución de puntos y posiciones a lo largo del tiempo.
-        </p>
-        
-        {/* Selector de equipos múltiple */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Seleccionar equipos para análisis:
-          </label>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
-            {rankingData?.slice(0, 20).map((team) => (
-              <label key={team.team_id} className="flex items-center space-x-2 text-sm">
-                <input
-                  type="checkbox"
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="truncate">{team.team_name}</span>
-              </label>
-            ))}
-          </div>
-        </div>
+  // Componente de gráfica simple con SVG
+  const SimpleChart = ({ data, type }: { data: any[], type: 'points' | 'positions' }) => {
+    if (!data || data.length === 0) return null
 
-        {/* Placeholder para gráfica */}
-        <div className="bg-gray-50 rounded-lg p-8 text-center">
-          <LineChart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500">Gráfica de evolución aparecerá aquí</p>
-          <p className="text-sm text-gray-400 mt-2">Selecciona equipos para ver su comparación</p>
+    const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
+    const width = 800
+    const height = 400
+    const padding = 60
+
+    // Obtener todas las temporadas únicas
+    const allSeasons = Array.from(new Set(data.flatMap(team => team.data.map((d: any) => d.season)))).sort()
+    
+    // Calcular escalas
+    let maxValue = 0
+    let minValue = 0
+    
+    if (type === 'points') {
+      maxValue = Math.max(...data.flatMap(team => team.data.map((d: any) => d.points)))
+      minValue = Math.min(...data.flatMap(team => team.data.map((d: any) => d.points)))
+    } else {
+      maxValue = Math.max(...data.flatMap(team => team.data.map((d: any) => d.position)))
+      minValue = Math.min(...data.flatMap(team => team.data.map((d: any) => d.position)))
+    }
+
+    const xScale = (index: number) => padding + (index * (width - 2 * padding)) / (allSeasons.length - 1)
+    const yScale = (value: number) => padding + ((maxValue - value) / (maxValue - minValue)) * (height - 2 * padding)
+
+    return (
+      <div className="w-full overflow-x-auto">
+        <svg width={width} height={height} className="border border-gray-200 rounded-lg">
+          {/* Ejes */}
+          <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#E5E7EB" strokeWidth="2" />
+          <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#E5E7EB" strokeWidth="2" />
+          
+          {/* Etiquetas del eje X */}
+          {allSeasons.map((season, index) => (
+            <text
+              key={season}
+              x={xScale(index)}
+              y={height - padding + 20}
+              textAnchor="middle"
+              className="text-xs fill-gray-600"
+            >
+              {season}
+            </text>
+          ))}
+          
+          {/* Etiquetas del eje Y */}
+          {[maxValue, (maxValue + minValue) / 2, minValue].map((value, index) => (
+            <text
+              key={index}
+              x={padding - 10}
+              y={yScale(value) + 4}
+              textAnchor="end"
+              className="text-xs fill-gray-600"
+            >
+              {type === 'points' ? value.toFixed(0) : value.toFixed(0)}
+            </text>
+          ))}
+          
+          {/* Líneas de equipos */}
+          {data.map((team, teamIndex) => {
+            const points = team.data.map((d: any) => ({
+              x: xScale(allSeasons.indexOf(d.season)),
+              y: yScale(type === 'points' ? d.points : d.position)
+            })).filter((p: any) => !isNaN(p.x) && !isNaN(p.y))
+
+            if (points.length < 2) return null
+
+            const pathData = points.map((point: any, index: number) => 
+              `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
+            ).join(' ')
+
+            return (
+              <g key={team.team_id}>
+                <path
+                  d={pathData}
+                  stroke={colors[teamIndex % colors.length]}
+                  strokeWidth="3"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                {points.map((point: any, pointIndex: number) => (
+                  <circle
+                    key={pointIndex}
+                    cx={point.x}
+                    cy={point.y}
+                    r="4"
+                    fill={colors[teamIndex % colors.length]}
+                    stroke="white"
+                    strokeWidth="2"
+                  />
+                ))}
+              </g>
+            )
+          })}
+        </svg>
+      </div>
+    )
+  }
+
+  // Renderizar pestaña de Análisis de Equipos
+  const renderAnalysisTab = () => {
+    const analysisData = getAnalysisData()
+    const positionData = getPositionAnalysisData()
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <LineChart className="w-5 h-5 mr-2" />
+            Análisis de Equipos
+          </h3>
+          <p className="text-gray-600 mb-6">
+            Selecciona equipos para comparar su evolución de puntos y posiciones a lo largo del tiempo.
+          </p>
+          
+          {/* Selector de equipos múltiple */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Seleccionar equipos para análisis:
+              </label>
+              <span className="text-sm text-gray-500">
+                {selectedTeamsForAnalysis.length} equipos seleccionados
+              </span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
+              {rankingData?.slice(0, 20).map((team) => (
+                <label key={team.team_id} className="flex items-center space-x-2 text-sm hover:bg-gray-50 p-1 rounded">
+                  <input
+                    type="checkbox"
+                    checked={selectedTeamsForAnalysis.includes(team.team_id)}
+                    onChange={(e) => handleTeamSelection(team.team_id, e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <TeamLogo name={team.team_name} size="sm" />
+                  <span className="truncate">{team.team_name}</span>
+                </label>
+              ))}
+            </div>
+            {selectedTeamsForAnalysis.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {selectedTeamsForAnalysis.map(teamId => {
+                  const team = rankingData?.find(t => t.team_id === teamId)
+                  return team ? (
+                    <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                      <TeamLogo name={team.team_name} size="sm" />
+                      <span className="ml-1">{team.team_name}</span>
+                      <button
+                        onClick={() => handleTeamSelection(teamId, false)}
+                        className="ml-1 text-blue-600 hover:text-blue-800"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ) : null
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Selector de vista */}
+          {selectedTeamsForAnalysis.length > 0 && (
+            <div className="mb-6">
+              <div className="flex space-x-4">
+                <button
+                  onClick={() => setAnalysisView('points')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                    analysisView === 'points'
+                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                      : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                  }`}
+                >
+                  Evolución de Puntos
+                </button>
+                <button
+                  onClick={() => setAnalysisView('positions')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                    analysisView === 'positions'
+                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                      : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                  }`}
+                >
+                  Evolución de Posiciones
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Gráfica */}
+          {selectedTeamsForAnalysis.length === 0 ? (
+            <div className="bg-gray-50 rounded-lg p-8 text-center">
+              <LineChart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">Selecciona equipos para ver su comparación</p>
+              <p className="text-sm text-gray-400 mt-2">Puedes seleccionar hasta 6 equipos para comparar</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Gráfica */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="text-md font-medium text-gray-900 mb-4">
+                  {analysisView === 'points' ? 'Evolución de Puntos por Temporada' : 'Evolución de Posiciones por Temporada'}
+                </h4>
+                <SimpleChart 
+                  data={analysisView === 'points' ? analysisData : positionData} 
+                  type={analysisView} 
+                />
+              </div>
+
+              {/* Leyenda */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <h5 className="text-sm font-medium text-gray-900 mb-3">Equipos seleccionados:</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {analysisData.map((team, index) => {
+                    const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
+                    return (
+                      <div key={team.team_id} className="flex items-center space-x-2">
+                        <div 
+                          className="w-4 h-4 rounded-full" 
+                          style={{ backgroundColor: colors[index % colors.length] }}
+                        />
+                        <TeamLogo name={team.team_name} size="sm" />
+                        <span className="text-sm text-gray-900">{team.team_name}</span>
+                        <span className="text-xs text-gray-500">({team.region_name})</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Resumen estadístico */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <h5 className="text-sm font-medium text-gray-900 mb-3">Resumen estadístico:</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {analysisData.map(team => {
+                    const totalPoints = team.data.reduce((sum, d) => sum + d.points, 0)
+                    const avgPoints = totalPoints / team.data.length
+                    const maxPoints = Math.max(...team.data.map(d => d.points))
+                    const minPoints = Math.min(...team.data.map(d => d.points))
+                    
+                    return (
+                      <div key={team.team_id} className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex items-center mb-2">
+                          <TeamLogo name={team.team_name} size="sm" />
+                          <span className="ml-2 font-medium text-gray-900">{team.team_name}</span>
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <div>Total: {totalPoints.toFixed(1)} pts</div>
+                          <div>Promedio: {avgPoints.toFixed(1)} pts</div>
+                          <div>Máximo: {maxPoints.toFixed(1)} pts</div>
+                          <div>Mínimo: {minPoints.toFixed(1)} pts</div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   // Renderizar pestaña de Top Performers
   const renderPerformersTab = () => {
