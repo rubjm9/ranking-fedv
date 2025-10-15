@@ -1,15 +1,12 @@
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Trophy, Medal, TrendingUp, TrendingDown, Users, RefreshCw, History, BarChart3, GitCompare } from 'lucide-react'
+import { Trophy, Medal, TrendingUp, TrendingDown, Users, Calendar, RefreshCw, BarChart3, LineChart, Star, MapPin } from 'lucide-react'
 import hybridRankingService from '@/services/hybridRankingService'
 import TeamLogo from '@/components/ui/TeamLogo'
-import RankingHistory from '@/components/ranking/RankingHistory'
-import RankingEvolution from '@/components/ranking/RankingEvolution'
-import SeasonComparison from '@/components/ranking/SeasonComparison'
 
 const RankingPageHybrid: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('beach_mixed')
-  const [activeTab, setActiveTab] = useState<'ranking' | 'history' | 'evolution' | 'comparison'>('ranking')
+  const [activeTab, setActiveTab] = useState<'ranking' | 'analysis' | 'performers' | 'advanced'>('ranking')
   const [sortBy, setSortBy] = useState<string>('total')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [selectedRankingType, setSelectedRankingType] = useState<'specific' | 'general'>('specific')
@@ -107,24 +104,54 @@ const RankingPageHybrid: React.FC = () => {
     enabled: !!selectedCategory && !!referenceSeason
   })
 
-  // Query para estadísticas básicas
+  // Query para estadísticas mejoradas
   const { data: stats } = useQuery({
     queryKey: ['ranking-stats', selectedCategory],
     queryFn: async () => {
       if (!rankingData) return null
       
       const totalTeams = rankingData.length
-      const teamsWithPoints = rankingData.filter(team => team.total_points > 0).length
-      const maxPoints = Math.max(...rankingData.map(team => team.total_points))
       const avgPoints = rankingData.length > 0 
         ? rankingData.reduce((sum, team) => sum + team.total_points, 0) / rankingData.length 
         : 0
 
+      // Equipos nuevos: equipos que solo tienen puntos en la temporada actual
+      const newTeams = rankingData.filter(team => {
+        const seasons = Object.keys(team.season_breakdown || {})
+        return seasons.length === 1 && seasons.includes(referenceSeason)
+      }).length
+
+      // Consistencia: equipos que han mantenido posiciones altas (top 10) en múltiples temporadas
+      const consistentTeams = rankingData.filter(team => {
+        const seasons = Object.keys(team.season_breakdown || {})
+        if (seasons.length < 2) return false
+        
+        // Verificar si ha estado en top 10 en al menos 2 temporadas
+        const top10Seasons = seasons.filter(season => {
+          const seasonPoints = team.season_breakdown?.[season]?.base_points || 0
+          // Calcular posición aproximada basada en puntos (simplificado)
+          const teamsWithMorePoints = rankingData.filter(t => 
+            (t.season_breakdown?.[season]?.base_points || 0) > seasonPoints
+          ).length
+          return teamsWithMorePoints < 10
+        })
+        return top10Seasons.length >= 2
+      }).length
+
+      // Actividad: promedio de torneos jugados por equipo
+      const totalTournaments = rankingData.reduce((sum, team) => {
+        return sum + Object.values(team.season_breakdown || {}).reduce((seasonSum) => {
+          return seasonSum + 1 // Simplificado: contar temporadas como proxy de actividad
+        }, 0)
+      }, 0)
+      const avgActivity = totalTournaments / totalTeams
+
       return {
         total_teams: totalTeams,
-        teams_with_points: teamsWithPoints,
-        max_points: maxPoints,
-        avg_points: avgPoints
+        avg_points: avgPoints,
+        new_teams: newTeams,
+        consistent_teams: consistentTeams,
+        avg_activity: avgActivity
       }
     },
     enabled: !!rankingData
@@ -305,9 +332,9 @@ const RankingPageHybrid: React.FC = () => {
 
   const renderRankingTab = () => (
     <div className="space-y-6">
-      {/* Estadísticas */}
+      {/* Estadísticas mejoradas */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center">
               <Users className="w-8 h-8 text-blue-500" />
@@ -319,10 +346,10 @@ const RankingPageHybrid: React.FC = () => {
           </div>
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center">
-              <Trophy className="w-8 h-8 text-yellow-500" />
+              <BarChart3 className="w-8 h-8 text-purple-500" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Con Puntos</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.teams_with_points}</p>
+                <p className="text-sm font-medium text-gray-500">Promedio</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats.avg_points.toFixed(1)}</p>
               </div>
             </div>
           </div>
@@ -330,17 +357,26 @@ const RankingPageHybrid: React.FC = () => {
             <div className="flex items-center">
               <TrendingUp className="w-8 h-8 text-green-500" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Max Puntos</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.max_points.toFixed(1)}</p>
+                <p className="text-sm font-medium text-gray-500">Equipos Nuevos</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats.new_teams}</p>
               </div>
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center">
-              <BarChart3 className="w-8 h-8 text-purple-500" />
+              <Trophy className="w-8 h-8 text-yellow-500" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Promedio</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.avg_points.toFixed(1)}</p>
+                <p className="text-sm font-medium text-gray-500">Consistencia</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats.consistent_teams}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center">
+              <Calendar className="w-8 h-8 text-orange-500" />
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Actividad</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats.avg_activity.toFixed(1)}</p>
               </div>
             </div>
           </div>
@@ -484,6 +520,155 @@ const RankingPageHybrid: React.FC = () => {
     </div>
   )
 
+  // Renderizar pestaña de Análisis de Equipos
+  const renderAnalysisTab = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <LineChart className="w-5 h-5 mr-2" />
+          Análisis de Equipos
+        </h3>
+        <p className="text-gray-600 mb-6">
+          Selecciona equipos para comparar su evolución de puntos y posiciones a lo largo del tiempo.
+        </p>
+        
+        {/* Selector de equipos múltiple */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Seleccionar equipos para análisis:
+          </label>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
+            {rankingData?.slice(0, 20).map((team) => (
+              <label key={team.team_id} className="flex items-center space-x-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="truncate">{team.team_name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Placeholder para gráfica */}
+        <div className="bg-gray-50 rounded-lg p-8 text-center">
+          <LineChart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">Gráfica de evolución aparecerá aquí</p>
+          <p className="text-sm text-gray-400 mt-2">Selecciona equipos para ver su comparación</p>
+        </div>
+      </div>
+    </div>
+  )
+
+  // Renderizar pestaña de Top Performers
+  const renderPerformersTab = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <Star className="w-5 h-5 mr-2" />
+          Top Performers
+        </h3>
+        <p className="text-gray-600 mb-6">
+          Descubre los equipos más destacados por diferentes criterios de rendimiento.
+        </p>
+        
+        {/* Tabs internos para diferentes tipos de performers */}
+        <div className="border-b border-gray-200 mb-6">
+          <nav className="-mb-px flex space-x-8">
+            <button className="py-2 px-1 border-b-2 border-blue-500 text-blue-600 font-medium text-sm">
+              Mejores por Temporada
+            </button>
+            <button className="py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+              Mayor Crecimiento
+            </button>
+            <button className="py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+              Más Consistentes
+            </button>
+          </nav>
+        </div>
+
+        {/* Placeholder para contenido */}
+        <div className="bg-gray-50 rounded-lg p-8 text-center">
+          <Star className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">Análisis de top performers aparecerá aquí</p>
+          <p className="text-sm text-gray-400 mt-2">Rankings históricos y estadísticas destacadas</p>
+        </div>
+      </div>
+    </div>
+  )
+
+  // Renderizar pestaña de Estadísticas Avanzadas
+  const renderAdvancedTab = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <MapPin className="w-5 h-5 mr-2" />
+          Estadísticas Avanzadas
+        </h3>
+        <p className="text-gray-600 mb-6">
+          Análisis detallado de la distribución geográfica y competitividad del ranking.
+        </p>
+        
+        {/* Estadísticas por región */}
+        <div className="mb-6">
+          <h4 className="text-md font-medium text-gray-900 mb-3">Distribución por Región</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {rankingData?.reduce((acc: { [key: string]: number }, team) => {
+              const region = team.region_name || 'Sin región'
+              acc[region] = (acc[region] || 0) + 1
+              return acc
+            }, {}) && Object.entries(
+              rankingData?.reduce((acc: { [key: string]: number }, team) => {
+                const region = team.region_name || 'Sin región'
+                acc[region] = (acc[region] || 0) + 1
+                return acc
+              }, {}) || {}
+            ).map(([region, count]) => (
+              <div key={region} className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-900">{region}</span>
+                  <span className="text-lg font-semibold text-blue-600">{count}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Competitividad */}
+        <div className="mb-6">
+          <h4 className="text-md font-medium text-gray-900 mb-3">Análisis de Competitividad</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600">Diferencia 1º-2º</div>
+              <div className="text-xl font-semibold text-gray-900">
+                {rankingData && rankingData.length > 1 
+                  ? (rankingData[0].total_points - rankingData[1].total_points).toFixed(1)
+                  : '0.0'
+                }
+              </div>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600">Equipos en Top 10</div>
+              <div className="text-xl font-semibold text-gray-900">
+                {Math.min(10, rankingData?.length || 0)}
+              </div>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600">Densidad Competitiva</div>
+              <div className="text-xl font-semibold text-gray-900">
+                {rankingData && rankingData.length > 0
+                  ? ((rankingData.slice(0, 10).reduce((sum, team) => sum + team.total_points, 0) / 10) / 
+                     (rankingData[0].total_points || 1) * 100).toFixed(1) + '%'
+                  : '0%'
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -566,59 +751,46 @@ const RankingPageHybrid: React.FC = () => {
                 Ranking Actual
               </button>
               <button
-                onClick={() => setActiveTab('history')}
+                onClick={() => setActiveTab('analysis')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'history'
+                  activeTab === 'analysis'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <History className="w-4 h-4 inline mr-2" />
-                Historial
+                <LineChart className="w-4 h-4 inline mr-2" />
+                Análisis de Equipos
               </button>
               <button
-                onClick={() => setActiveTab('evolution')}
+                onClick={() => setActiveTab('performers')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'evolution'
+                  activeTab === 'performers'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <TrendingUp className="w-4 h-4 inline mr-2" />
-                Evolución
+                <Star className="w-4 h-4 inline mr-2" />
+                Top Performers
               </button>
               <button
-                onClick={() => setActiveTab('comparison')}
+                onClick={() => setActiveTab('advanced')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'comparison'
+                  activeTab === 'advanced'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <GitCompare className="w-4 h-4 inline mr-2" />
-                Comparación
+                <MapPin className="w-4 h-4 inline mr-2" />
+                Estadísticas Avanzadas
               </button>
             </nav>
           </div>
 
           <div className="p-6">
             {activeTab === 'ranking' && renderRankingTab()}
-            {activeTab === 'history' && (
-              <RankingHistory 
-                category={selectedCategory}
-              />
-            )}
-            {activeTab === 'evolution' && (
-              <RankingEvolution 
-                category={selectedCategory}
-              />
-            )}
-            {activeTab === 'comparison' && (
-              <SeasonComparison 
-                category={selectedCategory}
-                seasons={[referenceSeason, "2023-24"]}
-              />
-            )}
+            {activeTab === 'analysis' && renderAnalysisTab()}
+            {activeTab === 'performers' && renderPerformersTab()}
+            {activeTab === 'advanced' && renderAdvancedTab()}
           </div>
         </div>
       </div>
