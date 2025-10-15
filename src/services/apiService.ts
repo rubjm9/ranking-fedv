@@ -1,6 +1,4 @@
 import { supabase } from './supabaseService'
-import { mockRegionsService, mockTeamsService, mockTournamentsService } from './mockService'
-import { AutoRankingService } from './autoRankingService'
 
 // Servicio principal que usa Supabase con fallback a datos mock
 // Si Supabase no está disponible, usa datos mock automáticamente
@@ -105,8 +103,8 @@ export const regionsService = {
       const { data: regions, error } = await query
       
       if (error) {
-        console.warn('Supabase error, usando datos mock:', error.message)
-        return await mockRegionsService.getAll()
+        console.warn('Supabase error, sin datos mock disponibles:', error.message)
+        return { success: false, data: [], message: 'Error de conexión' }
       }
       
       if (!regions || regions.length === 0) {
@@ -140,8 +138,8 @@ export const regionsService = {
       
       return { success: true, data: regionsWithCounts, message: 'Regiones obtenidas exitosamente' }
     } catch (error) {
-      console.warn('Error de conexión, usando datos mock:', error)
-      return await mockRegionsService.getAll()
+      console.warn('Error de conexión:', error)
+      return { success: false, data: [], message: 'Error de conexión' }
     }
   },
 
@@ -248,15 +246,15 @@ export const teamsService = {
       if (error) {
         console.warn('Supabase error en teams.getAll:', error.message)
         console.warn('Error details:', error)
-        return await mockTeamsService.getAll()
+        return { success: false, data: [], message: 'Error de conexión' }
       }
       
       console.log('Teams data from Supabase:', data)
       console.log('First team region data:', data?.[0]?.region)
       return { success: true, data: data || [], message: 'Equipos obtenidos exitosamente' }
     } catch (error) {
-      console.warn('Error de conexión, usando datos mock:', error)
-      return await mockTeamsService.getAll()
+      console.warn('Error de conexión:', error)
+      return { success: false, data: [], message: 'Error de conexión' }
     }
   },
 
@@ -422,12 +420,7 @@ export const tournamentsService = {
     if (error) throw error
 
     // Recalcular ranking automáticamente si el torneo se crea con posiciones
-    try {
-      await AutoRankingService.onTournamentCreated(data.id)
-    } catch (rankingError) {
-      console.warn('Error en recálculo automático:', rankingError)
-      // No fallar la operación principal por un error de ranking
-    }
+    // Nota: Funcionalidad de auto-ranking removida
 
     return { success: true, data, message: 'Torneo creado exitosamente' }
   },
@@ -473,12 +466,7 @@ export const tournamentsService = {
     if (error) throw error
 
     // Recalcular ranking automáticamente
-    try {
-      await AutoRankingService.onPositionsUpdated(tournamentId)
-    } catch (rankingError) {
-      console.warn('Error en recálculo automático:', rankingError)
-      // No fallar la operación principal por un error de ranking
-    }
+    // Nota: Funcionalidad de auto-ranking removida
 
     return { success: true, data, message: 'Posiciones agregadas exitosamente' }
   },
@@ -493,12 +481,7 @@ export const tournamentsService = {
     if (error) throw error
 
     // Recalcular ranking automáticamente
-    try {
-      await AutoRankingService.onPositionsDeleted(tournamentId)
-    } catch (rankingError) {
-      console.warn('Error en recálculo automático:', rankingError)
-      // No fallar la operación principal por un error de ranking
-    }
+    // Nota: Funcionalidad de auto-ranking removida
 
     return { success: true, message: 'Posiciones eliminadas exitosamente' }
   },
@@ -530,12 +513,7 @@ export const tournamentsService = {
       if (insertError) throw insertError
 
       // Recalcular ranking automáticamente
-      try {
-        await AutoRankingService.onPositionsUpdated(tournamentId)
-      } catch (rankingError) {
-        console.warn('Error en recálculo automático:', rankingError)
-        // No fallar la operación principal por un error de ranking
-      }
+      // Nota: Funcionalidad de auto-ranking removida
 
       return { success: true, data, message: 'Posiciones actualizadas exitosamente' }
     } else {

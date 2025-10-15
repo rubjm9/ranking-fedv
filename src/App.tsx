@@ -22,8 +22,6 @@ import RegionsAdminPage from '@/pages/RegionsAdminPage'
 import TournamentsAdminPage from '@/pages/TournamentsAdminPage'
 import ConfigurationPage from '@/pages/admin/ConfigurationPage'
 import ImportExportPage from '@/pages/admin/ImportExportPage'
-import FeatureDiagnosticPage from '@/pages/admin/FeatureDiagnosticPage'
-import DebugRankingPage from '@/pages/admin/DebugRankingPage'
 import SeasonManagementPage from '@/pages/admin/SeasonManagementPage'
 import RankingComparisonPage from '@/pages/admin/RankingComparisonPage'
 import DatabaseDiagnosticPage from '@/pages/admin/DatabaseDiagnosticPage'
@@ -108,8 +106,6 @@ function App() {
               <Route path="ranking" element={<RankingAdminPageHybrid />} />
               <Route path="configuration" element={<ConfigurationPage />} />
               <Route path="import-export" element={<ImportExportPage />} />
-              <Route path="feature-diagnostic" element={<FeatureDiagnosticPage />} />
-              <Route path="debug-ranking" element={<DebugRankingPage />} />
               <Route path="seasons" element={<SeasonManagementPage />} />
               <Route path="ranking-comparison" element={<RankingComparisonPage />} />
               <Route path="database-diagnostic" element={<DatabaseDiagnosticPage />} />
