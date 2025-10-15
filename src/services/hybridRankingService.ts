@@ -91,7 +91,7 @@ const hybridRankingService = {
         }
       }} = {}
 
-      seasonData?.forEach(row => {
+      seasonData?.forEach((row: any) => {
         const teamId = row.team_id
         const season = row.season
         const basePoints = row[`${category}_points`] || 0
@@ -156,7 +156,7 @@ const hybridRankingService = {
       }
 
       // Crear entradas de ranking
-      const rankingEntries: RankingEntry[] = (teams || []).map(team => ({
+      const rankingEntries: RankingEntry[] = (teams || []).map((team: any) => ({
         team_id: team.id,
         team_name: team.name,
         region_name: team.regions?.name || 'N/A',
@@ -209,15 +209,6 @@ const hybridRankingService = {
       }
 
       console.log(`📜 Obteniendo ranking histórico de ${season} - ${category}...`)
-
-      // Obtener las 4 temporadas considerando la temporada solicitada como referencia
-      const referenceYear = parseInt(season.split('-')[0])
-      const seasons = [
-        season,
-        formatSeason(referenceYear - 1),
-        formatSeason(referenceYear - 2),
-        formatSeason(referenceYear - 3)
-      ]
 
       // Usar el mismo método que getRankingFromSeasonPoints
       return await hybridRankingService.getRankingFromSeasonPoints(category, season)
@@ -328,6 +319,183 @@ const hybridRankingService = {
         success: false,
         message: error.message || 'Error desconocido'
       }
+    }
+  },
+
+  /**
+   * Calcular ranking combinado (suma de múltiples modalidades)
+   */
+  getCombinedRanking: async (
+    categories: (keyof CategoryPointsMap)[],
+    referenceSeason: string
+  ): Promise<RankingEntry[]> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      console.log(`📊 Calculando ranking combinado de [${categories.join(', ')}] desde team_season_points...`)
+
+      // Obtener las últimas 4 temporadas
+      const referenceYear = parseInt(referenceSeason.split('-')[0])
+      const seasons = [
+        referenceSeason,
+        formatSeason(referenceYear - 1),
+        formatSeason(referenceYear - 2),
+        formatSeason(referenceYear - 3)
+      ]
+
+      console.log(`📅 Temporadas a considerar: ${seasons.join(', ')}`)
+
+      // Construir la selección dinámica de columnas para todas las categorías
+      const pointsColumns = categories.map(cat => `${cat}_points`).join(', ')
+
+      // Obtener datos de team_season_points para estas temporadas
+      const { data: seasonData, error } = await supabase
+        .from('team_season_points')
+        .select(`
+          team_id,
+          season,
+          ${pointsColumns}
+        `)
+        .in('season', seasons)
+
+      if (error) {
+        console.error('❌ Error obteniendo datos de temporada:', error)
+        throw error
+      }
+
+      console.log(`📦 Registros obtenidos: ${seasonData?.length || 0}`)
+
+      // Agrupar por equipo y calcular puntos totales
+      const teamPointsMap: { [teamId: string]: {
+        current_season_points: number
+        previous_season_points: number
+        two_seasons_ago_points: number
+        three_seasons_ago_points: number
+        total_points: number
+        season_breakdown: {
+          [season: string]: {
+            base_points: number
+            weighted_points: number
+            coefficient: number
+          }
+        }
+      }} = {}
+
+      seasonData?.forEach((row: any) => {
+        const teamId = row.team_id
+        const season = row.season
+
+        // Sumar puntos de todas las categorías para esta temporada
+        let basePoints = 0
+        categories.forEach(cat => {
+          basePoints += row[`${cat}_points`] || 0
+        })
+
+        if (basePoints === 0) return // Saltar si no hay puntos
+
+        if (!teamPointsMap[teamId]) {
+          teamPointsMap[teamId] = {
+            current_season_points: 0,
+            previous_season_points: 0,
+            two_seasons_ago_points: 0,
+            three_seasons_ago_points: 0,
+            total_points: 0,
+            season_breakdown: {}
+          }
+        }
+
+        // Calcular coeficiente y puntos ponderados
+        const coefficient = getSeasonCoefficient(season, referenceSeason)
+        const weightedPoints = basePoints * coefficient
+
+        // Asignar a la temporada correspondiente
+        if (season === seasons[0]) {
+          teamPointsMap[teamId].current_season_points += basePoints
+        } else if (season === seasons[1]) {
+          teamPointsMap[teamId].previous_season_points += basePoints
+        } else if (season === seasons[2]) {
+          teamPointsMap[teamId].two_seasons_ago_points += basePoints
+        } else if (season === seasons[3]) {
+          teamPointsMap[teamId].three_seasons_ago_points += basePoints
+        }
+
+        // Agregar o actualizar el desglose
+        if (!teamPointsMap[teamId].season_breakdown[season]) {
+          teamPointsMap[teamId].season_breakdown[season] = {
+            base_points: 0,
+            weighted_points: 0,
+            coefficient
+          }
+        }
+        teamPointsMap[teamId].season_breakdown[season].base_points += basePoints
+        teamPointsMap[teamId].season_breakdown[season].weighted_points += weightedPoints
+
+        // Sumar al total
+        teamPointsMap[teamId].total_points += weightedPoints
+      })
+
+      // Obtener información de equipos
+      const teamIds = Object.keys(teamPointsMap)
+      console.log(`👥 Equipos únicos: ${teamIds.length}`)
+
+      const { data: teams, error: teamsError } = await supabase
+        .from('teams')
+        .select(`
+          id,
+          name,
+          regionId,
+          regions:regionId(
+            id,
+            name
+          )
+        `)
+        .in('id', teamIds)
+
+      if (teamsError) {
+        console.error('❌ Error obteniendo equipos:', teamsError)
+        throw teamsError
+      }
+
+      // Crear entradas de ranking
+      const rankingEntries: RankingEntry[] = (teams || []).map((team: any) => ({
+        team_id: team.id,
+        team_name: team.name,
+        region_name: team.regions?.name || 'N/A',
+        ranking_category: categories.join('_'), // Categoría combinada
+        current_season_points: teamPointsMap[team.id].current_season_points,
+        previous_season_points: teamPointsMap[team.id].previous_season_points,
+        two_seasons_ago_points: teamPointsMap[team.id].two_seasons_ago_points,
+        three_seasons_ago_points: teamPointsMap[team.id].three_seasons_ago_points,
+        total_points: teamPointsMap[team.id].total_points,
+        ranking_position: 0, // Se asignará después de ordenar
+        last_calculated: new Date().toISOString(),
+        season_breakdown: teamPointsMap[team.id].season_breakdown,
+        team: {
+          id: team.id,
+          name: team.name,
+          regionId: team.regionId,
+          region: team.regions ? {
+            id: team.regions.id,
+            name: team.regions.name
+          } : undefined
+        }
+      }))
+
+      // Ordenar por puntos totales y asignar posiciones
+      rankingEntries.sort((a, b) => b.total_points - a.total_points)
+      rankingEntries.forEach((entry, index) => {
+        entry.ranking_position = index + 1
+      })
+
+      console.log(`✅ Ranking combinado calculado: ${rankingEntries.length} equipos`)
+
+      return rankingEntries
+
+    } catch (error: any) {
+      console.error('❌ Error calculando ranking combinado:', error)
+      throw error
     }
   },
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Trophy, Medal, TrendingUp, TrendingDown, Users, Calendar, Filter, RefreshCw, History, BarChart3, GitCompare } from 'lucide-react'
+import { Trophy, Medal, TrendingUp, TrendingDown, Users, RefreshCw, History, BarChart3, GitCompare } from 'lucide-react'
 import hybridRankingService from '@/services/hybridRankingService'
 import TeamLogo from '@/components/ui/TeamLogo'
 import RankingHistory from '@/components/ranking/RankingHistory'
@@ -9,39 +9,100 @@ import SeasonComparison from '@/components/ranking/SeasonComparison'
 
 const RankingPageHybrid: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('beach_mixed')
-  const [selectedSeason, setSelectedSeason] = useState<string>('current')
   const [activeTab, setActiveTab] = useState<'ranking' | 'history' | 'evolution' | 'comparison'>('ranking')
-  const [selectedTeamId, setSelectedTeamId] = useState<string>('')
   const [sortBy, setSortBy] = useState<string>('total')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [selectedRankingType, setSelectedRankingType] = useState<'specific' | 'general'>('specific')
 
-  const categories = [
-    { value: 'beach_mixed', label: 'Playa Mixto', icon: '🏖️' },
-    { value: 'beach_open', label: 'Playa Open', icon: '🏖️' },
-    { value: 'beach_women', label: 'Playa Women', icon: '🏖️' },
-    { value: 'grass_mixed', label: 'Césped Mixto', icon: '⚽' },
-    { value: 'grass_open', label: 'Césped Open', icon: '⚽' },
-    { value: 'grass_women', label: 'Césped Women', icon: '⚽' }
+  // Iconos minimalistas (inline SVGs) para garantizar disponibilidad y tamaño reducido
+  const IconBeach: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <path d="M3 16c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M3 20c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <circle cx="6" cy="6" r="2" stroke="currentColor" strokeWidth="1.5"/>
+    </svg>
+  )
+  const IconGrass: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <path d="M3 20h18" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M6 20v-4m3 4v-5m3 5v-4m3 4v-6m3 6v-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M6 15l-1-2m4 2l-1-2m4 2l-1-2m4 2l-1-2m4 2l-1-2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+    </svg>
+  )
+  const IconMixed: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <circle cx="9" cy="10" r="3" stroke="currentColor" strokeWidth="1.5"/>
+      <circle cx="15" cy="10" r="3" stroke="currentColor" strokeWidth="1.5"/>
+    </svg>
+  )
+  const IconOpen: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.5"/>
+    </svg>
+  )
+  const IconWomen: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M12 12v6m0 0h3m-3 0H9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  )
+
+  type ButtonItem = { value: string; label: string; Icon: React.FC<{ className?: string }>; group?: 'beach' | 'grass' | 'mixed' | 'open' | 'women' | 'all' }
+
+  // Campeonatos específicos con iconos
+  const specificChampionships: ButtonItem[] = [
+    { value: 'beach_mixed', label: 'Playa Mixto', Icon: IconBeach, group: 'beach' },
+    { value: 'beach_open', label: 'Playa Open', Icon: IconBeach, group: 'open' },
+    { value: 'beach_women', label: 'Playa Women', Icon: IconBeach, group: 'women' },
+    { value: 'grass_mixed', label: 'Césped Mixto', Icon: IconGrass, group: 'mixed' },
+    { value: 'grass_open', label: 'Césped Open', Icon: IconGrass, group: 'open' },
+    { value: 'grass_women', label: 'Césped Women', Icon: IconGrass, group: 'women' }
   ]
 
-  const seasons = [
-    { value: 'current', label: 'Ranking Actual' },
-    { value: '2025-26', label: 'Temporada 2025-26' },
-    { value: '2024-25', label: 'Temporada 2024-25' },
-    { value: '2023-24', label: 'Temporada 2023-24' },
-    { value: '2022-23', label: 'Temporada 2022-23' }
+  // Rankings combinados con iconos
+  const generalRankings: ButtonItem[] = [
+    { value: 'general_all', label: 'Ranking General', Icon: Trophy },
+    { value: 'general_beach', label: 'Ranking Playa', Icon: IconBeach },
+    { value: 'general_grass', label: 'Ranking Césped', Icon: IconGrass },
+    { value: 'general_mixed', label: 'Ranking Mixto', Icon: IconMixed },
+    { value: 'general_open', label: 'Ranking Open', Icon: IconOpen },
+    { value: 'general_women', label: 'Ranking Women', Icon: IconWomen }
   ]
 
   // Determinar la temporada de referencia
-  const referenceSeason = selectedSeason === 'current' ? '2024-25' : selectedSeason
+  const referenceSeason = '2024-25'
+
+  // Mapeo de rankings combinados a categorías
+  const getCategoriesForCombinedRanking = (rankingValue: string) => {
+    const categoriesMap: { [key: string]: string[] } = {
+      'general_all': ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'],
+      'general_beach': ['beach_mixed', 'beach_open', 'beach_women'],
+      'general_grass': ['grass_mixed', 'grass_open', 'grass_women'],
+      'general_mixed': ['beach_mixed', 'grass_mixed'],
+      'general_open': ['beach_open', 'grass_open'],
+      'general_women': ['beach_women', 'grass_women']
+    }
+    return categoriesMap[rankingValue] || []
+  }
 
   // Query optimizada usando el sistema híbrido
   const { data: rankingData, isLoading, error, refetch } = useQuery({
-    queryKey: ['hybrid-ranking', selectedCategory, referenceSeason],
-    queryFn: () => hybridRankingService.getRankingFromSeasonPoints(
-      selectedCategory as any,
-      referenceSeason
-    ),
+    queryKey: ['hybrid-ranking', selectedCategory, referenceSeason, selectedRankingType],
+    queryFn: () => {
+      if (selectedRankingType === 'general') {
+        // Para rankings combinados, usar getCombinedRanking
+        const categories = getCategoriesForCombinedRanking(selectedCategory)
+        return hybridRankingService.getCombinedRanking(
+          categories as any,
+          referenceSeason
+        )
+      } else {
+        return hybridRankingService.getRankingFromSeasonPoints(
+          selectedCategory as any,
+          referenceSeason
+        )
+      }
+    },
     staleTime: 5 * 60 * 1000, // 5 minutos
     enabled: !!selectedCategory && !!referenceSeason
   })
@@ -184,6 +245,57 @@ const RankingPageHybrid: React.FC = () => {
     return '='
   }
 
+  const getRankingExplanation = (category: string, rankingType: 'specific' | 'general') => {
+    if (rankingType === 'specific') {
+      return {
+        title: 'Ranking Específico',
+        explanation: 'Este ranking muestra la clasificación de equipos en una modalidad específica (superficie + categoría). Los puntos se calculan sumando todos los torneos de esa modalidad en las últimas 4 temporadas, aplicando coeficientes de antigüedad: temporada actual (1.0x), año anterior (0.8x), dos años atrás (0.5x) y tres años atrás (0.2x). Además, se aplica un coeficiente regional que multiplica todos los puntos obtenidos en torneos regionales.'
+      }
+    } else {
+      const explanations: Record<string, { title: string; explanation: string }> = {
+        'general_all': {
+          title: 'Ranking General',
+          explanation: 'Suma de puntos de todas las modalidades (Playa Mixto + Playa Open + Playa Women + Césped Mixto + Césped Open + Césped Women). Representa el rendimiento global del equipo en todas las categorías.'
+        },
+        'general_beach': {
+          title: 'Ranking Playa',
+          explanation: 'Suma de puntos de todas las categorías de playa (Mixto + Open + Women). Refleja el rendimiento del equipo en torneos de superficie de arena.'
+        },
+        'general_grass': {
+          title: 'Ranking Césped',
+          explanation: 'Suma de puntos de todas las categorías de césped (Mixto + Open + Women). Refleja el rendimiento del equipo en torneos de superficie de césped.'
+        },
+        'general_mixed': {
+          title: 'Ranking Mixto',
+          explanation: 'Suma de puntos de todos los torneos mixtos (Playa Mixto + Césped Mixto). Refleja el rendimiento del equipo en competiciones con equipos mixtos.'
+        },
+        'general_open': {
+          title: 'Ranking Open',
+          explanation: 'Suma de puntos de todos los torneos open (Playa Open + Césped Open). Refleja el rendimiento del equipo en competiciones de categoría masculina.'
+        },
+        'general_women': {
+          title: 'Ranking Women',
+          explanation: 'Suma de puntos de todos los torneos women (Playa Women + Césped Women). Refleja el rendimiento del equipo en competiciones de categoría femenina.'
+        }
+      }
+      return explanations[category] || { title: 'Ranking Combinado', explanation: 'Ranking que combina múltiples modalidades según criterios específicos.' }
+    }
+  }
+
+  // Botón minimalista (compacto) con icono lineal
+  const RankingButton = ({ item, isSelected, onClick }: { item: ButtonItem, isSelected: boolean, onClick: () => void }) => (
+    <button
+      onClick={onClick}
+      className={`group flex items-center gap-2 rounded-md border px-3 py-2 text-xs md:text-sm transition-colors ${
+        isSelected ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+      }`}
+      title={item.label}
+    >
+      <item.Icon className={isSelected ? 'w-4 h-4 text-blue-600' : 'w-4 h-4 text-gray-600 group-hover:text-gray-800'} />
+      <span className="truncate">{item.label}</span>
+    </button>
+  )
+
   const getRankIcon = (position: number) => {
     if (position === 1) return <Trophy className="w-6 h-6 text-yellow-500" />
     if (position === 2) return <Medal className="w-6 h-6 text-gray-400" />
@@ -240,7 +352,11 @@ const RankingPageHybrid: React.FC = () => {
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">
-              Ranking Actual – {categories.find(c => c.value === selectedCategory)?.label}
+              Ranking Actual – {
+                selectedRankingType === 'specific' 
+                  ? specificChampionships.find(c => c.value === selectedCategory)?.label
+                  : generalRankings.find(c => c.value === selectedCategory)?.label
+              }
             </h2>
             <button
               onClick={handleRefresh}
@@ -312,7 +428,7 @@ const RankingPageHybrid: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {sortData(rankingData || []).map((team, index) => (
+                  {sortData(rankingData || []).map((team) => (
                     <tr key={team.team_id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -375,53 +491,64 @@ const RankingPageHybrid: React.FC = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Ranking</h1>
           <p className="mt-2 text-gray-600">
-            Clasificación oficial de equipos por modalidad y temporada
+            Clasificación oficial de equipos por modalidad y temporada. Selecciona una modalidad para ver el ranking específico, o alguno de los rankings combinados.
           </p>
         </div>
 
-        {/* Filtros */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <Filter className="w-5 h-5 mr-2" />
-            Filtros
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Modalidad
-              </label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {categories.map(category => (
-                  <option key={category.value} value={category.value}>
-                    {category.icon} {category.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Temporada
-              </label>
-              <select
-                value={selectedSeason}
-                onChange={(e) => setSelectedSeason(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {seasons.map(season => (
-                  <option key={season.value} value={season.value}>
-                    {season.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+        {/* Selector de Rankings (compacto) */}
+        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+          {/* Fila 1: Campeonatos Específicos */}
+          <div className="flex flex-wrap items-center gap-2">
+            {specificChampionships.map((championship) => (
+              <RankingButton
+                key={championship.value}
+                item={championship}
+                isSelected={selectedRankingType === 'specific' && selectedCategory === championship.value}
+                onClick={() => {
+                  setSelectedRankingType('specific')
+                  setSelectedCategory(championship.value)
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Separador sutil */}
+          <div className="my-3 h-px bg-gray-100" />
+
+          {/* Fila 2: Rankings Combinados */}
+          <div className="flex flex-wrap items-center gap-2">
+            {generalRankings.map((ranking) => (
+              <RankingButton
+                key={ranking.value}
+                item={ranking}
+                isSelected={selectedRankingType === 'general' && selectedCategory === ranking.value}
+                onClick={() => {
+                  setSelectedRankingType('general')
+                  setSelectedCategory(ranking.value)
+                }}
+              />
+            ))}
           </div>
         </div>
+
+        {/* Explicación del ranking seleccionado */}
+        {selectedCategory && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <Trophy className="w-5 h-5 text-blue-600 mt-0.5" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-blue-900">
+                  {getRankingExplanation(selectedCategory, selectedRankingType).title}
+                </h3>
+                <p className="mt-1 text-sm text-blue-700">
+                  {getRankingExplanation(selectedCategory, selectedRankingType).explanation}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow">
@@ -479,23 +606,17 @@ const RankingPageHybrid: React.FC = () => {
             {activeTab === 'history' && (
               <RankingHistory 
                 category={selectedCategory}
-                season={referenceSeason}
-                selectedTeamId={selectedTeamId}
-                onTeamSelect={setSelectedTeamId}
               />
             )}
             {activeTab === 'evolution' && (
               <RankingEvolution 
                 category={selectedCategory}
-                selectedTeamId={selectedTeamId}
-                onTeamSelect={setSelectedTeamId}
               />
             )}
             {activeTab === 'comparison' && (
               <SeasonComparison 
                 category={selectedCategory}
-                season1={referenceSeason}
-                season2="2023-24"
+                seasons={[referenceSeason, "2023-24"]}
               />
             )}
           </div>
