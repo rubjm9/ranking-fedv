@@ -159,6 +159,7 @@ const hybridRankingService = {
       const rankingEntries: RankingEntry[] = (teams || []).map(team => ({
         team_id: team.id,
         team_name: team.name,
+        region_name: team.regions?.name || 'N/A',
         ranking_category: category,
         current_season_points: teamPointsMap[team.id].current_season_points,
         previous_season_points: teamPointsMap[team.id].previous_season_points,

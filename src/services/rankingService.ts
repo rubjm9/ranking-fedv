@@ -3,6 +3,7 @@ import { supabase } from './supabaseService'
 export interface RankingEntry {
   team_id: string
   team_name: string
+  region_name?: string
   ranking_category: string
   current_season_points: number
   previous_season_points: number

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Trophy, Medal, TrendingUp, Users, Calendar, Filter, RefreshCw, History, BarChart3, GitCompare } from 'lucide-react'
+import { Trophy, Medal, TrendingUp, TrendingDown, Users, Calendar, Filter, RefreshCw, History, BarChart3, GitCompare } from 'lucide-react'
 import hybridRankingService from '@/services/hybridRankingService'
 import TeamLogo from '@/components/ui/TeamLogo'
 import RankingHistory from '@/components/ranking/RankingHistory'
@@ -12,6 +12,8 @@ const RankingPageHybrid: React.FC = () => {
   const [selectedSeason, setSelectedSeason] = useState<string>('current')
   const [activeTab, setActiveTab] = useState<'ranking' | 'history' | 'evolution' | 'comparison'>('ranking')
   const [selectedTeamId, setSelectedTeamId] = useState<string>('')
+  const [sortBy, setSortBy] = useState<string>('total')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   const categories = [
     { value: 'beach_mixed', label: 'Playa Mixto', icon: '🏖️' },
@@ -69,6 +71,117 @@ const RankingPageHybrid: React.FC = () => {
 
   const handleRefresh = () => {
     refetch()
+  }
+
+  // Obtener las últimas 4 temporadas ordenadas (más reciente primero)
+  const getLastFourSeasons = (data: any[]) => {
+    if (!data || data.length === 0) return []
+    
+    const seasons = Object.keys(data[0]?.season_breakdown || {})
+    return seasons
+      .sort((a, b) => {
+        const yearA = parseInt(a.split('-')[0])
+        const yearB = parseInt(b.split('-')[0])
+        return yearB - yearA // Más reciente primero
+      })
+      .slice(0, 4) // Solo las últimas 4
+  }
+
+  // Función para ordenar datos
+  const sortData = (data: any[]) => {
+    if (!data) return []
+    
+    // Primero calcular cambios de posición
+    const dataWithChanges = calculatePositionChange(data)
+    
+    return [...dataWithChanges].sort((a, b) => {
+      let valueA, valueB
+      
+      if (sortBy === 'total') {
+        valueA = a.total_points || 0
+        valueB = b.total_points || 0
+      } else {
+        // Ordenar por temporada específica
+        const seasonDataA = a.season_breakdown?.[sortBy]?.weighted_points || 0
+        const seasonDataB = b.season_breakdown?.[sortBy]?.weighted_points || 0
+        valueA = seasonDataA
+        valueB = seasonDataB
+      }
+      
+      if (sortOrder === 'asc') {
+        return valueA - valueB
+      } else {
+        return valueB - valueA
+      }
+    })
+  }
+
+  // Función para manejar clic en cabecera
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortBy(column)
+      setSortOrder('desc')
+    }
+  }
+
+  // Función para calcular el cambio de posición
+  const calculatePositionChange = (data: any[]) => {
+    if (!data) return []
+    
+    // Calcular ranking actual (con las últimas 4 temporadas)
+    const currentRanking = [...data].sort((a, b) => b.total_points - a.total_points)
+    
+    // Obtener las temporadas disponibles ordenadas
+    const seasons = getLastFourSeasons(data)
+    if (seasons.length < 2) return data // No hay suficientes temporadas para comparar
+    
+    // Calcular ranking de la temporada anterior (usando temporadas -1 a -4)
+    const previousRanking = [...data].map(team => {
+      let totalPrevious = 0
+      
+      // Para cada equipo, calcular puntos usando temporadas anteriores
+      seasons.slice(1).forEach((season, index) => {
+        const coefficient = [1.0, 0.8, 0.5, 0.2][index] || 0
+        const points = team.season_breakdown?.[season]?.base_points || 0
+        totalPrevious += points * coefficient
+      })
+      
+      return {
+        team_id: team.team_id,
+        total_points: totalPrevious
+      }
+    }).sort((a, b) => b.total_points - a.total_points)
+    
+    // Crear un mapa de posiciones anteriores
+    const previousPositionsMap = new Map(
+      previousRanking.map((team, index) => [team.team_id, index + 1])
+    )
+    
+    // Agregar cambio de posición a cada equipo
+    return currentRanking.map((team, index) => {
+      const currentPosition = index + 1
+      const previousPosition = previousPositionsMap.get(team.team_id) || currentPosition
+      const positionChange = previousPosition - currentPosition // Positivo si subió, negativo si bajó
+      
+      return {
+        ...team,
+        position_change: positionChange
+      }
+    })
+  }
+
+  const getChangeIcon = (change: number) => {
+    if (change > 0) return <TrendingUp className="h-4 w-4 text-green-500" />
+    if (change < 0) return <TrendingDown className="h-4 w-4 text-red-500" />
+    return <BarChart3 className="h-4 w-4 text-gray-400" />
+  }
+
+  const getChangeText = (change: number) => {
+    if (change > 0) return `+${change}`
+    if (change < 0) return `${change}`
+    return '='
   }
 
   const getRankIcon = (position: number) => {
@@ -138,79 +251,119 @@ const RankingPageHybrid: React.FC = () => {
             </button>
           </div>
         </div>
-
-        {isLoading ? (
-          <div className="p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-500">Cargando ranking...</p>
-          </div>
-        ) : error ? (
-          <div className="p-8 text-center text-red-500">
-            <p>Error al cargar el ranking</p>
-            <button
-              onClick={handleRefresh}
-              className="mt-2 text-sm text-blue-600 hover:text-blue-800"
-            >
-              Reintentar
-            </button>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-200">
-            {rankingData?.map((team, index) => (
-              <div
-                key={team.team_id}
-                className={`p-6 hover:bg-gray-50 transition-colors ${
-                  index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                }`}
+        <div className="overflow-x-auto max-h-[70vh]">
+          {isLoading ? (
+            <div className="p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-2 text-gray-500">Cargando ranking...</p>
+            </div>
+          ) : error ? (
+            <div className="p-8 text-center text-red-500">
+              <p>Error al cargar el ranking</p>
+              <button
+                onClick={handleRefresh}
+                className="mt-2 text-sm text-blue-600 hover:text-blue-800"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      {getRankIcon(team.ranking_position)}
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <TeamLogo name={team.team_name} size="sm" />
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {team.team_name}
-                        </h3>
-                        <p className="text-sm text-gray-500 uppercase">
-                          {team.ranking_category.replace('_', ' ')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Desglose por temporadas */}
-                  <div className="flex items-center space-x-6">
-                    {/* Desglose por temporadas */}
-                    <div className="flex space-x-4">
-                      {Object.entries(team.season_breakdown || {}).map(([season, data]: [string, any]) => (
-                        <div key={season} className="text-center">
-                          <p className="text-xs text-gray-500">{season}</p>
-                          <p className="text-sm font-semibold text-gray-700">
-                            {data.weighted_points?.toFixed(1) || '0.0'}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            (x{data.coefficient?.toFixed(1)})
-                          </p>
+                Reintentar
+              </button>
+            </div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50 sticky top-0 z-20 shadow-sm">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Posición
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Cambio
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Equipo
+                    </th>
+                    {getLastFourSeasons(rankingData || []).map(season => (
+                      <th 
+                        key={season} 
+                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                        onClick={() => handleSort(season)}
+                      >
+                        <div className="flex items-center justify-center space-x-1">
+                          <span>{season}</span>
+                          {sortBy === season && (
+                            <span className="text-blue-500">
+                              {sortOrder === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
                         </div>
+                      </th>
+                    ))}
+                    <th 
+                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('total')}
+                    >
+                      <div className="flex items-center justify-center space-x-1">
+                        <span>Total</span>
+                        {sortBy === 'total' && (
+                          <span className="text-blue-500">
+                            {sortOrder === 'asc' ? '↑' : '↓'}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sortData(rankingData || []).map((team, index) => (
+                    <tr key={team.team_id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          {getRankIcon(team.ranking_position)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          {getChangeIcon(team.position_change || 0)}
+                          <span className={`ml-1 text-sm font-medium ${
+                            (team.position_change || 0) > 0 ? 'text-green-600' : 
+                            (team.position_change || 0) < 0 ? 'text-red-600' : 'text-gray-500'
+                          }`}>
+                            {getChangeText(team.position_change || 0)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <TeamLogo name={team.team_name} size="sm" />
+                          <div className="ml-3">
+                            <div className="text-sm font-medium text-gray-900">
+                              {team.team_name}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {team.region_name || 'N/A'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      {getLastFourSeasons(rankingData || []).map(season => (
+                        <td key={season} className="px-6 py-4 whitespace-nowrap text-center">
+                          <div className="text-sm font-semibold text-gray-900">
+                            {team.season_breakdown?.[season]?.weighted_points?.toFixed(1) || '0.0'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            (x{team.season_breakdown?.[season]?.coefficient?.toFixed(1) || '0.0'})
+                          </div>
+                        </td>
                       ))}
-                    </div>
-                    
-                    {/* Puntos totales */}
-                    <div className="text-right border-l pl-6">
-                      <p className="text-sm text-gray-500">Total</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {team.total_points?.toFixed(1) || '0.0'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="text-lg font-bold text-gray-900">
+                          {team.total_points?.toFixed(1) || '0.0'}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+          )}
+        </div>
       </div>
     </div>
   )
