@@ -75,4 +75,4 @@ export const testSeasonCalculation = async (season: string = '2024-25') => {
 }
 
 // Importar supabase para las consultas
-import { supabase } from '@/config/supabase'
+import { supabase } from '@/services/supabaseService'

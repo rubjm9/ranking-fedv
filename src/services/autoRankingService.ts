@@ -53,7 +53,7 @@ export class AutoRankingService {
     
     try {
       // Importar servicios necesarios
-      const { supabase } = await import('@/config/supabase')
+      const { supabase } = await import('./supabaseService')
       
       // Verificar datos básicos
       const { data: teams } = await supabase.from('teams').select('id').limit(1)
