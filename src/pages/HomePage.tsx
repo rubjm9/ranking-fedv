@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Filter, Trophy, Users, MapPin, Calendar, TrendingUp, TrendingDown, BarChart3, Eye } from 'lucide-react'
+import { Search, Filter, Trophy, Users, MapPin, Calendar, TrendingUp, TrendingDown, BarChart3, Eye, Award, Target, Clock, Zap } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { homePageService, HomePageTeam, HomePageRegion, HomePageTournament, HomePageStats, RankingHistory } from '@/services/homePageService'
 import TeamLogo from '@/components/ui/TeamLogo'
@@ -178,6 +178,104 @@ const HomePage: React.FC = () => {
                 <p className="text-sm font-medium text-gray-600">Promedio Puntos</p>
                 <p className="text-2xl font-bold text-gray-900">{mainStats.averagePoints.toLocaleString()}</p>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* How Ranking Works Section */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg shadow-sm border border-blue-200 p-8 mb-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">¿Cómo funciona el Ranking?</h2>
+            <p className="text-lg text-gray-600">Sistema transparente y justo para clasificar equipos de Ultimate</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Step 1: Tournament Participation */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trophy className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">1. Participación</h3>
+              <p className="text-sm text-gray-600">
+                Los equipos compiten en torneos oficiales y obtienen puntos según su posición final
+              </p>
+            </div>
+
+            {/* Step 2: Points Calculation */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Target className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">2. Cálculo</h3>
+              <p className="text-sm text-gray-600">
+                Puntos base por posición + coeficiente regional + peso por antigüedad de temporada
+              </p>
+            </div>
+
+            {/* Step 3: Time Weighting */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 text-center">
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Clock className="h-8 w-8 text-yellow-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">3. Temporalidad</h3>
+              <p className="text-sm text-gray-600">
+                Temporada actual: 100% • 1 año: 80% • 2 años: 50% • 3 años: 20%
+              </p>
+            </div>
+
+            {/* Step 4: Final Ranking */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 text-center">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="h-8 w-8 text-purple-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">4. Clasificación</h3>
+              <p className="text-sm text-gray-600">
+                Suma ponderada de todos los puntos = Posición final en el ranking
+              </p>
+            </div>
+          </div>
+
+          {/* Detailed Explanation */}
+          <div className="mt-8 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4 text-center">Fórmula del Ranking</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Modalidades</h4>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                    <span>🏖️ Playa: Mixto, Open, Women</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                    <span>🌱 Césped: Mixto, Open, Women</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Coeficientes Regionales</h4>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="flex items-center">
+                    <Zap className="h-4 w-4 text-yellow-500 mr-2" />
+                    <span>Madrid: 1.2x</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Zap className="h-4 w-4 text-orange-500 mr-2" />
+                    <span>Cataluña: 1.1x</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Zap className="h-4 w-4 text-blue-500 mr-2" />
+                    <span>Otras: 1.0x</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-700 text-center">
+                <strong>Ejemplo:</strong> Un equipo que queda 3º en un torneo de Madrid en 2024-25 obtiene 
+                <span className="font-mono bg-blue-100 px-2 py-1 rounded">(300 puntos × 1.2 regional × 1.0 temporal) = 360 puntos</span>
+              </p>
             </div>
           </div>
         </div>
@@ -433,7 +531,7 @@ const HomePage: React.FC = () => {
           </Link>
         </div>
       </div>
-    </div>
+        </>
       )}
     </div>
   )
