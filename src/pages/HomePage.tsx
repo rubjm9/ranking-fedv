@@ -196,89 +196,98 @@ const HomePage: React.FC = () => {
               <div className="flex-shrink-0 order-1 lg:order-1">
                 <div className="relative w-48 h-48">
                   <svg viewBox="0 0 200 200" className="w-full h-full">
-                    {/* Tournament bracket/field */}
-                    <rect x="15" y="75" width="170" height="50" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="3" rx="6"/>
-                    <text x="100" y="105" textAnchor="middle" fontSize="14" fill="#374151" fontWeight="bold">TORNEO</text>
+                    {/* Background tournament field */}
+                    <rect x="20" y="20" width="160" height="160" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="2" rx="8"/>
                     
-                    {/* Teams entering tournament */}
+                    {/* Tournament title */}
+                    <text x="100" y="35" textAnchor="middle" fontSize="12" fill="#475569" fontWeight="bold">CAMPEONATO</text>
+                    
+                    {/* Teams competing in circular motion */}
                     <g>
-                      {/* Team 1 */}
-                      <circle cx="40" cy="35" r="8" fill="#3b82f6" stroke="#1e40af" strokeWidth="2">
-                        <animate attributeName="cy" values="35;100" dur="2s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;1" dur="2s" repeatCount="indefinite"/>
+                      {/* Team 1 - Winner */}
+                      <circle cx="100" cy="60" r="12" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2">
+                        <animateTransform attributeName="transform" type="rotate" values="0 100 100;360 100 100" dur="6s" repeatCount="indefinite"/>
                       </circle>
-                      <text x="40" y="20" textAnchor="middle" fontSize="10" fill="#1e40af" fontWeight="bold">Equipo A</text>
+                      <text x="100" y="65" textAnchor="middle" fontSize="8" fill="#92400e" fontWeight="bold">1º</text>
                       
                       {/* Team 2 */}
-                      <circle cx="70" cy="35" r="8" fill="#1d4ed8" stroke="#1e40af" strokeWidth="2">
-                        <animate attributeName="cy" values="35;100" dur="2s" begin="0.3s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;1" dur="2s" begin="0.3s" repeatCount="indefinite"/>
+                      <circle cx="100" cy="60" r="12" fill="#c0c0c0" stroke="#9ca3af" strokeWidth="2">
+                        <animateTransform attributeName="transform" type="rotate" values="0 100 100;360 100 100" dur="6s" begin="1.5s" repeatCount="indefinite"/>
                       </circle>
-                      <text x="70" y="20" textAnchor="middle" fontSize="10" fill="#1e40af" fontWeight="bold">Equipo B</text>
+                      <text x="100" y="65" textAnchor="middle" fontSize="8" fill="#6b7280" fontWeight="bold">2º</text>
                       
                       {/* Team 3 */}
-                      <circle cx="130" cy="35" r="8" fill="#2563eb" stroke="#1e40af" strokeWidth="2">
-                        <animate attributeName="cy" values="35;100" dur="2s" begin="0.6s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;1" dur="2s" begin="0.6s" repeatCount="indefinite"/>
+                      <circle cx="100" cy="60" r="12" fill="#cd7f32" stroke="#a78bfa" strokeWidth="2">
+                        <animateTransform attributeName="transform" type="rotate" values="0 100 100;360 100 100" dur="6s" begin="3s" repeatCount="indefinite"/>
                       </circle>
-                      <text x="130" y="20" textAnchor="middle" fontSize="10" fill="#1e40af" fontWeight="bold">Equipo C</text>
+                      <text x="100" y="65" textAnchor="middle" fontSize="8" fill="#6b7280" fontWeight="bold">3º</text>
                       
                       {/* Team 4 */}
-                      <circle cx="160" cy="35" r="8" fill="#1e40af" stroke="#1e40af" strokeWidth="2">
-                        <animate attributeName="cy" values="35;100" dur="2s" begin="0.9s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;1" dur="2s" begin="0.9s" repeatCount="indefinite"/>
+                      <circle cx="100" cy="60" r="12" fill="#6b7280" stroke="#4b5563" strokeWidth="2">
+                        <animateTransform attributeName="transform" type="rotate" values="0 100 100;360 100 100" dur="6s" begin="4.5s" repeatCount="indefinite"/>
                       </circle>
-                      <text x="160" y="20" textAnchor="middle" fontSize="10" fill="#1e40af" fontWeight="bold">Equipo D</text>
+                      <text x="100" y="65" textAnchor="middle" fontSize="8" fill="#ffffff" fontWeight="bold">4º</text>
                     </g>
                     
-                    {/* Competition arrows */}
-                    <g>
-                      <path d="M 50 100 L 50 120" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="1.5s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 150 100 L 150 120" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="1.8s" repeatCount="indefinite"/>
-                      </path>
-                    </g>
+                    {/* Central competition area */}
+                    <circle cx="100" cy="100" r="40" fill="none" stroke="#3b82f6" strokeWidth="3" strokeDasharray="5,5" opacity="0.6">
+                      <animate attributeName="stroke-dashoffset" values="0;10" dur="1s" repeatCount="indefinite"/>
+                    </circle>
                     
-                    {/* Results podium */}
+                    {/* Points flowing from center */}
                     <g>
-                      {/* 1st place */}
-                      <rect x="75" y="125" width="25" height="25" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" rx="3"/>
-                      <text x="87.5" y="142" textAnchor="middle" fontSize="10" fill="#92400e" fontWeight="bold">1º</text>
-                      <text x="87.5" y="155" textAnchor="middle" fontSize="8" fill="#10b981" fontWeight="bold">1000 pts</text>
-                      
-                      {/* 2nd place */}
-                      <rect x="105" y="130" width="25" height="20" fill="#c0c0c0" stroke="#9ca3af" strokeWidth="2" rx="3"/>
-                      <text x="117.5" y="145" textAnchor="middle" fontSize="10" fill="#6b7280" fontWeight="bold">2º</text>
-                      <text x="117.5" y="155" textAnchor="middle" fontSize="8" fill="#10b981" fontWeight="bold">800 pts</text>
-                      
-                      {/* 3rd place */}
-                      <rect x="135" y="135" width="25" height="15" fill="#cd7f32" stroke="#a78bfa" strokeWidth="2" rx="3"/>
-                      <text x="147.5" y="148" textAnchor="middle" fontSize="10" fill="#6b7280" fontWeight="bold">3º</text>
-                      <text x="147.5" y="155" textAnchor="middle" fontSize="8" fill="#10b981" fontWeight="bold">600 pts</text>
-                    </g>
-                    
-                    {/* Points flowing to teams */}
-                    <g>
-                      <text x="55" y="115" fontSize="10" fill="#10b981" fontWeight="bold" opacity="0.9">
-                        <animate attributeName="y" values="115;95;115" dur="3s" begin="2s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" begin="2s" repeatCount="indefinite"/>
-                        +1000
+                      {/* Points for 1st place */}
+                      <text x="100" y="50" textAnchor="middle" fontSize="11" fill="#10b981" fontWeight="bold" opacity="0.9">
+                        <animate attributeName="y" values="50;30;50" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+                        1000
                       </text>
-                      <text x="145" y="115" fontSize="10" fill="#059669" fontWeight="bold" opacity="0.8">
-                        <animate attributeName="y" values="115;95;115" dur="3s" begin="2.3s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" begin="2.3s" repeatCount="indefinite"/>
-                        +800
+                      
+                      {/* Points for 2nd place */}
+                      <text x="100" y="50" textAnchor="middle" fontSize="10" fill="#059669" fontWeight="bold" opacity="0.8">
+                        <animate attributeName="y" values="50;30;50" dur="2s" begin="2s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" begin="2s" repeatCount="indefinite"/>
+                        800
+                      </text>
+                      
+                      {/* Points for 3rd place */}
+                      <text x="100" y="50" textAnchor="middle" fontSize="9" fill="#047857" fontWeight="bold" opacity="0.7">
+                        <animate attributeName="y" values="50;30;50" dur="2s" begin="3.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" begin="3.5s" repeatCount="indefinite"/>
+                        600
+                      </text>
+                      
+                      {/* Points for 4th place */}
+                      <text x="100" y="50" textAnchor="middle" fontSize="8" fill="#065f46" fontWeight="bold" opacity="0.6">
+                        <animate attributeName="y" values="50;30;50" dur="2s" begin="5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="5s" repeatCount="indefinite"/>
+                        400
                       </text>
                     </g>
                     
-                    {/* Arrow marker definition */}
-                    <defs>
-                      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                        <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
-                      </marker>
-                    </defs>
+                    {/* Ranking positions around the circle */}
+                    <g>
+                      <text x="100" y="45" textAnchor="middle" fontSize="9" fill="#374151" fontWeight="bold">1º LUGAR</text>
+                      <text x="100" y="45" textAnchor="middle" fontSize="9" fill="#374151" fontWeight="bold">
+                        <animate attributeName="opacity" values="1;0.3;1" dur="6s" begin="0s" repeatCount="indefinite"/>
+                        1º LUGAR
+                      </text>
+                      <text x="100" y="45" textAnchor="middle" fontSize="9" fill="#374151" fontWeight="bold">
+                        <animate attributeName="opacity" values="0.3;1;0.3" dur="6s" begin="1.5s" repeatCount="indefinite"/>
+                        2º LUGAR
+                      </text>
+                      <text x="100" y="45" textAnchor="middle" fontSize="9" fill="#374151" fontWeight="bold">
+                        <animate attributeName="opacity" values="0.3;1;0.3" dur="6s" begin="3s" repeatCount="indefinite"/>
+                        3º LUGAR
+                      </text>
+                      <text x="100" y="45" textAnchor="middle" fontSize="9" fill="#374151" fontWeight="bold">
+                        <animate attributeName="opacity" values="0.3;1;0.3" dur="6s" begin="4.5s" repeatCount="indefinite"/>
+                        4º LUGAR
+                      </text>
+                    </g>
+                    
+                    {/* Bottom explanation */}
+                    <text x="100" y="175" textAnchor="middle" fontSize="8" fill="#6b7280">EQUIPOS COMPITIENDO</text>
                   </svg>
                 </div>
               </div>
