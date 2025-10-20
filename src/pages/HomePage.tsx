@@ -183,99 +183,188 @@ const HomePage: React.FC = () => {
         </div>
 
         {/* How Ranking Works Section */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg shadow-sm border border-blue-200 p-8 mb-8">
-          <div className="text-center mb-8">
+        <div className="mb-8">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">¿Cómo funciona el Ranking?</h2>
             <p className="text-lg text-gray-600">Sistema transparente y justo para clasificar equipos de Ultimate</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Step 1: Tournament Participation */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Trophy className="h-8 w-8 text-blue-600" />
+          {/* Step 1: Tournament Participation */}
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg shadow-sm border border-blue-200 p-8 mb-6">
+            <div className="flex flex-col lg:flex-row items-center gap-8">
+              <div className="flex-shrink-0">
+                <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                  <Trophy className="h-12 w-12 text-white" />
+                </div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">1. Participación</h3>
-              <p className="text-sm text-gray-600">
-                Los equipos compiten en torneos oficiales y obtienen puntos según su posición final
-              </p>
-            </div>
-
-            {/* Step 2: Points Calculation */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="h-8 w-8 text-green-600" />
+              <div className="flex-1 text-center lg:text-left">
+                <div className="flex items-center justify-center lg:justify-start mb-3">
+                  <span className="bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 1</span>
+                  <h3 className="text-2xl font-bold text-gray-900">Participación en Torneos</h3>
+                </div>
+                <p className="text-lg text-gray-700 mb-4">
+                  Los equipos compiten en torneos oficiales de la FEDV y obtienen puntos según su posición final en cada competición.
+                </p>
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <p className="text-sm text-gray-600">
+                    <strong>Ejemplo:</strong> Un torneo de 8 equipos otorga puntos del 1º al 8º lugar según la tabla oficial de puntuación.
+                  </p>
+                </div>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">2. Cálculo</h3>
-              <p className="text-sm text-gray-600">
-                Puntos base por posición + coeficiente regional + peso por antigüedad de temporada
-              </p>
-            </div>
-
-            {/* Step 3: Time Weighting */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 text-center">
-              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="h-8 w-8 text-yellow-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">3. Temporalidad</h3>
-              <p className="text-sm text-gray-600">
-                Temporada actual: 100% • 1 año: 80% • 2 años: 50% • 3 años: 20%
-              </p>
-            </div>
-
-            {/* Step 4: Final Ranking */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8 text-purple-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">4. Clasificación</h3>
-              <p className="text-sm text-gray-600">
-                Suma ponderada de todos los puntos = Posición final en el ranking
-              </p>
             </div>
           </div>
 
-          {/* Detailed Explanation */}
-          <div className="mt-8 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4 text-center">Fórmula del Ranking</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Modalidades</h4>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                    <span>🏖️ Playa: Mixto, Open, Women</span>
+          {/* Step 2: Points Calculation */}
+          <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg shadow-sm border border-green-200 p-8 mb-6">
+            <div className="flex flex-col lg:flex-row-reverse items-center gap-8">
+              <div className="flex-shrink-0">
+                <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                  <Target className="h-12 w-12 text-white" />
+                </div>
+              </div>
+              <div className="flex-1 text-center lg:text-left">
+                <div className="flex items-center justify-center lg:justify-start mb-3">
+                  <span className="bg-green-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 2</span>
+                  <h3 className="text-2xl font-bold text-gray-900">Cálculo de Puntos</h3>
+                </div>
+                <p className="text-lg text-gray-700 mb-4">
+                  Los puntos se calculan aplicando tres factores: puntos base por posición, coeficiente regional y peso por antigüedad de temporada.
+                </p>
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <p className="text-sm text-gray-600">
+                    <strong>Fórmula:</strong> <span className="font-mono bg-green-100 px-2 py-1 rounded">Puntos Base × Coeficiente Regional × Peso Temporal</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 3: Time Weighting */}
+          <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg shadow-sm border border-yellow-200 p-8 mb-6">
+            <div className="flex flex-col lg:flex-row items-center gap-8">
+              <div className="flex-shrink-0">
+                <div className="w-24 h-24 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg">
+                  <Clock className="h-12 w-12 text-white" />
+                </div>
+              </div>
+              <div className="flex-1 text-center lg:text-left">
+                <div className="flex items-center justify-center lg:justify-start mb-3">
+                  <span className="bg-yellow-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 3</span>
+                  <h3 className="text-2xl font-bold text-gray-900">Peso Temporal</h3>
+                </div>
+                <p className="text-lg text-gray-700 mb-4">
+                  Los puntos se ponderan según la antigüedad de la temporada, dando más importancia a los resultados más recientes.
+                </p>
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    <div className="text-center">
+                      <div className="font-bold text-gray-900">Temporada Actual</div>
+                      <div className="text-yellow-600 font-semibold">100%</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-bold text-gray-900">1 año atrás</div>
+                      <div className="text-yellow-600 font-semibold">80%</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-bold text-gray-900">2 años atrás</div>
+                      <div className="text-yellow-600 font-semibold">50%</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-bold text-gray-900">3 años atrás</div>
+                      <div className="text-yellow-600 font-semibold">20%</div>
+                    </div>
                   </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                    <span>🌱 Césped: Mixto, Open, Women</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 4: Final Ranking */}
+          <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg shadow-sm border border-purple-200 p-8 mb-6">
+            <div className="flex flex-col lg:flex-row-reverse items-center gap-8">
+              <div className="flex-shrink-0">
+                <div className="w-24 h-24 bg-purple-500 rounded-full flex items-center justify-center shadow-lg">
+                  <Award className="h-12 w-12 text-white" />
+                </div>
+              </div>
+              <div className="flex-1 text-center lg:text-left">
+                <div className="flex items-center justify-center lg:justify-start mb-3">
+                  <span className="bg-purple-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 4</span>
+                  <h3 className="text-2xl font-bold text-gray-900">Clasificación Final</h3>
+                </div>
+                <p className="text-lg text-gray-700 mb-4">
+                  Se suman todos los puntos ponderados de todas las temporadas y modalidades para obtener la posición final en el ranking.
+                </p>
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <p className="text-sm text-gray-600">
+                    <strong>Resultado:</strong> Ranking ordenado de mayor a menor puntuación total, actualizado automáticamente tras cada torneo.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Detailed Formula Section */}
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg shadow-sm border border-gray-200 p-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Fórmula Completa del Ranking</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Modalidades Incluidas</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center p-3 bg-white rounded-lg shadow-sm">
+                    <div className="w-4 h-4 bg-blue-500 rounded-full mr-3"></div>
+                    <div>
+                      <div className="font-medium text-gray-900">🏖️ Playa</div>
+                      <div className="text-sm text-gray-600">Mixto, Open, Women</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center p-3 bg-white rounded-lg shadow-sm">
+                    <div className="w-4 h-4 bg-green-500 rounded-full mr-3"></div>
+                    <div>
+                      <div className="font-medium text-gray-900">🌱 Césped</div>
+                      <div className="text-sm text-gray-600">Mixto, Open, Women</div>
+                    </div>
                   </div>
                 </div>
               </div>
               <div>
-                <h4 className="font-medium text-gray-900 mb-2">Coeficientes Regionales</h4>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <Zap className="h-4 w-4 text-yellow-500 mr-2" />
-                    <span>Madrid: 1.2x</span>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Coeficientes Regionales</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                    <div className="flex items-center">
+                      <Zap className="h-5 w-5 text-yellow-500 mr-2" />
+                      <span className="font-medium text-gray-900">Madrid</span>
+                    </div>
+                    <span className="font-mono bg-yellow-100 px-2 py-1 rounded text-sm">1.2x</span>
                   </div>
-                  <div className="flex items-center">
-                    <Zap className="h-4 w-4 text-orange-500 mr-2" />
-                    <span>Cataluña: 1.1x</span>
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                    <div className="flex items-center">
+                      <Zap className="h-5 w-5 text-orange-500 mr-2" />
+                      <span className="font-medium text-gray-900">Cataluña</span>
+                    </div>
+                    <span className="font-mono bg-orange-100 px-2 py-1 rounded text-sm">1.1x</span>
                   </div>
-                  <div className="flex items-center">
-                    <Zap className="h-4 w-4 text-blue-500 mr-2" />
-                    <span>Otras: 1.0x</span>
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                    <div className="flex items-center">
+                      <Zap className="h-5 w-5 text-blue-500 mr-2" />
+                      <span className="font-medium text-gray-900">Otras Regiones</span>
+                    </div>
+                    <span className="font-mono bg-blue-100 px-2 py-1 rounded text-sm">1.0x</span>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-700 text-center">
-                <strong>Ejemplo:</strong> Un equipo que queda 3º en un torneo de Madrid en 2024-25 obtiene 
-                <span className="font-mono bg-blue-100 px-2 py-1 rounded">(300 puntos × 1.2 regional × 1.0 temporal) = 360 puntos</span>
+            <div className="mt-8 p-6 bg-white rounded-lg shadow-sm border-2 border-blue-200">
+              <h4 className="text-lg font-semibold text-gray-900 mb-3 text-center">Ejemplo Práctico</h4>
+              <p className="text-gray-700 text-center">
+                Un equipo que queda <strong>3º lugar</strong> en un torneo de <strong>Madrid</strong> en la temporada <strong>2024-25</strong> obtiene:
               </p>
+              <div className="mt-4 text-center">
+                <span className="font-mono text-lg bg-blue-100 px-4 py-2 rounded-lg">
+                  (300 puntos × 1.2 regional × 1.0 temporal) = <strong className="text-blue-600">360 puntos</strong>
+                </span>
+              </div>
             </div>
           </div>
         </div>
