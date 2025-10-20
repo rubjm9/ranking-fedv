@@ -194,41 +194,41 @@ const HomePage: React.FC = () => {
             <div className="flex flex-col lg:flex-row items-center gap-8">
               {/* Animation */}
               <div className="flex-shrink-0 order-1 lg:order-1">
-                <div className="relative w-40 h-40">
+                <div className="relative w-48 h-48">
                   <svg viewBox="0 0 200 200" className="w-full h-full">
                     {/* Tournament bracket/field */}
-                    <rect x="20" y="80" width="160" height="40" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="2" rx="4"/>
-                    <text x="100" y="105" textAnchor="middle" fontSize="10" fill="#6b7280" fontWeight="bold">TORNEO</text>
+                    <rect x="15" y="75" width="170" height="50" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="3" rx="6"/>
+                    <text x="100" y="105" textAnchor="middle" fontSize="14" fill="#374151" fontWeight="bold">TORNEO</text>
                     
                     {/* Teams entering tournament */}
                     <g>
                       {/* Team 1 */}
-                      <circle cx="40" cy="40" r="6" fill="#3b82f6">
-                        <animate attributeName="cy" values="40;100" dur="2s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite"/>
+                      <circle cx="40" cy="35" r="8" fill="#3b82f6" stroke="#1e40af" strokeWidth="2">
+                        <animate attributeName="cy" values="35;100" dur="2s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;1" dur="2s" repeatCount="indefinite"/>
                       </circle>
-                      <text x="40" y="30" textAnchor="middle" fontSize="8" fill="#1e40af" fontWeight="bold">Equipo A</text>
+                      <text x="40" y="20" textAnchor="middle" fontSize="10" fill="#1e40af" fontWeight="bold">Equipo A</text>
                       
                       {/* Team 2 */}
-                      <circle cx="60" cy="40" r="6" fill="#1d4ed8">
-                        <animate attributeName="cy" values="40;100" dur="2s" begin="0.3s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.7;1" dur="2s" begin="0.3s" repeatCount="indefinite"/>
+                      <circle cx="70" cy="35" r="8" fill="#1d4ed8" stroke="#1e40af" strokeWidth="2">
+                        <animate attributeName="cy" values="35;100" dur="2s" begin="0.3s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;1" dur="2s" begin="0.3s" repeatCount="indefinite"/>
                       </circle>
-                      <text x="60" y="30" textAnchor="middle" fontSize="8" fill="#1e40af" fontWeight="bold">Equipo B</text>
+                      <text x="70" y="20" textAnchor="middle" fontSize="10" fill="#1e40af" fontWeight="bold">Equipo B</text>
                       
                       {/* Team 3 */}
-                      <circle cx="140" cy="40" r="6" fill="#2563eb">
-                        <animate attributeName="cy" values="40;100" dur="2s" begin="0.6s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.7;1" dur="2s" begin="0.6s" repeatCount="indefinite"/>
+                      <circle cx="130" cy="35" r="8" fill="#2563eb" stroke="#1e40af" strokeWidth="2">
+                        <animate attributeName="cy" values="35;100" dur="2s" begin="0.6s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;1" dur="2s" begin="0.6s" repeatCount="indefinite"/>
                       </circle>
-                      <text x="140" y="30" textAnchor="middle" fontSize="8" fill="#1e40af" fontWeight="bold">Equipo C</text>
+                      <text x="130" y="20" textAnchor="middle" fontSize="10" fill="#1e40af" fontWeight="bold">Equipo C</text>
                       
                       {/* Team 4 */}
-                      <circle cx="160" cy="40" r="6" fill="#1e40af">
-                        <animate attributeName="cy" values="40;100" dur="2s" begin="0.9s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.7;1" dur="2s" begin="0.9s" repeatCount="indefinite"/>
+                      <circle cx="160" cy="35" r="8" fill="#1e40af" stroke="#1e40af" strokeWidth="2">
+                        <animate attributeName="cy" values="35;100" dur="2s" begin="0.9s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;1" dur="2s" begin="0.9s" repeatCount="indefinite"/>
                       </circle>
-                      <text x="160" y="30" textAnchor="middle" fontSize="8" fill="#1e40af" fontWeight="bold">Equipo D</text>
+                      <text x="160" y="20" textAnchor="middle" fontSize="10" fill="#1e40af" fontWeight="bold">Equipo D</text>
                     </g>
                     
                     {/* Competition arrows */}
@@ -244,31 +244,31 @@ const HomePage: React.FC = () => {
                     {/* Results podium */}
                     <g>
                       {/* 1st place */}
-                      <rect x="80" y="130" width="20" height="20" fill="#fbbf24" stroke="#f59e0b" strokeWidth="1" rx="2"/>
-                      <text x="90" y="145" textAnchor="middle" fontSize="8" fill="#92400e" fontWeight="bold">1º</text>
-                      <text x="90" y="155" textAnchor="middle" fontSize="7" fill="#10b981" fontWeight="bold">1000 pts</text>
+                      <rect x="75" y="125" width="25" height="25" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" rx="3"/>
+                      <text x="87.5" y="142" textAnchor="middle" fontSize="10" fill="#92400e" fontWeight="bold">1º</text>
+                      <text x="87.5" y="155" textAnchor="middle" fontSize="8" fill="#10b981" fontWeight="bold">1000 pts</text>
                       
                       {/* 2nd place */}
-                      <rect x="105" y="135" width="20" height="15" fill="#c0c0c0" stroke="#9ca3af" strokeWidth="1" rx="2"/>
-                      <text x="115" y="147" textAnchor="middle" fontSize="8" fill="#6b7280" fontWeight="bold">2º</text>
-                      <text x="115" y="155" textAnchor="middle" fontSize="7" fill="#10b981" fontWeight="bold">800 pts</text>
+                      <rect x="105" y="130" width="25" height="20" fill="#c0c0c0" stroke="#9ca3af" strokeWidth="2" rx="3"/>
+                      <text x="117.5" y="145" textAnchor="middle" fontSize="10" fill="#6b7280" fontWeight="bold">2º</text>
+                      <text x="117.5" y="155" textAnchor="middle" fontSize="8" fill="#10b981" fontWeight="bold">800 pts</text>
                       
                       {/* 3rd place */}
-                      <rect x="130" y="140" width="20" height="10" fill="#cd7f32" stroke="#a78bfa" strokeWidth="1" rx="2"/>
-                      <text x="140" y="149" textAnchor="middle" fontSize="8" fill="#6b7280" fontWeight="bold">3º</text>
-                      <text x="140" y="155" textAnchor="middle" fontSize="7" fill="#10b981" fontWeight="bold">600 pts</text>
+                      <rect x="135" y="135" width="25" height="15" fill="#cd7f32" stroke="#a78bfa" strokeWidth="2" rx="3"/>
+                      <text x="147.5" y="148" textAnchor="middle" fontSize="10" fill="#6b7280" fontWeight="bold">3º</text>
+                      <text x="147.5" y="155" textAnchor="middle" fontSize="8" fill="#10b981" fontWeight="bold">600 pts</text>
                     </g>
                     
                     {/* Points flowing to teams */}
                     <g>
-                      <text x="50" y="110" fontSize="8" fill="#10b981" fontWeight="bold" opacity="0.8">
-                        <animate attributeName="y" values="110;90;110" dur="3s" begin="2s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" begin="2s" repeatCount="indefinite"/>
+                      <text x="55" y="115" fontSize="10" fill="#10b981" fontWeight="bold" opacity="0.9">
+                        <animate attributeName="y" values="115;95;115" dur="3s" begin="2s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" begin="2s" repeatCount="indefinite"/>
                         +1000
                       </text>
-                      <text x="150" y="110" fontSize="8" fill="#059669" fontWeight="bold" opacity="0.7">
-                        <animate attributeName="y" values="110;90;110" dur="3s" begin="2.3s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" begin="2.3s" repeatCount="indefinite"/>
+                      <text x="145" y="115" fontSize="10" fill="#059669" fontWeight="bold" opacity="0.8">
+                        <animate attributeName="y" values="115;95;115" dur="3s" begin="2.3s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" begin="2.3s" repeatCount="indefinite"/>
                         +800
                       </text>
                     </g>
@@ -293,18 +293,14 @@ const HomePage: React.FC = () => {
                 
                 <div className="bg-white rounded-lg p-6 shadow-sm mb-4">
                   <h4 className="font-semibold text-gray-900 mb-3">Tipos de Torneos</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div className="text-center p-3 bg-red-50 rounded-lg">
                       <div className="font-medium text-gray-900">🏆 Campeonatos de España</div>
-                      <div className="text-gray-600">CE1, CE2, CE3</div>
+                      <div className="text-gray-600">CE1 (1ª División), CE2 (2ª División)</div>
                     </div>
                     <div className="text-center p-3 bg-orange-50 rounded-lg">
                       <div className="font-medium text-gray-900">🥈 Campeonatos Regionales</div>
                       <div className="text-gray-600">CR1, CR2, CR3</div>
-                    </div>
-                    <div className="text-center p-3 bg-green-50 rounded-lg">
-                      <div className="font-medium text-gray-900">🌍 Torneos Internacionales</div>
-                      <div className="text-gray-600">EUCS, WUCC, etc.</div>
                     </div>
                   </div>
                 </div>
@@ -314,30 +310,40 @@ const HomePage: React.FC = () => {
                   <p className="text-sm text-gray-600 mb-3">
                     Cada combinación de <strong>modalidad + superficie</strong> tiene su propio ranking independiente:
                   </p>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="flex items-center p-2 bg-blue-50 rounded">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                      <span>🏖️ Playa Mixto</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <h5 className="font-medium text-gray-900 mb-2 text-center">🏖️ Playa</h5>
+                      <div className="space-y-2">
+                        <div className="flex items-center p-2 bg-blue-50 rounded">
+                          <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                          <span>Playa Mixto</span>
+                        </div>
+                        <div className="flex items-center p-2 bg-blue-50 rounded">
+                          <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                          <span>Playa Open</span>
+                        </div>
+                        <div className="flex items-center p-2 bg-blue-50 rounded">
+                          <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                          <span>Playa Women</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center p-2 bg-blue-50 rounded">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                      <span>🏖️ Playa Open</span>
-                    </div>
-                    <div className="flex items-center p-2 bg-blue-50 rounded">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                      <span>🏖️ Playa Women</span>
-                    </div>
-                    <div className="flex items-center p-2 bg-green-50 rounded">
-                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                      <span>🌱 Césped Mixto</span>
-                    </div>
-                    <div className="flex items-center p-2 bg-green-50 rounded">
-                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                      <span>🌱 Césped Open</span>
-                    </div>
-                    <div className="flex items-center p-2 bg-green-50 rounded">
-                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                      <span>🌱 Césped Women</span>
+                    <div>
+                      <h5 className="font-medium text-gray-900 mb-2 text-center">🌱 Césped</h5>
+                      <div className="space-y-2">
+                        <div className="flex items-center p-2 bg-green-50 rounded">
+                          <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                          <span>Césped Mixto</span>
+                        </div>
+                        <div className="flex items-center p-2 bg-green-50 rounded">
+                          <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                          <span>Césped Open</span>
+                        </div>
+                        <div className="flex items-center p-2 bg-green-50 rounded">
+                          <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                          <span>Césped Women</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
