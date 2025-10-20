@@ -65,7 +65,7 @@ class HomePageService {
         '2024-25'
       )
 
-      // Obtener información de equipos y regiones
+      // Obtener información de equipos y regiones (sin columna code)
       const teamIds = generalRanking.slice(0, limit).map(team => team.team_id)
       
       const { data: teamsData, error: teamsError } = await supabase
@@ -74,7 +74,7 @@ class HomePageService {
           id,
           name,
           logo,
-          region:regions(name, code)
+          region:regions(name)
         `)
         .in('id', teamIds)
 
@@ -107,7 +107,7 @@ class HomePageService {
           id: ranking.team_id,
           name: team?.name || 'Equipo desconocido',
           region: team?.region?.name || 'Sin región',
-          regionCode: team?.region?.code || 'N/A',
+          regionCode: team?.region?.name ? team.region.name.substring(0, 3).toUpperCase() : 'N/A', // Generado dinámicamente
           logo: team?.logo,
           currentRank: index + 1,
           previousRank: index + 1, // TODO: Calcular ranking anterior
@@ -133,7 +133,6 @@ class HomePageService {
         .select(`
           id,
           name,
-          code,
           teams:teams(id)
         `)
 
@@ -169,7 +168,7 @@ class HomePageService {
         return {
           id: region.id,
           name: region.name,
-          code: region.code || region.name.substring(0, 3).toUpperCase(),
+          code: region.name.substring(0, 3).toUpperCase(), // Generar código desde el nombre (sin columna code)
           teams: stats.teams,
           averagePoints: stats.teams > 0 ? stats.totalPoints / stats.teams : 0
         }
