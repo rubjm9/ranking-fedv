@@ -192,7 +192,61 @@ const HomePage: React.FC = () => {
           {/* Step 1: Tournament Participation */}
           <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg shadow-sm border border-blue-200 p-8 mb-6">
             <div className="flex flex-col lg:flex-row items-center gap-8">
-              <div className="flex-shrink-0">
+              {/* Animation */}
+              <div className="flex-shrink-0 order-1 lg:order-1">
+                <div className="relative w-32 h-32">
+                  <svg viewBox="0 0 200 200" className="w-full h-full">
+                    {/* Background circle */}
+                    <circle cx="100" cy="100" r="90" fill="none" stroke="#e5e7eb" strokeWidth="2" opacity="0.3"/>
+                    
+                    {/* Animated teams (circles) moving around */}
+                    <g className="animate-spin" style={{animationDuration: '8s', animationTimingFunction: 'linear'}}>
+                      <circle cx="100" cy="30" r="8" fill="#3b82f6" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
+                      </circle>
+                      <circle cx="170" cy="100" r="8" fill="#1d4ed8" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+                      </circle>
+                      <circle cx="100" cy="170" r="8" fill="#2563eb" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" begin="1s" repeatCount="indefinite"/>
+                      </circle>
+                      <circle cx="30" cy="100" r="8" fill="#1e40af" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+                      </circle>
+                    </g>
+                    
+                    {/* Central trophy */}
+                    <g className="animate-pulse">
+                      <rect x="85" y="75" width="30" height="20" fill="#fbbf24" rx="2"/>
+                      <rect x="90" y="70" width="20" height="10" fill="#f59e0b" rx="1"/>
+                      <circle cx="100" cy="65" r="3" fill="#d97706"/>
+                      <rect x="95" y="95" width="10" height="15" fill="#92400e"/>
+                    </g>
+                    
+                    {/* Points floating up */}
+                    <g>
+                      <text x="60" y="50" fontSize="12" fill="#10b981" fontWeight="bold" opacity="0.8">
+                        <animate attributeName="y" values="50;30;50" dur="3s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" repeatCount="indefinite"/>
+                        1000
+                      </text>
+                      <text x="140" y="60" fontSize="10" fill="#059669" fontWeight="bold" opacity="0.7">
+                        <animate attributeName="y" values="60;40;60" dur="3s" begin="0.8s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" begin="0.8s" repeatCount="indefinite"/>
+                        800
+                      </text>
+                      <text x="150" y="140" fontSize="9" fill="#047857" fontWeight="bold" opacity="0.6">
+                        <animate attributeName="y" values="140;120;140" dur="3s" begin="1.6s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.6;1;0.6" dur="3s" begin="1.6s" repeatCount="indefinite"/>
+                        600
+                      </text>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+              
+              {/* Icon */}
+              <div className="flex-shrink-0 order-2 lg:order-2">
                 <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center shadow-lg">
                   <Trophy className="h-12 w-12 text-white" />
                 </div>
