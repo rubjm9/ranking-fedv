@@ -287,61 +287,44 @@ const HomePage: React.FC = () => {
                   <span className="bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 1</span>
                   <h3 className="text-2xl font-bold text-gray-900">Participación en Torneos</h3>
                 </div>
-                <p className="text-lg text-gray-700 mb-4">
-                  Los equipos compiten en torneos oficiales de la FEDV y obtienen puntos según su posición final en cada competición.
+                <p className="text-lg text-gray-700 mb-6">
+                  Los equipos compiten en <strong>Campeonatos de España</strong> (1ª y 2ª División) y <strong>Campeonatos Regionales</strong> (CR1, CR2, CR3), obteniendo puntos según su posición final en cada competición. Cada combinación de modalidad y superficie tiene su propio ranking independiente.
                 </p>
-                
-                <div className="bg-white rounded-lg p-6 shadow-sm mb-4">
-                  <h4 className="font-semibold text-gray-900 mb-3">Tipos de Torneos</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div className="text-center p-3 bg-red-50 rounded-lg">
-                      <div className="font-medium text-gray-900">🏆 Campeonatos de España</div>
-                      <div className="text-gray-600">CE1 (1ª División), CE2 (2ª División)</div>
-                    </div>
-                    <div className="text-center p-3 bg-orange-50 rounded-lg">
-                      <div className="font-medium text-gray-900">🥈 Campeonatos Regionales</div>
-                      <div className="text-gray-600">CR1, CR2, CR3</div>
-                    </div>
-                  </div>
-                </div>
 
                 <div className="bg-white rounded-lg p-6 shadow-sm">
-                  <h4 className="font-semibold text-gray-900 mb-3">Rankings por Modalidad</h4>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Cada combinación de <strong>modalidad + superficie</strong> tiene su propio ranking independiente:
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <h5 className="font-medium text-gray-900 mb-2 text-center">🏖️ Playa</h5>
+                  <h4 className="font-semibold text-gray-900 mb-4">Rankings por Modalidad</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="border-l-4 border-blue-500 pl-4">
+                      <h5 className="font-semibold text-gray-900 mb-3 text-blue-700">Playa</h5>
                       <div className="space-y-2">
-                        <div className="flex items-center p-2 bg-blue-50 rounded">
-                          <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                          <span>Playa Mixto</span>
+                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <span className="font-medium text-gray-900">Mixto</span>
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                         </div>
-                        <div className="flex items-center p-2 bg-blue-50 rounded">
-                          <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                          <span>Playa Open</span>
+                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <span className="font-medium text-gray-900">Open</span>
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                         </div>
-                        <div className="flex items-center p-2 bg-blue-50 rounded">
-                          <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                          <span>Playa Women</span>
+                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <span className="font-medium text-gray-900">Women</span>
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                         </div>
                       </div>
                     </div>
-                    <div>
-                      <h5 className="font-medium text-gray-900 mb-2 text-center">🌱 Césped</h5>
+                    <div className="border-l-4 border-green-500 pl-4">
+                      <h5 className="font-semibold text-gray-900 mb-3 text-green-700">Césped</h5>
                       <div className="space-y-2">
-                        <div className="flex items-center p-2 bg-green-50 rounded">
-                          <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                          <span>Césped Mixto</span>
+                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                          <span className="font-medium text-gray-900">Mixto</span>
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         </div>
-                        <div className="flex items-center p-2 bg-green-50 rounded">
-                          <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                          <span>Césped Open</span>
+                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                          <span className="font-medium text-gray-900">Open</span>
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         </div>
-                        <div className="flex items-center p-2 bg-green-50 rounded">
-                          <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                          <span>Césped Women</span>
+                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                          <span className="font-medium text-gray-900">Women</span>
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         </div>
                       </div>
                     </div>
