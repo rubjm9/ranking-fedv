@@ -205,10 +205,56 @@ const HomePage: React.FC = () => {
                 <p className="text-lg text-gray-700 mb-4">
                   Los equipos compiten en torneos oficiales de la FEDV y obtienen puntos según su posición final en cada competición.
                 </p>
-                <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <p className="text-sm text-gray-600">
-                    <strong>Ejemplo:</strong> Un torneo de 8 equipos otorga puntos del 1º al 8º lugar según la tabla oficial de puntuación.
+                
+                <div className="bg-white rounded-lg p-6 shadow-sm mb-4">
+                  <h4 className="font-semibold text-gray-900 mb-3">Tipos de Torneos</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="text-center p-3 bg-red-50 rounded-lg">
+                      <div className="font-medium text-gray-900">🏆 Campeonatos de España</div>
+                      <div className="text-gray-600">CE1, CE2, CE3</div>
+                    </div>
+                    <div className="text-center p-3 bg-orange-50 rounded-lg">
+                      <div className="font-medium text-gray-900">🥈 Campeonatos Regionales</div>
+                      <div className="text-gray-600">CR1, CR2, CR3</div>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <div className="font-medium text-gray-900">🌍 Torneos Internacionales</div>
+                      <div className="text-gray-600">EUCS, WUCC, etc.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg p-6 shadow-sm">
+                  <h4 className="font-semibold text-gray-900 mb-3">Rankings por Modalidad</h4>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Cada combinación de <strong>modalidad + superficie</strong> tiene su propio ranking independiente:
                   </p>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-center p-2 bg-blue-50 rounded">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                      <span>🏖️ Playa Mixto</span>
+                    </div>
+                    <div className="flex items-center p-2 bg-blue-50 rounded">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                      <span>🏖️ Playa Open</span>
+                    </div>
+                    <div className="flex items-center p-2 bg-blue-50 rounded">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                      <span>🏖️ Playa Women</span>
+                    </div>
+                    <div className="flex items-center p-2 bg-green-50 rounded">
+                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                      <span>🌱 Césped Mixto</span>
+                    </div>
+                    <div className="flex items-center p-2 bg-green-50 rounded">
+                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                      <span>🌱 Césped Open</span>
+                    </div>
+                    <div className="flex items-center p-2 bg-green-50 rounded">
+                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                      <span>🌱 Césped Women</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -230,6 +276,76 @@ const HomePage: React.FC = () => {
                 <p className="text-lg text-gray-700 mb-4">
                   Los puntos se calculan aplicando tres factores: puntos base por posición, coeficiente regional y peso por antigüedad de temporada.
                 </p>
+                
+                <div className="bg-white rounded-lg p-6 shadow-sm mb-4">
+                  <h4 className="font-semibold text-gray-900 mb-4">Tabla de Puntos por Posición</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <h5 className="font-medium text-gray-900 mb-2 text-center">🏆 1ª División</h5>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between p-2 bg-yellow-50 rounded">
+                          <span>1º lugar</span>
+                          <span className="font-mono font-semibold">1000 pts</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-gray-50 rounded">
+                          <span>2º lugar</span>
+                          <span className="font-mono font-semibold">800 pts</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-orange-50 rounded">
+                          <span>3º lugar</span>
+                          <span className="font-mono font-semibold">600 pts</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-gray-50 rounded">
+                          <span>4º lugar</span>
+                          <span className="font-mono font-semibold">400 pts</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <h5 className="font-medium text-gray-900 mb-2 text-center">🥈 2ª División</h5>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between p-2 bg-yellow-50 rounded">
+                          <span>1º lugar</span>
+                          <span className="font-mono font-semibold">500 pts</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-gray-50 rounded">
+                          <span>2º lugar</span>
+                          <span className="font-mono font-semibold">400 pts</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-orange-50 rounded">
+                          <span>3º lugar</span>
+                          <span className="font-mono font-semibold">300 pts</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-gray-50 rounded">
+                          <span>4º lugar</span>
+                          <span className="font-mono font-semibold">200 pts</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <h5 className="font-medium text-gray-900 mb-2 text-center">🏅 Regionales</h5>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between p-2 bg-yellow-50 rounded">
+                          <span>1º lugar</span>
+                          <span className="font-mono font-semibold">300 pts</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-gray-50 rounded">
+                          <span>2º lugar</span>
+                          <span className="font-mono font-semibold">250 pts</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-orange-50 rounded">
+                          <span>3º lugar</span>
+                          <span className="font-mono font-semibold">200 pts</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-gray-50 rounded">
+                          <span>4º lugar</span>
+                          <span className="font-mono font-semibold">150 pts</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="bg-white rounded-lg p-4 shadow-sm">
                   <p className="text-sm text-gray-600">
                     <strong>Fórmula:</strong> <span className="font-mono bg-green-100 px-2 py-1 rounded">Puntos Base × Coeficiente Regional × Peso Temporal</span>
@@ -295,6 +411,44 @@ const HomePage: React.FC = () => {
                 <p className="text-lg text-gray-700 mb-4">
                   Se suman todos los puntos ponderados de todas las temporadas y modalidades para obtener la posición final en el ranking.
                 </p>
+                
+                <div className="bg-white rounded-lg p-6 shadow-sm mb-4">
+                  <h4 className="font-semibold text-gray-900 mb-4">Rankings Combinados</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Además de los rankings específicos por modalidad, existen rankings combinados que suman puntos de múltiples categorías:
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                        <div className="font-medium text-gray-900">🏖️ Ranking Playa</div>
+                        <div className="text-sm text-gray-600">Suma: Mixto + Open + Women (Playa)</div>
+                      </div>
+                      <div className="p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
+                        <div className="font-medium text-gray-900">🌱 Ranking Césped</div>
+                        <div className="text-sm text-gray-600">Suma: Mixto + Open + Women (Césped)</div>
+                      </div>
+                      <div className="p-3 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+                        <div className="font-medium text-gray-900">👥 Ranking Mixto</div>
+                        <div className="text-sm text-gray-600">Suma: Playa Mixto + Césped Mixto</div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="p-3 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                        <div className="font-medium text-gray-900">⚡ Ranking Open</div>
+                        <div className="text-sm text-gray-600">Suma: Playa Open + Césped Open</div>
+                      </div>
+                      <div className="p-3 bg-pink-50 rounded-lg border-l-4 border-pink-500">
+                        <div className="font-medium text-gray-900">👩 Ranking Women</div>
+                        <div className="text-sm text-gray-600">Suma: Playa Women + Césped Women</div>
+                      </div>
+                      <div className="p-3 bg-gray-50 rounded-lg border-l-4 border-gray-500">
+                        <div className="font-medium text-gray-900">🌍 Ranking Global</div>
+                        <div className="text-sm text-gray-600">Suma: Todas las modalidades</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="bg-white rounded-lg p-4 shadow-sm">
                   <p className="text-sm text-gray-600">
                     <strong>Resultado:</strong> Ranking ordenado de mayor a menor puntuación total, actualizado automáticamente tras cada torneo.
