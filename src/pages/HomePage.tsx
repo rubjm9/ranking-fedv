@@ -2,174 +2,56 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, Filter, Trophy, Users, MapPin, Calendar, TrendingUp, TrendingDown, BarChart3, Eye } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-
-interface Team {
-  id: string
-  name: string
-  club: string
-  region: string
-  regionCode: string
-  logo: string
-  currentRank: number
-  previousRank: number
-  points: number
-  tournaments: number
-  change: number
-  lastUpdate: string
-}
-
-interface Region {
-  id: string
-  name: string
-  code: string
-  teams: number
-  averagePoints: number
-}
-
-interface Tournament {
-  id: string
-  name: string
-  year: number
-  type: string
-  status: string
-  teams: number
-  startDate: string
-}
-
-interface RankingHistory {
-  date: string
-  totalTeams: number
-  averagePoints: number
-}
+import { homePageService, HomePageTeam, HomePageRegion, HomePageTournament, HomePageStats, RankingHistory } from '@/services/homePageService'
+import TeamLogo from '@/components/ui/TeamLogo'
 
 const HomePage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRegion, setSelectedRegion] = useState('all')
   const [selectedYear, setSelectedYear] = useState('all')
-  const [teams, setTeams] = useState<Team[]>([])
-  const [regions, setRegions] = useState<Region[]>([])
-  const [recentTournaments, setRecentTournaments] = useState<Tournament[]>([])
+  const [teams, setTeams] = useState<HomePageTeam[]>([])
+  const [regions, setRegions] = useState<HomePageRegion[]>([])
+  const [recentTournaments, setRecentTournaments] = useState<HomePageTournament[]>([])
   const [rankingHistory, setRankingHistory] = useState<RankingHistory[]>([])
-
-  // Mock data - en producción vendría de la API
-  const mockTeams: Team[] = [
-    {
-      id: '1',
-      name: 'Madrid Ultimate Club',
-      club: 'MUC',
-      region: 'Madrid',
-      regionCode: 'MAD',
-      logo: 'https://via.placeholder.com/40',
-      currentRank: 1,
-      previousRank: 2,
-      points: 1250.5,
-      tournaments: 8,
-      change: 1,
-      lastUpdate: '2024-09-02'
-    },
-    {
-      id: '2',
-      name: 'Barcelona Frisbee',
-      club: 'BCN Frisbee',
-      region: 'Cataluña',
-      regionCode: 'CAT',
-      logo: 'https://via.placeholder.com/40',
-      currentRank: 2,
-      previousRank: 1,
-      points: 1180.3,
-      tournaments: 7,
-      change: -1,
-      lastUpdate: '2024-09-02'
-    },
-    {
-      id: '3',
-      name: 'Valencia Ultimate',
-      club: 'VU',
-      region: 'Valencia',
-      regionCode: 'VAL',
-      logo: 'https://via.placeholder.com/40',
-      currentRank: 3,
-      previousRank: 2,
-      points: 1100.2,
-      tournaments: 6,
-      change: -1,
-      lastUpdate: '2024-09-02'
-    },
-    {
-      id: '4',
-      name: 'Sevilla Disc Golf',
-      club: 'SDG',
-      region: 'Andalucía',
-      regionCode: 'AND',
-      logo: 'https://via.placeholder.com/40',
-      currentRank: 4,
-      previousRank: 4,
-      points: 1020.2,
-      tournaments: 5,
-      change: 0,
-      lastUpdate: '2024-09-02'
-    },
-    {
-      id: '5',
-      name: 'Bilbao Frisbee',
-      club: 'BF',
-      region: 'País Vasco',
-      regionCode: 'PV',
-      logo: 'https://via.placeholder.com/40',
-      currentRank: 5,
-      previousRank: 6,
-      points: 980.7,
-      tournaments: 6,
-      change: 1,
-      lastUpdate: '2024-09-02'
-    }
-  ]
-
-  const mockRegions: Region[] = [
-    { id: '1', name: 'Madrid', code: 'MAD', teams: 15, averagePoints: 1150.3 },
-    { id: '2', name: 'Cataluña', code: 'CAT', teams: 12, averagePoints: 1080.5 },
-    { id: '3', name: 'Valencia', code: 'VAL', teams: 8, averagePoints: 950.2 },
-    { id: '4', name: 'Andalucía', code: 'AND', teams: 6, averagePoints: 880.7 },
-    { id: '5', name: 'País Vasco', code: 'PV', teams: 4, averagePoints: 920.1 }
-  ]
-
-  const mockRecentTournaments: Tournament[] = [
-    { id: '1', name: 'CE1 2024', year: 2024, type: 'CE1', status: 'completed', teams: 24, startDate: '2024-06-15' },
-    { id: '2', name: 'CE2 2024', year: 2024, type: 'CE2', status: 'completed', teams: 18, startDate: '2024-05-20' },
-    { id: '3', name: 'Regional Madrid 2024', year: 2024, type: 'REGIONAL', status: 'completed', teams: 12, startDate: '2024-03-20' },
-    { id: '4', name: 'Regional Cataluña 2024', year: 2024, type: 'REGIONAL', status: 'upcoming', teams: 15, startDate: '2024-10-15' }
-  ]
-
-  const mockRankingHistory: RankingHistory[] = [
-    { date: '2024-01', totalTeams: 45, averagePoints: 1050.2 },
-    { date: '2024-02', totalTeams: 47, averagePoints: 1080.5 },
-    { date: '2024-03', totalTeams: 50, averagePoints: 1120.3 },
-    { date: '2024-04', totalTeams: 52, averagePoints: 1150.7 },
-    { date: '2024-05', totalTeams: 55, averagePoints: 1180.1 },
-    { date: '2024-06', totalTeams: 58, averagePoints: 1200.8 }
-  ]
+  const [mainStats, setMainStats] = useState<HomePageStats>({
+    totalTeams: 0,
+    totalTournaments: 0,
+    totalRegions: 0,
+    averagePoints: 0
+  })
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     loadData()
   }, [])
 
   const loadData = async () => {
+    setIsLoading(true)
     try {
-      // Mock API call - en producción sería una llamada real
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setTeams(mockTeams)
-      setRegions(mockRegions)
-      setRecentTournaments(mockRecentTournaments)
-      setRankingHistory(mockRankingHistory)
+      // Cargar todos los datos en paralelo
+      const [teamsData, regionsData, tournamentsData, statsData, historyData] = await Promise.all([
+        homePageService.getTopTeams(10),
+        homePageService.getRegions(),
+        homePageService.getRecentTournaments(4),
+        homePageService.getMainStats(),
+        homePageService.getRankingHistory()
+      ])
+
+      setTeams(teamsData)
+      setRegions(regionsData)
+      setRecentTournaments(tournamentsData)
+      setMainStats(statsData)
+      setRankingHistory(historyData)
     } catch (error) {
       console.error('Error al cargar datos:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   // Filtrar equipos
   const filteredTeams = teams.filter(team => {
-    const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         team.club.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesRegion = selectedRegion === 'all' || team.regionCode === selectedRegion
     return matchesSearch && matchesRegion
   })
@@ -191,6 +73,7 @@ const HomePage: React.FC = () => {
       case 'CE1': return 'CE1'
       case 'CE2': return 'CE2'
       case 'REGIONAL': return 'Regional'
+      case 'INTERNATIONAL': return 'Internacional'
       default: return type
     }
   }
@@ -215,6 +98,13 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {isLoading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          <span className="ml-3 text-gray-600">Cargando datos...</span>
+        </div>
+      ) : (
+        <>
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -253,7 +143,7 @@ const HomePage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Equipos Activos</p>
-                <p className="text-2xl font-bold text-gray-900">58</p>
+                <p className="text-2xl font-bold text-gray-900">{mainStats.totalTeams}</p>
               </div>
             </div>
           </div>
@@ -264,7 +154,7 @@ const HomePage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Torneos 2024</p>
-                <p className="text-2xl font-bold text-gray-900">24</p>
+                <p className="text-2xl font-bold text-gray-900">{mainStats.totalTournaments}</p>
               </div>
             </div>
           </div>
@@ -275,7 +165,7 @@ const HomePage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Regiones</p>
-                <p className="text-2xl font-bold text-gray-900">17</p>
+                <p className="text-2xl font-bold text-gray-900">{mainStats.totalRegions}</p>
               </div>
             </div>
           </div>
@@ -286,7 +176,7 @@ const HomePage: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Promedio Puntos</p>
-                <p className="text-2xl font-bold text-gray-900">1,200</p>
+                <p className="text-2xl font-bold text-gray-900">{mainStats.averagePoints.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -390,22 +280,19 @@ const HomePage: React.FC = () => {
                         to={`/teams/${team.id}`}
                         className="flex items-center text-sm font-medium text-gray-900 hover:text-primary-600"
                       >
-                        {team.logo && (
-                          <img
-                            src={team.logo}
-                            alt={`Logo de ${team.name}`}
-                            className="w-8 h-8 rounded mr-3"
-                          />
-                        )}
-                        <div>
+                        <TeamLogo 
+                          name={team.name} 
+                          logo={team.logo} 
+                          size="sm"
+                        />
+                        <div className="ml-3">
                           <div>{team.name}</div>
-                          <div className="text-sm text-gray-500">{team.club}</div>
                         </div>
                       </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
-                        {(team.region as any)?.name || team.region || 'Sin región'}
+                        {team.region || 'Sin región'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -546,6 +433,8 @@ const HomePage: React.FC = () => {
           </Link>
         </div>
       </div>
+    </div>
+      )}
     </div>
   )
 }
