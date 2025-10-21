@@ -506,23 +506,38 @@ const HomePage: React.FC = () => {
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between p-2 bg-yellow-50 rounded">
                           <span>1º lugar</span>
-                          <span className="font-mono font-semibold">140 pts</span>
+                          <div className="text-right">
+                            <span className="font-mono font-semibold">140 pts</span>
+                            <span className="text-xs text-gray-500 ml-1">x coef. regional</span>
+                          </div>
                         </div>
                         <div className="flex justify-between p-2 bg-gray-50 rounded">
                           <span>2º lugar</span>
-                          <span className="font-mono font-semibold">120 pts</span>
+                          <div className="text-right">
+                            <span className="font-mono font-semibold">120 pts</span>
+                            <span className="text-xs text-gray-500 ml-1">x coef. regional</span>
+                          </div>
                         </div>
                         <div className="flex justify-between p-2 bg-orange-50 rounded">
                           <span>3º lugar</span>
-                          <span className="font-mono font-semibold">100 pts</span>
+                          <div className="text-right">
+                            <span className="font-mono font-semibold">100 pts</span>
+                            <span className="text-xs text-gray-500 ml-1">x coef. regional</span>
+                          </div>
                         </div>
                         <div className="flex justify-between p-2 bg-gray-50 rounded">
                           <span>4º lugar</span>
-                          <span className="font-mono font-semibold">85 pts</span>
+                          <div className="text-right">
+                            <span className="font-mono font-semibold">85 pts</span>
+                            <span className="text-xs text-gray-500 ml-1">x coef. regional</span>
+                          </div>
                         </div>
                         <div className="flex justify-between p-2 bg-gray-50 rounded">
                           <span>5º lugar</span>
-                          <span className="font-mono font-semibold">72 pts</span>
+                          <div className="text-right">
+                            <span className="font-mono font-semibold">72 pts</span>
+                            <span className="text-xs text-gray-500 ml-1">x coef. regional</span>
+                          </div>
                         </div>
                         <div className="text-center text-gray-500 text-xs py-1">
                           ⋯
@@ -532,11 +547,6 @@ const HomePage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <p className="text-sm text-gray-600">
-                    <strong>Fórmula:</strong> <span className="font-mono bg-green-100 px-2 py-1 rounded">Puntos Base × Coeficiente Regional × Peso Temporal</span>
-                  </p>
-                </div>
               </div>
             </div>
           </div>
