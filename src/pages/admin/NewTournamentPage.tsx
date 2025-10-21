@@ -328,6 +328,35 @@ const NewTournamentPage: React.FC = () => {
     })
   }
 
+  const handleTeamSelected = (index: number, teamId: string, viaKeyboard: boolean) => {
+    updatePosition(index, 'teamId', teamId)
+    
+    // Si fue seleccionado por teclado, enfocar el siguiente puesto disponible
+    if (viaKeyboard) {
+      const nextIndex = index + 1
+      if (nextIndex < positions.length) {
+        // Enfocar el siguiente puesto existente
+        setTimeout(() => {
+          const nextPosition = positions[nextIndex]
+          const nextTeamSelector = document.querySelector(`[data-position="${nextPosition.position}"]`) as HTMLElement
+          if (nextTeamSelector) {
+            nextTeamSelector.click()
+          }
+        }, 100)
+      } else {
+        // Si no hay siguiente puesto, agregar uno nuevo
+        addPosition()
+        setTimeout(() => {
+          const newPosition = positions.length + 1
+          const newTeamSelector = document.querySelector(`[data-position="${newPosition}"]`) as HTMLElement
+          if (newTeamSelector) {
+            newTeamSelector.click()
+          }
+        }, 100)
+      }
+    }
+  }
+
   const addPosition = () => {
     const newPosition = positions.length + 1
     setPositions(prev => [...prev, {
@@ -469,6 +498,7 @@ const NewTournamentPage: React.FC = () => {
               })}
               value={position.teamId}
               onChange={(teamId) => updatePosition(index, 'teamId', teamId)}
+              onTeamSelected={(teamId, viaKeyboard) => handleTeamSelected(index, teamId, viaKeyboard)}
               placeholder="Seleccionar equipo"
             />
           </div>

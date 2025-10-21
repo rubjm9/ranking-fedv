@@ -16,6 +16,7 @@ interface TeamSelectorProps {
   placeholder?: string
   disabled?: boolean
   error?: boolean
+  onTeamSelected?: (teamId: string, viaKeyboard?: boolean) => void
 }
 
 const TeamSelector: React.FC<TeamSelectorProps> = ({
@@ -24,7 +25,8 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
   onChange,
   placeholder = 'Seleccionar equipo',
   disabled = false,
-  error = false
+  error = false,
+  onTeamSelected
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -66,11 +68,12 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
     }
   }, [isOpen])
 
-  const handleSelect = (team: Team) => {
+  const handleSelect = (team: Team, viaKeyboard = false) => {
     onChange(team.id)
     setIsOpen(false)
     setSearchTerm('')
     setSelectedIndex(0)
+    onTeamSelected?.(team.id, viaKeyboard)
   }
 
   const handleClear = () => {
@@ -82,7 +85,7 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
     if (e.key === 'Tab' || e.key === 'Enter') {
       e.preventDefault()
       if (filteredTeams.length > 0) {
-        handleSelect(filteredTeams[selectedIndex])
+        handleSelect(filteredTeams[selectedIndex], true)
       }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault()
@@ -176,7 +179,7 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
                       ? 'bg-blue-100 text-blue-900' 
                       : 'hover:bg-gray-100'
                   }`}
-                  onClick={() => handleSelect(team)}
+                  onClick={() => handleSelect(team, false)}
                   onMouseEnter={() => setSelectedIndex(index)}
                 >
                   <div className={`text-sm font-medium ${
