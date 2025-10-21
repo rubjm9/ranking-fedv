@@ -278,43 +278,119 @@ const HomePage: React.FC = () => {
                   Los equipos compiten en <strong>Campeonatos de España</strong> (1ª y 2ª División) y <strong>Campeonatos Regionales</strong> (CR1, CR2, CR3), obteniendo puntos según su posición final en cada competición. Cada combinación de modalidad y superficie tiene su propio ranking independiente.
                 </p>
 
-                <div className="bg-white rounded-lg p-6 shadow-sm">
-                  <h4 className="font-semibold text-gray-900 mb-4">Rankings por Modalidad</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="border-l-4 border-blue-500 pl-4">
-                      <h5 className="font-semibold text-gray-900 mb-3 text-blue-700">Playa</h5>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                          <span className="font-medium text-gray-900">Mixto</span>
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-8 shadow-lg border border-gray-100">
+                  <div className="flex items-center justify-center mb-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">🏆</span>
+                      </div>
+                      <h4 className="text-xl font-bold text-gray-800">Rankings por Modalidad</h4>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Playa Section */}
+                    <div className="relative">
+                      <div className="absolute -top-2 -left-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">🏖️</span>
+                      </div>
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border-2 border-blue-200 shadow-md">
+                        <div className="flex items-center mb-4">
+                          <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                          <h5 className="text-lg font-bold text-blue-800">Playa</h5>
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                          <span className="font-medium text-gray-900">Open</span>
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-                          <span className="font-medium text-gray-900">Women</span>
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <div className="space-y-3">
+                          <div className="group p-4 bg-white rounded-lg border border-blue-200 hover:shadow-md transition-all duration-200 hover:border-blue-300">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                                <span className="font-medium text-gray-700">Mixto</span>
+                              </div>
+                              <div className="text-xs text-blue-600 font-semibold bg-blue-50 px-2 py-1 rounded-full">
+                                MIXED
+                              </div>
+                            </div>
+                          </div>
+                          <div className="group p-4 bg-white rounded-lg border border-blue-200 hover:shadow-md transition-all duration-200 hover:border-blue-300">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                                <span className="font-medium text-gray-700">Open</span>
+                              </div>
+                              <div className="text-xs text-blue-600 font-semibold bg-blue-50 px-2 py-1 rounded-full">
+                                OPEN
+                              </div>
+                            </div>
+                          </div>
+                          <div className="group p-4 bg-white rounded-lg border border-blue-200 hover:shadow-md transition-all duration-200 hover:border-blue-300">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                                <span className="font-medium text-gray-700">Women</span>
+                              </div>
+                              <div className="text-xs text-blue-600 font-semibold bg-blue-50 px-2 py-1 rounded-full">
+                                WOMEN
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div className="border-l-4 border-green-500 pl-4">
-                      <h5 className="font-semibold text-gray-900 mb-3 text-green-700">Césped</h5>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                          <span className="font-medium text-gray-900">Mixto</span>
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    
+                    {/* Césped Section */}
+                    <div className="relative">
+                      <div className="absolute -top-2 -left-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">🌱</span>
+                      </div>
+                      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border-2 border-green-200 shadow-md">
+                        <div className="flex items-center mb-4">
+                          <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                          <h5 className="text-lg font-bold text-green-800">Césped</h5>
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                          <span className="font-medium text-gray-900">Open</span>
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                          <span className="font-medium text-gray-900">Women</span>
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div className="space-y-3">
+                          <div className="group p-4 bg-white rounded-lg border border-green-200 hover:shadow-md transition-all duration-200 hover:border-green-300">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                <span className="font-medium text-gray-700">Mixto</span>
+                              </div>
+                              <div className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full">
+                                MIXED
+                              </div>
+                            </div>
+                          </div>
+                          <div className="group p-4 bg-white rounded-lg border border-green-200 hover:shadow-md transition-all duration-200 hover:border-green-300">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                <span className="font-medium text-gray-700">Open</span>
+                              </div>
+                              <div className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full">
+                                OPEN
+                              </div>
+                            </div>
+                          </div>
+                          <div className="group p-4 bg-white rounded-lg border border-green-200 hover:shadow-md transition-all duration-200 hover:border-green-300">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                <span className="font-medium text-gray-700">Women</span>
+                              </div>
+                              <div className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full">
+                                WOMEN
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
+                  </div>
+                  
+                  {/* Footer info */}
+                  <div className="mt-6 text-center">
+                    <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                      <span className="font-semibold text-gray-700">6 rankings independientes</span> que se combinan para crear rankings generales
+                    </p>
                   </div>
                 </div>
               </div>
