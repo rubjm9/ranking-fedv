@@ -209,6 +209,323 @@ const HomePage: React.FC = () => {
           </div>
         </div>
 
+        {/* Ranking Section - 6 Small Tables */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Ranking Actual</h2>
+              <Link
+                to="/ranking"
+                className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
+              >
+              Ver ranking completo
+                <Eye className="h-4 w-4 ml-1" />
+              </Link>
+          </div>
+
+          {/* 6 Small Ranking Tables */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Playa Mixto */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600">
+                <h3 className="text-white font-semibold text-sm">🏖️ Playa Mixto</h3>
+                </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {teamsByCategory['beach_mixed']?.slice(0, 5).map((team, index) => (
+                      <tr key={team.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
+                            {getChangeIcon(team.change)}
+              </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            <div className="ml-2">
+                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                              <div className="text-xs text-gray-500">{team.region}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+                <Link
+                  to="/ranking?category=beach_mixed"
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Ver ranking completo →
+              </Link>
+            </div>
+          </div>
+
+            {/* Playa Women */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600">
+                <h3 className="text-white font-semibold text-sm">🏖️ Playa Women</h3>
+                </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                    {teamsByCategory['beach_women']?.slice(0, 5).map((team, index) => (
+                  <tr key={team.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
+                            {getChangeIcon(team.change)}
+              </div>
+                    </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            <div className="ml-2">
+                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                              <div className="text-xs text-gray-500">{team.region}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+                      <Link
+                  to="/ranking?category=beach_women"
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Ver ranking completo →
+                </Link>
+                        </div>
+            </div>
+
+            {/* Playa Open */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600">
+                <h3 className="text-white font-semibold text-sm">🏖️ Playa Open</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {teamsByCategory['beach_open']?.slice(0, 5).map((team, index) => (
+                      <tr key={team.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
+                            {getChangeIcon(team.change)}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            <div className="ml-2">
+                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                              <div className="text-xs text-gray-500">{team.region}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+                <Link
+                  to="/ranking?category=beach_open"
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Ver ranking completo →
+                      </Link>
+              </div>
+            </div>
+
+            {/* Césped Mixto */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-green-500 to-green-600">
+                <h3 className="text-white font-semibold text-sm">🌱 Césped Mixto</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {teamsByCategory['grass_mixed']?.slice(0, 5).map((team, index) => (
+                      <tr key={team.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
+                            {getChangeIcon(team.change)}
+                          </div>
+                    </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            <div className="ml-2">
+                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                              <div className="text-xs text-gray-500">{team.region}</div>
+                            </div>
+                      </div>
+                    </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
+                    </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+                <Link
+                  to="/ranking?category=grass_mixed"
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Ver ranking completo →
+                </Link>
+            </div>
+          </div>
+
+            {/* Césped Women */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600">
+                <h3 className="text-white font-semibold text-sm">🌱 Césped Women</h3>
+              </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                    {teamsByCategory['grass_women']?.slice(0, 5).map((team, index) => (
+                  <tr key={team.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
+                            {getChangeIcon(team.change)}
+                      </div>
+                    </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            <div className="ml-2">
+                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                              <div className="text-xs text-gray-500">{team.region}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+                      <Link
+                  to="/ranking?category=grass_women"
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Ver ranking completo →
+                </Link>
+              </div>
+            </div>
+
+            {/* Césped Open */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-teal-500 to-teal-600">
+                <h3 className="text-white font-semibold text-sm">🌱 Césped Open</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {teamsByCategory['grass_open']?.slice(0, 5).map((team, index) => (
+                      <tr key={team.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
+                            {getChangeIcon(team.change)}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            <div className="ml-2">
+                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                              <div className="text-xs text-gray-500">{team.region}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+                <Link
+                  to="/ranking?category=grass_open"
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Ver ranking completo →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* How Ranking Works Section */}
         <div className="mb-8">
           <div className="text-center mb-12">
@@ -219,15 +536,6 @@ const HomePage: React.FC = () => {
           {/* Step 1: Tournament Participation */}
           <div className="py-12 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row items-center gap-8">
-              <div className="flex-1 text-center lg:text-left">
-                <div className="flex items-center justify-center lg:justify-start mb-3">
-                  <span className="bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 1</span>
-                  <h3 className="text-2xl font-bold text-gray-900">Participación</h3>
-                </div>
-                <p className="text-lg text-gray-700 mb-6">
-                  Los equipos obtienen puntos en base a las posiciones obtenidas en los compiten en torneos oficiales de la FEDV: <strong>Campeonatos de España</strong> (1ª y 2ª División) y <strong>Campeonatos Regionales</strong> (en las modalidades en las que haya). Cada combinación de modalidad y superficie tiene su propio ranking independiente.
-                </p>
-              </div>
               <div className="flex-1 text-center lg:text-left lg:w-2/3">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
                   <span className="bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 1</span>
@@ -371,7 +679,7 @@ const HomePage: React.FC = () => {
                 <div className="bg-white rounded-lg p-6 shadow-sm mb-4">
                   <h4 className="font-semibold text-gray-900 mb-4">Tabla de Puntos por Posición</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
+                        <div>
                       <h5 className="font-medium text-gray-900 mb-2 text-center">🏆 1ª División</h5>
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between p-2 bg-yellow-50 rounded">
@@ -509,301 +817,6 @@ const HomePage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex-shrink-0 lg:w-1/3">
-                <div className="relative w-full h-64">
-                  <svg viewBox="0 0 400 200" className="w-full h-full">
-                    {/* Modern background with gradient */}
-                    <defs>
-                      <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style={{stopColor:'#f8fafc', stopOpacity:1}} />
-                        <stop offset="100%" style={{stopColor:'#e2e8f0', stopOpacity:1}} />
-                      </linearGradient>
-                      
-                      {/* Current season gradient */}
-                      <linearGradient id="currentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style={{stopColor:'#fbbf24', stopOpacity:1}} />
-                        <stop offset="100%" style={{stopColor:'#f59e0b', stopOpacity:1}} />
-                      </linearGradient>
-                      
-                      {/* Previous year gradient */}
-                      <linearGradient id="previousGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style={{stopColor:'#f59e0b', stopOpacity:0.8}} />
-                        <stop offset="100%" style={{stopColor:'#d97706', stopOpacity:0.8}} />
-                      </linearGradient>
-                      
-                      {/* 2 years ago gradient */}
-                      <linearGradient id="oldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style={{stopColor:'#d97706', stopOpacity:0.5}} />
-                        <stop offset="100%" style={{stopColor:'#b45309', stopOpacity:0.5}} />
-                      </linearGradient>
-                      
-                      {/* Card gradients */}
-                      <linearGradient id="card1Gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style={{stopColor:'#10b981', stopOpacity:1}} />
-                        <stop offset="100%" style={{stopColor:'#047857', stopOpacity:1}} />
-                      </linearGradient>
-                      
-                      <linearGradient id="card2Gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style={{stopColor:'#3b82f6', stopOpacity:1}} />
-                        <stop offset="100%" style={{stopColor:'#1e40af', stopOpacity:1}} />
-                      </linearGradient>
-                      
-                      <linearGradient id="card3Gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style={{stopColor:'#dc2626', stopOpacity:1}} />
-                        <stop offset="100%" style={{stopColor:'#991b1b', stopOpacity:1}} />
-                      </linearGradient>
-                      
-                      {/* Drop shadow filter */}
-                      <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="#000000" floodOpacity="0.1"/>
-                      </filter>
-                      
-                      {/* Glow effect */}
-                      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                        <feMerge> 
-                          <feMergeNode in="coloredBlur"/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                      
-                      {/* Flow gradient for movement lines */}
-                      <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" style={{stopColor:'#3b82f6', stopOpacity:0.8}} />
-                        <stop offset="50%" style={{stopColor:'#8b5cf6', stopOpacity:1}} />
-                        <stop offset="100%" style={{stopColor:'#ec4899', stopOpacity:0.8}} />
-                      </linearGradient>
-                    </defs>
-                    
-                    {/* Modern background */}
-                    <rect x="0" y="0" width="400" height="200" fill="url(#bgGradient)" rx="12"/>
-                    
-                    {/* Title with modern typography */}
-                    <text x="200" y="25" textAnchor="middle" fontSize="14" fill="#1f2937" fontWeight="600" fontFamily="system-ui">
-                      Evolución Temporal
-                    </text>
-                    
-                    {/* Modern time zones with glassmorphism effect */}
-                    <g>
-                      {/* Current Season Zone */}
-                      <rect x="20" y="40" width="100" height="120" fill="url(#currentGradient)" rx="12" filter="url(#dropShadow)" opacity="0.95">
-                        <animate attributeName="opacity" values="0.95;1;0.95" dur="4s" begin="0s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="70" y="60" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">ACTUAL</text>
-                      <text x="70" y="75" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">100% peso</text>
-                      
-                      {/* Previous Year Zone */}
-                      <rect x="140" y="40" width="100" height="120" fill="url(#previousGradient)" rx="12" filter="url(#dropShadow)" opacity="0.8">
-                        <animate attributeName="opacity" values="0.8;0.9;0.8" dur="4s" begin="1s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="190" y="60" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">ANTERIOR</text>
-                      <text x="190" y="75" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">80% peso</text>
-                      
-                      {/* 2 Years Ago Zone */}
-                      <rect x="260" y="40" width="100" height="120" fill="url(#oldGradient)" rx="12" filter="url(#dropShadow)" opacity="0.6">
-                        <animate attributeName="opacity" values="0.6;0.7;0.6" dur="4s" begin="2s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="310" y="60" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">-2 AÑOS</text>
-                      <text x="310" y="75" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">50% peso</text>
-                    </g>
-                    
-                    {/* Modern floating result cards */}
-                    <g>
-                      {/* First wave - Modern cards with gradients and shadows */}
-                      <rect x="30" y="85" width="80" height="25" fill="url(#card1Gradient)" rx="8" filter="url(#dropShadow)" opacity="1">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="0s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="70" y="100" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="0s" repeatCount="indefinite"/>
-                        Equipo A
-                      </text>
-                      <text x="70" y="110" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="0s" repeatCount="indefinite"/>
-                        1000 pts
-                      </text>
-                      
-                      <rect x="30" y="115" width="80" height="25" fill="url(#card1Gradient)" rx="8" filter="url(#dropShadow)" opacity="1">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="0.5s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="70" y="130" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="0.5s" repeatCount="indefinite"/>
-                        Equipo B
-                      </text>
-                      <text x="70" y="140" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="0.5s" repeatCount="indefinite"/>
-                        800 pts
-                      </text>
-                      
-                      <rect x="30" y="145" width="80" height="25" fill="url(#card1Gradient)" rx="8" filter="url(#dropShadow)" opacity="1">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="1s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="1s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="70" y="160" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="1s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="1s" repeatCount="indefinite"/>
-                        Equipo C
-                      </text>
-                      <text x="70" y="170" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="1s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="1s" repeatCount="indefinite"/>
-                        600 pts
-                      </text>
-                    </g>
-                    
-                    {/* Second wave - Blue gradient cards */}
-                    <g>
-                      <rect x="30" y="85" width="80" height="25" fill="url(#card2Gradient)" rx="8" filter="url(#dropShadow)" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="2s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="70" y="100" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="2s" repeatCount="indefinite"/>
-                        Equipo D
-                      </text>
-                      <text x="70" y="110" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="2s" repeatCount="indefinite"/>
-                        1200 pts
-                      </text>
-                      
-                      <rect x="30" y="115" width="80" height="25" fill="url(#card2Gradient)" rx="8" filter="url(#dropShadow)" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="2.5s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="70" y="130" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="2.5s" repeatCount="indefinite"/>
-                        Equipo E
-                      </text>
-                      <text x="70" y="140" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="2.5s" repeatCount="indefinite"/>
-                        900 pts
-                      </text>
-                      
-                      <rect x="30" y="145" width="80" height="25" fill="url(#card2Gradient)" rx="8" filter="url(#dropShadow)" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="3s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="3s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="70" y="160" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="3s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="3s" repeatCount="indefinite"/>
-                        Equipo F
-                      </text>
-                      <text x="70" y="170" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="3s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="3s" repeatCount="indefinite"/>
-                        700 pts
-                      </text>
-                    </g>
-                    
-                    {/* Third wave - Red gradient cards */}
-                    <g>
-                      <rect x="30" y="85" width="80" height="25" fill="url(#card3Gradient)" rx="8" filter="url(#dropShadow)" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="4s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="70" y="100" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="4s" repeatCount="indefinite"/>
-                        Equipo G
-                      </text>
-                      <text x="70" y="110" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="4s" repeatCount="indefinite"/>
-                        1100 pts
-                      </text>
-                      
-                      <rect x="30" y="115" width="80" height="25" fill="url(#card3Gradient)" rx="8" filter="url(#dropShadow)" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="4.5s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="70" y="130" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="4.5s" repeatCount="indefinite"/>
-                        Equipo H
-                      </text>
-                      <text x="70" y="140" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="4.5s" repeatCount="indefinite"/>
-                        850 pts
-                      </text>
-                      
-                      <rect x="30" y="145" width="80" height="25" fill="url(#card3Gradient)" rx="8" filter="url(#dropShadow)" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="5s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="70" y="160" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="5s" repeatCount="indefinite"/>
-                        Equipo I
-                      </text>
-                      <text x="70" y="170" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500" opacity="0">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="5s" repeatCount="indefinite"/>
-                        750 pts
-                      </text>
-                    </g>
-                    
-                    {/* Modern movement indicators */}
-                    <g>
-                      {/* Elegant flow lines */}
-                      <path d="M 120 97.5 L 140 97.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
-                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="1.5s" repeatCount="indefinite"/>
-                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="1.5s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 120 127.5 L 140 127.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
-                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="2s" repeatCount="indefinite"/>
-                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="2s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 120 157.5 L 140 157.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
-                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="2.5s" repeatCount="indefinite"/>
-                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="2.5s" repeatCount="indefinite"/>
-                      </path>
-                      
-                      <path d="M 120 97.5 L 140 97.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
-                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="3.5s" repeatCount="indefinite"/>
-                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="3.5s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 120 127.5 L 140 127.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
-                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="4s" repeatCount="indefinite"/>
-                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="4s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 120 157.5 L 140 157.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
-                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="4.5s" repeatCount="indefinite"/>
-                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="4.5s" repeatCount="indefinite"/>
-                      </path>
-                      
-                      <path d="M 120 97.5 L 140 97.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
-                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="5.5s" repeatCount="indefinite"/>
-                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="5.5s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 120 127.5 L 140 127.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
-                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="6s" repeatCount="indefinite"/>
-                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="6s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 120 157.5 L 140 157.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
-                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="6.5s" repeatCount="indefinite"/>
-                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="6.5s" repeatCount="indefinite"/>
-                      </path>
-                    </g>
-                    
-                    {/* Arrow marker definition */}
-                    <defs>
-                      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                        <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
-                      </marker>
-                    </defs>
-                  </svg>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -835,117 +848,12 @@ const HomePage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex-shrink-0 lg:w-1/3">
-                <div className="relative w-full h-64">
-                  <svg viewBox="0 0 400 200" className="w-full h-full">
-                    {/* Modern background with gradient */}
-                    <defs>
-                      <linearGradient id="coefBgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style={{stopColor:'#f8fafc', stopOpacity:1}} />
-                        <stop offset="100%" style={{stopColor:'#e2e8f0', stopOpacity:1}} />
-                      </linearGradient>
-                      
-                      {/* Regional coefficient gradients */}
-                      <linearGradient id="strongRegionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style={{stopColor:'#3b82f6', stopOpacity:1}} />
-                        <stop offset="100%" style={{stopColor:'#1e40af', stopOpacity:1}} />
-                      </linearGradient>
-                      
-                      <linearGradient id="mediumRegionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style={{stopColor:'#6366f1', stopOpacity:0.8}} />
-                        <stop offset="100%" style={{stopColor:'#4338ca', stopOpacity:0.8}} />
-                      </linearGradient>
-                      
-                      <linearGradient id="emergingRegionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style={{stopColor:'#8b5cf6', stopOpacity:0.6}} />
-                        <stop offset="100%" style={{stopColor:'#7c3aed', stopOpacity:0.6}} />
-                      </linearGradient>
-                      
-                      {/* Drop shadow filter */}
-                      <filter id="coefDropShadow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#000000" floodOpacity="0.1"/>
-                      </filter>
-                    </defs>
-                    
-                    {/* Modern background */}
-                    <rect x="0" y="0" width="400" height="200" fill="url(#coefBgGradient)" rx="12"/>
-                    
-                    {/* Title */}
-                    <text x="200" y="25" textAnchor="middle" fontSize="14" fill="#1f2937" fontWeight="600" fontFamily="system-ui">
-                      Cálculo del Coeficiente Regional
-                    </text>
-                    
-                    {/* Regional examples with national points */}
-                    <g>
-                      {/* Leading Region */}
-                      <rect x="20" y="50" width="100" height="80" fill="url(#strongRegionGradient)" rx="8" filter="url(#coefDropShadow)" opacity="1">
-                        <animate attributeName="opacity" values="1;0.9;1" dur="3s" begin="0s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="70" y="70" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">MADRID</text>
-                      <text x="70" y="85" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">5000 pts nacionales</text>
-                      <text x="70" y="100" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">Coef. 1.2</text>
-                      <text x="70" y="115" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">(Máximo)</text>
-                      
-                      {/* Medium Region */}
-                      <rect x="140" y="50" width="100" height="80" fill="url(#mediumRegionGradient)" rx="8" filter="url(#coefDropShadow)" opacity="0.8">
-                        <animate attributeName="opacity" values="0.8;0.9;0.8" dur="3s" begin="1s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="190" y="70" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">CATALUÑA</text>
-                      <text x="190" y="85" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">3500 pts nacionales</text>
-                      <text x="190" y="100" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">Coef. 1.0</text>
-                      <text x="190" y="115" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">(Proporcional)</text>
-                      
-                      {/* Lowest Region */}
-                      <rect x="260" y="50" width="100" height="80" fill="url(#emergingRegionGradient)" rx="8" filter="url(#coefDropShadow)" opacity="0.6">
-                        <animate attributeName="opacity" values="0.6;0.8;0.6" dur="3s" begin="2s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="310" y="70" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">CANARIAS</text>
-                      <text x="310" y="85" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">2000 pts nacionales</text>
-                      <text x="310" y="100" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">Coef. 0.8</text>
-                      <text x="310" y="115" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">(Mínimo)</text>
-                    </g>
-                    
-                    {/* Calculation arrows */}
-                    <g>
-                      <path d="M 130 90 L 140 90" stroke="#6b7280" strokeWidth="2" fill="none" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="3s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 250 90 L 260 90" stroke="#6b7280" strokeWidth="2" fill="none" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="3.5s" repeatCount="indefinite"/>
-                      </path>
-                    </g>
-                    
-                    {/* Regional tournament points application */}
-                    <g>
-                      <rect x="50" y="150" width="80" height="30" fill="#10b981" rx="6" filter="url(#coefDropShadow)" opacity="0.9">
-                        <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" begin="4s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="90" y="170" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">1000 × 1.2</text>
-                      
-                      <rect x="150" y="150" width="80" height="30" fill="#059669" rx="6" filter="url(#coefDropShadow)" opacity="0.8">
-                        <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" begin="4.5s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="190" y="170" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">1000 × 1.0</text>
-                      
-                      <rect x="250" y="150" width="80" height="30" fill="#047857" rx="6" filter="url(#coefDropShadow)" opacity="0.6">
-                        <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="5s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="290" y="170" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">1000 × 0.8</text>
-                    </g>
-                  </svg>
-                </div>
-              </div>
             </div>
           </div>
 
           {/* Step 5: Final Ranking */}
           <div className="py-12">
             <div className="flex flex-col lg:flex-row-reverse items-center gap-8">
-              <div className="flex-shrink-0">
-                <div className="w-24 h-24 bg-purple-500 rounded-full flex items-center justify-center shadow-lg">
-                  <Award className="h-12 w-12 text-white" />
-                </div>
-              </div>
               <div className="flex-1 text-center lg:text-left">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
                   <span className="bg-purple-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 5</span>
@@ -996,388 +904,6 @@ const HomePage: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Detailed Formula Section */}
-          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg shadow-sm border border-gray-200 p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Fórmula Completa del Ranking</h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Modalidades Incluidas</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center p-3 bg-white rounded-lg shadow-sm">
-                    <div className="w-4 h-4 bg-blue-500 rounded-full mr-3"></div>
-                    <div>
-                      <div className="font-medium text-gray-900">🏖️ Playa</div>
-                      <div className="text-sm text-gray-600">Mixto, Open, Women</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center p-3 bg-white rounded-lg shadow-sm">
-                    <div className="w-4 h-4 bg-green-500 rounded-full mr-3"></div>
-                    <div>
-                      <div className="font-medium text-gray-900">🌱 Césped</div>
-                      <div className="text-sm text-gray-600">Mixto, Open, Women</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Coeficientes Regionales</h4>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
-                    <div className="flex items-center">
-                      <Zap className="h-5 w-5 text-yellow-500 mr-2" />
-                      <span className="font-medium text-gray-900">Madrid</span>
-                    </div>
-                    <span className="font-mono bg-yellow-100 px-2 py-1 rounded text-sm">1.2x</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
-                    <div className="flex items-center">
-                      <Zap className="h-5 w-5 text-orange-500 mr-2" />
-                      <span className="font-medium text-gray-900">Cataluña</span>
-                    </div>
-                    <span className="font-mono bg-orange-100 px-2 py-1 rounded text-sm">1.1x</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
-                    <div className="flex items-center">
-                      <Zap className="h-5 w-5 text-blue-500 mr-2" />
-                      <span className="font-medium text-gray-900">Otras Regiones</span>
-                    </div>
-                    <span className="font-mono bg-blue-100 px-2 py-1 rounded text-sm">1.0x</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-8 p-6 bg-white rounded-lg shadow-sm border-2 border-blue-200">
-              <h4 className="text-lg font-semibold text-gray-900 mb-3 text-center">Ejemplo Práctico</h4>
-              <p className="text-gray-700 text-center">
-                Un equipo que queda <strong>3º lugar</strong> en un torneo de <strong>Madrid</strong> en la temporada <strong>2024-25</strong> obtiene:
-              </p>
-              <div className="mt-4 text-center">
-                <span className="font-mono text-lg bg-blue-100 px-4 py-2 rounded-lg">
-                  (300 puntos × 1.2 regional × 1.0 temporal) = <strong className="text-blue-600">360 puntos</strong>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Ranking Section - 6 Small Tables */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Ranking Actual</h2>
-              <Link
-                to="/ranking"
-                className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
-              >
-              Ver ranking completo
-                <Eye className="h-4 w-4 ml-1" />
-              </Link>
-          </div>
-
-          {/* 6 Small Ranking Tables */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Playa Mixto */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600">
-                <h3 className="text-white font-semibold text-sm">🏖️ Playa Mixto</h3>
-                </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {teamsByCategory['beach_mixed']?.slice(0, 5).map((team, index) => (
-                      <tr key={team.id} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
-                            {getChangeIcon(team.change)}
-              </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                            <div className="ml-2">
-                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
-                              <div className="text-xs text-gray-500">{team.region}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
-                <Link
-                  to="/ranking?category=beach_mixed"
-                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  Ver ranking completo →
-                </Link>
-            </div>
-          </div>
-
-            {/* Playa Women */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600">
-                <h3 className="text-white font-semibold text-sm">🏖️ Playa Women</h3>
-              </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                    {teamsByCategory['beach_women']?.slice(0, 5).map((team, index) => (
-                  <tr key={team.id} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 whitespace-nowrap">
-                      <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
-                            {getChangeIcon(team.change)}
-                      </div>
-                    </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                            <div className="ml-2">
-                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
-                              <div className="text-xs text-gray-500">{team.region}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
-                      <Link
-                  to="/ranking?category=beach_women"
-                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  Ver ranking completo →
-                </Link>
-                        </div>
-            </div>
-
-            {/* Playa Open */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600">
-                <h3 className="text-white font-semibold text-sm">🏖️ Playa Open</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {teamsByCategory['beach_open']?.slice(0, 5).map((team, index) => (
-                      <tr key={team.id} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
-                            {getChangeIcon(team.change)}
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                            <div className="ml-2">
-                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
-                              <div className="text-xs text-gray-500">{team.region}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
-                <Link
-                  to="/ranking?category=beach_open"
-                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  Ver ranking completo →
-                      </Link>
-              </div>
-            </div>
-
-            {/* Césped Mixto */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-green-500 to-green-600">
-                <h3 className="text-white font-semibold text-sm">🌱 Césped Mixto</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {teamsByCategory['grass_mixed']?.slice(0, 5).map((team, index) => (
-                      <tr key={team.id} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
-                            {getChangeIcon(team.change)}
-                          </div>
-                    </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                            <div className="ml-2">
-                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
-                              <div className="text-xs text-gray-500">{team.region}</div>
-                            </div>
-                      </div>
-                    </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
-                    </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
-                <Link
-                  to="/ranking?category=grass_mixed"
-                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  Ver ranking completo →
-                </Link>
-              </div>
-            </div>
-
-            {/* Césped Women */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600">
-                <h3 className="text-white font-semibold text-sm">🌱 Césped Women</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {teamsByCategory['grass_women']?.slice(0, 5).map((team, index) => (
-                      <tr key={team.id} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 whitespace-nowrap">
-                      <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
-                        {getChangeIcon(team.change)}
-                      </div>
-                    </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                            <div className="ml-2">
-                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
-                              <div className="text-xs text-gray-500">{team.region}</div>
-                            </div>
-                          </div>
-                    </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
-                      <Link
-                  to="/ranking?category=grass_women"
-                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                      >
-                  Ver ranking completo →
-                      </Link>
-              </div>
-            </div>
-
-            {/* Césped Open */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-teal-500 to-teal-600">
-                <h3 className="text-white font-semibold text-sm">🌱 Césped Open</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {teamsByCategory['grass_open']?.slice(0, 5).map((team, index) => (
-                      <tr key={team.id} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
-                            {getChangeIcon(team.change)}
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                            <div className="ml-2">
-                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
-                              <div className="text-xs text-gray-500">{team.region}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-              </div>
-              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
-                <Link
-                  to="/ranking?category=grass_open"
-                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  Ver ranking completo →
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Charts and Recent Tournaments */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
