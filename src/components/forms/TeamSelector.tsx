@@ -74,6 +74,15 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
     setSearchTerm('')
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' || e.key === 'Enter') {
+      e.preventDefault()
+      if (filteredTeams.length > 0) {
+        handleSelect(filteredTeams[0])
+      }
+    }
+  }
+
   return (
     <div className="relative" ref={dropdownRef}>
       <div
@@ -131,6 +140,7 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="Buscar equipo..."
                 className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 onClick={(e) => e.stopPropagation()}

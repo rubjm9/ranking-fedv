@@ -61,6 +61,7 @@ const NewTournamentPage: React.FC = () => {
   const [positions, setPositions] = useState<PositionRow[]>([])
   const [showPasteModal, setShowPasteModal] = useState(false)
   const [generatedName, setGeneratedName] = useState('')
+  const [focusNextPosition, setFocusNextPosition] = useState(false)
 
   // Cargar datos de duplicación si existen
   useEffect(() => {
@@ -299,17 +300,32 @@ const NewTournamentPage: React.FC = () => {
   }
 
   const updatePosition = (index: number, field: keyof PositionRow, value: string | number) => {
-    setPositions(prev => prev.map((pos, i) => {
-      if (i === index) {
-        const updated = { ...pos, [field]: value }
-        // Recalcular puntos si cambió la posición o el tipo de torneo
-        if (field === 'position' && formData.type) {
-          updated.points = getPointsForPosition(Number(value), formData.type)
+    setPositions(prev => {
+      const updatedPositions = prev.map((pos, i) => {
+        if (i === index) {
+          const updated = { ...pos, [field]: value }
+          // Recalcular puntos si cambió la posición o el tipo de torneo
+          if (field === 'position' && formData.type) {
+            updated.points = getPointsForPosition(Number(value), formData.type)
+          }
+          return updated
         }
-        return updated
+        return pos
+      })
+
+      // Auto-generar siguiente posición cuando se complete la tercera posición
+      if (field === 'teamId' && value && index === 2 && updatedPositions.length === 3) {
+        const newPosition = {
+          position: 4,
+          teamId: '',
+          points: getPointsForPosition(4, formData.type)
+        }
+        setFocusNextPosition(true)
+        return [...updatedPositions, newPosition]
       }
-      return pos
-    }))
+
+      return updatedPositions
+    })
   }
 
   const addPosition = () => {
@@ -383,7 +399,7 @@ const NewTournamentPage: React.FC = () => {
   }
 
   // Componente SortableItem
-  const SortableItem = ({ position, index }: { position: PositionRow; index: number }) => {
+  const SortableItem = ({ position, index, shouldFocus }: { position: PositionRow; index: number; shouldFocus?: boolean }) => {
     const {
       attributes,
       listeners,
@@ -397,6 +413,20 @@ const NewTournamentPage: React.FC = () => {
       transform: CSS.Transform.toString(transform),
       transition,
     }
+
+    // Manejar el enfoque automático
+    useEffect(() => {
+      if (shouldFocus) {
+        // Pequeño delay para asegurar que el DOM se haya actualizado
+        setTimeout(() => {
+          const teamSelector = document.querySelector(`[data-position="${position.position}"]`) as HTMLElement
+          if (teamSelector) {
+            teamSelector.click()
+          }
+        }, 100)
+        setFocusNextPosition(false)
+      }
+    }, [shouldFocus, position.position])
 
     return (
       <div
@@ -423,23 +453,25 @@ const NewTournamentPage: React.FC = () => {
           </div>
         </div>
         <div className="col-span-6">
-          <TeamSelector
-            teams={teams.filter(team => {
-              // Filtrar equipos ya seleccionados
-              const notSelected = !positions.some((pos, i) => i !== index && pos.teamId === team.id)
-              
-              // Para torneos regionales, solo mostrar equipos de esa región
-              if (formData.type === 'REGIONAL' && formData.regionId) {
-                return notSelected && team.regionId === formData.regionId
-              }
-              
-              // Para torneos nacionales, mostrar todos los equipos
-              return notSelected
-            })}
-            value={position.teamId}
-            onChange={(teamId) => updatePosition(index, 'teamId', teamId)}
-            placeholder="Seleccionar equipo"
-          />
+          <div data-position={position.position}>
+            <TeamSelector
+              teams={teams.filter(team => {
+                // Filtrar equipos ya seleccionados
+                const notSelected = !positions.some((pos, i) => i !== index && pos.teamId === team.id)
+                
+                // Para torneos regionales, solo mostrar equipos de esa región
+                if (formData.type === 'REGIONAL' && formData.regionId) {
+                  return notSelected && team.regionId === formData.regionId
+                }
+                
+                // Para torneos nacionales, mostrar todos los equipos
+                return notSelected
+              })}
+              value={position.teamId}
+              onChange={(teamId) => updatePosition(index, 'teamId', teamId)}
+              placeholder="Seleccionar equipo"
+            />
+          </div>
         </div>
         <div className="col-span-2">
           <div className="text-sm font-medium text-gray-900">
@@ -785,7 +817,12 @@ const NewTournamentPage: React.FC = () => {
                         strategy={verticalListSortingStrategy}
                       >
                         {positions.map((position, index) => (
-                          <SortableItem key={`position-${position.position}`} position={position} index={index} />
+                          <SortableItem 
+                            key={`position-${position.position}`} 
+                            position={position} 
+                            index={index} 
+                            shouldFocus={focusNextPosition && index === 3}
+                          />
                         ))}
                       </SortableContext>
                     </DndContext>
