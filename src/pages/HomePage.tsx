@@ -220,13 +220,13 @@ const HomePage: React.FC = () => {
           <div className="py-12 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row items-center gap-8">
               <div className="flex-1 text-center lg:text-left">
-                <div className="relative w-full h-64">
-                  <svg viewBox="0 0 400 200" className="w-full h-full">
-                    {/* Background */}
-                    <rect x="0" y="0" width="400" height="200" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1" rx="8"/>
-                    
-                    {/* Title */}
-                    <text x="200" y="20" textAnchor="middle" fontSize="12" fill="#374151" fontWeight="bold">SISTEMA DE PUNTOS CÉSPED MIXTO</text>
+                <div className="flex items-center justify-center lg:justify-start mb-3">
+                  <span className="bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 1</span>
+                  <h3 className="text-2xl font-bold text-gray-900">Participación</h3>
+                </div>
+                <p className="text-lg text-gray-700 mb-6">
+                  Los equipos obtienen puntos en base a las posiciones obtenidas en los compiten en torneos oficiales de la FEDV: <strong>Campeonatos de España</strong> (1ª y 2ª División) y <strong>Campeonatos Regionales</strong> (en las modalidades en las que haya). Cada combinación de modalidad y superficie tiene su propio ranking independiente.
+                </p>
                     
                     {/* Individual Tournaments */}
                     <g>
