@@ -581,171 +581,286 @@ const HomePage: React.FC = () => {
               <div className="flex-shrink-0 lg:w-1/3">
                 <div className="relative w-full h-64">
                   <svg viewBox="0 0 400 200" className="w-full h-full">
-                    {/* Background */}
-                    <rect x="0" y="0" width="400" height="200" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1" rx="8"/>
+                    {/* Modern background with gradient */}
+                    <defs>
+                      <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{stopColor:'#f8fafc', stopOpacity:1}} />
+                        <stop offset="100%" style={{stopColor:'#e2e8f0', stopOpacity:1}} />
+                      </linearGradient>
+                      
+                      {/* Current season gradient */}
+                      <linearGradient id="currentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{stopColor:'#fbbf24', stopOpacity:1}} />
+                        <stop offset="100%" style={{stopColor:'#f59e0b', stopOpacity:1}} />
+                      </linearGradient>
+                      
+                      {/* Previous year gradient */}
+                      <linearGradient id="previousGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{stopColor:'#f59e0b', stopOpacity:0.8}} />
+                        <stop offset="100%" style={{stopColor:'#d97706', stopOpacity:0.8}} />
+                      </linearGradient>
+                      
+                      {/* 2 years ago gradient */}
+                      <linearGradient id="oldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{stopColor:'#d97706', stopOpacity:0.5}} />
+                        <stop offset="100%" style={{stopColor:'#b45309', stopOpacity:0.5}} />
+                      </linearGradient>
+                      
+                      {/* Card gradients */}
+                      <linearGradient id="card1Gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{stopColor:'#10b981', stopOpacity:1}} />
+                        <stop offset="100%" style={{stopColor:'#047857', stopOpacity:1}} />
+                      </linearGradient>
+                      
+                      <linearGradient id="card2Gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{stopColor:'#3b82f6', stopOpacity:1}} />
+                        <stop offset="100%" style={{stopColor:'#1e40af', stopOpacity:1}} />
+                      </linearGradient>
+                      
+                      <linearGradient id="card3Gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{stopColor:'#dc2626', stopOpacity:1}} />
+                        <stop offset="100%" style={{stopColor:'#991b1b', stopOpacity:1}} />
+                      </linearGradient>
+                      
+                      {/* Drop shadow filter */}
+                      <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="#000000" floodOpacity="0.1"/>
+                      </filter>
+                      
+                      {/* Glow effect */}
+                      <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge> 
+                          <feMergeNode in="coloredBlur"/>
+                          <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                      </filter>
+                      
+                      {/* Flow gradient for movement lines */}
+                      <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style={{stopColor:'#3b82f6', stopOpacity:0.8}} />
+                        <stop offset="50%" style={{stopColor:'#8b5cf6', stopOpacity:1}} />
+                        <stop offset="100%" style={{stopColor:'#ec4899', stopOpacity:0.8}} />
+                      </linearGradient>
+                    </defs>
                     
-                    {/* Title */}
-                    <text x="200" y="20" textAnchor="middle" fontSize="12" fill="#374151" fontWeight="bold">EVOLUCIÓN TEMPORAL DE RESULTADOS</text>
+                    {/* Modern background */}
+                    <rect x="0" y="0" width="400" height="200" fill="url(#bgGradient)" rx="12"/>
                     
-                    {/* Time zones */}
+                    {/* Title with modern typography */}
+                    <text x="200" y="25" textAnchor="middle" fontSize="14" fill="#1f2937" fontWeight="600" fontFamily="system-ui">
+                      Evolución Temporal
+                    </text>
+                    
+                    {/* Modern time zones with glassmorphism effect */}
                     <g>
                       {/* Current Season Zone */}
-                      <rect x="20" y="40" width="100" height="120" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" rx="6" opacity="0.9">
-                        <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" begin="0s" repeatCount="indefinite"/>
+                      <rect x="20" y="40" width="100" height="120" fill="url(#currentGradient)" rx="12" filter="url(#dropShadow)" opacity="0.95">
+                        <animate attributeName="opacity" values="0.95;1;0.95" dur="4s" begin="0s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="70" y="55" textAnchor="middle" fontSize="10" fill="white" fontWeight="bold">TEMPORADA ACTUAL</text>
-                      <text x="70" y="70" textAnchor="middle" fontSize="8" fill="white">100% peso</text>
+                      <text x="70" y="60" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">ACTUAL</text>
+                      <text x="70" y="75" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">100% peso</text>
                       
                       {/* Previous Year Zone */}
-                      <rect x="140" y="40" width="100" height="120" fill="#f59e0b" stroke="#d97706" strokeWidth="2" rx="6" opacity="0.8">
-                        <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" begin="1s" repeatCount="indefinite"/>
+                      <rect x="140" y="40" width="100" height="120" fill="url(#previousGradient)" rx="12" filter="url(#dropShadow)" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;0.9;0.8" dur="4s" begin="1s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="190" y="55" textAnchor="middle" fontSize="10" fill="white" fontWeight="bold">AÑO ANTERIOR</text>
-                      <text x="190" y="70" textAnchor="middle" fontSize="8" fill="white">80% peso</text>
+                      <text x="190" y="60" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">ANTERIOR</text>
+                      <text x="190" y="75" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">80% peso</text>
                       
                       {/* 2 Years Ago Zone */}
-                      <rect x="260" y="40" width="100" height="120" fill="#d97706" stroke="#b45309" strokeWidth="2" rx="6" opacity="0.5">
-                        <animate attributeName="opacity" values="0.5;1;0.5" dur="3s" begin="2s" repeatCount="indefinite"/>
+                      <rect x="260" y="40" width="100" height="120" fill="url(#oldGradient)" rx="12" filter="url(#dropShadow)" opacity="0.6">
+                        <animate attributeName="opacity" values="0.6;0.7;0.6" dur="4s" begin="2s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="310" y="55" textAnchor="middle" fontSize="10" fill="white" fontWeight="bold">HACE 2 AÑOS</text>
-                      <text x="310" y="70" textAnchor="middle" fontSize="8" fill="white">50% peso</text>
+                      <text x="310" y="60" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">-2 AÑOS</text>
+                      <text x="310" y="75" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">50% peso</text>
                     </g>
                     
-                    {/* Results that move */}
+                    {/* Modern floating result cards */}
                     <g>
-                      {/* Initial results in current season - move to previous year and stay */}
-                      <rect x="30" y="80" width="80" height="20" fill="#10b981" stroke="#047857" strokeWidth="1" rx="3" opacity="1">
+                      {/* First wave - Modern cards with gradients and shadows */}
+                      <rect x="30" y="85" width="80" height="25" fill="url(#card1Gradient)" rx="8" filter="url(#dropShadow)" opacity="1">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;0.8" dur="8s" begin="0s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="0s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="70" y="95" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">
+                      <text x="70" y="100" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;0.8" dur="8s" begin="0s" repeatCount="indefinite"/>
-                        Equipo A: 1000 pts
+                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="0s" repeatCount="indefinite"/>
+                        Equipo A
+                      </text>
+                      <text x="70" y="110" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="0s" repeatCount="indefinite"/>
+                        1000 pts
                       </text>
                       
-                      <rect x="30" y="110" width="80" height="20" fill="#059669" stroke="#047857" strokeWidth="1" rx="3" opacity="1">
+                      <rect x="30" y="115" width="80" height="25" fill="url(#card1Gradient)" rx="8" filter="url(#dropShadow)" opacity="1">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;0.8" dur="8s" begin="0.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="0.5s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="70" y="125" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">
+                      <text x="70" y="130" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;0.8" dur="8s" begin="0.5s" repeatCount="indefinite"/>
-                        Equipo B: 800 pts
+                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="0.5s" repeatCount="indefinite"/>
+                        Equipo B
+                      </text>
+                      <text x="70" y="140" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="0.5s" repeatCount="indefinite"/>
+                        800 pts
                       </text>
                       
-                      <rect x="30" y="140" width="80" height="20" fill="#047857" stroke="#047857" strokeWidth="1" rx="3" opacity="1">
+                      <rect x="30" y="145" width="80" height="25" fill="url(#card1Gradient)" rx="8" filter="url(#dropShadow)" opacity="1">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="1s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;0.8" dur="8s" begin="1s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="1s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="70" y="155" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">
+                      <text x="70" y="160" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="1s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;0.8" dur="8s" begin="1s" repeatCount="indefinite"/>
-                        Equipo C: 600 pts
+                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="1s" repeatCount="indefinite"/>
+                        Equipo C
+                      </text>
+                      <text x="70" y="170" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="1s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.7;0.7" dur="8s" begin="1s" repeatCount="indefinite"/>
+                        600 pts
                       </text>
                     </g>
                     
-                    {/* New results appearing */}
+                    {/* Second wave - Blue gradient cards */}
                     <g>
-                      {/* New results for current season - appear after initial movement */}
-                      <rect x="30" y="80" width="80" height="20" fill="#3b82f6" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0">
+                      <rect x="30" y="85" width="80" height="25" fill="url(#card2Gradient)" rx="8" filter="url(#dropShadow)" opacity="0">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.8;0.8" dur="8s" begin="2s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="2s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="70" y="95" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
+                      <text x="70" y="100" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui" opacity="0">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.8;0.8" dur="8s" begin="2s" repeatCount="indefinite"/>
-                        Equipo D: 1200 pts
+                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="2s" repeatCount="indefinite"/>
+                        Equipo D
+                      </text>
+                      <text x="70" y="110" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500" opacity="0">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="2s" repeatCount="indefinite"/>
+                        1200 pts
                       </text>
                       
-                      <rect x="30" y="110" width="80" height="20" fill="#1d4ed8" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0">
+                      <rect x="30" y="115" width="80" height="25" fill="url(#card2Gradient)" rx="8" filter="url(#dropShadow)" opacity="0">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.8;0.8" dur="8s" begin="2.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="2.5s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="70" y="125" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
+                      <text x="70" y="130" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui" opacity="0">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.8;0.8" dur="8s" begin="2.5s" repeatCount="indefinite"/>
-                        Equipo E: 900 pts
+                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="2.5s" repeatCount="indefinite"/>
+                        Equipo E
+                      </text>
+                      <text x="70" y="140" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500" opacity="0">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="2.5s" repeatCount="indefinite"/>
+                        900 pts
                       </text>
                       
-                      <rect x="30" y="140" width="80" height="20" fill="#2563eb" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0">
+                      <rect x="30" y="145" width="80" height="25" fill="url(#card2Gradient)" rx="8" filter="url(#dropShadow)" opacity="0">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="3s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.8;0.8" dur="8s" begin="3s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="3s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="70" y="155" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
+                      <text x="70" y="160" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui" opacity="0">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="3s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;1;0.8;0.8" dur="8s" begin="3s" repeatCount="indefinite"/>
-                        Equipo F: 700 pts
+                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="3s" repeatCount="indefinite"/>
+                        Equipo F
+                      </text>
+                      <text x="70" y="170" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500" opacity="0">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="3s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0.7;0.7" dur="8s" begin="3s" repeatCount="indefinite"/>
+                        700 pts
                       </text>
                     </g>
                     
-                    {/* Third wave of results */}
+                    {/* Third wave - Red gradient cards */}
                     <g>
-                      {/* Third wave for current season */}
-                      <rect x="30" y="80" width="80" height="20" fill="#dc2626" stroke="#991b1b" strokeWidth="1" rx="3" opacity="0">
+                      <rect x="30" y="85" width="80" height="25" fill="url(#card3Gradient)" rx="8" filter="url(#dropShadow)" opacity="0">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.8" dur="8s" begin="4s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="4s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="70" y="95" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
+                      <text x="70" y="100" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui" opacity="0">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.8" dur="8s" begin="4s" repeatCount="indefinite"/>
-                        Equipo G: 1100 pts
+                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="4s" repeatCount="indefinite"/>
+                        Equipo G
+                      </text>
+                      <text x="70" y="110" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500" opacity="0">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="4s" repeatCount="indefinite"/>
+                        1100 pts
                       </text>
                       
-                      <rect x="30" y="110" width="80" height="20" fill="#b91c1c" stroke="#991b1b" strokeWidth="1" rx="3" opacity="0">
+                      <rect x="30" y="115" width="80" height="25" fill="url(#card3Gradient)" rx="8" filter="url(#dropShadow)" opacity="0">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.8" dur="8s" begin="4.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="4.5s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="70" y="125" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
+                      <text x="70" y="130" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui" opacity="0">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.8" dur="8s" begin="4.5s" repeatCount="indefinite"/>
-                        Equipo H: 850 pts
+                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="4.5s" repeatCount="indefinite"/>
+                        Equipo H
+                      </text>
+                      <text x="70" y="140" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500" opacity="0">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="4.5s" repeatCount="indefinite"/>
+                        850 pts
                       </text>
                       
-                      <rect x="30" y="140" width="80" height="20" fill="#991b1b" stroke="#991b1b" strokeWidth="1" rx="3" opacity="0">
+                      <rect x="30" y="145" width="80" height="25" fill="url(#card3Gradient)" rx="8" filter="url(#dropShadow)" opacity="0">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.8" dur="8s" begin="5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="5s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="70" y="155" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
+                      <text x="70" y="160" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui" opacity="0">
                         <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0;0;1;0.8" dur="8s" begin="5s" repeatCount="indefinite"/>
-                        Equipo I: 750 pts
+                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="5s" repeatCount="indefinite"/>
+                        Equipo I
+                      </text>
+                      <text x="70" y="170" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.9)" fontWeight="500" opacity="0">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;0;1;0.7" dur="8s" begin="5s" repeatCount="indefinite"/>
+                        750 pts
                       </text>
                     </g>
                     
-                    {/* Movement arrows */}
+                    {/* Modern movement indicators */}
                     <g>
-                      {/* First movement arrows */}
-                      <path d="M 120 90 L 140 90" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="1.5s" repeatCount="indefinite"/>
+                      {/* Elegant flow lines */}
+                      <path d="M 120 97.5 L 140 97.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
+                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="1.5s" repeatCount="indefinite"/>
+                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="1.5s" repeatCount="indefinite"/>
                       </path>
-                      <path d="M 120 120 L 140 120" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="2s" repeatCount="indefinite"/>
+                      <path d="M 120 127.5 L 140 127.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
+                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="2s" repeatCount="indefinite"/>
+                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="2s" repeatCount="indefinite"/>
                       </path>
-                      <path d="M 120 150 L 140 150" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="2.5s" repeatCount="indefinite"/>
-                      </path>
-                      
-                      {/* Second movement arrows */}
-                      <path d="M 120 90 L 140 90" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="3.5s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 120 120 L 140 120" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="4s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 120 150 L 140 150" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="4.5s" repeatCount="indefinite"/>
+                      <path d="M 120 157.5 L 140 157.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
+                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="2.5s" repeatCount="indefinite"/>
+                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="2.5s" repeatCount="indefinite"/>
                       </path>
                       
-                      {/* Third movement arrows */}
-                      <path d="M 120 90 L 140 90" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="5.5s" repeatCount="indefinite"/>
+                      <path d="M 120 97.5 L 140 97.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
+                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="3.5s" repeatCount="indefinite"/>
+                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="3.5s" repeatCount="indefinite"/>
                       </path>
-                      <path d="M 120 120 L 140 120" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="6s" repeatCount="indefinite"/>
+                      <path d="M 120 127.5 L 140 127.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
+                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="4s" repeatCount="indefinite"/>
+                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="4s" repeatCount="indefinite"/>
                       </path>
-                      <path d="M 120 150 L 140 150" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="6.5s" repeatCount="indefinite"/>
+                      <path d="M 120 157.5 L 140 157.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
+                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="4.5s" repeatCount="indefinite"/>
+                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="4.5s" repeatCount="indefinite"/>
+                      </path>
+                      
+                      <path d="M 120 97.5 L 140 97.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
+                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="5.5s" repeatCount="indefinite"/>
+                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="5.5s" repeatCount="indefinite"/>
+                      </path>
+                      <path d="M 120 127.5 L 140 127.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
+                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="6s" repeatCount="indefinite"/>
+                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="6s" repeatCount="indefinite"/>
+                      </path>
+                      <path d="M 120 157.5 L 140 157.5" stroke="url(#flowGradient)" strokeWidth="3" fill="none" opacity="0" filter="url(#glow)">
+                        <animate attributeName="opacity" values="0;0.8;0" dur="1.5s" begin="6.5s" repeatCount="indefinite"/>
+                        <animate attributeName="stroke-dasharray" values="0,20; 20,0; 0,20" dur="1.5s" begin="6.5s" repeatCount="indefinite"/>
                       </path>
                     </g>
                     
