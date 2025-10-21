@@ -303,7 +303,7 @@ const HomePage: React.FC = () => {
                   <h3 className="text-2xl font-bold text-gray-900">Participación en Torneos</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-6">
-                  Los equipos compiten en <strong>Campeonatos de España</strong> (1ª y 2ª División) y <strong>Campeonatos Regionales</strong> (CR1, CR2, CR3), obteniendo puntos según su posición final en cada competición. Cada combinación de modalidad y superficie tiene su propio ranking independiente.
+                  Los equipos obtienen puntos en base a las posiciones obtenidas en los compiten en torneos oficiales de la FEDV: <strong>Campeonatos de España</strong> (1ª y 2ª División) y <strong>Campeonatos Regionales</strong> (en las modalidades en las que haya). Cada combinación de modalidad y superficie tiene su propio ranking independiente.
                 </p>
 
                 <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-8 shadow-lg border border-gray-100">
@@ -428,11 +428,6 @@ const HomePage: React.FC = () => {
           {/* Step 2: Points Calculation */}
           <div className="py-12 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row-reverse items-center gap-8">
-              <div className="flex-shrink-0">
-                <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-                  <Target className="h-12 w-12 text-white" />
-                </div>
-              </div>
               <div className="flex-1 text-center lg:text-left">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
                   <span className="bg-green-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 2</span>
