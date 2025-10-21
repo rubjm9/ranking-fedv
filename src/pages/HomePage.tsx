@@ -192,106 +192,84 @@ const HomePage: React.FC = () => {
           {/* Step 1: Tournament Participation */}
           <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg shadow-sm border border-blue-200 p-8 mb-6">
             <div className="flex flex-col lg:flex-row items-center gap-8">
-              {/* Animation */}
-              <div className="flex-shrink-0 order-1 lg:order-1">
-                <div className="relative w-48 h-48">
-                  <svg viewBox="0 0 200 200" className="w-full h-full">
-                    {/* Background tournament field */}
-                    <rect x="20" y="20" width="160" height="160" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="2" rx="8"/>
+              {/* Animation - 1/3 width */}
+              <div className="flex-shrink-0 order-1 lg:order-1 lg:w-1/3">
+                <div className="relative w-full h-64">
+                  <svg viewBox="0 0 300 200" className="w-full h-full">
+                    {/* Background */}
+                    <rect x="0" y="0" width="300" height="200" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1" rx="8"/>
                     
-                    {/* Tournament title */}
-                    <text x="100" y="35" textAnchor="middle" fontSize="12" fill="#475569" fontWeight="bold">CAMPEONATO</text>
-                    
-                    {/* Teams competing in circular motion */}
+                    {/* Tournament categories - Simplified grid */}
                     <g>
-                      {/* Team 1 - Winner */}
-                      <circle cx="100" cy="60" r="12" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2">
-                        <animateTransform attributeName="transform" type="rotate" values="0 100 100;360 100 100" dur="6s" repeatCount="indefinite"/>
-                      </circle>
-                      <text x="100" y="65" textAnchor="middle" fontSize="8" fill="#92400e" fontWeight="bold">1º</text>
+                      {/* Beach categories */}
+                      <rect x="20" y="30" width="60" height="30" fill="#3b82f6" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="4s" begin="0s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="50" y="45" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">PLAYA</text>
+                      <text x="50" y="55" textAnchor="middle" fontSize="7" fill="white">MIXTO</text>
                       
-                      {/* Team 2 */}
-                      <circle cx="100" cy="60" r="12" fill="#c0c0c0" stroke="#9ca3af" strokeWidth="2">
-                        <animateTransform attributeName="transform" type="rotate" values="0 100 100;360 100 100" dur="6s" begin="1.5s" repeatCount="indefinite"/>
-                      </circle>
-                      <text x="100" y="65" textAnchor="middle" fontSize="8" fill="#6b7280" fontWeight="bold">2º</text>
+                      <rect x="90" y="30" width="60" height="30" fill="#1d4ed8" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="4s" begin="1s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="120" y="45" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">PLAYA</text>
+                      <text x="120" y="55" textAnchor="middle" fontSize="7" fill="white">OPEN</text>
                       
-                      {/* Team 3 */}
-                      <circle cx="100" cy="60" r="12" fill="#cd7f32" stroke="#a78bfa" strokeWidth="2">
-                        <animateTransform attributeName="transform" type="rotate" values="0 100 100;360 100 100" dur="6s" begin="3s" repeatCount="indefinite"/>
-                      </circle>
-                      <text x="100" y="65" textAnchor="middle" fontSize="8" fill="#6b7280" fontWeight="bold">3º</text>
+                      <rect x="160" y="30" width="60" height="30" fill="#2563eb" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="4s" begin="2s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="190" y="45" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">PLAYA</text>
+                      <text x="190" y="55" textAnchor="middle" fontSize="7" fill="white">WOMEN</text>
                       
-                      {/* Team 4 */}
-                      <circle cx="100" cy="60" r="12" fill="#6b7280" stroke="#4b5563" strokeWidth="2">
-                        <animateTransform attributeName="transform" type="rotate" values="0 100 100;360 100 100" dur="6s" begin="4.5s" repeatCount="indefinite"/>
-                      </circle>
-                      <text x="100" y="65" textAnchor="middle" fontSize="8" fill="#ffffff" fontWeight="bold">4º</text>
+                      {/* Grass categories */}
+                      <rect x="20" y="80" width="60" height="30" fill="#10b981" stroke="#047857" strokeWidth="1" rx="3" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="4s" begin="0.5s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="50" y="95" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">CÉSPED</text>
+                      <text x="50" y="105" textAnchor="middle" fontSize="7" fill="white">MIXTO</text>
+                      
+                      <rect x="90" y="80" width="60" height="30" fill="#059669" stroke="#047857" strokeWidth="1" rx="3" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="4s" begin="1.5s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="120" y="95" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">CÉSPED</text>
+                      <text x="120" y="105" textAnchor="middle" fontSize="7" fill="white">OPEN</text>
+                      
+                      <rect x="160" y="80" width="60" height="30" fill="#047857" stroke="#047857" strokeWidth="1" rx="3" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="4s" begin="2.5s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="190" y="95" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">CÉSPED</text>
+                      <text x="190" y="105" textAnchor="middle" fontSize="7" fill="white">WOMEN</text>
                     </g>
                     
-                    {/* Central competition area */}
-                    <circle cx="100" cy="100" r="40" fill="none" stroke="#3b82f6" strokeWidth="3" strokeDasharray="5,5" opacity="0.6">
-                      <animate attributeName="stroke-dashoffset" values="0;10" dur="1s" repeatCount="indefinite"/>
-                    </circle>
-                    
-                    {/* Points flowing from center */}
+                    {/* Simple frisbee icon */}
                     <g>
-                      {/* Points for 1st place */}
-                      <text x="100" y="50" textAnchor="middle" fontSize="11" fill="#10b981" fontWeight="bold" opacity="0.9">
-                        <animate attributeName="y" values="50;30;50" dur="2s" begin="0.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" begin="0.5s" repeatCount="indefinite"/>
-                        1000
-                      </text>
-                      
-                      {/* Points for 2nd place */}
-                      <text x="100" y="50" textAnchor="middle" fontSize="10" fill="#059669" fontWeight="bold" opacity="0.8">
-                        <animate attributeName="y" values="50;30;50" dur="2s" begin="2s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" begin="2s" repeatCount="indefinite"/>
-                        800
-                      </text>
-                      
-                      {/* Points for 3rd place */}
-                      <text x="100" y="50" textAnchor="middle" fontSize="9" fill="#047857" fontWeight="bold" opacity="0.7">
-                        <animate attributeName="y" values="50;30;50" dur="2s" begin="3.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" begin="3.5s" repeatCount="indefinite"/>
-                        600
-                      </text>
-                      
-                      {/* Points for 4th place */}
-                      <text x="100" y="50" textAnchor="middle" fontSize="8" fill="#065f46" fontWeight="bold" opacity="0.6">
-                        <animate attributeName="y" values="50;30;50" dur="2s" begin="5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="5s" repeatCount="indefinite"/>
-                        400
-                      </text>
+                      <ellipse cx="150" cy="130" rx="12" ry="4" fill="#fbbf24" stroke="#f59e0b" strokeWidth="1" opacity="0.8">
+                        <animateTransform attributeName="transform" type="rotate" values="0 150 130;360 150 130" dur="3s" repeatCount="indefinite"/>
+                      </ellipse>
+                      <text x="150" y="135" textAnchor="middle" fontSize="6" fill="#92400e" fontWeight="bold">ULTIMATE</text>
                     </g>
                     
-                    {/* Ranking positions around the circle */}
+                    {/* Results section - Simplified */}
                     <g>
-                      <text x="100" y="45" textAnchor="middle" fontSize="9" fill="#374151" fontWeight="bold">1º LUGAR</text>
-                      <text x="100" y="45" textAnchor="middle" fontSize="9" fill="#374151" fontWeight="bold">
-                        <animate attributeName="opacity" values="1;0.3;1" dur="6s" begin="0s" repeatCount="indefinite"/>
-                        1º LUGAR
-                      </text>
-                      <text x="100" y="45" textAnchor="middle" fontSize="9" fill="#374151" fontWeight="bold">
-                        <animate attributeName="opacity" values="0.3;1;0.3" dur="6s" begin="1.5s" repeatCount="indefinite"/>
-                        2º LUGAR
-                      </text>
-                      <text x="100" y="45" textAnchor="middle" fontSize="9" fill="#374151" fontWeight="bold">
-                        <animate attributeName="opacity" values="0.3;1;0.3" dur="6s" begin="3s" repeatCount="indefinite"/>
-                        3º LUGAR
-                      </text>
-                      <text x="100" y="45" textAnchor="middle" fontSize="9" fill="#374151" fontWeight="bold">
-                        <animate attributeName="opacity" values="0.3;1;0.3" dur="6s" begin="4.5s" repeatCount="indefinite"/>
-                        4º LUGAR
-                      </text>
+                      <rect x="240" y="30" width="50" height="80" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="1" rx="3"/>
+                      <text x="265" y="45" textAnchor="middle" fontSize="9" fill="#374151" fontWeight="bold">PUNTOS</text>
+                      
+                      <text x="265" y="60" textAnchor="middle" fontSize="8" fill="#10b981" fontWeight="bold">1º: 1000</text>
+                      <text x="265" y="75" textAnchor="middle" fontSize="8" fill="#059669" fontWeight="bold">2º: 800</text>
+                      <text x="265" y="90" textAnchor="middle" fontSize="8" fill="#047857" fontWeight="bold">3º: 600</text>
+                      <text x="265" y="105" textAnchor="middle" fontSize="8" fill="#065f46" fontWeight="bold">4º: 400</text>
                     </g>
                     
-                    {/* Bottom explanation */}
-                    <text x="100" y="175" textAnchor="middle" fontSize="8" fill="#6b7280">EQUIPOS COMPITIENDO</text>
+                    {/* Simple flow line */}
+                    <path d="M 150 130 L 240 70" stroke="#6b7280" strokeWidth="2" fill="none" strokeDasharray="3,3" opacity="0.6">
+                      <animate attributeName="stroke-dashoffset" values="0;6" dur="2s" repeatCount="indefinite"/>
+                    </path>
+                    
+                    {/* Title */}
+                    <text x="150" y="20" textAnchor="middle" fontSize="11" fill="#374151" fontWeight="bold">CAMPEONATOS FEDV</text>
                   </svg>
                 </div>
               </div>
-              <div className="flex-1 text-center lg:text-left">
+              <div className="flex-1 text-center lg:text-left lg:w-2/3">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
                   <span className="bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 1</span>
                   <h3 className="text-2xl font-bold text-gray-900">Participación en Torneos</h3>
