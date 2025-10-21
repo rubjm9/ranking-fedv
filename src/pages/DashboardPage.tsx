@@ -74,13 +74,6 @@ const DashboardPage: React.FC = () => {
       color: 'bg-purple-500'
     },
     {
-      name: 'Recalcular ranking',
-      description: 'Actualizar puntuaciones',
-      icon: RefreshCw,
-      href: '/admin/ranking',
-      color: 'bg-red-500'
-    },
-    {
       name: 'Configuración',
       description: 'Ajustar parámetros del sistema',
       icon: BarChart3,
@@ -136,16 +129,6 @@ const DashboardPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600">Bienvenido al panel de administración FEDV</p>
-        </div>
-        
-        <div className="flex items-center space-x-3">
-          <Link
-            to="/admin/ranking"
-            className="btn-primary"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Recalcular Ranking
-          </Link>
         </div>
       </div>
 
