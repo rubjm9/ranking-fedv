@@ -885,7 +885,7 @@ const HomePage: React.FC = () => {
                   <h3 className="text-2xl font-bold text-gray-900">Coeficiente Regional</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
-                  Se suman los puntos obtenidos por todos los equipos de cada región en campeonatos de 1ª y 2ª división (no los regionales). Se asigna un valor máximo de 1.2 y un mínimo de 0.8 y se calcula proporcionalmente el coeficiente de cada región dentro de ese rango (0.8 a 1.2) de manera que la región con mayor puntuación en nacionales tiene coeficiente de 1.2 y la que menos puntos obtiene tiene un coeficiente de 0.8.
+                  Se suman los puntos de todos los equipos de cada región en campeonatos nacionales (1ª y 2ª división). El coeficiente se calcula proporcionalmente entre 0.8 y 1.2: la región con más puntos nacionales tiene coeficiente 1.2, la que menos tiene 0.8.
                 </p>
                 <div className="bg-white rounded-lg p-4 shadow-sm">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
