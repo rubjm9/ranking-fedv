@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Filter, Trophy, Users, MapPin, Calendar, TrendingUp, TrendingDown, BarChart3, Eye, Award, Target, Clock, Zap } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { Trophy, Users, MapPin, Calendar, BarChart3, TrendingUp, TrendingDown, Eye } from 'lucide-react'
 import { homePageService, HomePageTeam, HomePageRegion, HomePageTournament, HomePageStats, RankingHistory } from '@/services/homePageService'
 import TeamLogo from '@/components/ui/TeamLogo'
 
@@ -12,7 +11,8 @@ const HomePage: React.FC = () => {
   const [teams, setTeams] = useState<HomePageTeam[]>([])
   const [teamsByCategory, setTeamsByCategory] = useState<{[key: string]: HomePageTeam[]}>({})
   const [regions, setRegions] = useState<HomePageRegion[]>([])
-  const [recentTournaments, setRecentTournaments] = useState<HomePageTournament[]>([])
+  const [completedTournaments, setCompletedTournaments] = useState<HomePageTournament[]>([])
+  const [upcomingTournaments, setUpcomingTournaments] = useState<HomePageTournament[]>([])
   const [rankingHistory, setRankingHistory] = useState<RankingHistory[]>([])
   const [mainStats, setMainStats] = useState<HomePageStats>({
     totalTeams: 0,
@@ -31,10 +31,11 @@ const HomePage: React.FC = () => {
     try {
       // Cargar todos los datos en paralelo
       const [
-        teamsData, 
-        regionsData, 
-        tournamentsData, 
-        statsData, 
+        teamsData,
+        regionsData,
+        completedTournamentsData,
+        upcomingTournamentsData,
+        statsData,
         historyData,
         beachMixedData,
         beachWomenData,
@@ -45,7 +46,8 @@ const HomePage: React.FC = () => {
       ] = await Promise.all([
         homePageService.getTopTeams(10),
         homePageService.getRegions(),
-        homePageService.getRecentTournaments(4),
+        homePageService.getCompletedTournaments(4),
+        homePageService.getUpcomingTournaments(4),
         homePageService.getMainStats(),
         homePageService.getRankingHistory(),
         homePageService.getTopTeamsByCategory('beach_mixed'),
@@ -66,7 +68,8 @@ const HomePage: React.FC = () => {
         'grass_open': grassOpenData
       })
       setRegions(regionsData)
-      setRecentTournaments(tournamentsData)
+      setCompletedTournaments(completedTournamentsData)
+      setUpcomingTournaments(upcomingTournamentsData)
       setMainStats(statsData)
       setRankingHistory(historyData)
     } catch (error) {
@@ -180,7 +183,7 @@ const HomePage: React.FC = () => {
                 <Trophy className="h-6 w-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Torneos 2024</p>
+                <p className="text-sm font-medium text-gray-600">Torneos registrados</p>
                 <p className="text-2xl font-bold text-gray-900">{mainStats.totalTournaments}</p>
               </div>
             </div>
@@ -212,7 +215,7 @@ const HomePage: React.FC = () => {
         {/* Ranking Section - 6 Small Tables */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Ranking Actual</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Ranking actual</h2>
               <Link
                 to="/ranking"
                 className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
@@ -538,7 +541,7 @@ const HomePage: React.FC = () => {
             <div className="flex flex-col lg:flex-row items-center gap-8">
               <div className="flex-1 text-center lg:text-left lg:w-2/3">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
-                  <span className="bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 1</span>
+                  <span className="bg-blue-500 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">1</span>
                   <h3 className="text-2xl font-bold text-gray-900">Participación en Torneos</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-6">
@@ -669,7 +672,7 @@ const HomePage: React.FC = () => {
             <div className="flex flex-col lg:flex-row-reverse items-center gap-8">
               <div className="flex-1 text-center lg:text-left">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
-                  <span className="bg-green-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 2</span>
+                  <span className="bg-green-500 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">2</span>
                   <h3 className="text-2xl font-bold text-gray-900">Cálculo de Puntos</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
@@ -790,7 +793,7 @@ const HomePage: React.FC = () => {
             <div className="flex flex-col lg:flex-row items-center gap-8">
               <div className="flex-1 text-center lg:text-left lg:w-2/3">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
-                  <span className="bg-yellow-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 3</span>
+                  <span className="bg-yellow-500 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">3</span>
                   <h3 className="text-2xl font-bold text-gray-900">Peso Temporal</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
@@ -825,7 +828,7 @@ const HomePage: React.FC = () => {
             <div className="flex flex-col lg:flex-row items-center gap-8">
               <div className="flex-1 text-center lg:text-left lg:w-2/3">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
-                  <span className="bg-indigo-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 4</span>
+                  <span className="bg-indigo-500 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">4</span>
                   <h3 className="text-2xl font-bold text-gray-900">Coeficiente Regional</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
@@ -856,7 +859,7 @@ const HomePage: React.FC = () => {
             <div className="flex flex-col lg:flex-row-reverse items-center gap-8">
               <div className="flex-1 text-center lg:text-left">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
-                  <span className="bg-purple-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 5</span>
+                  <span className="bg-purple-500 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">5</span>
                   <h3 className="text-2xl font-bold text-gray-900">Rankings Combinados</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
@@ -904,39 +907,28 @@ const HomePage: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
 
-        {/* Charts and Recent Tournaments */}
+        {/* Torneos Pasados y Próximos Torneos */}
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Torneos</h2>
+          <p className="text-lg text-gray-600">Consulta los torneos pasados y próximos</p>
+        </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Ranking Evolution Chart */}
+          {/* Torneos Pasados */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Evolución del Ranking</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={rankingHistory}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="totalTeams" stroke="#3B82F6" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-            <p className="text-xs text-gray-500 mt-2 text-center">
-              Número total de equipos activos
-            </p>
-          </div>
-
-          {/* Recent Tournaments */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Torneos Recientes</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Torneos pasados</h3>
             <div className="space-y-4">
-              {recentTournaments.map((tournament) => (
+              {completedTournaments.map((tournament) => (
                 <Link
                   key={tournament.id}
                   to={`/tournaments/${tournament.id}`}
                   className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mr-4">
-                      <Trophy className="h-5 w-5 text-primary-600" />
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                      <Trophy className="h-5 w-5 text-green-600" />
                     </div>
                     <div>
                       <h4 className="font-medium text-gray-900">{tournament.name}</h4>
@@ -946,10 +938,62 @@ const HomePage: React.FC = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(tournament.status)}`}>
-                      {getStatusLabel(tournament.status)}
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                      Finalizado
                     </span>
-                    <p className="text-sm text-gray-500 mt-1">{tournament.startDate}</p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {new Date(tournament.startDate).toLocaleDateString('es-ES', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric' 
+                      })}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-4 text-center">
+              <Link
+                to="/tournaments"
+                className="text-primary-600 hover:text-primary-700 font-medium"
+              >
+                Ver todos los torneos
+              </Link>
+            </div>
+          </div>
+
+          {/* Próximos Torneos */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Próximos torneos</h3>
+            <div className="space-y-4">
+              {upcomingTournaments.map((tournament) => (
+                <Link
+                  key={tournament.id}
+                  to={`/tournaments/${tournament.id}`}
+                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                      <Calendar className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">{tournament.name}</h4>
+                      <p className="text-sm text-gray-500">
+                        {getTournamentTypeLabel(tournament.type)} • {tournament.teams} equipos
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                      Próximo
+                    </span>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {new Date(tournament.startDate).toLocaleDateString('es-ES', { 
+                        day: '2-digit', 
+                        month: '2-digit', 
+                        year: 'numeric' 
+                      })}
+                    </p>
                   </div>
                 </Link>
               ))}
@@ -1010,7 +1054,7 @@ const HomePage: React.FC = () => {
             </div>
           </Link>
         </div>
-
+      </div>
         </>
       )}
     </div>

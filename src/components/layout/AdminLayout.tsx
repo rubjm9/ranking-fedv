@@ -16,7 +16,8 @@ import {
   Shield,
   Clock,
   GitCompare,
-  Database
+  Database,
+  RefreshCw
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -32,6 +33,7 @@ const AdminLayout: React.FC = () => {
     { name: 'Regiones', href: '/admin/regions', icon: MapPin },
     { name: 'Torneos', href: '/admin/tournaments', icon: Calendar },
     { name: 'Ranking', href: '/admin/ranking', icon: TrendingUp },
+    { name: 'Actualizar Rankings', href: '/admin/ranking-update', icon: RefreshCw },
     { name: 'Temporadas', href: '/admin/seasons', icon: Clock },
     { name: 'Comparar Sistemas', href: '/admin/ranking-comparison', icon: GitCompare },
     { name: 'Diagnóstico DB', href: '/admin/database-diagnostic', icon: Database },
