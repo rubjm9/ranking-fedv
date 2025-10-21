@@ -887,44 +887,40 @@ const HomePage: React.FC = () => {
               <div className="flex-1 text-center lg:text-left">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
                   <span className="bg-purple-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 4</span>
-                  <h3 className="text-2xl font-bold text-gray-900">Clasificación Final</h3>
+                  <h3 className="text-2xl font-bold text-gray-900">Rankings Combinados</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
-                  Se suman todos los puntos ponderados de todas las temporadas y modalidades para obtener la posición final en el ranking.
+                  Mediante la suma de diversos rankings se obtienen rankings combinados, así como un ranking global de equipos o de clubes.
                 </p>
                 
                 <div className="bg-white rounded-lg p-6 shadow-sm mb-4">
-                  <h4 className="font-semibold text-gray-900 mb-4">Rankings Combinados</h4>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Además de los rankings específicos por modalidad, existen rankings combinados que suman puntos de múltiples categorías:
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
-                      <div className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
-                        <div className="font-medium text-gray-900">🏖️ Ranking Playa</div>
-                        <div className="text-sm text-gray-600">Suma: Mixto + Open + Women (Playa)</div>
+                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="font-medium text-gray-900">Mixto</div>
+                        <div className="text-sm text-gray-600">Playa Mixto + Césped Mixto</div>
                       </div>
-                      <div className="p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
-                        <div className="font-medium text-gray-900">🌱 Ranking Césped</div>
-                        <div className="text-sm text-gray-600">Suma: Mixto + Open + Women (Césped)</div>
+                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="font-medium text-gray-900">Women</div>
+                        <div className="text-sm text-gray-600">Playa Women + Césped Women</div>
                       </div>
-                      <div className="p-3 bg-purple-50 rounded-lg border-l-4 border-purple-500">
-                        <div className="font-medium text-gray-900">👥 Ranking Mixto</div>
-                        <div className="text-sm text-gray-600">Suma: Playa Mixto + Césped Mixto</div>
+                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="font-medium text-gray-900">Open</div>
+                        <div className="text-sm text-gray-600">Playa Open + Césped Open</div>
                       </div>
                     </div>
                     <div className="space-y-3">
-                      <div className="p-3 bg-orange-50 rounded-lg border-l-4 border-orange-500">
-                        <div className="font-medium text-gray-900">⚡ Ranking Open</div>
-                        <div className="text-sm text-gray-600">Suma: Playa Open + Césped Open</div>
+                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="font-medium text-gray-900">Playa</div>
+                        <div className="text-sm text-gray-600">Mixto + Open + Women (Playa)</div>
                       </div>
-                      <div className="p-3 bg-pink-50 rounded-lg border-l-4 border-pink-500">
-                        <div className="font-medium text-gray-900">👩 Ranking Women</div>
-                        <div className="text-sm text-gray-600">Suma: Playa Women + Césped Women</div>
+                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="font-medium text-gray-900">Césped</div>
+                        <div className="text-sm text-gray-600">Mixto + Open + Women (Césped)</div>
                       </div>
-                      <div className="p-3 bg-gray-50 rounded-lg border-l-4 border-gray-500">
-                        <div className="font-medium text-gray-900">🌍 Ranking Global</div>
-                        <div className="text-sm text-gray-600">Suma: Todas las modalidades</div>
+                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="font-medium text-gray-900">Global</div>
+                        <div className="text-sm text-gray-600">Todas las modalidades</div>
                       </div>
                     </div>
                   </div>
