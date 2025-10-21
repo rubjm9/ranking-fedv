@@ -227,10 +227,6 @@ const HomePage: React.FC = () => {
                 <p className="text-lg text-gray-700 mb-6">
                   Los equipos obtienen puntos en base a las posiciones obtenidas en los compiten en torneos oficiales de la FEDV: <strong>Campeonatos de España</strong> (1ª y 2ª División) y <strong>Campeonatos Regionales</strong> (en las modalidades en las que haya). Cada combinación de modalidad y superficie tiene su propio ranking independiente.
                 </p>
-                    
-                    {/* Individual Tournaments */}
-                    <g>
-                      {/* Regional Tournament */}
                       <rect x="20" y="40" width="70" height="25" fill="#fbbf24" stroke="#f59e0b" strokeWidth="1" rx="3" opacity="0.9">
                         <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" begin="0s" repeatCount="indefinite"/>
                       </rect>
@@ -355,7 +351,7 @@ const HomePage: React.FC = () => {
                         </div>
                         <div className="space-y-3">
                           <div className="group p-4 bg-white rounded-lg border border-blue-200 hover:shadow-md transition-all duration-200 hover:border-blue-300">
-                            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
                               <div className="flex items-center">
                                 <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
                                 <span className="font-medium text-gray-700">Mixto</span>
@@ -1160,14 +1156,14 @@ const HomePage: React.FC = () => {
         {/* Ranking Section - 6 Small Tables */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Ranking Actual</h2>
-            <Link
-              to="/ranking"
-              className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
-            >
+              <h2 className="text-2xl font-bold text-gray-900">Ranking Actual</h2>
+              <Link
+                to="/ranking"
+                className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
+              >
               Ver ranking completo
-              <Eye className="h-4 w-4 ml-1" />
-            </Link>
+                <Eye className="h-4 w-4 ml-1" />
+              </Link>
           </div>
 
           {/* 6 Small Ranking Tables */}
@@ -1176,7 +1172,7 @@ const HomePage: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-4 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600">
                 <h3 className="text-white font-semibold text-sm">🏖️ Playa Mixto</h3>
-              </div>
+                </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -1193,7 +1189,7 @@ const HomePage: React.FC = () => {
                           <div className="flex items-center">
                             <span className="text-sm font-medium text-gray-900">{index + 1}</span>
                             {getChangeIcon(team.change)}
-                          </div>
+              </div>
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap">
                           <div className="flex items-center">
@@ -1219,32 +1215,32 @@ const HomePage: React.FC = () => {
                 >
                   Ver ranking completo →
                 </Link>
-              </div>
             </div>
+          </div>
 
             {/* Playa Women */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600">
                 <h3 className="text-white font-semibold text-sm">🏖️ Playa Women</h3>
               </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
                     {teamsByCategory['beach_women']?.slice(0, 5).map((team, index) => (
-                      <tr key={team.id} className="hover:bg-gray-50">
+                  <tr key={team.id} className="hover:bg-gray-50">
                         <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
+                      <div className="flex items-center">
                             <span className="text-sm font-medium text-gray-900">{index + 1}</span>
                             {getChangeIcon(team.change)}
-                          </div>
-                        </td>
+                      </div>
+                    </td>
                         <td className="px-3 py-2 whitespace-nowrap">
                           <div className="flex items-center">
                             <TeamLogo name={team.name} logo={team.logo} size="sm" />
@@ -1263,13 +1259,13 @@ const HomePage: React.FC = () => {
                 </table>
               </div>
               <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
-                <Link
+                      <Link
                   to="/ranking?category=beach_women"
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
                 >
                   Ver ranking completo →
                 </Link>
-              </div>
+                        </div>
             </div>
 
             {/* Playa Open */}
@@ -1318,7 +1314,7 @@ const HomePage: React.FC = () => {
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
                 >
                   Ver ranking completo →
-                </Link>
+                      </Link>
               </div>
             </div>
 
@@ -1344,7 +1340,7 @@ const HomePage: React.FC = () => {
                             <span className="text-sm font-medium text-gray-900">{index + 1}</span>
                             {getChangeIcon(team.change)}
                           </div>
-                        </td>
+                    </td>
                         <td className="px-3 py-2 whitespace-nowrap">
                           <div className="flex items-center">
                             <TeamLogo name={team.name} logo={team.logo} size="sm" />
@@ -1352,11 +1348,11 @@ const HomePage: React.FC = () => {
                               <div className="text-sm font-medium text-gray-900">{team.name}</div>
                               <div className="text-xs text-gray-500">{team.region}</div>
                             </div>
-                          </div>
-                        </td>
+                      </div>
+                    </td>
                         <td className="px-3 py-2 whitespace-nowrap">
                           <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
-                        </td>
+                    </td>
                       </tr>
                     ))}
                   </tbody>
@@ -1390,11 +1386,11 @@ const HomePage: React.FC = () => {
                     {teamsByCategory['grass_women']?.slice(0, 5).map((team, index) => (
                       <tr key={team.id} className="hover:bg-gray-50">
                         <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
+                      <div className="flex items-center">
                             <span className="text-sm font-medium text-gray-900">{index + 1}</span>
-                            {getChangeIcon(team.change)}
-                          </div>
-                        </td>
+                        {getChangeIcon(team.change)}
+                      </div>
+                    </td>
                         <td className="px-3 py-2 whitespace-nowrap">
                           <div className="flex items-center">
                             <TeamLogo name={team.name} logo={team.logo} size="sm" />
@@ -1403,7 +1399,7 @@ const HomePage: React.FC = () => {
                               <div className="text-xs text-gray-500">{team.region}</div>
                             </div>
                           </div>
-                        </td>
+                    </td>
                         <td className="px-3 py-2 whitespace-nowrap">
                           <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
                         </td>
@@ -1413,12 +1409,12 @@ const HomePage: React.FC = () => {
                 </table>
               </div>
               <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
-                <Link
+                      <Link
                   to="/ranking?category=grass_women"
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                >
+                      >
                   Ver ranking completo →
-                </Link>
+                      </Link>
               </div>
             </div>
 
@@ -1456,11 +1452,11 @@ const HomePage: React.FC = () => {
                         </td>
                         <td className="px-3 py-2 whitespace-nowrap">
                           <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
               </div>
               <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
                 <Link
