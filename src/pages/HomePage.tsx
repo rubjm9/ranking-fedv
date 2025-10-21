@@ -885,21 +885,21 @@ const HomePage: React.FC = () => {
                   <h3 className="text-2xl font-bold text-gray-900">Coeficiente Regional</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
-                  Los puntos obtenidos en campeonatos regionales se multiplican por un coeficiente que refleja el nivel competitivo de cada región.
+                  Se suman los puntos obtenidos por todos los equipos de cada región en campeonatos de 1ª y 2ª división (no los regionales). Se asigna un valor máximo de 1.2 y un mínimo de 0.8 y se calcula proporcionalmente el coeficiente de cada región dentro de ese rango (0.8 a 1.2) de manera que la región con mayor puntuación en nacionales tiene coeficiente de 1.2 y la que menos puntos obtiene tiene un coeficiente de 0.8.
                 </p>
                 <div className="bg-white rounded-lg p-4 shadow-sm">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div className="text-center">
-                      <div className="font-bold text-gray-900">Regiones Fuertes</div>
-                      <div className="text-indigo-600 font-semibold">Coef. 1.0-1.2</div>
+                      <div className="font-bold text-gray-900">Región Líder</div>
+                      <div className="text-indigo-600 font-semibold">Coef. 1.2</div>
                     </div>
                     <div className="text-center">
                       <div className="font-bold text-gray-900">Regiones Medias</div>
-                      <div className="text-indigo-600 font-semibold">Coef. 0.7-0.9</div>
+                      <div className="text-indigo-600 font-semibold">Coef. 0.9-1.1</div>
                     </div>
                     <div className="text-center">
-                      <div className="font-bold text-gray-900">Regiones Emergentes</div>
-                      <div className="text-indigo-600 font-semibold">Coef. 0.4-0.6</div>
+                      <div className="font-bold text-gray-900">Región Menor</div>
+                      <div className="text-indigo-600 font-semibold">Coef. 0.8</div>
                     </div>
                   </div>
                 </div>
@@ -944,34 +944,34 @@ const HomePage: React.FC = () => {
                       Cálculo del Coeficiente Regional
                     </text>
                     
-                    {/* Regional examples */}
+                    {/* Regional examples with national points */}
                     <g>
-                      {/* Strong Region */}
+                      {/* Leading Region */}
                       <rect x="20" y="50" width="100" height="80" fill="url(#strongRegionGradient)" rx="8" filter="url(#coefDropShadow)" opacity="1">
                         <animate attributeName="opacity" values="1;0.9;1" dur="3s" begin="0s" repeatCount="indefinite"/>
                       </rect>
                       <text x="70" y="70" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">MADRID</text>
-                      <text x="70" y="85" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">Coef. 1.2</text>
-                      <text x="70" y="100" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">1000 pts</text>
-                      <text x="70" y="115" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">× 1.2 = 1200</text>
+                      <text x="70" y="85" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">5000 pts nacionales</text>
+                      <text x="70" y="100" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">Coef. 1.2</text>
+                      <text x="70" y="115" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">(Máximo)</text>
                       
                       {/* Medium Region */}
                       <rect x="140" y="50" width="100" height="80" fill="url(#mediumRegionGradient)" rx="8" filter="url(#coefDropShadow)" opacity="0.8">
                         <animate attributeName="opacity" values="0.8;0.9;0.8" dur="3s" begin="1s" repeatCount="indefinite"/>
                       </rect>
                       <text x="190" y="70" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">CATALUÑA</text>
-                      <text x="190" y="85" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">Coef. 0.8</text>
-                      <text x="190" y="100" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">1000 pts</text>
-                      <text x="190" y="115" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">× 0.8 = 800</text>
+                      <text x="190" y="85" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">3500 pts nacionales</text>
+                      <text x="190" y="100" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">Coef. 1.0</text>
+                      <text x="190" y="115" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">(Proporcional)</text>
                       
-                      {/* Emerging Region */}
+                      {/* Lowest Region */}
                       <rect x="260" y="50" width="100" height="80" fill="url(#emergingRegionGradient)" rx="8" filter="url(#coefDropShadow)" opacity="0.6">
                         <animate attributeName="opacity" values="0.6;0.8;0.6" dur="3s" begin="2s" repeatCount="indefinite"/>
                       </rect>
                       <text x="310" y="70" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">CANARIAS</text>
-                      <text x="310" y="85" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">Coef. 0.5</text>
-                      <text x="310" y="100" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">1000 pts</text>
-                      <text x="310" y="115" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">× 0.5 = 500</text>
+                      <text x="310" y="85" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">2000 pts nacionales</text>
+                      <text x="310" y="100" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">Coef. 0.8</text>
+                      <text x="310" y="115" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">(Mínimo)</text>
                     </g>
                     
                     {/* Calculation arrows */}
@@ -984,22 +984,22 @@ const HomePage: React.FC = () => {
                       </path>
                     </g>
                     
-                    {/* Result comparison */}
+                    {/* Regional tournament points application */}
                     <g>
                       <rect x="50" y="150" width="80" height="30" fill="#10b981" rx="6" filter="url(#coefDropShadow)" opacity="0.9">
                         <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" begin="4s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="90" y="170" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">1200 pts</text>
+                      <text x="90" y="170" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">1000 × 1.2</text>
                       
                       <rect x="150" y="150" width="80" height="30" fill="#059669" rx="6" filter="url(#coefDropShadow)" opacity="0.8">
                         <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" begin="4.5s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="190" y="170" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">800 pts</text>
+                      <text x="190" y="170" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">1000 × 1.0</text>
                       
                       <rect x="250" y="150" width="80" height="30" fill="#047857" rx="6" filter="url(#coefDropShadow)" opacity="0.6">
                         <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="5s" repeatCount="indefinite"/>
                       </rect>
-                      <text x="290" y="170" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">500 pts</text>
+                      <text x="290" y="170" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">1000 × 0.8</text>
                     </g>
                   </svg>
                 </div>
