@@ -17,6 +17,7 @@ export interface HomePageTeam {
   tournaments: number
   change: number
   lastUpdate: string
+  category?: string
 }
 
 export interface HomePageRegion {
@@ -57,6 +58,72 @@ class HomePageService {
   /**
    * Obtener equipos para el ranking principal de la homepage
    */
+  async getTopTeamsByCategory(category: string, limit: number = 5): Promise<HomePageTeam[]> {
+    try {
+      // Obtener ranking específico por categoría
+      const categoryRanking = await hybridRankingService.getRankingFromSeasonPoints(category, '2024-25')
+      
+      // Obtener información de equipos y regiones
+      const teamIds = categoryRanking.slice(0, limit).map(team => team.team_id)
+      
+      const { data: teamsData, error: teamsError } = await supabase
+        .from('teams')
+        .select(`
+          id,
+          name,
+          logo,
+          region:regions(name)
+        `)
+        .in('id', teamIds)
+
+      if (teamsError) throw teamsError
+
+      // Crear mapa de equipos para acceso rápido
+      const teamsMap = new Map(teamsData?.map(team => [team.id, team]) || [])
+
+      // Obtener estadísticas de torneos por equipo
+      const { data: tournamentStats, error: statsError } = await supabase
+        .from('positions')
+        .select('teamId')
+        .in('teamId', teamIds)
+
+      if (statsError) throw statsError
+
+      // Contar torneos por equipo
+      const tournamentCounts = new Map<string, number>()
+      tournamentStats?.forEach(stat => {
+        const count = tournamentCounts.get(stat.teamId) || 0
+        tournamentCounts.set(stat.teamId, count + 1)
+      })
+
+      // Combinar datos y crear resultado
+      const result: HomePageTeam[] = categoryRanking.slice(0, limit).map((ranking, index) => {
+        const teamData = teamsMap.get(ranking.team_id)
+        const regionName = teamData?.region?.name || 'Sin región'
+        
+        return {
+          id: ranking.team_id,
+          name: teamData?.name || 'Equipo desconocido',
+          region: regionName,
+          regionCode: regionName.toLowerCase().replace(/\s+/g, '_'),
+          logo: teamData?.logo,
+          currentRank: index + 1,
+          previousRank: index + 1, // TODO: Implementar ranking anterior
+          points: ranking.total_points || 0,
+          tournaments: tournamentCounts.get(ranking.team_id) || 0,
+          change: 0, // TODO: Implementar cambio de posición
+          lastUpdate: new Date().toISOString(),
+          category: category
+        }
+      })
+
+      return result
+    } catch (error) {
+      console.error('Error obteniendo equipos top por categoría:', error)
+      return []
+    }
+  }
+
   async getTopTeams(limit: number = 10): Promise<HomePageTeam[]> {
     try {
       // Obtener ranking general combinado (todos los puntos)

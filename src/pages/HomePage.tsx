@@ -10,6 +10,7 @@ const HomePage: React.FC = () => {
   const [selectedRegion, setSelectedRegion] = useState('all')
   const [selectedYear, setSelectedYear] = useState('all')
   const [teams, setTeams] = useState<HomePageTeam[]>([])
+  const [teamsByCategory, setTeamsByCategory] = useState<{[key: string]: HomePageTeam[]}>({})
   const [regions, setRegions] = useState<HomePageRegion[]>([])
   const [recentTournaments, setRecentTournaments] = useState<HomePageTournament[]>([])
   const [rankingHistory, setRankingHistory] = useState<RankingHistory[]>([])
@@ -29,15 +30,41 @@ const HomePage: React.FC = () => {
     setIsLoading(true)
     try {
       // Cargar todos los datos en paralelo
-      const [teamsData, regionsData, tournamentsData, statsData, historyData] = await Promise.all([
+      const [
+        teamsData, 
+        regionsData, 
+        tournamentsData, 
+        statsData, 
+        historyData,
+        beachMixedData,
+        beachWomenData,
+        beachOpenData,
+        grassMixedData,
+        grassWomenData,
+        grassOpenData
+      ] = await Promise.all([
         homePageService.getTopTeams(10),
         homePageService.getRegions(),
         homePageService.getRecentTournaments(4),
         homePageService.getMainStats(),
-        homePageService.getRankingHistory()
+        homePageService.getRankingHistory(),
+        homePageService.getTopTeamsByCategory('beach_mixed'),
+        homePageService.getTopTeamsByCategory('beach_women'),
+        homePageService.getTopTeamsByCategory('beach_open'),
+        homePageService.getTopTeamsByCategory('grass_mixed'),
+        homePageService.getTopTeamsByCategory('grass_women'),
+        homePageService.getTopTeamsByCategory('grass_open')
       ])
 
       setTeams(teamsData)
+      setTeamsByCategory({
+        'beach_mixed': beachMixedData,
+        'beach_women': beachWomenData,
+        'beach_open': beachOpenData,
+        'grass_mixed': grassMixedData,
+        'grass_women': grassWomenData,
+        'grass_open': grassOpenData
+      })
       setRegions(regionsData)
       setRecentTournaments(tournamentsData)
       setMainStats(statsData)
@@ -1160,7 +1187,7 @@ const HomePage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredTeams.filter(team => team.category === 'beach_mixed').slice(0, 5).map((team, index) => (
+                    {teamsByCategory['beach_mixed']?.slice(0, 5).map((team, index) => (
                       <tr key={team.id} className="hover:bg-gray-50">
                         <td className="px-3 py-2 whitespace-nowrap">
                           <div className="flex items-center">
@@ -1210,7 +1237,7 @@ const HomePage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredTeams.filter(team => team.category === 'beach_women').slice(0, 5).map((team, index) => (
+                    {teamsByCategory['beach_women']?.slice(0, 5).map((team, index) => (
                       <tr key={team.id} className="hover:bg-gray-50">
                         <td className="px-3 py-2 whitespace-nowrap">
                           <div className="flex items-center">
@@ -1260,7 +1287,7 @@ const HomePage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredTeams.filter(team => team.category === 'beach_open').slice(0, 5).map((team, index) => (
+                    {teamsByCategory['beach_open']?.slice(0, 5).map((team, index) => (
                       <tr key={team.id} className="hover:bg-gray-50">
                         <td className="px-3 py-2 whitespace-nowrap">
                           <div className="flex items-center">
@@ -1310,7 +1337,7 @@ const HomePage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredTeams.filter(team => team.category === 'grass_mixed').slice(0, 5).map((team, index) => (
+                    {teamsByCategory['grass_mixed']?.slice(0, 5).map((team, index) => (
                       <tr key={team.id} className="hover:bg-gray-50">
                         <td className="px-3 py-2 whitespace-nowrap">
                           <div className="flex items-center">
@@ -1360,7 +1387,7 @@ const HomePage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredTeams.filter(team => team.category === 'grass_women').slice(0, 5).map((team, index) => (
+                    {teamsByCategory['grass_women']?.slice(0, 5).map((team, index) => (
                       <tr key={team.id} className="hover:bg-gray-50">
                         <td className="px-3 py-2 whitespace-nowrap">
                           <div className="flex items-center">
@@ -1410,7 +1437,7 @@ const HomePage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredTeams.filter(team => team.category === 'grass_open').slice(0, 5).map((team, index) => (
+                    {teamsByCategory['grass_open']?.slice(0, 5).map((team, index) => (
                       <tr key={team.id} className="hover:bg-gray-50">
                         <td className="px-3 py-2 whitespace-nowrap">
                           <div className="flex items-center">
