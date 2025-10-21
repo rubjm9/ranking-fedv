@@ -549,129 +549,7 @@ const HomePage: React.FC = () => {
           {/* Step 3: Time Weighting */}
           <div className="py-12 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row items-center gap-8">
-              <div className="flex-shrink-0">
-                <div className="relative w-64 h-48">
-                  <svg viewBox="0 0 300 200" className="w-full h-full">
-                    {/* Background */}
-                    <rect x="0" y="0" width="300" height="200" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1" rx="8"/>
-                    
-                    {/* Title */}
-                    <text x="150" y="20" textAnchor="middle" fontSize="12" fill="#374151" fontWeight="bold">PESO TEMPORAL DE PUNTOS</text>
-                    
-                    {/* Timeline */}
-                    <g>
-                      {/* Current Season */}
-                      <rect x="20" y="50" width="50" height="30" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" rx="4" opacity="1">
-                        <animate attributeName="opacity" values="1;0.8;1" dur="2s" begin="0s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="45" y="65" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">ACTUAL</text>
-                      <text x="45" y="75" textAnchor="middle" fontSize="7" fill="white">100%</text>
-                      
-                      {/* 1 Year Ago */}
-                      <rect x="20" y="90" width="50" height="30" fill="#f59e0b" stroke="#d97706" strokeWidth="2" rx="4" opacity="0.8">
-                        <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" begin="0.5s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="45" y="105" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">-1 AÑO</text>
-                      <text x="45" y="115" textAnchor="middle" fontSize="7" fill="white">80%</text>
-                      
-                      {/* 2 Years Ago */}
-                      <rect x="20" y="130" width="50" height="30" fill="#d97706" stroke="#b45309" strokeWidth="2" rx="4" opacity="0.5">
-                        <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" begin="1s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="45" y="145" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">-2 AÑOS</text>
-                      <text x="45" y="155" textAnchor="middle" fontSize="7" fill="white">50%</text>
-                      
-                      {/* 3 Years Ago */}
-                      <rect x="20" y="170" width="50" height="30" fill="#b45309" stroke="#92400e" strokeWidth="2" rx="4" opacity="0.2">
-                        <animate attributeName="opacity" values="0.2;1;0.2" dur="2s" begin="1.5s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="45" y="185" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">-3 AÑOS</text>
-                      <text x="45" y="195" textAnchor="middle" fontSize="7" fill="white">20%</text>
-                    </g>
-                    
-                    {/* Decay arrows */}
-                    <g>
-                      <path d="M 80 65 L 120 65" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="2s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 80 105 L 120 105" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="2.5s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 80 145 L 120 145" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="3s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 80 185 L 120 185" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="3.5s" repeatCount="indefinite"/>
-                      </path>
-                    </g>
-                    
-                    {/* Weighted points */}
-                    <g>
-                      {/* Current weighted */}
-                      <rect x="130" y="50" width="60" height="30" fill="#10b981" stroke="#047857" strokeWidth="2" rx="4" opacity="1">
-                        <animate attributeName="opacity" values="1;0.8;1" dur="2s" begin="4s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="160" y="65" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">1000 pts</text>
-                      <text x="160" y="75" textAnchor="middle" fontSize="7" fill="white">× 1.0</text>
-                      
-                      {/* 1 year weighted */}
-                      <rect x="130" y="90" width="60" height="30" fill="#059669" stroke="#047857" strokeWidth="2" rx="4" opacity="0.8">
-                        <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" begin="4.5s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="160" y="105" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">800 pts</text>
-                      <text x="160" y="115" textAnchor="middle" fontSize="7" fill="white">× 0.8</text>
-                      
-                      {/* 2 years weighted */}
-                      <rect x="130" y="130" width="60" height="30" fill="#047857" stroke="#047857" strokeWidth="2" rx="4" opacity="0.5">
-                        <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" begin="5s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="160" y="145" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">500 pts</text>
-                      <text x="160" y="155" textAnchor="middle" fontSize="7" fill="white">× 0.5</text>
-                      
-                      {/* 3 years weighted */}
-                      <rect x="130" y="170" width="60" height="30" fill="#065f46" stroke="#047857" strokeWidth="2" rx="4" opacity="0.2">
-                        <animate attributeName="opacity" values="0.2;1;0.2" dur="2s" begin="5.5s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="160" y="185" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">200 pts</text>
-                      <text x="160" y="195" textAnchor="middle" fontSize="7" fill="white">× 0.2</text>
-                    </g>
-                    
-                    {/* Final sum */}
-                    <g>
-                      <path d="M 200 65 L 240 65" stroke="#1e40af" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="6s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 200 105 L 240 105" stroke="#1e40af" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="6.5s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 200 145 L 240 145" stroke="#1e40af" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="7s" repeatCount="indefinite"/>
-                      </path>
-                      <path d="M 200 185 L 240 185" stroke="#1e40af" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="7.5s" repeatCount="indefinite"/>
-                      </path>
-                    </g>
-                    
-                    {/* Total */}
-                    <g>
-                      <rect x="250" y="100" width="40" height="60" fill="#1e40af" stroke="#1e40af" strokeWidth="2" rx="4" opacity="0.9">
-                        <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" begin="8s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="270" y="120" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">TOTAL</text>
-                      <text x="270" y="135" textAnchor="middle" fontSize="7" fill="white">2500 pts</text>
-                      <text x="270" y="150" textAnchor="middle" fontSize="6" fill="white">ponderados</text>
-                    </g>
-                    
-                    {/* Arrow marker definition */}
-                    <defs>
-                      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                        <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
-                      </marker>
-                    </defs>
-                  </svg>
-                </div>
-              </div>
-              <div className="flex-1 text-center lg:text-left">
+              <div className="flex-1 text-center lg:text-left lg:w-2/3">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
                   <span className="bg-yellow-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 3</span>
                   <h3 className="text-2xl font-bold text-gray-900">Peso Temporal</h3>
@@ -698,6 +576,133 @@ const HomePage: React.FC = () => {
                       <div className="text-yellow-600 font-semibold">20%</div>
                     </div>
                   </div>
+                </div>
+              </div>
+              <div className="flex-shrink-0 lg:w-1/3">
+                <div className="relative w-full h-64">
+                  <svg viewBox="0 0 400 200" className="w-full h-full">
+                    {/* Background */}
+                    <rect x="0" y="0" width="400" height="200" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1" rx="8"/>
+                    
+                    {/* Title */}
+                    <text x="200" y="20" textAnchor="middle" fontSize="12" fill="#374151" fontWeight="bold">EVOLUCIÓN TEMPORAL DE RESULTADOS</text>
+                    
+                    {/* Time zones */}
+                    <g>
+                      {/* Current Season Zone */}
+                      <rect x="20" y="40" width="100" height="120" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2" rx="6" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" begin="0s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="70" y="55" textAnchor="middle" fontSize="10" fill="white" fontWeight="bold">TEMPORADA ACTUAL</text>
+                      <text x="70" y="70" textAnchor="middle" fontSize="8" fill="white">100% peso</text>
+                      
+                      {/* Previous Year Zone */}
+                      <rect x="140" y="40" width="100" height="120" fill="#f59e0b" stroke="#d97706" strokeWidth="2" rx="6" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" begin="1s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="190" y="55" textAnchor="middle" fontSize="10" fill="white" fontWeight="bold">AÑO ANTERIOR</text>
+                      <text x="190" y="70" textAnchor="middle" fontSize="8" fill="white">80% peso</text>
+                      
+                      {/* 2 Years Ago Zone */}
+                      <rect x="260" y="40" width="100" height="120" fill="#d97706" stroke="#b45309" strokeWidth="2" rx="6" opacity="0.5">
+                        <animate attributeName="opacity" values="0.5;1;0.5" dur="3s" begin="2s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="310" y="55" textAnchor="middle" fontSize="10" fill="white" fontWeight="bold">HACE 2 AÑOS</text>
+                      <text x="310" y="70" textAnchor="middle" fontSize="8" fill="white">50% peso</text>
+                    </g>
+                    
+                    {/* Results that move */}
+                    <g>
+                      {/* Initial results in current season */}
+                      <rect x="30" y="80" width="80" height="20" fill="#10b981" stroke="#047857" strokeWidth="1" rx="3" opacity="1">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 240,0; 0,0" dur="6s" begin="0s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;0.5;1" dur="6s" begin="0s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="70" y="95" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 240,0; 0,0" dur="6s" begin="0s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;0.5;1" dur="6s" begin="0s" repeatCount="indefinite"/>
+                        Equipo A: 1000 pts
+                      </text>
+                      
+                      <rect x="30" y="110" width="80" height="20" fill="#059669" stroke="#047857" strokeWidth="1" rx="3" opacity="1">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 240,0; 0,0" dur="6s" begin="0.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;0.5;1" dur="6s" begin="0.5s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="70" y="125" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 240,0; 0,0" dur="6s" begin="0.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;0.5;1" dur="6s" begin="0.5s" repeatCount="indefinite"/>
+                        Equipo B: 800 pts
+                      </text>
+                      
+                      <rect x="30" y="140" width="80" height="20" fill="#047857" stroke="#047857" strokeWidth="1" rx="3" opacity="1">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 240,0; 0,0" dur="6s" begin="1s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;0.5;1" dur="6s" begin="1s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="70" y="155" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 240,0; 0,0" dur="6s" begin="1s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;0.5;1" dur="6s" begin="1s" repeatCount="indefinite"/>
+                        Equipo C: 600 pts
+                      </text>
+                    </g>
+                    
+                    {/* New results appearing */}
+                    <g>
+                      {/* New results for current season */}
+                      <rect x="30" y="80" width="80" height="20" fill="#3b82f6" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="3s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="70" y="95" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="3s" repeatCount="indefinite"/>
+                        Equipo D: 1200 pts
+                      </text>
+                      
+                      <rect x="30" y="110" width="80" height="20" fill="#1d4ed8" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="3.5s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="70" y="125" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="3.5s" repeatCount="indefinite"/>
+                        Equipo E: 900 pts
+                      </text>
+                      
+                      <rect x="30" y="140" width="80" height="20" fill="#2563eb" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="4s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="70" y="155" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="4s" repeatCount="indefinite"/>
+                        Equipo F: 700 pts
+                      </text>
+                    </g>
+                    
+                    {/* Movement arrows */}
+                    <g>
+                      <path d="M 120 90 L 140 90" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="2s" repeatCount="indefinite"/>
+                      </path>
+                      <path d="M 120 120 L 140 120" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="2.5s" repeatCount="indefinite"/>
+                      </path>
+                      <path d="M 120 150 L 140 150" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="3s" repeatCount="indefinite"/>
+                      </path>
+                      
+                      <path d="M 240 90 L 260 90" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="4s" repeatCount="indefinite"/>
+                      </path>
+                      <path d="M 240 120 L 260 120" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="4.5s" repeatCount="indefinite"/>
+                      </path>
+                      <path d="M 240 150 L 260 150" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="5s" repeatCount="indefinite"/>
+                      </path>
+                    </g>
+                    
+                    {/* Arrow marker definition */}
+                    <defs>
+                      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+                      </marker>
+                    </defs>
+                  </svg>
                 </div>
               </div>
             </div>
