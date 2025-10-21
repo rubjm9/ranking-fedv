@@ -195,77 +195,105 @@ const HomePage: React.FC = () => {
               {/* Animation - 1/3 width */}
               <div className="flex-shrink-0 order-1 lg:order-1 lg:w-1/3">
                 <div className="relative w-full h-64">
-                  <svg viewBox="0 0 300 200" className="w-full h-full">
+                  <svg viewBox="0 0 400 200" className="w-full h-full">
                     {/* Background */}
-                    <rect x="0" y="0" width="300" height="200" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1" rx="8"/>
-                    
-                    {/* Tournament categories - Simplified grid */}
-                    <g>
-                      {/* Beach categories */}
-                      <rect x="20" y="30" width="60" height="30" fill="#3b82f6" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0.9">
-                        <animate attributeName="opacity" values="0.9;1;0.9" dur="4s" begin="0s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="50" y="45" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">PLAYA</text>
-                      <text x="50" y="55" textAnchor="middle" fontSize="7" fill="white">MIXTO</text>
-                      
-                      <rect x="90" y="30" width="60" height="30" fill="#1d4ed8" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0.9">
-                        <animate attributeName="opacity" values="0.9;1;0.9" dur="4s" begin="1s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="120" y="45" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">PLAYA</text>
-                      <text x="120" y="55" textAnchor="middle" fontSize="7" fill="white">OPEN</text>
-                      
-                      <rect x="160" y="30" width="60" height="30" fill="#2563eb" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0.9">
-                        <animate attributeName="opacity" values="0.9;1;0.9" dur="4s" begin="2s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="190" y="45" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">PLAYA</text>
-                      <text x="190" y="55" textAnchor="middle" fontSize="7" fill="white">WOMEN</text>
-                      
-                      {/* Grass categories */}
-                      <rect x="20" y="80" width="60" height="30" fill="#10b981" stroke="#047857" strokeWidth="1" rx="3" opacity="0.9">
-                        <animate attributeName="opacity" values="0.9;1;0.9" dur="4s" begin="0.5s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="50" y="95" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">CÉSPED</text>
-                      <text x="50" y="105" textAnchor="middle" fontSize="7" fill="white">MIXTO</text>
-                      
-                      <rect x="90" y="80" width="60" height="30" fill="#059669" stroke="#047857" strokeWidth="1" rx="3" opacity="0.9">
-                        <animate attributeName="opacity" values="0.9;1;0.9" dur="4s" begin="1.5s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="120" y="95" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">CÉSPED</text>
-                      <text x="120" y="105" textAnchor="middle" fontSize="7" fill="white">OPEN</text>
-                      
-                      <rect x="160" y="80" width="60" height="30" fill="#047857" stroke="#047857" strokeWidth="1" rx="3" opacity="0.9">
-                        <animate attributeName="opacity" values="0.9;1;0.9" dur="4s" begin="2.5s" repeatCount="indefinite"/>
-                      </rect>
-                      <text x="190" y="95" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">CÉSPED</text>
-                      <text x="190" y="105" textAnchor="middle" fontSize="7" fill="white">WOMEN</text>
-                    </g>
-                    
-                    {/* Simple frisbee icon */}
-                    <g>
-                      <ellipse cx="150" cy="130" rx="12" ry="4" fill="#fbbf24" stroke="#f59e0b" strokeWidth="1" opacity="0.8">
-                        <animateTransform attributeName="transform" type="rotate" values="0 150 130;360 150 130" dur="3s" repeatCount="indefinite"/>
-                      </ellipse>
-                      <text x="150" y="135" textAnchor="middle" fontSize="6" fill="#92400e" fontWeight="bold">ULTIMATE</text>
-                    </g>
-                    
-                    {/* Results section - Simplified */}
-                    <g>
-                      <rect x="240" y="30" width="50" height="80" fill="#f3f4f6" stroke="#d1d5db" strokeWidth="1" rx="3"/>
-                      <text x="265" y="45" textAnchor="middle" fontSize="9" fill="#374151" fontWeight="bold">PUNTOS</text>
-                      
-                      <text x="265" y="60" textAnchor="middle" fontSize="8" fill="#10b981" fontWeight="bold">1º: 1000</text>
-                      <text x="265" y="75" textAnchor="middle" fontSize="8" fill="#059669" fontWeight="bold">2º: 800</text>
-                      <text x="265" y="90" textAnchor="middle" fontSize="8" fill="#047857" fontWeight="bold">3º: 600</text>
-                      <text x="265" y="105" textAnchor="middle" fontSize="8" fill="#065f46" fontWeight="bold">4º: 400</text>
-                    </g>
-                    
-                    {/* Simple flow line */}
-                    <path d="M 150 130 L 240 70" stroke="#6b7280" strokeWidth="2" fill="none" strokeDasharray="3,3" opacity="0.6">
-                      <animate attributeName="stroke-dashoffset" values="0;6" dur="2s" repeatCount="indefinite"/>
-                    </path>
+                    <rect x="0" y="0" width="400" height="200" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1" rx="8"/>
                     
                     {/* Title */}
-                    <text x="150" y="20" textAnchor="middle" fontSize="11" fill="#374151" fontWeight="bold">CAMPEONATOS FEDV</text>
+                    <text x="200" y="20" textAnchor="middle" fontSize="12" fill="#374151" fontWeight="bold">SISTEMA DE PUNTOS CÉSPED MIXTO</text>
+                    
+                    {/* Individual Tournaments */}
+                    <g>
+                      {/* Regional Tournament */}
+                      <rect x="20" y="40" width="70" height="25" fill="#fbbf24" stroke="#f59e0b" strokeWidth="1" rx="3" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" begin="0s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="55" y="55" textAnchor="middle" fontSize="7" fill="white" fontWeight="bold">REGIONAL</text>
+                      <text x="55" y="65" textAnchor="middle" fontSize="6" fill="white">300 pts</text>
+                      
+                      {/* Spain 2nd Division */}
+                      <rect x="20" y="80" width="70" height="25" fill="#c0c0c0" stroke="#9ca3af" strokeWidth="1" rx="3" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" begin="0.5s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="55" y="95" textAnchor="middle" fontSize="7" fill="white" fontWeight="bold">ESPAÑA 2ª</text>
+                      <text x="55" y="105" textAnchor="middle" fontSize="6" fill="white">600 pts</text>
+                      
+                      {/* Spain 1st Division */}
+                      <rect x="20" y="120" width="70" height="25" fill="#fbbf24" stroke="#f59e0b" strokeWidth="1" rx="3" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" begin="1s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="55" y="135" textAnchor="middle" fontSize="7" fill="white" fontWeight="bold">ESPAÑA 1ª</text>
+                      <text x="55" y="145" textAnchor="middle" fontSize="6" fill="white">1000 pts</text>
+                    </g>
+                    
+                    {/* Summation arrows */}
+                    <g>
+                      <path d="M 90 52 L 120 52" stroke="#10b981" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
+                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+                      </path>
+                      <path d="M 90 92 L 120 92" stroke="#10b981" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
+                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="2s" repeatCount="indefinite"/>
+                      </path>
+                      <path d="M 90 132 L 120 132" stroke="#10b981" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
+                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="2.5s" repeatCount="indefinite"/>
+                      </path>
+                    </g>
+                    
+                    {/* Césped Mixto Result */}
+                    <g>
+                      <rect x="130" y="70" width="80" height="40" fill="#10b981" stroke="#047857" strokeWidth="2" rx="4" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" begin="3s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="170" y="85" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">CÉSPED MIXTO</text>
+                      <text x="170" y="100" textAnchor="middle" fontSize="7" fill="white">1900 pts</text>
+                    </g>
+                    
+                    {/* Other categories */}
+                    <g>
+                      {/* Césped Open */}
+                      <rect x="130" y="120" width="80" height="25" fill="#059669" stroke="#047857" strokeWidth="1" rx="3" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" begin="3.5s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="170" y="135" textAnchor="middle" fontSize="7" fill="white" fontWeight="bold">CÉSPED OPEN</text>
+                      <text x="170" y="145" textAnchor="middle" fontSize="6" fill="white">1500 pts</text>
+                      
+                      {/* Césped Women */}
+                      <rect x="130" y="150" width="80" height="25" fill="#047857" stroke="#047857" strokeWidth="1" rx="3" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" begin="4s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="170" y="165" textAnchor="middle" fontSize="7" fill="white" fontWeight="bold">CÉSPED WOMEN</text>
+                      <text x="170" y="175" textAnchor="middle" fontSize="6" fill="white">1200 pts</text>
+                    </g>
+                    
+                    {/* Final combination arrows */}
+                    <g>
+                      <path d="M 210 90 L 250 90" stroke="#1e40af" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
+                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="4.5s" repeatCount="indefinite"/>
+                      </path>
+                      <path d="M 210 132 L 250 132" stroke="#1e40af" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
+                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="5s" repeatCount="indefinite"/>
+                      </path>
+                      <path d="M 210 162 L 250 162" stroke="#1e40af" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)">
+                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="5.5s" repeatCount="indefinite"/>
+                      </path>
+                    </g>
+                    
+                    {/* Final Ranking */}
+                    <g>
+                      <rect x="260" y="100" width="120" height="60" fill="#1e40af" stroke="#1e40af" strokeWidth="2" rx="6" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" begin="6s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="320" y="120" textAnchor="middle" fontSize="10" fill="white" fontWeight="bold">RANKING CÉSPED</text>
+                      <text x="320" y="135" textAnchor="middle" fontSize="8" fill="white">4600 pts totales</text>
+                      <text x="320" y="150" textAnchor="middle" fontSize="7" fill="white">Mixto + Open + Women</text>
+                    </g>
+                    
+                    {/* Arrow marker definition */}
+                    <defs>
+                      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/>
+                      </marker>
+                    </defs>
                   </svg>
                 </div>
               </div>
