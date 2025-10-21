@@ -313,17 +313,6 @@ const NewTournamentPage: React.FC = () => {
         return pos
       })
 
-      // Auto-generar siguiente posición cuando se complete la tercera posición
-      if (field === 'teamId' && value && index === 2 && updatedPositions.length === 3) {
-        const newPosition = {
-          position: 4,
-          teamId: '',
-          points: getPointsForPosition(4, formData.type)
-        }
-        setFocusNextPosition(true)
-        return [...updatedPositions, newPosition]
-      }
-
       return updatedPositions
     })
   }
@@ -334,7 +323,18 @@ const NewTournamentPage: React.FC = () => {
     // Si fue seleccionado por teclado, enfocar el siguiente puesto disponible
     if (viaKeyboard) {
       const nextIndex = index + 1
-      if (nextIndex < positions.length) {
+      
+      // Auto-generar siguiente posición si es necesario (especialmente para el puesto 3)
+      if (index === 2 && positions.length === 3) {
+        addPosition()
+        setTimeout(() => {
+          // Buscar el elemento del puesto 4 que acabamos de crear
+          const newTeamSelector = document.querySelector(`[data-position="4"]`) as HTMLElement
+          if (newTeamSelector) {
+            newTeamSelector.click()
+          }
+        }, 200)
+      } else if (nextIndex < positions.length) {
         // Enfocar el siguiente puesto existente
         setTimeout(() => {
           const nextPosition = positions[nextIndex]
@@ -352,7 +352,7 @@ const NewTournamentPage: React.FC = () => {
           if (newTeamSelector) {
             newTeamSelector.click()
           }
-        }, 100)
+        }, 200)
       }
     }
   }
