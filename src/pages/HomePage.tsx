@@ -1010,7 +1010,7 @@ const HomePage: React.FC = () => {
             </div>
           </Link>
         </div>
-      </div>
+
         </>
       )}
     </div>
