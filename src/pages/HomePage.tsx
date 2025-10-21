@@ -190,7 +190,7 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Step 1: Tournament Participation */}
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg shadow-sm border border-blue-200 p-8 mb-6">
+          <div className="py-12 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row items-center gap-8">
               {/* Animation - 1/3 width */}
               <div className="flex-shrink-0 order-1 lg:order-1 lg:w-1/3">
@@ -322,7 +322,7 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Step 2: Points Calculation */}
-          <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg shadow-sm border border-green-200 p-8 mb-6">
+          <div className="py-12 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row-reverse items-center gap-8">
               <div className="flex-shrink-0">
                 <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
@@ -417,7 +417,7 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Step 3: Time Weighting */}
-          <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg shadow-sm border border-yellow-200 p-8 mb-6">
+          <div className="py-12 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row items-center gap-8">
               <div className="flex-shrink-0">
                 <div className="w-24 h-24 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg">
@@ -457,7 +457,7 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Step 4: Final Ranking */}
-          <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg shadow-sm border border-purple-200 p-8 mb-6">
+          <div className="py-12">
             <div className="flex flex-col lg:flex-row-reverse items-center gap-8">
               <div className="flex-shrink-0">
                 <div className="w-24 h-24 bg-purple-500 rounded-full flex items-center justify-center shadow-lg">
