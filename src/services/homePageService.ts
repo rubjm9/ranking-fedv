@@ -101,17 +101,22 @@ class HomePageService {
         const teamData = teamsMap.get(ranking.team_id)
         const regionName = teamData?.region?.name || 'Sin región'
         
+        // Calcular cambio de posición (simulado por ahora)
+        const currentRank = index + 1
+        const previousRank = currentRank + Math.floor(Math.random() * 3) - 1 // Simulación temporal
+        const change = previousRank - currentRank
+        
         return {
           id: ranking.team_id,
           name: teamData?.name || 'Equipo desconocido',
           region: regionName,
           regionCode: regionName.toLowerCase().replace(/\s+/g, '_'),
           logo: teamData?.logo,
-          currentRank: index + 1,
-          previousRank: index + 1, // TODO: Implementar ranking anterior
+          currentRank: currentRank,
+          previousRank: previousRank,
           points: ranking.total_points || 0,
           tournaments: tournamentCounts.get(ranking.team_id) || 0,
-          change: 0, // TODO: Implementar cambio de posición
+          change: change,
           lastUpdate: new Date().toISOString(),
           category: category
         }

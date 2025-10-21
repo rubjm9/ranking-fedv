@@ -1174,7 +1174,7 @@ const HomePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Playa Mixto */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600">
+              <div className="px-4 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600">
                 <h3 className="text-white font-semibold text-sm">🏖️ Playa Mixto</h3>
               </div>
               <div className="overflow-x-auto">
@@ -1224,7 +1224,7 @@ const HomePage: React.FC = () => {
 
             {/* Playa Women */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-pink-500 to-pink-600">
+              <div className="px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600">
                 <h3 className="text-white font-semibold text-sm">🏖️ Playa Women</h3>
               </div>
               <div className="overflow-x-auto">
