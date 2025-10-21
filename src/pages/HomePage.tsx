@@ -192,8 +192,7 @@ const HomePage: React.FC = () => {
           {/* Step 1: Tournament Participation */}
           <div className="py-12 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row items-center gap-8">
-              {/* Animation - 1/3 width */}
-              <div className="flex-shrink-0 order-1 lg:order-1 lg:w-1/3">
+              <div className="flex-1 text-center lg:text-left">
                 <div className="relative w-full h-64">
                   <svg viewBox="0 0 400 200" className="w-full h-full">
                     {/* Background */}
@@ -1131,148 +1130,320 @@ const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Ranking Section */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-12">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">Ranking Actual</h2>
-              <Link
-                to="/ranking"
-                className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
-              >
-                Ver completo
-                <Eye className="h-4 w-4 ml-1" />
-              </Link>
-            </div>
+        {/* Ranking Section - 6 Small Tables */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Ranking Actual</h2>
+            <Link
+              to="/ranking"
+              className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
+            >
+              Ver ranking completo
+              <Eye className="h-4 w-4 ml-1" />
+            </Link>
           </div>
 
-          {/* Filters */}
-          <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Buscar equipos..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
+          {/* 6 Small Ranking Tables */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Playa Mixto */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600">
+                <h3 className="text-white font-semibold text-sm">🏖️ Playa Mixto</h3>
               </div>
-              <div className="flex gap-4">
-                <select
-                  value={selectedRegion}
-                  onChange={(e) => setSelectedRegion(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredTeams.filter(team => team.category === 'beach_mixed').slice(0, 5).map((team, index) => (
+                      <tr key={team.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
+                            {getChangeIcon(team.change)}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            <div className="ml-2">
+                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                              <div className="text-xs text-gray-500">{team.region}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+                <Link
+                  to="/ranking?category=beach_mixed"
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
                 >
-                  <option value="all">Todas las regiones</option>
-                  {regions.map((region) => (
-                    <option key={region.id} value={region.code}>
-                      {region.name}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="all">Todos los años</option>
-                  <option value="2024">2024</option>
-                  <option value="2023">2023</option>
-                  <option value="2022">2022</option>
-                </select>
+                  Ver ranking completo →
+                </Link>
               </div>
             </div>
-          </div>
 
-          {/* Ranking Table */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Posición
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Equipo
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Región
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Puntos
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cambio
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Torneos
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredTeams.slice(0, 10).map((team) => (
-                  <tr key={team.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <span className="text-sm font-medium text-gray-900">{team.currentRank}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Link
-                        to={`/teams/${team.id}`}
-                        className="flex items-center text-sm font-medium text-gray-900 hover:text-primary-600"
-                      >
-                        <TeamLogo 
-                          name={team.name} 
-                          logo={team.logo} 
-                          size="sm"
-                        />
-                        <div className="ml-3">
-                          <div>{team.name}</div>
-                        </div>
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">
-                        {team.region || 'Sin región'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        {getChangeIcon(team.change)}
-                        <span className={`ml-1 text-sm font-medium ${
-                          team.change > 0 ? 'text-green-600' : 
-                          team.change < 0 ? 'text-red-600' : 'text-gray-500'
-                        }`}>
-                          {getChangeText(team.change)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{team.tournaments}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Link
-                        to={`/teams/${team.id}`}
-                        className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-                      >
-                        Ver detalles
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {/* Playa Women */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-pink-500 to-pink-600">
+                <h3 className="text-white font-semibold text-sm">🏖️ Playa Women</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredTeams.filter(team => team.category === 'beach_women').slice(0, 5).map((team, index) => (
+                      <tr key={team.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
+                            {getChangeIcon(team.change)}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            <div className="ml-2">
+                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                              <div className="text-xs text-gray-500">{team.region}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+                <Link
+                  to="/ranking?category=beach_women"
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Ver ranking completo →
+                </Link>
+              </div>
+            </div>
+
+            {/* Playa Open */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600">
+                <h3 className="text-white font-semibold text-sm">🏖️ Playa Open</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredTeams.filter(team => team.category === 'beach_open').slice(0, 5).map((team, index) => (
+                      <tr key={team.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
+                            {getChangeIcon(team.change)}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            <div className="ml-2">
+                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                              <div className="text-xs text-gray-500">{team.region}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+                <Link
+                  to="/ranking?category=beach_open"
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Ver ranking completo →
+                </Link>
+              </div>
+            </div>
+
+            {/* Césped Mixto */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-green-500 to-green-600">
+                <h3 className="text-white font-semibold text-sm">🌱 Césped Mixto</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredTeams.filter(team => team.category === 'grass_mixed').slice(0, 5).map((team, index) => (
+                      <tr key={team.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
+                            {getChangeIcon(team.change)}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            <div className="ml-2">
+                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                              <div className="text-xs text-gray-500">{team.region}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+                <Link
+                  to="/ranking?category=grass_mixed"
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Ver ranking completo →
+                </Link>
+              </div>
+            </div>
+
+            {/* Césped Women */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600">
+                <h3 className="text-white font-semibold text-sm">🌱 Césped Women</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredTeams.filter(team => team.category === 'grass_women').slice(0, 5).map((team, index) => (
+                      <tr key={team.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
+                            {getChangeIcon(team.change)}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            <div className="ml-2">
+                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                              <div className="text-xs text-gray-500">{team.region}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+                <Link
+                  to="/ranking?category=grass_women"
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Ver ranking completo →
+                </Link>
+              </div>
+            </div>
+
+            {/* Césped Open */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-teal-500 to-teal-600">
+                <h3 className="text-white font-semibold text-sm">🌱 Césped Open</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredTeams.filter(team => team.category === 'grass_open').slice(0, 5).map((team, index) => (
+                      <tr key={team.id} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-900">{index + 1}</span>
+                            {getChangeIcon(team.change)}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            <div className="ml-2">
+                              <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                              <div className="text-xs text-gray-500">{team.region}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">{team.points.toFixed(1)}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+                <Link
+                  to="/ranking?category=grass_open"
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Ver ranking completo →
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
 
