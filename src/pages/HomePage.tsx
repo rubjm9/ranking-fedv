@@ -439,7 +439,7 @@ const HomePage: React.FC = () => {
                   <h3 className="text-2xl font-bold text-gray-900">Cálculo de Puntos</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
-                  Los puntos se calculan aplicando tres factores: puntos base por posición, coeficiente regional y peso por antigüedad de temporada.
+                  Los puntos se calculan aplicando tres factores: <strong>puntos base por posición</strong> en cada campeonato regional o nacional, <strong>peso por antigüedad de temporada</strong> (las 4 temporadas más recientes) y <strong>coeficiente regional</strong> aplicado a los campeonatos regionales.
                 </p>
                 
                 <div className="bg-white rounded-lg p-6 shadow-sm mb-4">
@@ -454,15 +454,22 @@ const HomePage: React.FC = () => {
                         </div>
                         <div className="flex justify-between p-2 bg-gray-50 rounded">
                           <span>2º lugar</span>
-                          <span className="font-mono font-semibold">800 pts</span>
+                          <span className="font-mono font-semibold">850 pts</span>
                         </div>
                         <div className="flex justify-between p-2 bg-orange-50 rounded">
                           <span>3º lugar</span>
-                          <span className="font-mono font-semibold">600 pts</span>
+                          <span className="font-mono font-semibold">725 pts</span>
                         </div>
                         <div className="flex justify-between p-2 bg-gray-50 rounded">
                           <span>4º lugar</span>
-                          <span className="font-mono font-semibold">400 pts</span>
+                          <span className="font-mono font-semibold">625 pts</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-gray-50 rounded">
+                          <span>5º lugar</span>
+                          <span className="font-mono font-semibold">520 pts</span>
+                        </div>
+                        <div className="text-center text-gray-500 text-xs py-1">
+                          ⋯
                         </div>
                       </div>
                     </div>
@@ -471,19 +478,26 @@ const HomePage: React.FC = () => {
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between p-2 bg-yellow-50 rounded">
                           <span>1º lugar</span>
-                          <span className="font-mono font-semibold">500 pts</span>
+                          <span className="font-mono font-semibold">230 pts</span>
                         </div>
                         <div className="flex justify-between p-2 bg-gray-50 rounded">
                           <span>2º lugar</span>
-                          <span className="font-mono font-semibold">400 pts</span>
+                          <span className="font-mono font-semibold">195 pts</span>
                         </div>
                         <div className="flex justify-between p-2 bg-orange-50 rounded">
                           <span>3º lugar</span>
-                          <span className="font-mono font-semibold">300 pts</span>
+                          <span className="font-mono font-semibold">165 pts</span>
                         </div>
                         <div className="flex justify-between p-2 bg-gray-50 rounded">
                           <span>4º lugar</span>
-                          <span className="font-mono font-semibold">200 pts</span>
+                          <span className="font-mono font-semibold">140 pts</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-gray-50 rounded">
+                          <span>5º lugar</span>
+                          <span className="font-mono font-semibold">120 pts</span>
+                        </div>
+                        <div className="text-center text-gray-500 text-xs py-1">
+                          ⋯
                         </div>
                       </div>
                     </div>
@@ -492,19 +506,26 @@ const HomePage: React.FC = () => {
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between p-2 bg-yellow-50 rounded">
                           <span>1º lugar</span>
-                          <span className="font-mono font-semibold">300 pts</span>
+                          <span className="font-mono font-semibold">140 pts</span>
                         </div>
                         <div className="flex justify-between p-2 bg-gray-50 rounded">
                           <span>2º lugar</span>
-                          <span className="font-mono font-semibold">250 pts</span>
+                          <span className="font-mono font-semibold">120 pts</span>
                         </div>
                         <div className="flex justify-between p-2 bg-orange-50 rounded">
                           <span>3º lugar</span>
-                          <span className="font-mono font-semibold">200 pts</span>
+                          <span className="font-mono font-semibold">100 pts</span>
                         </div>
                         <div className="flex justify-between p-2 bg-gray-50 rounded">
                           <span>4º lugar</span>
-                          <span className="font-mono font-semibold">150 pts</span>
+                          <span className="font-mono font-semibold">85 pts</span>
+                        </div>
+                        <div className="flex justify-between p-2 bg-gray-50 rounded">
+                          <span>5º lugar</span>
+                          <span className="font-mono font-semibold">72 pts</span>
+                        </div>
+                        <div className="text-center text-gray-500 text-xs py-1">
+                          ⋯
                         </div>
                       </div>
                     </div>
