@@ -613,86 +613,139 @@ const HomePage: React.FC = () => {
                     
                     {/* Results that move */}
                     <g>
-                      {/* Initial results in current season */}
+                      {/* Initial results in current season - move to previous year and stay */}
                       <rect x="30" y="80" width="80" height="20" fill="#10b981" stroke="#047857" strokeWidth="1" rx="3" opacity="1">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 240,0; 0,0" dur="6s" begin="0s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;0.5;1" dur="6s" begin="0s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;0.8" dur="8s" begin="0s" repeatCount="indefinite"/>
                       </rect>
                       <text x="70" y="95" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 240,0; 0,0" dur="6s" begin="0s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;0.5;1" dur="6s" begin="0s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;0.8" dur="8s" begin="0s" repeatCount="indefinite"/>
                         Equipo A: 1000 pts
                       </text>
                       
                       <rect x="30" y="110" width="80" height="20" fill="#059669" stroke="#047857" strokeWidth="1" rx="3" opacity="1">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 240,0; 0,0" dur="6s" begin="0.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;0.5;1" dur="6s" begin="0.5s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;0.8" dur="8s" begin="0.5s" repeatCount="indefinite"/>
                       </rect>
                       <text x="70" y="125" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 240,0; 0,0" dur="6s" begin="0.5s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;0.5;1" dur="6s" begin="0.5s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="0.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;0.8" dur="8s" begin="0.5s" repeatCount="indefinite"/>
                         Equipo B: 800 pts
                       </text>
                       
                       <rect x="30" y="140" width="80" height="20" fill="#047857" stroke="#047857" strokeWidth="1" rx="3" opacity="1">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 240,0; 0,0" dur="6s" begin="1s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;0.5;1" dur="6s" begin="1s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="1s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;0.8" dur="8s" begin="1s" repeatCount="indefinite"/>
                       </rect>
                       <text x="70" y="155" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">
-                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 240,0; 0,0" dur="6s" begin="1s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.8;0.5;1" dur="6s" begin="1s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 120,0; 120,0" dur="8s" begin="1s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="1;0.8;0.8" dur="8s" begin="1s" repeatCount="indefinite"/>
                         Equipo C: 600 pts
                       </text>
                     </g>
                     
                     {/* New results appearing */}
                     <g>
-                      {/* New results for current season */}
+                      {/* New results for current season - appear after initial movement */}
                       <rect x="30" y="80" width="80" height="20" fill="#3b82f6" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="3s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0.8;0.8" dur="8s" begin="2s" repeatCount="indefinite"/>
                       </rect>
                       <text x="70" y="95" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="3s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0.8;0.8" dur="8s" begin="2s" repeatCount="indefinite"/>
                         Equipo D: 1200 pts
                       </text>
                       
                       <rect x="30" y="110" width="80" height="20" fill="#1d4ed8" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="3.5s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0.8;0.8" dur="8s" begin="2.5s" repeatCount="indefinite"/>
                       </rect>
                       <text x="70" y="125" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="3.5s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="2.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0.8;0.8" dur="8s" begin="2.5s" repeatCount="indefinite"/>
                         Equipo E: 900 pts
                       </text>
                       
                       <rect x="30" y="140" width="80" height="20" fill="#2563eb" stroke="#1e40af" strokeWidth="1" rx="3" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="4s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="3s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0.8;0.8" dur="8s" begin="3s" repeatCount="indefinite"/>
                       </rect>
                       <text x="70" y="155" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="2s" begin="4s" repeatCount="indefinite"/>
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 120,0; 120,0" dur="8s" begin="3s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0.8;0.8" dur="8s" begin="3s" repeatCount="indefinite"/>
                         Equipo F: 700 pts
+                      </text>
+                    </g>
+                    
+                    {/* Third wave of results */}
+                    <g>
+                      {/* Third wave for current season */}
+                      <rect x="30" y="80" width="80" height="20" fill="#dc2626" stroke="#991b1b" strokeWidth="1" rx="3" opacity="0">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;0;1;0.8" dur="8s" begin="4s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="70" y="95" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;0;1;0.8" dur="8s" begin="4s" repeatCount="indefinite"/>
+                        Equipo G: 1100 pts
+                      </text>
+                      
+                      <rect x="30" y="110" width="80" height="20" fill="#b91c1c" stroke="#991b1b" strokeWidth="1" rx="3" opacity="0">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;0;1;0.8" dur="8s" begin="4.5s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="70" y="125" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="4.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;0;1;0.8" dur="8s" begin="4.5s" repeatCount="indefinite"/>
+                        Equipo H: 850 pts
+                      </text>
+                      
+                      <rect x="30" y="140" width="80" height="20" fill="#991b1b" stroke="#991b1b" strokeWidth="1" rx="3" opacity="0">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;0;1;0.8" dur="8s" begin="5s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="70" y="155" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold" opacity="0">
+                        <animateTransform attributeName="transform" type="translate" values="0,0; 0,0; 0,0; 120,0" dur="8s" begin="5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;0;1;0.8" dur="8s" begin="5s" repeatCount="indefinite"/>
+                        Equipo I: 750 pts
                       </text>
                     </g>
                     
                     {/* Movement arrows */}
                     <g>
+                      {/* First movement arrows */}
                       <path d="M 120 90 L 140 90" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="2s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="1.5s" repeatCount="indefinite"/>
                       </path>
                       <path d="M 120 120 L 140 120" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="2.5s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="2s" repeatCount="indefinite"/>
                       </path>
                       <path d="M 120 150 L 140 150" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="3s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="2.5s" repeatCount="indefinite"/>
                       </path>
                       
-                      <path d="M 240 90 L 260 90" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
+                      {/* Second movement arrows */}
+                      <path d="M 120 90 L 140 90" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="3.5s" repeatCount="indefinite"/>
+                      </path>
+                      <path d="M 120 120 L 140 120" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
                         <animate attributeName="opacity" values="0;1;0" dur="1s" begin="4s" repeatCount="indefinite"/>
                       </path>
-                      <path d="M 240 120 L 260 120" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
+                      <path d="M 120 150 L 140 150" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
                         <animate attributeName="opacity" values="0;1;0" dur="1s" begin="4.5s" repeatCount="indefinite"/>
                       </path>
-                      <path d="M 240 150 L 260 150" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
-                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="5s" repeatCount="indefinite"/>
+                      
+                      {/* Third movement arrows */}
+                      <path d="M 120 90 L 140 90" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="5.5s" repeatCount="indefinite"/>
+                      </path>
+                      <path d="M 120 120 L 140 120" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="6s" repeatCount="indefinite"/>
+                      </path>
+                      <path d="M 120 150 L 140 150" stroke="#6b7280" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="6.5s" repeatCount="indefinite"/>
                       </path>
                     </g>
                     
