@@ -876,7 +876,138 @@ const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Step 4: Final Ranking */}
+          {/* Step 4: Regional Coefficient */}
+          <div className="py-12 border-b border-gray-200">
+            <div className="flex flex-col lg:flex-row items-center gap-8">
+              <div className="flex-1 text-center lg:text-left lg:w-2/3">
+                <div className="flex items-center justify-center lg:justify-start mb-3">
+                  <span className="bg-indigo-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 4</span>
+                  <h3 className="text-2xl font-bold text-gray-900">Coeficiente Regional</h3>
+                </div>
+                <p className="text-lg text-gray-700 mb-4">
+                  Los puntos obtenidos en campeonatos regionales se multiplican por un coeficiente que refleja el nivel competitivo de cada región.
+                </p>
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="text-center">
+                      <div className="font-bold text-gray-900">Regiones Fuertes</div>
+                      <div className="text-indigo-600 font-semibold">Coef. 1.0-1.2</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-bold text-gray-900">Regiones Medias</div>
+                      <div className="text-indigo-600 font-semibold">Coef. 0.7-0.9</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-bold text-gray-900">Regiones Emergentes</div>
+                      <div className="text-indigo-600 font-semibold">Coef. 0.4-0.6</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex-shrink-0 lg:w-1/3">
+                <div className="relative w-full h-64">
+                  <svg viewBox="0 0 400 200" className="w-full h-full">
+                    {/* Modern background with gradient */}
+                    <defs>
+                      <linearGradient id="coefBgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{stopColor:'#f8fafc', stopOpacity:1}} />
+                        <stop offset="100%" style={{stopColor:'#e2e8f0', stopOpacity:1}} />
+                      </linearGradient>
+                      
+                      {/* Regional coefficient gradients */}
+                      <linearGradient id="strongRegionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{stopColor:'#3b82f6', stopOpacity:1}} />
+                        <stop offset="100%" style={{stopColor:'#1e40af', stopOpacity:1}} />
+                      </linearGradient>
+                      
+                      <linearGradient id="mediumRegionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{stopColor:'#6366f1', stopOpacity:0.8}} />
+                        <stop offset="100%" style={{stopColor:'#4338ca', stopOpacity:0.8}} />
+                      </linearGradient>
+                      
+                      <linearGradient id="emergingRegionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{stopColor:'#8b5cf6', stopOpacity:0.6}} />
+                        <stop offset="100%" style={{stopColor:'#7c3aed', stopOpacity:0.6}} />
+                      </linearGradient>
+                      
+                      {/* Drop shadow filter */}
+                      <filter id="coefDropShadow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#000000" floodOpacity="0.1"/>
+                      </filter>
+                    </defs>
+                    
+                    {/* Modern background */}
+                    <rect x="0" y="0" width="400" height="200" fill="url(#coefBgGradient)" rx="12"/>
+                    
+                    {/* Title */}
+                    <text x="200" y="25" textAnchor="middle" fontSize="14" fill="#1f2937" fontWeight="600" fontFamily="system-ui">
+                      Cálculo del Coeficiente Regional
+                    </text>
+                    
+                    {/* Regional examples */}
+                    <g>
+                      {/* Strong Region */}
+                      <rect x="20" y="50" width="100" height="80" fill="url(#strongRegionGradient)" rx="8" filter="url(#coefDropShadow)" opacity="1">
+                        <animate attributeName="opacity" values="1;0.9;1" dur="3s" begin="0s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="70" y="70" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">MADRID</text>
+                      <text x="70" y="85" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">Coef. 1.2</text>
+                      <text x="70" y="100" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">1000 pts</text>
+                      <text x="70" y="115" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">× 1.2 = 1200</text>
+                      
+                      {/* Medium Region */}
+                      <rect x="140" y="50" width="100" height="80" fill="url(#mediumRegionGradient)" rx="8" filter="url(#coefDropShadow)" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;0.9;0.8" dur="3s" begin="1s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="190" y="70" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">CATALUÑA</text>
+                      <text x="190" y="85" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">Coef. 0.8</text>
+                      <text x="190" y="100" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">1000 pts</text>
+                      <text x="190" y="115" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">× 0.8 = 800</text>
+                      
+                      {/* Emerging Region */}
+                      <rect x="260" y="50" width="100" height="80" fill="url(#emergingRegionGradient)" rx="8" filter="url(#coefDropShadow)" opacity="0.6">
+                        <animate attributeName="opacity" values="0.6;0.8;0.6" dur="3s" begin="2s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="310" y="70" textAnchor="middle" fontSize="11" fill="white" fontWeight="700" fontFamily="system-ui">CANARIAS</text>
+                      <text x="310" y="85" textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.9)" fontWeight="500">Coef. 0.5</text>
+                      <text x="310" y="100" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">1000 pts</text>
+                      <text x="310" y="115" textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.8)">× 0.5 = 500</text>
+                    </g>
+                    
+                    {/* Calculation arrows */}
+                    <g>
+                      <path d="M 130 90 L 140 90" stroke="#6b7280" strokeWidth="2" fill="none" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="3s" repeatCount="indefinite"/>
+                      </path>
+                      <path d="M 250 90 L 260 90" stroke="#6b7280" strokeWidth="2" fill="none" opacity="0">
+                        <animate attributeName="opacity" values="0;1;0" dur="1s" begin="3.5s" repeatCount="indefinite"/>
+                      </path>
+                    </g>
+                    
+                    {/* Result comparison */}
+                    <g>
+                      <rect x="50" y="150" width="80" height="30" fill="#10b981" rx="6" filter="url(#coefDropShadow)" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" begin="4s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="90" y="170" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">1200 pts</text>
+                      
+                      <rect x="150" y="150" width="80" height="30" fill="#059669" rx="6" filter="url(#coefDropShadow)" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" begin="4.5s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="190" y="170" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">800 pts</text>
+                      
+                      <rect x="250" y="150" width="80" height="30" fill="#047857" rx="6" filter="url(#coefDropShadow)" opacity="0.6">
+                        <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" begin="5s" repeatCount="indefinite"/>
+                      </rect>
+                      <text x="290" y="170" textAnchor="middle" fontSize="9" fill="white" fontWeight="600" fontFamily="system-ui">500 pts</text>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 5: Final Ranking */}
           <div className="py-12">
             <div className="flex flex-col lg:flex-row-reverse items-center gap-8">
               <div className="flex-shrink-0">
@@ -886,7 +1017,7 @@ const HomePage: React.FC = () => {
               </div>
               <div className="flex-1 text-center lg:text-left">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
-                  <span className="bg-purple-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 4</span>
+                  <span className="bg-purple-500 text-white text-sm font-bold px-3 py-1 rounded-full mr-3">PASO 5</span>
                   <h3 className="text-2xl font-bold text-gray-900">Rankings Combinados</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
