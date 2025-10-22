@@ -141,52 +141,30 @@ const TeamDetailPage: React.FC = () => {
           </div>
         </div>
         
-        {/* Team Info Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-          <div className="flex items-center justify-center">
-            <div className="text-center">
-              <div className="mb-6">
-                <TeamLogo 
-                  logo={team.logo} 
-                  name={team.name} 
-                  size="xl"
-                  className="h-32 w-32 mx-auto"
-                />
-              </div>
-              <h1 className="text-5xl font-bold text-gray-900 mb-3">{team.name}</h1>
-              
-              {/* Team Type Badge */}
-              <div className="mb-4">
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                  team.isFilial 
-                    ? 'bg-blue-100 text-blue-800' 
-                    : 'bg-green-100 text-green-800'
-                }`}>
-                  {team.isFilial ? 'Equipo Filial' : 'Equipo Principal'}
-                </span>
-              </div>
-              
-              <div className="space-y-2">
-                {team.isFilial && team.parentTeam ? (
-                  <p className="text-xl text-gray-600">
-                    Equipo filial de <span className="font-semibold text-primary-600">{team.parentTeam.name}</span>
-                  </p>
-                ) : (
-                  team.location && (
-                    <p className="text-xl text-gray-600">
-                      <MapPin className="h-5 w-5 inline mr-2" />
-                      {team.location}
-                    </p>
-                  )
-                )}
-                
-                {team.region && (
-                  <p className="text-lg text-gray-500">
-                    Región: {team.region.name}
-                  </p>
-                )}
-              </div>
-            </div>
+        {/* Team Info */}
+        <div className="flex items-center">
+          <div className="mr-8">
+            <TeamLogo 
+              logo={team.logo} 
+              name={team.name} 
+              size="xl"
+              className="h-28 w-28"
+            />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">{team.name}</h1>
+            <p className="text-lg text-gray-600 mb-1">
+              {team.isFilial && team.parentTeam ? (
+                <>Equipo filial de <span className="font-medium text-primary-600">{team.parentTeam.name}</span></>
+              ) : (
+                team.location || team.region?.name || 'Sin ubicación'
+              )}
+            </p>
+            {team.region && (
+              <p className="text-sm text-gray-500">
+                Región: {team.region.name}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -211,7 +189,9 @@ const TeamDetailPage: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Posición en el ranking global</p>
-              <p className="text-3xl font-bold text-gray-900">#{statistics.totalPoints > 0 ? 'N/A' : 'N/A'}</p>
+              <p className="text-3xl font-bold text-gray-900">
+                {statistics.globalPosition ? `#${statistics.globalPosition}` : 'N/A'}
+              </p>
             </div>
           </div>
         </div>
