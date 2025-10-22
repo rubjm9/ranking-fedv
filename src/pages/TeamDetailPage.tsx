@@ -188,7 +188,7 @@ const TeamDetailPage: React.FC = () => {
               <Target className="h-7 w-7 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Posición en el ranking global</p>
+              <p className="text-sm font-medium text-gray-600">Ranking global</p>
               <p className="text-3xl font-bold text-gray-900">
                 {statistics.globalPosition ? `#${statistics.globalPosition}` : 'N/A'}
               </p>

@@ -248,9 +248,51 @@ class TeamDetailService {
    * Generar historial de ranking
    */
   private async generateRankingHistory(teamId: string): Promise<RankingHistory[]> {
-    // Por ahora, devolver un historial vacío para evitar errores
-    // TODO: Implementar historial real cuando el sistema esté más estable
-    return []
+    try {
+      // Obtener datos históricos del equipo desde team_season_points
+      const { data: seasonData, error } = await supabase
+        .from('team_season_points')
+        .select('*')
+        .eq('team_id', teamId)
+        .order('season', { ascending: false })
+
+      if (error) throw error
+
+      const history: RankingHistory[] = []
+
+      // Para cada temporada, calcular el ranking promedio
+      for (const season of seasonData || []) {
+        const categories = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women']
+        let totalPoints = 0
+        let categoriesWithPoints = 0
+
+        for (const category of categories) {
+          const points = season[`${category}_points`] || 0
+          if (points > 0) {
+            totalPoints += points
+            categoriesWithPoints++
+          }
+        }
+
+        if (totalPoints > 0) {
+          // Calcular posición promedio estimada basada en puntos totales
+          const estimatedRank = Math.max(1, Math.floor(100 - (totalPoints / 10)))
+          
+          history.push({
+            date: `${season.season}-12-31`, // Fecha estimada de fin de temporada
+            season: season.season,
+            category: 'global',
+            rank: estimatedRank,
+            points: totalPoints
+          })
+        }
+      }
+
+      return history
+    } catch (error) {
+      console.error('Error generando historial de ranking:', error)
+      return []
+    }
   }
 
   /**
