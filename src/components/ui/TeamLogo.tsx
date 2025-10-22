@@ -21,7 +21,7 @@ const TeamLogo: React.FC<TeamLogoProps> = ({
     }
     return name
       .split(' ')
-      .filter(word => word.length > 3) // Solo palabras de más de 3 letras
+      .filter(word => word.length >= 3) // Palabras de 3 o más letras
       .map(n => n[0])
       .join('')
       .toUpperCase()
