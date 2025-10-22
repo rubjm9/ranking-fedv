@@ -104,40 +104,15 @@ const TeamDetailPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Link
-              to="/ranking"
-              className="mr-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <div className="flex items-center">
-              <div className="mr-4">
-                <TeamLogo 
-                  logo={team.logo} 
-                  name={team.name} 
-                  size="xl"
-                />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">{team.name}</h1>
-                <p className="text-gray-600">
-                  {team.isFilial && team.parentTeam ? (
-                    <>Equipo filial de <span className="font-medium">{team.parentTeam.name}</span></>
-                  ) : (
-                    team.location || team.region?.name || 'Sin ubicación'
-                  )}
-                </p>
-                {team.region && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    Región: {team.region.name} (Coeficiente: {team.region.coefficient})
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
+      <div className="mb-12">
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            to="/ranking"
+            className="flex items-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200 p-2"
+          >
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            <span className="text-sm font-medium">Volver al ranking</span>
+          </Link>
           
           {/* Tabs */}
           <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
@@ -165,51 +140,100 @@ const TeamDetailPage: React.FC = () => {
             })}
           </div>
         </div>
+        
+        {/* Team Info Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <div className="mb-6">
+                <TeamLogo 
+                  logo={team.logo} 
+                  name={team.name} 
+                  size="xl"
+                  className="h-32 w-32 mx-auto"
+                />
+              </div>
+              <h1 className="text-5xl font-bold text-gray-900 mb-3">{team.name}</h1>
+              
+              {/* Team Type Badge */}
+              <div className="mb-4">
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                  team.isFilial 
+                    ? 'bg-blue-100 text-blue-800' 
+                    : 'bg-green-100 text-green-800'
+                }`}>
+                  {team.isFilial ? 'Equipo Filial' : 'Equipo Principal'}
+                </span>
+              </div>
+              
+              <div className="space-y-2">
+                {team.isFilial && team.parentTeam ? (
+                  <p className="text-xl text-gray-600">
+                    Equipo filial de <span className="font-semibold text-primary-600">{team.parentTeam.name}</span>
+                  </p>
+                ) : (
+                  team.location && (
+                    <p className="text-xl text-gray-600">
+                      <MapPin className="h-5 w-5 inline mr-2" />
+                      {team.location}
+                    </p>
+                  )
+                )}
+                
+                {team.region && (
+                  <p className="text-lg text-gray-500">
+                    Región: {team.region.name}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Team Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
           <div className="flex items-center">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Trophy className="h-6 w-6 text-yellow-600" />
+            <div className="p-3 bg-yellow-100 rounded-xl">
+              <Trophy className="h-7 w-7 text-yellow-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Torneos Ganados</p>
-              <p className="text-2xl font-bold text-gray-900">{statistics.tournamentsWon}</p>
+              <p className="text-3xl font-bold text-gray-900">{statistics.tournamentsWon}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
           <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <BarChart3 className="h-6 w-6 text-green-600" />
+            <div className="p-3 bg-blue-100 rounded-xl">
+              <Target className="h-7 w-7 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Puntos Totales</p>
-              <p className="text-2xl font-bold text-gray-900">{statistics.totalPoints.toFixed(1)}</p>
+              <p className="text-sm font-medium text-gray-600">Posición en el ranking global</p>
+              <p className="text-3xl font-bold text-gray-900">#{statistics.totalPoints > 0 ? 'N/A' : 'N/A'}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
           <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Calendar className="h-6 w-6 text-purple-600" />
+            <div className="p-3 bg-purple-100 rounded-xl">
+              <Calendar className="h-7 w-7 text-purple-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Torneos</p>
-              <p className="text-2xl font-bold text-gray-900">{statistics.totalTournaments}</p>
+              <p className="text-3xl font-bold text-gray-900">{statistics.totalTournaments}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
           <div className="flex items-center">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <Award className="h-6 w-6 text-orange-600" />
+            <div className="p-3 bg-orange-100 rounded-xl">
+              <Award className="h-7 w-7 text-orange-600" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Podios</p>
-              <p className="text-2xl font-bold text-gray-900">{statistics.podiums}</p>
+              <p className="text-3xl font-bold text-gray-900">{statistics.podiums}</p>
             </div>
           </div>
         </div>
@@ -217,28 +241,32 @@ const TeamDetailPage: React.FC = () => {
 
       {/* Tab Content */}
       {activeTab === 'overview' && (
-        <div className="space-y-8">
+        <div className="space-y-10">
           {/* Current Rankings */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Rankings Actuales</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Rankings Actuales</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Object.entries(currentRankings).map(([category, ranking]) => (
-                <div key={category} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">
+                <div key={category} className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm font-semibold text-gray-700">
                       {getCategoryLabel(category)}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-sm text-gray-500">
                       {getSurfaceIcon(category.split('_')[0])} {getModalityIcon(category.split('_')[1])}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-2xl font-bold text-gray-900">#{ranking.position}</div>
+                      <div className="text-3xl font-bold text-gray-900">#{ranking.position}</div>
                       <div className="text-sm text-gray-600">{ranking.points.toFixed(1)} pts</div>
                     </div>
                     {ranking.change !== 0 && (
-                      <div className={`text-sm font-medium ${ranking.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <div className={`text-sm font-medium px-2 py-1 rounded-full ${
+                        ranking.change > 0 
+                          ? 'text-green-700 bg-green-100' 
+                          : 'text-red-700 bg-red-100'
+                      }`}>
                         {ranking.change > 0 ? '+' : ''}{ranking.change}
                       </div>
                     )}
@@ -249,9 +277,9 @@ const TeamDetailPage: React.FC = () => {
           </div>
 
           {/* Team Info */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Información del Equipo</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+              <h3 className="text-2xl font-semibold text-gray-900 mb-6">Información del Equipo</h3>
               <div className="space-y-3">
                 <div className="flex items-center">
                   <Users className="h-4 w-4 text-gray-400 mr-3" />
@@ -292,32 +320,32 @@ const TeamDetailPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Estadísticas Detalladas</h3>
-              <div className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Mejor posición:</span>
-                  <span className="font-medium">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+              <h3 className="text-2xl font-semibold text-gray-900 mb-6">Estadísticas Detalladas</h3>
+              <div className="space-y-6">
+                <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                  <span className="text-gray-600 font-medium">Mejor posición:</span>
+                  <span className="font-semibold text-gray-900">
                     {statistics.bestPosition > 0 ? `${statistics.bestPosition}º lugar` : 'N/A'}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Peor posición:</span>
-                  <span className="font-medium">
+                <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                  <span className="text-gray-600 font-medium">Peor posición:</span>
+                  <span className="font-semibold text-gray-900">
                     {statistics.worstPosition > 0 ? `${statistics.worstPosition}º lugar` : 'N/A'}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Promedio puntos:</span>
-                  <span className="font-medium">{statistics.averagePoints.toFixed(1)}</span>
+                <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                  <span className="text-gray-600 font-medium">Promedio puntos:</span>
+                  <span className="font-semibold text-gray-900">{statistics.averagePoints.toFixed(1)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Temporadas activas:</span>
-                  <span className="font-medium">{statistics.seasonsActive}</span>
+                <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                  <span className="text-gray-600 font-medium">Temporadas activas:</span>
+                  <span className="font-semibold text-gray-900">{statistics.seasonsActive}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Categorías jugadas:</span>
-                  <span className="font-medium">{statistics.categoriesPlayed.length}</span>
+                <div className="flex justify-between items-center py-3">
+                  <span className="text-gray-600 font-medium">Categorías jugadas:</span>
+                  <span className="font-semibold text-gray-900">{statistics.categoriesPlayed.length}</span>
                 </div>
               </div>
             </div>
