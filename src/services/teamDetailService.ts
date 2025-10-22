@@ -115,9 +115,14 @@ class TeamDetailService {
       // 6. Calcular estadísticas
       const statistics = this.calculateStatistics(tournamentResults, seasonBreakdown)
       
-      // 7. Calcular posición global
+      // 7. Calcular posición global actual
       const globalPosition = await this.calculateGlobalPosition(teamId)
       statistics.globalPosition = globalPosition
+      
+      // 8. Calcular posiciones históricas globales
+      const historicalPositions = await this.calculateHistoricalGlobalPositions(teamId)
+      statistics.bestPosition = historicalPositions.bestPosition
+      statistics.worstPosition = historicalPositions.worstPosition
       
       return {
         team: teamData,
@@ -260,30 +265,50 @@ class TeamDetailService {
 
       const history: RankingHistory[] = []
 
-      // Para cada temporada, calcular el ranking promedio
+      // Para cada temporada, calcular la posición real en el ranking global
       for (const season of seasonData || []) {
-        const categories = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women']
-        let totalPoints = 0
-        let categoriesWithPoints = 0
+        // Obtener todos los equipos de esa temporada
+        const { data: allTeamsData, error: allError } = await supabase
+          .from('team_season_points')
+          .select(`
+            team_id,
+            beach_mixed_points,
+            beach_open_points,
+            beach_women_points,
+            grass_mixed_points,
+            grass_open_points,
+            grass_women_points
+          `)
+          .eq('season', season.season)
 
-        for (const category of categories) {
-          const points = season[`${category}_points`] || 0
-          if (points > 0) {
-            totalPoints += points
-            categoriesWithPoints++
-          }
-        }
+        if (allError || !allTeamsData) continue
 
-        if (totalPoints > 0) {
-          // Calcular posición promedio estimada basada en puntos totales
-          const estimatedRank = Math.max(1, Math.floor(100 - (totalPoints / 10)))
-          
+        // Calcular puntos totales del equipo actual
+        const teamTotalPoints = (season.beach_mixed_points || 0) + (season.beach_open_points || 0) + 
+                               (season.beach_women_points || 0) + (season.grass_mixed_points || 0) + 
+                               (season.grass_open_points || 0) + (season.grass_women_points || 0)
+
+        if (teamTotalPoints === 0) continue
+
+        // Calcular puntos totales de todos los equipos
+        const allTeamsTotals = allTeamsData.map(row => ({
+          team_id: row.team_id,
+          totalPoints: (row.beach_mixed_points || 0) + (row.beach_open_points || 0) + 
+                      (row.beach_women_points || 0) + (row.grass_mixed_points || 0) + 
+                      (row.grass_open_points || 0) + (row.grass_women_points || 0)
+        }))
+
+        // Ordenar por puntos totales y encontrar posición
+        allTeamsTotals.sort((a, b) => b.totalPoints - a.totalPoints)
+        const position = allTeamsTotals.findIndex(team => team.team_id === teamId) + 1
+
+        if (position > 0) {
           history.push({
             date: `${season.season}-12-31`, // Fecha estimada de fin de temporada
             season: season.season,
             category: 'global',
-            rank: estimatedRank,
-            points: totalPoints
+            rank: position,
+            points: teamTotalPoints
           })
         }
       }
@@ -341,8 +366,6 @@ class TeamDetailService {
     const podiums = tournamentResults.filter(r => r.position <= 3).length
     const totalPoints = tournamentResults.reduce((sum, r) => sum + r.points, 0)
     const averagePoints = totalTournaments > 0 ? totalPoints / totalTournaments : 0
-    const bestPosition = tournamentResults.length > 0 ? Math.min(...tournamentResults.map(r => r.position)) : 0
-    const worstPosition = tournamentResults.length > 0 ? Math.max(...tournamentResults.map(r => r.position)) : 0
     const seasonsActive = seasonBreakdown.length
     const categoriesPlayed = [...new Set(tournamentResults.map(r => `${r.surface}_${r.modality}`))]
 
@@ -352,11 +375,83 @@ class TeamDetailService {
       podiums,
       totalPoints,
       averagePoints,
-      bestPosition,
-      worstPosition,
+      bestPosition: 0, // Se calculará después
+      worstPosition: 0, // Se calculará después
       currentSeason: '2024-25',
       seasonsActive,
       categoriesPlayed
+    }
+  }
+
+  /**
+   * Calcular posiciones históricas en ranking global
+   */
+  private async calculateHistoricalGlobalPositions(teamId: string): Promise<{ bestPosition: number; worstPosition: number }> {
+    try {
+      // Obtener datos históricos del equipo
+      const { data: teamData, error } = await supabase
+        .from('team_season_points')
+        .select('*')
+        .eq('team_id', teamId)
+        .order('season', { ascending: false })
+
+      if (error || !teamData || teamData.length === 0) {
+        return { bestPosition: 0, worstPosition: 0 }
+      }
+
+      const positions: number[] = []
+
+      // Para cada temporada, calcular la posición global
+      for (const season of teamData) {
+        // Obtener todos los equipos de esa temporada
+        const { data: allTeamsData, error: allError } = await supabase
+          .from('team_season_points')
+          .select(`
+            team_id,
+            beach_mixed_points,
+            beach_open_points,
+            beach_women_points,
+            grass_mixed_points,
+            grass_open_points,
+            grass_women_points
+          `)
+          .eq('season', season.season)
+
+        if (allError || !allTeamsData) continue
+
+        // Calcular puntos totales del equipo actual
+        const teamTotalPoints = (season.beach_mixed_points || 0) + (season.beach_open_points || 0) + 
+                               (season.beach_women_points || 0) + (season.grass_mixed_points || 0) + 
+                               (season.grass_open_points || 0) + (season.grass_women_points || 0)
+
+        // Calcular puntos totales de todos los equipos
+        const allTeamsTotals = allTeamsData.map(row => ({
+          team_id: row.team_id,
+          totalPoints: (row.beach_mixed_points || 0) + (row.beach_open_points || 0) + 
+                      (row.beach_women_points || 0) + (row.grass_mixed_points || 0) + 
+                      (row.grass_open_points || 0) + (row.grass_women_points || 0)
+        }))
+
+        // Ordenar por puntos totales y encontrar posición
+        allTeamsTotals.sort((a, b) => b.totalPoints - a.totalPoints)
+        const position = allTeamsTotals.findIndex(team => team.team_id === teamId) + 1
+
+        if (position > 0) {
+          positions.push(position)
+        }
+      }
+
+      if (positions.length === 0) {
+        return { bestPosition: 0, worstPosition: 0 }
+      }
+
+      return {
+        bestPosition: Math.min(...positions),
+        worstPosition: Math.max(...positions)
+      }
+    } catch (error) {
+      console.error('Error calculando posiciones históricas globales:', error)
+      return { bestPosition: 0, worstPosition: 0 }
     }
   }
 

@@ -155,7 +155,7 @@ const TeamDetailPage: React.FC = () => {
             <h1 className="text-4xl font-bold text-gray-900 mb-2">{team.name}</h1>
             <p className="text-lg text-gray-600 mb-1">
               {team.isFilial && team.parentTeam ? (
-                <>Equipo filial de <span className="font-medium text-primary-600">{team.parentTeam.name}</span></>
+                <>Equipo filial de <Link to={`/teams/${team.parentTeamId}`} className="font-medium text-primary-600 hover:text-primary-700 underline">{team.parentTeam.name}</Link></>
               ) : (
                 team.location || team.region?.name || 'Sin ubicación'
               )}
@@ -304,20 +304,20 @@ const TeamDetailPage: React.FC = () => {
               <h3 className="text-2xl font-semibold text-gray-900 mb-6">Estadísticas Detalladas</h3>
               <div className="space-y-6">
                 <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">Mejor posición:</span>
+                  <span className="text-gray-600 font-medium">Mejor posición global:</span>
                   <span className="font-semibold text-gray-900">
-                    {statistics.bestPosition > 0 ? `${statistics.bestPosition}º lugar` : 'N/A'}
+                    {statistics.bestPosition > 0 ? `#${statistics.bestPosition}` : 'N/A'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">Peor posición:</span>
+                  <span className="text-gray-600 font-medium">Peor posición global:</span>
                   <span className="font-semibold text-gray-900">
-                    {statistics.worstPosition > 0 ? `${statistics.worstPosition}º lugar` : 'N/A'}
+                    {statistics.worstPosition > 0 ? `#${statistics.worstPosition}` : 'N/A'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">Promedio puntos:</span>
-                  <span className="font-semibold text-gray-900">{statistics.averagePoints.toFixed(1)}</span>
+                  <span className="text-gray-600 font-medium">Acumulación histórica de puntos:</span>
+                  <span className="font-semibold text-gray-900">{statistics.totalPoints.toFixed(1)}</span>
                 </div>
                 <div className="flex justify-between items-center py-3 border-b border-gray-100">
                   <span className="text-gray-600 font-medium">Temporadas activas:</span>
