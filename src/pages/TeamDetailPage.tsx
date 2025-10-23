@@ -144,35 +144,34 @@ const TeamDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Rankings por Categoría - Right Side */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 w-80">
-            <h3 className="text-base font-semibold text-gray-900 mb-3">Rankings por Categoría</h3>
-            <div className="space-y-2">
-              {Object.entries(currentRankings).map(([category, ranking]) => (
-                <div key={category} className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-b-0">
-                  <div className="flex items-center">
-                    <span className="text-xs text-gray-500 mr-1.5">
-                      {getSurfaceIcon(category.split('_')[0])} {getModalityIcon(category.split('_')[1])}
-                    </span>
-                    <span className="text-xs font-medium text-gray-700">
-                      {getCategoryLabel(category)}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs font-semibold text-gray-900">#{ranking.position}</div>
-                    <div className="text-xs text-gray-500">{ranking.points.toFixed(1)} pts</div>
-                    {ranking.change !== 0 && (
-                      <div className={`text-xs font-medium ${
-                        ranking.change > 0 
-                          ? 'text-green-600' 
-                          : 'text-red-600'
-                      }`}>
-                        {ranking.change > 0 ? '+' : ''}{ranking.change}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+          {/* Estadísticas Detalladas - Right Side */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 w-80">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Estadísticas Detalladas</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <span className="text-sm text-gray-600 font-medium">Mejor posición global:</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {statistics.bestPosition > 0 ? `#${statistics.bestPosition}` : 'N/A'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <span className="text-sm text-gray-600 font-medium">Peor posición global:</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {statistics.worstPosition > 0 ? `#${statistics.worstPosition}` : 'N/A'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <span className="text-sm text-gray-600 font-medium">Acumulación histórica:</span>
+                <span className="text-sm font-semibold text-gray-900">{statistics.totalPoints.toFixed(1)}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <span className="text-sm text-gray-600 font-medium">Temporadas activas:</span>
+                <span className="text-sm font-semibold text-gray-900">{statistics.seasonsActive}</span>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-sm text-gray-600 font-medium">Categorías jugadas:</span>
+                <span className="text-sm font-semibold text-gray-900">{statistics.categoriesPlayed.length}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -274,35 +273,59 @@ const TeamDetailPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Estadísticas Detalladas</h3>
-            <div className="space-y-6">
-              <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                <span className="text-gray-600 font-medium">Mejor posición global:</span>
-                <span className="font-semibold text-gray-900">
-                  {statistics.bestPosition > 0 ? `#${statistics.bestPosition}` : 'N/A'}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                <span className="text-gray-600 font-medium">Peor posición global:</span>
-                <span className="font-semibold text-gray-900">
-                  {statistics.worstPosition > 0 ? `#${statistics.worstPosition}` : 'N/A'}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                <span className="text-gray-600 font-medium">Acumulación histórica de puntos:</span>
-                <span className="font-semibold text-gray-900">{statistics.totalPoints.toFixed(1)}</span>
-              </div>
-              <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                <span className="text-gray-600 font-medium">Temporadas activas:</span>
-                <span className="font-semibold text-gray-900">{statistics.seasonsActive}</span>
-              </div>
-              <div className="flex justify-between items-center py-3">
-                <span className="text-gray-600 font-medium">Categorías jugadas:</span>
-                <span className="font-semibold text-gray-900">{statistics.categoriesPlayed.length}</span>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+              <h3 className="text-2xl font-semibold text-gray-900 mb-6">Rankings por Categoría</h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Categoría
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Posición
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Puntos
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Cambio
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {Object.entries(currentRankings).map(([category, ranking]) => (
+                      <tr key={category}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <span className="mr-2">{getSurfaceIcon(category.split('_')[0])}</span>
+                            <span className="mr-2">{getModalityIcon(category.split('_')[1])}</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {getCategoryLabel(category)}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-medium text-gray-900">#{ranking.position}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-gray-900">{ranking.points.toFixed(1)}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {ranking.change !== 0 ? (
+                            <span className={`text-sm font-medium ${ranking.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {ranking.change > 0 ? '+' : ''}{ranking.change}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-gray-400">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
-          </div>
         </div>
 
         {/* Related Teams */}
