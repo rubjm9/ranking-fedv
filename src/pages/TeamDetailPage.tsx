@@ -124,7 +124,7 @@ const TeamDetailPage: React.FC = () => {
                 logo={team.logo} 
                 name={team.name} 
                 size="xl"
-                className="h-32 w-32"
+                className="h-40 w-40"
               />
             </div>
             <div>
@@ -145,21 +145,21 @@ const TeamDetailPage: React.FC = () => {
           </div>
 
           {/* Rankings por Categoría - Right Side */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 w-96">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Rankings por Categoría</h3>
-            <div className="space-y-3">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 w-80">
+            <h3 className="text-base font-semibold text-gray-900 mb-3">Rankings por Categoría</h3>
+            <div className="space-y-2">
               {Object.entries(currentRankings).map(([category, ranking]) => (
-                <div key={category} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                <div key={category} className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-b-0">
                   <div className="flex items-center">
-                    <span className="text-sm text-gray-500 mr-2">
+                    <span className="text-xs text-gray-500 mr-1.5">
                       {getSurfaceIcon(category.split('_')[0])} {getModalityIcon(category.split('_')[1])}
                     </span>
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-xs font-medium text-gray-700">
                       {getCategoryLabel(category)}
                     </span>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-semibold text-gray-900">#{ranking.position}</div>
+                    <div className="text-xs font-semibold text-gray-900">#{ranking.position}</div>
                     <div className="text-xs text-gray-500">{ranking.points.toFixed(1)} pts</div>
                     {ranking.change !== 0 && (
                       <div className={`text-xs font-medium ${
