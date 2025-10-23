@@ -10,7 +10,6 @@ const TeamDetailPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [teamData, setTeamData] = useState<TeamDetailData | null>(null)
   const [relatedTeams, setRelatedTeams] = useState<any[]>([])
-  const [activeTab, setActiveTab] = useState<'overview' | 'rankings' | 'tournaments' | 'history'>('overview')
 
   useEffect(() => {
     loadTeamData()
@@ -114,57 +113,67 @@ const TeamDetailPage: React.FC = () => {
             <span className="text-sm font-medium">Volver al ranking</span>
           </Link>
           
-          {/* Tabs */}
-          <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-            {[
-              { id: 'overview', label: 'Resumen', icon: BarChart3 },
-              { id: 'rankings', label: 'Rankings', icon: TrendingUp },
-              { id: 'tournaments', label: 'Torneos', icon: Trophy },
-              { id: 'history', label: 'Historial', icon: Calendar }
-            ].map((tab) => {
-              const Icon = tab.icon
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  <Icon className="h-4 w-4 mr-2" />
-                  {tab.label}
-                </button>
-              )
-            })}
-          </div>
         </div>
         
-        {/* Team Info */}
-        <div className="flex items-center">
-          <div className="mr-8">
-            <TeamLogo 
-              logo={team.logo} 
-              name={team.name} 
-              size="xl"
-              className="h-28 w-28"
-            />
-          </div>
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">{team.name}</h1>
-            <p className="text-lg text-gray-600 mb-1">
-              {team.isFilial && team.parentTeam ? (
-                <>Equipo filial de <Link to={`/teams/${team.parentTeamId}`} className="font-medium text-primary-600 hover:text-primary-700 underline">{team.parentTeam.name}</Link></>
-              ) : (
-                team.location || team.region?.name || 'Sin ubicación'
-              )}
-            </p>
-            {team.region && (
-              <p className="text-sm text-gray-500">
-                Región: {team.region.name}
+        {/* Team Info and Rankings */}
+        <div className="flex items-start justify-between">
+          {/* Team Info - Left Side */}
+          <div className="flex items-center">
+            <div className="mr-8">
+              <TeamLogo 
+                logo={team.logo} 
+                name={team.name} 
+                size="xl"
+                className="h-32 w-32"
+              />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">{team.name}</h1>
+              <p className="text-lg text-gray-600 mb-1">
+                {team.isFilial && team.parentTeam ? (
+                  <>Equipo filial de <Link to={`/teams/${team.parentTeamId}`} className="font-medium text-primary-600 hover:text-primary-700 underline">{team.parentTeam.name}</Link></>
+                ) : (
+                  team.location || team.region?.name || 'Sin ubicación'
+                )}
               </p>
-            )}
+              {team.region && (
+                <p className="text-sm text-gray-500">
+                  Región: {team.region.name}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Rankings por Categoría - Right Side */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 w-96">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Rankings por Categoría</h3>
+            <div className="space-y-3">
+              {Object.entries(currentRankings).map(([category, ranking]) => (
+                <div key={category} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                  <div className="flex items-center">
+                    <span className="text-sm text-gray-500 mr-2">
+                      {getSurfaceIcon(category.split('_')[0])} {getModalityIcon(category.split('_')[1])}
+                    </span>
+                    <span className="text-sm font-medium text-gray-700">
+                      {getCategoryLabel(category)}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-semibold text-gray-900">#{ranking.position}</div>
+                    <div className="text-xs text-gray-500">{ranking.points.toFixed(1)} pts</div>
+                    {ranking.change !== 0 && (
+                      <div className={`text-xs font-medium ${
+                        ranking.change > 0 
+                          ? 'text-green-600' 
+                          : 'text-red-600'
+                      }`}>
+                        {ranking.change > 0 ? '+' : ''}{ranking.change}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -219,204 +228,111 @@ const TeamDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <div className="space-y-10">
-          {/* Current Rankings */}
+      {/* Content - All sections shown sequentially */}
+      <div className="space-y-10">
+        {/* Team Info */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Rankings Actuales</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Object.entries(currentRankings).map(([category, ranking]) => (
-                <div key={category} className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-semibold text-gray-700">
-                      {getCategoryLabel(category)}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      {getSurfaceIcon(category.split('_')[0])} {getModalityIcon(category.split('_')[1])}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-3xl font-bold text-gray-900">#{ranking.position}</div>
-                      <div className="text-sm text-gray-600">{ranking.points.toFixed(1)} pts</div>
-                    </div>
-                    {ranking.change !== 0 && (
-                      <div className={`text-sm font-medium px-2 py-1 rounded-full ${
-                        ranking.change > 0 
-                          ? 'text-green-700 bg-green-100' 
-                          : 'text-red-700 bg-red-100'
-                      }`}>
-                        {ranking.change > 0 ? '+' : ''}{ranking.change}
-                      </div>
-                    )}
+            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Información del Equipo</h3>
+            <div className="space-y-3">
+              <div className="flex items-center">
+                <Users className="h-4 w-4 text-gray-400 mr-3" />
+                <span className="text-gray-600">Tipo:</span>
+                <span className="ml-2 font-medium">
+                  {team.isFilial ? 'Equipo Filial' : 'Equipo Principal'}
+                </span>
+              </div>
+              
+              {team.location && (
+                <div className="flex items-center">
+                  <MapPin className="h-4 w-4 text-gray-400 mr-3" />
+                  <span className="text-gray-600">Ubicación:</span>
+                  <span className="ml-2 font-medium">{team.location}</span>
+                </div>
+              )}
+              
+              {team.email && (
+                <div className="flex items-center">
+                  <Mail className="h-4 w-4 text-gray-400 mr-3" />
+                  <span className="text-gray-600">Email:</span>
+                  <a href={`mailto:${team.email}`} className="ml-2 font-medium text-primary-600 hover:text-primary-700">
+                    {team.email}
+                  </a>
+                </div>
+              )}
+              
+              {team.hasDifferentNames && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Nombres por Modalidad:</h4>
+                  <div className="space-y-1 text-sm">
+                    {team.nameOpen && <div><span className="text-gray-600">Open:</span> {team.nameOpen}</div>}
+                    {team.nameWomen && <div><span className="text-gray-600">Women:</span> {team.nameWomen}</div>}
+                    {team.nameMixed && <div><span className="text-gray-600">Mixed:</span> {team.nameMixed}</div>}
                   </div>
                 </div>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Estadísticas Detalladas</h3>
+            <div className="space-y-6">
+              <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                <span className="text-gray-600 font-medium">Mejor posición global:</span>
+                <span className="font-semibold text-gray-900">
+                  {statistics.bestPosition > 0 ? `#${statistics.bestPosition}` : 'N/A'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                <span className="text-gray-600 font-medium">Peor posición global:</span>
+                <span className="font-semibold text-gray-900">
+                  {statistics.worstPosition > 0 ? `#${statistics.worstPosition}` : 'N/A'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                <span className="text-gray-600 font-medium">Acumulación histórica de puntos:</span>
+                <span className="font-semibold text-gray-900">{statistics.totalPoints.toFixed(1)}</span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-gray-100">
+                <span className="text-gray-600 font-medium">Temporadas activas:</span>
+                <span className="font-semibold text-gray-900">{statistics.seasonsActive}</span>
+              </div>
+              <div className="flex justify-between items-center py-3">
+                <span className="text-gray-600 font-medium">Categorías jugadas:</span>
+                <span className="font-semibold text-gray-900">{statistics.categoriesPlayed.length}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Related Teams */}
+        {relatedTeams.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Equipos Relacionados</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {relatedTeams.map((relatedTeam) => (
+                <Link
+                  key={relatedTeam.id}
+                  to={`/teams/${relatedTeam.id}`}
+                  className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <TeamLogo name={relatedTeam.name} size="sm" />
+                  <div className="ml-3">
+                    <div className="text-sm font-medium text-gray-900">{relatedTeam.name}</div>
+                    <div className="text-xs text-gray-500">
+                      {relatedTeam.isFilial ? 'Filial' : 'Principal'}
+                    </div>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
+        )}
 
-          {/* Team Info */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-6">Información del Equipo</h3>
-              <div className="space-y-3">
-                <div className="flex items-center">
-                  <Users className="h-4 w-4 text-gray-400 mr-3" />
-                  <span className="text-gray-600">Tipo:</span>
-                  <span className="ml-2 font-medium">
-                    {team.isFilial ? 'Equipo Filial' : 'Equipo Principal'}
-                  </span>
-                </div>
-                
-                {team.location && (
-                  <div className="flex items-center">
-                    <MapPin className="h-4 w-4 text-gray-400 mr-3" />
-                    <span className="text-gray-600">Ubicación:</span>
-                    <span className="ml-2 font-medium">{team.location}</span>
-                  </div>
-                )}
-                
-                {team.email && (
-                  <div className="flex items-center">
-                    <Mail className="h-4 w-4 text-gray-400 mr-3" />
-                    <span className="text-gray-600">Email:</span>
-                    <a href={`mailto:${team.email}`} className="ml-2 font-medium text-primary-600 hover:text-primary-700">
-                      {team.email}
-                    </a>
-                  </div>
-                )}
-                
-                {team.hasDifferentNames && (
-                  <div className="mt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Nombres por Modalidad:</h4>
-                    <div className="space-y-1 text-sm">
-                      {team.nameOpen && <div><span className="text-gray-600">Open:</span> {team.nameOpen}</div>}
-                      {team.nameWomen && <div><span className="text-gray-600">Women:</span> {team.nameWomen}</div>}
-                      {team.nameMixed && <div><span className="text-gray-600">Mixed:</span> {team.nameMixed}</div>}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-6">Estadísticas Detalladas</h3>
-              <div className="space-y-6">
-                <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">Mejor posición global:</span>
-                  <span className="font-semibold text-gray-900">
-                    {statistics.bestPosition > 0 ? `#${statistics.bestPosition}` : 'N/A'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">Peor posición global:</span>
-                  <span className="font-semibold text-gray-900">
-                    {statistics.worstPosition > 0 ? `#${statistics.worstPosition}` : 'N/A'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">Acumulación histórica de puntos:</span>
-                  <span className="font-semibold text-gray-900">{statistics.totalPoints.toFixed(1)}</span>
-                </div>
-                <div className="flex justify-between items-center py-3 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">Temporadas activas:</span>
-                  <span className="font-semibold text-gray-900">{statistics.seasonsActive}</span>
-                </div>
-                <div className="flex justify-between items-center py-3">
-                  <span className="text-gray-600 font-medium">Categorías jugadas:</span>
-                  <span className="font-semibold text-gray-900">{statistics.categoriesPlayed.length}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Related Teams */}
-          {relatedTeams.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Equipos Relacionados</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {relatedTeams.map((relatedTeam) => (
-                  <Link
-                    key={relatedTeam.id}
-                    to={`/teams/${relatedTeam.id}`}
-                    className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <TeamLogo name={relatedTeam.name} size="sm" />
-                    <div className="ml-3">
-                      <div className="text-sm font-medium text-gray-900">{relatedTeam.name}</div>
-                      <div className="text-xs text-gray-500">
-                        {relatedTeam.isFilial ? 'Filial' : 'Principal'}
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'rankings' && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Rankings por Categoría</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Categoría
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Posición
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Puntos
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cambio
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {Object.entries(currentRankings).map(([category, ranking]) => (
-                  <tr key={category}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <span className="mr-2">{getSurfaceIcon(category.split('_')[0])}</span>
-                        <span className="mr-2">{getModalityIcon(category.split('_')[1])}</span>
-                        <span className="text-sm font-medium text-gray-900">
-                          {getCategoryLabel(category)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-medium text-gray-900">#{ranking.position}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-900">{ranking.points.toFixed(1)}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {ranking.change !== 0 ? (
-                        <span className={`text-sm font-medium ${ranking.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {ranking.change > 0 ? '+' : ''}{ranking.change}
-                        </span>
-                      ) : (
-                        <span className="text-sm text-gray-400">-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'tournaments' && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        {/* Tournament Results */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Resultados en Torneos</h3>
+            <h3 className="text-2xl font-semibold text-gray-900">Resultados en Torneos</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -485,61 +401,57 @@ const TeamDetailPage: React.FC = () => {
             </table>
           </div>
         </div>
-      )}
 
-      {activeTab === 'history' && (
-        <div className="space-y-8">
-          {/* Ranking History Chart */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Evolución del Ranking</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={rankingHistory}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="rank" stroke="#3B82F6" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+        {/* Ranking History Chart */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+          <h3 className="text-2xl font-semibold text-gray-900 mb-6">Evolución del Ranking</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={rankingHistory}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="rank" stroke="#3B82F6" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
 
-          {/* Season Breakdown */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Desglose por Temporadas</h3>
-            <div className="space-y-4">
-              {seasonBreakdown.map((season) => (
-                <div key={season.season} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-md font-medium text-gray-900">{season.season}</h4>
-                    <span className="text-sm font-medium text-gray-600">
-                      {season.totalPoints.toFixed(1)} puntos totales
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {Object.entries(season.categories).map(([category, data]) => (
-                      <div key={category} className="bg-gray-50 rounded p-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium text-gray-700">
-                            {getCategoryLabel(category)}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {getSurfaceIcon(category.split('_')[0])} {getModalityIcon(category.split('_')[1])}
-                          </span>
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          <div>{data.points.toFixed(1)} puntos</div>
-                          <div>{data.tournaments} torneos</div>
-                          <div>Mejor: {data.bestPosition}º</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+        {/* Season Breakdown */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+          <h3 className="text-2xl font-semibold text-gray-900 mb-6">Desglose por Temporadas</h3>
+          <div className="space-y-4">
+            {seasonBreakdown.map((season) => (
+              <div key={season.season} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-md font-medium text-gray-900">{season.season}</h4>
+                  <span className="text-sm font-medium text-gray-600">
+                    {season.totalPoints.toFixed(1)} puntos totales
+                  </span>
                 </div>
-              ))}
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {Object.entries(season.categories).map(([category, data]) => (
+                    <div key={category} className="bg-gray-50 rounded p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-medium text-gray-700">
+                          {getCategoryLabel(category)}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {getSurfaceIcon(category.split('_')[0])} {getModalityIcon(category.split('_')[1])}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <div>{data.points.toFixed(1)} puntos</div>
+                        <div>{data.tournaments} torneos</div>
+                        <div>Mejor: {data.bestPosition}º</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      )}
+      </div>
       
       {/* Bottom spacing */}
       <div className="mb-8"></div>
