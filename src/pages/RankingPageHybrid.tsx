@@ -13,6 +13,9 @@ const RankingPageHybrid: React.FC = () => {
   const [performersTab, setPerformersTab] = useState<'season' | 'growth' | 'consistent'>('season')
   const [selectedTeamsForAnalysis, setSelectedTeamsForAnalysis] = useState<string[]>([])
   const [analysisView, setAnalysisView] = useState<'points' | 'positions'>('points')
+  const [hoveredPoint, setHoveredPoint] = useState<{team: any, point: any, x: number, y: number} | null>(null)
+  const [teamSearchTerm, setTeamSearchTerm] = useState<string>('')
+  const [showAllTeams, setShowAllTeams] = useState<boolean>(false)
 
   // Iconos minimalistas (inline SVGs) para garantizar disponibilidad y tamaño reducido
   const IconBeach: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) => (
@@ -745,10 +748,26 @@ const RankingPageHybrid: React.FC = () => {
     }
 
     const xScale = (index: number) => padding + (index * (width - 2 * padding)) / (allSeasons.length - 1)
-    const yScale = (value: number) => padding + ((maxValue - value) / (maxValue - minValue)) * (height - 2 * padding)
+    const yScale = (value: number) => {
+      if (type === 'positions') {
+        // Para posiciones: posición 1 arriba, últimas posiciones abajo
+        return padding + ((value - minValue) / (maxValue - minValue)) * (height - 2 * padding)
+      } else {
+        // Para puntos: valores altos arriba, valores bajos abajo
+        return padding + ((maxValue - value) / (maxValue - minValue)) * (height - 2 * padding)
+      }
+    }
+
+    const handleMouseEnter = (team: any, point: any, x: number, y: number) => {
+      setHoveredPoint({ team, point, x, y })
+    }
+
+    const handleMouseLeave = () => {
+      setHoveredPoint(null)
+    }
 
     return (
-      <div className="w-full overflow-x-auto">
+      <div className="w-full overflow-x-auto relative">
         <svg width={width} height={height} className="border border-gray-200 rounded-lg">
           {/* Ejes */}
           <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#E5E7EB" strokeWidth="2" />
@@ -768,30 +787,59 @@ const RankingPageHybrid: React.FC = () => {
           ))}
           
           {/* Etiquetas del eje Y */}
-          {[maxValue, (maxValue + minValue) / 2, minValue].map((value, index) => (
-            <text
-              key={index}
-              x={padding - 10}
-              y={yScale(value) + 4}
-              textAnchor="end"
-              className="text-xs fill-gray-600"
-            >
-              {type === 'points' ? value.toFixed(0) : value.toFixed(0)}
-            </text>
-          ))}
+          {type === 'positions' ? (
+            // Para posiciones: mostrar de menor a mayor (1, 2, 3, etc.)
+            [minValue, Math.round((maxValue + minValue) / 2), maxValue].map((value, index) => (
+              <text
+                key={index}
+                x={padding - 10}
+                y={yScale(value) + 4}
+                textAnchor="end"
+                className="text-xs fill-gray-600"
+              >
+                {value.toFixed(0)}
+              </text>
+            ))
+          ) : (
+            // Para puntos: mostrar de mayor a menor
+            [maxValue, (maxValue + minValue) / 2, minValue].map((value, index) => (
+              <text
+                key={index}
+                x={padding - 10}
+                y={yScale(value) + 4}
+                textAnchor="end"
+                className="text-xs fill-gray-600"
+              >
+                {value.toFixed(0)}
+              </text>
+            ))
+          )}
           
           {/* Líneas de equipos */}
           {data.map((team, teamIndex) => {
             const points = team.data.map((d: any) => ({
               x: xScale(allSeasons.indexOf(d.season)),
-              y: yScale(type === 'points' ? d.points : d.position)
+              y: yScale(type === 'points' ? d.points : d.position),
+              season: d.season,
+              value: type === 'points' ? d.points : d.position
             })).filter((p: any) => !isNaN(p.x) && !isNaN(p.y))
 
             if (points.length < 2) return null
 
-            const pathData = points.map((point: any, index: number) => 
-              `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
-            ).join(' ')
+            // Crear líneas suaves con curvas de Bézier
+            let pathData = ''
+            if (points.length > 0) {
+              pathData = `M ${points[0].x} ${points[0].y}`
+              for (let i = 1; i < points.length; i++) {
+                const prevPoint = points[i - 1]
+                const currentPoint = points[i]
+                const controlPoint1X = prevPoint.x + (currentPoint.x - prevPoint.x) * 0.5
+                const controlPoint1Y = prevPoint.y
+                const controlPoint2X = prevPoint.x + (currentPoint.x - prevPoint.x) * 0.5
+                const controlPoint2Y = currentPoint.y
+                pathData += ` C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${currentPoint.x} ${currentPoint.y}`
+              }
+            }
 
             return (
               <g key={team.team_id}>
@@ -802,22 +850,51 @@ const RankingPageHybrid: React.FC = () => {
                   fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.1))' }}
                 />
                 {points.map((point: any, pointIndex: number) => (
-                  <circle
-                    key={pointIndex}
-                    cx={point.x}
-                    cy={point.y}
-                    r="4"
-                    fill={colors[teamIndex % colors.length]}
-                    stroke="white"
-                    strokeWidth="2"
-                  />
+                  <g key={pointIndex}>
+                    {/* Área invisible más grande para facilitar el hover */}
+                    <circle
+                      cx={point.x}
+                      cy={point.y}
+                      r="12"
+                      fill="transparent"
+                      className="cursor-pointer"
+                      onMouseEnter={() => handleMouseEnter(team, point, point.x, point.y)}
+                      onMouseLeave={handleMouseLeave}
+                    />
+                    {/* Punto visible */}
+                    <circle
+                      cx={point.x}
+                      cy={point.y}
+                      r="4"
+                      fill={colors[teamIndex % colors.length]}
+                      stroke="white"
+                      strokeWidth="2"
+                      className="cursor-pointer"
+                    />
+                  </g>
                 ))}
               </g>
             )
           })}
         </svg>
+        
+        {/* Tooltip flotante */}
+        {hoveredPoint && (
+          <div 
+            className="absolute bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg pointer-events-none z-10"
+            style={{
+              left: Math.max(10, Math.min(hoveredPoint.x - 60, width - 120)),
+              top: Math.max(10, hoveredPoint.y - 50),
+              transform: hoveredPoint.x < 60 ? 'none' : 'translateX(-50%)'
+            }}
+          >
+            <div className="font-semibold">{hoveredPoint.team.team_name}</div>
+            <div>{hoveredPoint.point.season}: {hoveredPoint.point.value.toFixed(type === 'points' ? 1 : 0)}{type === 'points' ? ' pts' : 'º'}</div>
+          </div>
+        )}
       </div>
     )
   }
@@ -848,8 +925,44 @@ const RankingPageHybrid: React.FC = () => {
                 {selectedTeamsForAnalysis.length} equipos seleccionados
               </span>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3">
-              {rankingData?.slice(0, 20).map((team) => (
+            
+            {/* Barra de búsqueda */}
+            <div className="mb-3">
+              <input
+                type="text"
+                placeholder="Buscar equipos..."
+                value={teamSearchTerm}
+                onChange={(e) => setTeamSearchTerm(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            
+            {/* Filtros de equipos */}
+            <div className="mb-3 flex items-center space-x-4">
+              <button
+                onClick={() => setShowAllTeams(!showAllTeams)}
+                className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                  showAllTeams
+                    ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                    : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                }`}
+              >
+                {showAllTeams ? 'Mostrar solo top 20' : 'Mostrar todos los equipos'}
+              </button>
+              <span className="text-sm text-gray-500">
+                {rankingData?.length || 0} equipos disponibles
+              </span>
+            </div>
+            
+            {/* Lista de equipos */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
+              {rankingData
+                ?.filter(team => 
+                  team.team_name.toLowerCase().includes(teamSearchTerm.toLowerCase()) ||
+                  team.region_name?.toLowerCase().includes(teamSearchTerm.toLowerCase())
+                )
+                ?.slice(0, showAllTeams ? undefined : 20)
+                ?.map((team) => (
                 <label key={team.team_id} className="flex items-center space-x-2 text-sm hover:bg-gray-50 p-1 rounded">
                   <input
                     type="checkbox"
@@ -862,6 +975,16 @@ const RankingPageHybrid: React.FC = () => {
                 </label>
               ))}
             </div>
+            
+            {/* Mensaje si no hay resultados */}
+            {rankingData?.filter(team => 
+              team.team_name.toLowerCase().includes(teamSearchTerm.toLowerCase()) ||
+              team.region_name?.toLowerCase().includes(teamSearchTerm.toLowerCase())
+            )?.length === 0 && teamSearchTerm && (
+              <div className="text-center py-4 text-gray-500">
+                No se encontraron equipos que coincidan con "{teamSearchTerm}"
+              </div>
+            )}
             {selectedTeamsForAnalysis.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2">
                 {selectedTeamsForAnalysis.map(teamId => {

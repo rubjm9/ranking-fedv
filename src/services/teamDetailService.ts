@@ -250,14 +250,21 @@ class TeamDetailService {
   }
 
   /**
-   * Generar historial de ranking
+   * Generar historial de ranking con datos de subtemporadas
    */
   private async generateRankingHistory(teamId: string): Promise<RankingHistory[]> {
     try {
-      // Obtener datos históricos del equipo desde team_season_points
+      // Obtener datos históricos del equipo desde team_season_points con rankings de subtemporada
       const { data: seasonData, error } = await supabase
         .from('team_season_points')
-        .select('*')
+        .select(`
+          *,
+          subseason_1_beach_mixed_rank,
+          subseason_2_beach_open_women_rank,
+          subseason_3_grass_mixed_rank,
+          subseason_4_grass_open_women_rank,
+          final_season_global_rank
+        `)
         .eq('team_id', teamId)
         .order('season', { ascending: false })
 
@@ -265,53 +272,78 @@ class TeamDetailService {
 
       const history: RankingHistory[] = []
 
-      // Para cada temporada, calcular la posición real en el ranking global
+      // Para cada temporada, crear puntos de datos para cada subtemporada
       for (const season of seasonData || []) {
-        // Obtener todos los equipos de esa temporada
-        const { data: allTeamsData, error: allError } = await supabase
-          .from('team_season_points')
-          .select(`
-            team_id,
-            beach_mixed_points,
-            beach_open_points,
-            beach_women_points,
-            grass_mixed_points,
-            grass_open_points,
-            grass_women_points
-          `)
-          .eq('season', season.season)
-
-        if (allError || !allTeamsData) continue
-
-        // Calcular puntos totales del equipo actual
-        const teamTotalPoints = (season.beach_mixed_points || 0) + (season.beach_open_points || 0) + 
-                               (season.beach_women_points || 0) + (season.grass_mixed_points || 0) + 
-                               (season.grass_open_points || 0) + (season.grass_women_points || 0)
-
-        if (teamTotalPoints === 0) continue
-
-        // Calcular puntos totales de todos los equipos
-        const allTeamsTotals = allTeamsData.map(row => ({
-          team_id: row.team_id,
-          totalPoints: (row.beach_mixed_points || 0) + (row.beach_open_points || 0) + 
-                      (row.beach_women_points || 0) + (row.grass_mixed_points || 0) + 
-                      (row.grass_open_points || 0) + (row.grass_women_points || 0)
-        }))
-
-        // Ordenar por puntos totales y encontrar posición
-        allTeamsTotals.sort((a, b) => b.totalPoints - a.totalPoints)
-        const position = allTeamsTotals.findIndex(team => team.team_id === teamId) + 1
-
-        if (position > 0) {
+        const seasonYear = parseInt(season.season.split('-')[0])
+        
+        // Subtemporada 1: Playa Mixto (Enero-Marzo)
+        if (season.subseason_1_beach_mixed_rank) {
           history.push({
-            date: `${season.season}-12-31`, // Fecha estimada de fin de temporada
+            date: `${seasonYear}-03-31`,
             season: season.season,
-            category: 'global',
-            rank: position,
-            points: teamTotalPoints
+            category: 'subseason_1_beach_mixed',
+            rank: season.subseason_1_beach_mixed_rank,
+            points: season.beach_mixed_points || 0
+          })
+        }
+
+        // Subtemporada 2: Playa Open/Women (Abril-Junio)
+        if (season.subseason_2_beach_open_women_rank) {
+          const avgRank = season.subseason_2_beach_open_women_rank // Promedio de open y women
+          const totalPoints = (season.beach_open_points || 0) + (season.beach_women_points || 0)
+          
+          history.push({
+            date: `${seasonYear}-06-30`,
+            season: season.season,
+            category: 'subseason_2_beach_open_women',
+            rank: avgRank,
+            points: totalPoints
+          })
+        }
+
+        // Subtemporada 3: Césped Mixto (Julio-Septiembre)
+        if (season.subseason_3_grass_mixed_rank) {
+          history.push({
+            date: `${seasonYear}-09-30`,
+            season: season.season,
+            category: 'subseason_3_grass_mixed',
+            rank: season.subseason_3_grass_mixed_rank,
+            points: season.grass_mixed_points || 0
+          })
+        }
+
+        // Subtemporada 4: Césped Open/Women (Octubre-Diciembre)
+        if (season.subseason_4_grass_open_women_rank) {
+          const avgRank = season.subseason_4_grass_open_women_rank // Promedio de open y women
+          const totalPoints = (season.grass_open_points || 0) + (season.grass_women_points || 0)
+          
+          history.push({
+            date: `${seasonYear}-12-31`,
+            season: season.season,
+            category: 'subseason_4_grass_open_women',
+            rank: avgRank,
+            points: totalPoints
+          })
+        }
+
+        // Ranking global final (si está disponible)
+        if (season.final_season_global_rank) {
+          const totalPoints = (season.beach_mixed_points || 0) + (season.beach_open_points || 0) + 
+                             (season.beach_women_points || 0) + (season.grass_mixed_points || 0) + 
+                             (season.grass_open_points || 0) + (season.grass_women_points || 0)
+          
+          history.push({
+            date: `${seasonYear}-12-31`,
+            season: season.season,
+            category: 'final_global',
+            rank: season.final_season_global_rank,
+            points: totalPoints
           })
         }
       }
+
+      // Ordenar por fecha
+      history.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
       return history
     } catch (error) {

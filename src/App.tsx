@@ -7,6 +7,7 @@ import AdminLayout from '@/components/layout/AdminLayout'
 // Páginas públicas
 import HomePage from '@/pages/HomePage'
 import RankingPageHybrid from '@/pages/RankingPageHybrid'
+import RankingPageNew from '@/pages/RankingPageNew'
 import TeamsPage from '@/pages/TeamsPage'
 import RegionsPage from '@/pages/RegionsPage'
 import TournamentsPage from '@/pages/TournamentsPage'
@@ -68,6 +69,7 @@ function App() {
             <Route path="/" element={<PublicLayout />}>
               <Route index element={<HomePage />} />
               <Route path="ranking" element={<RankingPageHybrid />} />
+              <Route path="ranking-new" element={<RankingPageNew />} />
               <Route path="teams" element={<TeamsPage />} />
               <Route path="teams/:id" element={<TeamDetailPage />} />
               <Route path="regions" element={<RegionsPage />} />

@@ -26,14 +26,13 @@ export interface SeasonPoints {
     grass_open?: number
     grass_women?: number
   }
-  best_position?: {
-    beach_mixed?: number
-    beach_open?: number
-    beach_women?: number
-    grass_mixed?: number
-    grass_open?: number
-    grass_women?: number
-  }
+  // Rankings por subtemporada
+  subseason_1_beach_mixed_rank?: number        // Ranking en subtemporada 1: playa mixto
+  subseason_2_beach_open_women_rank?: number  // Ranking en subtemporada 2: playa open/women
+  subseason_3_grass_mixed_rank?: number       // Ranking en subtemporada 3: césped mixto
+  subseason_4_grass_open_women_rank?: number  // Ranking en subtemporada 4: césped open/women
+  final_season_global_rank?: number           // Ranking global final de la temporada
+  subseason_ranks_calculated_at?: string       // Timestamp de cuando se calcularon los rankings
 }
 
 export interface CategoryPointsMap {
@@ -391,6 +390,276 @@ const seasonPointsService = {
         success: false,
         message: error.message || 'Error desconocido',
         seasons: []
+      }
+    }
+  },
+
+  /**
+   * Calcular rankings por subtemporada para una temporada específica
+   * Se ejecuta cuando se completa un torneo de 1ª división
+   */
+  calculateSubseasonRankings: async (
+    season: string,
+    subseason: 1 | 2 | 3 | 4
+  ): Promise<{ success: boolean; message: string; updated: number }> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      console.log(`📊 Calculando rankings para subtemporada ${subseason} de ${season}...`)
+
+      // Mapear subtemporada a categorías
+      const subseasonCategories = {
+        1: ['beach_mixed'],                    // Subtemporada 1: playa mixto
+        2: ['beach_open', 'beach_women'],      // Subtemporada 2: playa open/women
+        3: ['grass_mixed'],                    // Subtemporada 3: césped mixto
+        4: ['grass_open', 'grass_women']       // Subtemporada 4: césped open/women
+      }
+
+      const categories = subseasonCategories[subseason] as (keyof CategoryPointsMap)[]
+      console.log(`🎯 Categorías a procesar: ${categories.join(', ')}`)
+
+      // Obtener datos de la temporada actual y las 3 anteriores
+      const seasonYear = parseInt(season.split('-')[0])
+      const seasons = [
+        season,
+        `${seasonYear - 1}-${seasonYear.toString().slice(-2)}`,
+        `${seasonYear - 2}-${(seasonYear - 1).toString().slice(-2)}`,
+        `${seasonYear - 3}-${(seasonYear - 2).toString().slice(-2)}`
+      ]
+
+      console.log(`📅 Temporadas a considerar: ${seasons.join(', ')}`)
+
+      // Obtener datos de team_season_points para estas temporadas
+      const { data: seasonData, error } = await supabase
+        .from('team_season_points')
+        .select(`
+          team_id,
+          season,
+          ${categories.map(cat => `${cat}_points`).join(', ')}
+        `)
+        .in('season', seasons)
+
+      if (error) {
+        console.error('❌ Error obteniendo datos de temporada:', error)
+        throw error
+      }
+
+      console.log(`📦 Registros obtenidos: ${seasonData?.length || 0}`)
+
+      // Calcular rankings para cada categoría
+      const rankingsByCategory: { [category: string]: { team_id: string; total_points: number; rank: number }[] } = {}
+
+      for (const category of categories) {
+        console.log(`\n🔄 Procesando categoría: ${category}`)
+
+        // Agrupar por equipo y calcular puntos totales con coeficientes
+        const teamPointsMap: { [teamId: string]: number } = {}
+
+        seasonData?.forEach((row: any) => {
+          const teamId = row.team_id
+          const season = row.season
+          const basePoints = row[`${category}_points`] || 0
+
+          if (basePoints <= 0) return
+
+          // Calcular coeficiente según la temporada
+          const seasonIndex = seasons.indexOf(season)
+          const coefficient = [1.0, 0.8, 0.5, 0.2][seasonIndex] || 0
+          const weightedPoints = basePoints * coefficient
+
+          if (!teamPointsMap[teamId]) {
+            teamPointsMap[teamId] = 0
+          }
+          teamPointsMap[teamId] += weightedPoints
+        })
+
+        // Ordenar por puntos y asignar rankings
+        const sortedTeams = Object.entries(teamPointsMap)
+          .map(([teamId, totalPoints]) => ({ team_id: teamId, total_points: totalPoints, rank: 0 }))
+          .sort((a, b) => b.total_points - a.total_points)
+
+        // Asignar rankings
+        sortedTeams.forEach((team, index) => {
+          team.rank = index + 1
+        })
+
+        rankingsByCategory[category] = sortedTeams
+        console.log(`✅ ${sortedTeams.length} equipos rankeados en ${category}`)
+      }
+
+      // Actualizar team_season_points con los nuevos rankings
+      const updates: any[] = []
+
+      for (const category of categories) {
+        const rankings = rankingsByCategory[category]
+        
+        for (const ranking of rankings) {
+          const updateData: any = {
+            team_id: ranking.team_id,
+            season: season,
+            [`subseason_${subseason}_${category}_rank`]: ranking.rank,
+            subseason_ranks_calculated_at: new Date().toISOString()
+          }
+
+          updates.push(updateData)
+        }
+      }
+
+      console.log(`💾 Actualizando ${updates.length} registros...`)
+
+      // Hacer upsert de los rankings
+      const { data: updatedData, error: updateError } = await supabase
+        .from('team_season_points')
+        .upsert(updates, {
+          onConflict: 'team_id,season',
+          ignoreDuplicates: false
+        })
+        .select()
+
+      if (updateError) {
+        console.error('❌ Error actualizando rankings:', updateError)
+        throw updateError
+      }
+
+      console.log(`✅ Rankings de subtemporada ${subseason} calculados exitosamente`)
+
+      return {
+        success: true,
+        message: `Subtemporada ${subseason} de ${season} calculada exitosamente`,
+        updated: updatedData?.length || 0
+      }
+
+    } catch (error: any) {
+      console.error('❌ Error calculando rankings de subtemporada:', error)
+      return {
+        success: false,
+        message: error.message || 'Error desconocido',
+        updated: 0
+      }
+    }
+  },
+
+  /**
+   * Calcular ranking global final de una temporada
+   * Se ejecuta al final de la temporada cuando todas las subtemporadas están completas
+   */
+  calculateFinalGlobalRanking: async (
+    season: string
+  ): Promise<{ success: boolean; message: string; updated: number }> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      console.log(`🌍 Calculando ranking global final para ${season}...`)
+
+      // Obtener datos de la temporada actual y las 3 anteriores
+      const seasonYear = parseInt(season.split('-')[0])
+      const seasons = [
+        season,
+        `${seasonYear - 1}-${seasonYear.toString().slice(-2)}`,
+        `${seasonYear - 2}-${(seasonYear - 1).toString().slice(-2)}`,
+        `${seasonYear - 3}-${(seasonYear - 2).toString().slice(-2)}`
+      ]
+
+      // Obtener datos de team_season_points
+      const { data: seasonData, error } = await supabase
+        .from('team_season_points')
+        .select(`
+          team_id,
+          season,
+          beach_mixed_points,
+          beach_open_points,
+          beach_women_points,
+          grass_mixed_points,
+          grass_open_points,
+          grass_women_points
+        `)
+        .in('season', seasons)
+
+      if (error) {
+        console.error('❌ Error obteniendo datos de temporada:', error)
+        throw error
+      }
+
+      // Calcular puntos globales por equipo con coeficientes
+      const teamGlobalPoints: { [teamId: string]: number } = {}
+
+      seasonData?.forEach((row: any) => {
+        const teamId = row.team_id
+        const season = row.season
+        
+        // Calcular coeficiente según la temporada
+        const seasonIndex = seasons.indexOf(season)
+        const coefficient = [1.0, 0.8, 0.5, 0.2][seasonIndex] || 0
+
+        // Sumar todos los puntos de todas las categorías
+        const totalPoints = (row.beach_mixed_points || 0) + 
+                          (row.beach_open_points || 0) + 
+                          (row.beach_women_points || 0) + 
+                          (row.grass_mixed_points || 0) + 
+                          (row.grass_open_points || 0) + 
+                          (row.grass_women_points || 0)
+
+        if (totalPoints <= 0) return
+
+        const weightedPoints = totalPoints * coefficient
+
+        if (!teamGlobalPoints[teamId]) {
+          teamGlobalPoints[teamId] = 0
+        }
+        teamGlobalPoints[teamId] += weightedPoints
+      })
+
+      // Ordenar por puntos globales y asignar rankings
+      const sortedTeams = Object.entries(teamGlobalPoints)
+        .map(([teamId, totalPoints]) => ({ team_id: teamId, total_points: totalPoints, rank: 0 }))
+        .sort((a, b) => b.total_points - a.total_points)
+
+      // Asignar rankings
+      sortedTeams.forEach((team, index) => {
+        team.rank = index + 1
+      })
+
+      console.log(`🏆 ${sortedTeams.length} equipos rankeados globalmente`)
+
+      // Actualizar team_season_points con el ranking global final
+      const updates = sortedTeams.map(team => ({
+        team_id: team.team_id,
+        season: season,
+        final_season_global_rank: team.rank,
+        subseason_ranks_calculated_at: new Date().toISOString()
+      }))
+
+      const { data: updatedData, error: updateError } = await supabase
+        .from('team_season_points')
+        .upsert(updates, {
+          onConflict: 'team_id,season',
+          ignoreDuplicates: false
+        })
+        .select()
+
+      if (updateError) {
+        console.error('❌ Error actualizando ranking global:', updateError)
+        throw updateError
+      }
+
+      console.log(`✅ Ranking global final calculado exitosamente`)
+
+      return {
+        success: true,
+        message: `Ranking global final de ${season} calculado exitosamente`,
+        updated: updatedData?.length || 0
+      }
+
+    } catch (error: any) {
+      console.error('❌ Error calculando ranking global final:', error)
+      return {
+        success: false,
+        message: error.message || 'Error desconocido',
+        updated: 0
       }
     }
   },
