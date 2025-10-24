@@ -4,6 +4,7 @@
  */
 
 import { supabase } from './supabaseService'
+import teamSeasonRankingsService from './teamSeasonRankingsService'
 
 export interface SeasonPoints {
   id: string
@@ -395,6 +396,36 @@ const seasonPointsService = {
   },
 
   /**
+   * Recalcular rankings después de actualizar puntos de una temporada
+   * Esta función actúa como trigger para mantener team_season_rankings actualizado
+   */
+  recalculateRankingsForSeason: async (season: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      console.log(`🔄 Recalculando rankings para temporada ${season}...`)
+      
+      const result = await teamSeasonRankingsService.calculateSeasonRankings(season)
+      
+      if (result.success) {
+        console.log(`✅ Rankings actualizados: ${result.updated} equipos`)
+      } else {
+        console.error(`❌ Error actualizando rankings: ${result.message}`)
+      }
+      
+      return {
+        success: result.success,
+        message: result.message
+      }
+    } catch (error: any) {
+      console.error('❌ Error recalculando rankings:', error)
+      return {
+        success: false,
+        message: error.message || 'Error desconocido'
+      }
+    }
+  },
+
+  /**
+   * @deprecated Esta función ya no se usa. Los rankings ahora se calculan en teamSeasonRankingsService
    * Calcular rankings por subtemporada para una temporada específica
    * Se ejecuta cuando se completa un torneo de 1ª división
    */
@@ -542,6 +573,7 @@ const seasonPointsService = {
   },
 
   /**
+   * @deprecated Esta función ya no se usa. Los rankings globales ahora se calculan dinámicamente en el frontend
    * Calcular ranking global final de una temporada
    * Se ejecuta al final de la temporada cuando todas las subtemporadas están completas
    */
