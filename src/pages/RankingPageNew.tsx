@@ -3,9 +3,10 @@ import { useQuery } from '@tanstack/react-query'
 import { Trophy, Medal, TrendingUp, TrendingDown, Users, Calendar, RefreshCw, BarChart3, LineChart, Star, MapPin, ChevronRight } from 'lucide-react'
 import hybridRankingService from '@/services/hybridRankingService'
 import TeamLogo from '@/components/ui/TeamLogo'
+import GeneralRankingChart from '@/components/charts/GeneralRankingChart'
 
 const RankingPageNew: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'summary' | 'beach_mixed' | 'beach_open' | 'beach_women' | 'grass_mixed' | 'grass_open' | 'grass_women'>('summary')
+  const [activeTab, setActiveTab] = useState<'summary' | 'general' | 'beach_mixed' | 'beach_open' | 'beach_women' | 'grass_mixed' | 'grass_open' | 'grass_women'>('summary')
   const [selectedCategory, setSelectedCategory] = useState<string>('beach_mixed')
   const [referenceSeason] = useState<string>('2024-25')
   const [highlightStats, setHighlightStats] = useState<any>(null)
@@ -31,6 +32,7 @@ const RankingPageNew: React.FC = () => {
   // Configuración de las pestañas
   const tabs = [
     { id: 'summary', label: 'Resumen', icon: BarChart3 },
+    { id: 'general', label: 'Ranking General', icon: LineChart },
     { id: 'beach_mixed', label: 'Playa Mixto', icon: IconBeach },
     { id: 'beach_open', label: 'Playa Open', icon: IconBeach },
     { id: 'beach_women', label: 'Playa Women', icon: IconBeach },
@@ -562,6 +564,132 @@ const RankingPageNew: React.FC = () => {
   }
 
   // Renderizar vista de resumen
+  const renderGeneralView = () => {
+    // Datos simulados para el ranking general
+    const generalRankingData = [
+      {
+        date: '2024-03-31',
+        season: '2023-24',
+        category: 'subseason_1_beach_mixed',
+        rank: 5,
+        points: 120.5
+      },
+      {
+        date: '2024-06-30',
+        season: '2023-24',
+        category: 'subseason_2_beach_open_women',
+        rank: 3,
+        points: 95.2
+      },
+      {
+        date: '2024-09-30',
+        season: '2023-24',
+        category: 'subseason_3_grass_mixed',
+        rank: 7,
+        points: 88.7
+      },
+      {
+        date: '2024-12-31',
+        season: '2023-24',
+        category: 'subseason_4_grass_open_women',
+        rank: 4,
+        points: 110.3
+      },
+      {
+        date: '2024-12-31',
+        season: '2023-24',
+        category: 'final_global',
+        rank: 4,
+        points: 414.7
+      },
+      {
+        date: '2025-03-31',
+        season: '2024-25',
+        category: 'subseason_1_beach_mixed',
+        rank: 2,
+        points: 135.8
+      },
+      {
+        date: '2025-06-30',
+        season: '2024-25',
+        category: 'subseason_2_beach_open_women',
+        rank: 1,
+        points: 142.3
+      },
+      {
+        date: '2025-09-30',
+        season: '2024-25',
+        category: 'subseason_3_grass_mixed',
+        rank: 3,
+        points: 98.6
+      },
+      {
+        date: '2025-12-31',
+        season: '2024-25',
+        category: 'subseason_4_grass_open_women',
+        rank: 2,
+        points: 125.4
+      },
+      {
+        date: '2025-12-31',
+        season: '2024-25',
+        category: 'final_global',
+        rank: 2,
+        points: 502.1
+      }
+    ]
+
+    return (
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Ranking General</h2>
+          <p className="text-gray-600">
+            Evolución del ranking general considerando todas las modalidades y subtemporadas
+          </p>
+        </div>
+
+        {/* Gráfica principal */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <GeneralRankingChart 
+            data={generalRankingData}
+            height={400}
+            showPoints={true}
+          />
+        </div>
+
+        {/* Información adicional */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-blue-900 mb-4">
+              ¿Qué muestra esta gráfica?
+            </h3>
+            <ul className="text-blue-800 space-y-2">
+              <li>• <strong>Playa Mixto:</strong> Ranking en la primera subtemporada (Enero-Marzo)</li>
+              <li>• <strong>Playa Open/Women:</strong> Ranking combinado en la segunda subtemporada (Abril-Junio)</li>
+              <li>• <strong>Césped Mixto:</strong> Ranking en la tercera subtemporada (Julio-Septiembre)</li>
+              <li>• <strong>Césped Open/Women:</strong> Ranking combinado en la cuarta subtemporada (Octubre-Diciembre)</li>
+              <li>• <strong>Ranking Global Final:</strong> Posición final considerando todas las modalidades</li>
+            </ul>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-green-900 mb-4">
+              Cómo interpretar los datos
+            </h3>
+            <ul className="text-green-800 space-y-2">
+              <li>• <strong>Posición 1:</strong> Mejor posición posible</li>
+              <li>• <strong>Líneas más altas:</strong> Mejor rendimiento en esa subtemporada</li>
+              <li>• <strong>Línea morada:</strong> Ranking global final de la temporada</li>
+              <li>• <strong>Puntos:</strong> Se muestran en el tooltip al pasar el mouse</li>
+              <li>• <strong>Tendencias:</strong> Observa la evolución a lo largo del tiempo</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const renderSummaryView = () => {
     return (
       <div className="space-y-8">
@@ -882,7 +1010,9 @@ const RankingPageNew: React.FC = () => {
 
         {/* Contenido principal */}
         <div>
-          {activeTab === 'summary' ? renderSummaryView() : renderDetailedView()}
+          {activeTab === 'summary' ? renderSummaryView() : 
+           activeTab === 'general' ? renderGeneralView() : 
+           renderDetailedView()}
         </div>
       </div>
     </div>

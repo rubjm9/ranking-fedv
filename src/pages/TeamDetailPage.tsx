@@ -4,6 +4,7 @@ import { ArrowLeft, Users, MapPin, Trophy, Calendar, TrendingUp, BarChart3, Mail
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
 import { teamDetailService, TeamDetailData, TournamentResult, RankingHistory, SeasonBreakdown } from '@/services/teamDetailService'
 import TeamLogo from '@/components/ui/TeamLogo'
+import GeneralRankingChart from '@/components/charts/GeneralRankingChart'
 
 const TeamDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -427,16 +428,12 @@ const TeamDetailPage: React.FC = () => {
 
         {/* Ranking History Chart */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-6">Evolución del Ranking</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={rankingHistory}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="rank" stroke="#3B82F6" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
+          <GeneralRankingChart 
+            data={rankingHistory} 
+            teamName={team.name}
+            height={300}
+            showPoints={true}
+          />
         </div>
 
         {/* Season Breakdown */}
