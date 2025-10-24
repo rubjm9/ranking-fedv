@@ -7,6 +7,7 @@
 import { supabase } from './supabaseService'
 import seasonPointsService, { CategoryPointsMap } from './seasonPointsService'
 import { RankingEntry } from './rankingService'
+import teamSeasonRankingsService, { type Modality } from './teamSeasonRankingsService'
 
 // Formatear temporada (YYYY-YY)
 const formatSeason = (year: number): string => {
@@ -31,6 +32,45 @@ const getSeasonCoefficient = (season: string, referenceSeason: string): number =
 }
 
 const hybridRankingService = {
+  /**
+   * Obtener ranking desde team_season_rankings (nuevo sistema optimizado)
+   * Usa rankings pre-calculados con coeficientes aplicados
+   */
+  getRankingFromTeamSeasonRankings: async (
+    category: keyof CategoryPointsMap,
+    season: string
+  ): Promise<RankingEntry[]> => {
+    try {
+      console.log(`📊 Obteniendo ranking de ${category} desde team_season_rankings para ${season}...`)
+      
+      const modality = category as Modality
+      const rankings = await teamSeasonRankingsService.getSeasonRankingByModality(season, modality)
+      
+      // Convertir al formato esperado
+      const rankingEntries: RankingEntry[] = rankings.map(entry => ({
+        team_id: entry.team_id,
+        team_name: entry.team_name,
+        region_name: entry.region_name || '',
+        ranking_category: category,
+        current_season_points: entry.points, // Puntos totales con coeficientes
+        previous_season_points: 0,
+        two_seasons_ago_points: 0,
+        three_seasons_ago_points: 0,
+        total_points: entry.points,
+        ranking_position: entry.rank,
+        last_calculated: new Date().toISOString(),
+        season_breakdown: {}
+      }))
+      
+      console.log(`✅ ${rankingEntries.length} equipos obtenidos`)
+      return rankingEntries
+      
+    } catch (error) {
+      console.error(`❌ Error obteniendo ranking de ${category}:`, error)
+      return []
+    }
+  },
+
   /**
    * Calcular ranking actual usando la tabla team_season_points
    * Mucho más rápido que calcular desde positions
@@ -246,6 +286,7 @@ const hybridRankingService = {
   },
 
   /**
+   * @deprecated Esta función ya no se usa. Los rankings ahora se sincronizan automáticamente en team_season_rankings
    * Sincronizar team_season_points con current_rankings
    * Asegura que ambas tablas estén alineadas
    */
