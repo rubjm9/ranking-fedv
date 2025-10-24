@@ -429,10 +429,11 @@ const TeamDetailPage: React.FC = () => {
         {/* Ranking History Chart */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           <GeneralRankingChart 
-            data={rankingHistory} 
+            teamId={team.id}
             teamName={team.name}
             height={300}
             showPoints={true}
+            useDynamicData={true}
           />
         </div>
 

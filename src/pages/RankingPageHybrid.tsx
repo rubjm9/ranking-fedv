@@ -900,90 +900,8 @@ const RankingPageHybrid: React.FC = () => {
     )
   }
 
-  // Renderizar pestaña de Análisis de Equipos
+  // Renderizar pestaña de Ranking General
   const renderGeneralTab = () => {
-    // Obtener datos históricos para el ranking general
-    const generalRankingData = React.useMemo(() => {
-      if (!rankingData || selectedRankingType !== 'general') return []
-      
-      // Simular datos históricos basados en los datos actuales
-      // En una implementación real, estos datos vendrían de la base de datos
-      const mockHistoricalData = [
-        {
-          date: '2024-03-31',
-          season: '2023-24',
-          category: 'subseason_1_beach_mixed',
-          rank: 5,
-          points: 120.5
-        },
-        {
-          date: '2024-06-30',
-          season: '2023-24',
-          category: 'subseason_2_beach_open_women',
-          rank: 3,
-          points: 95.2
-        },
-        {
-          date: '2024-09-30',
-          season: '2023-24',
-          category: 'subseason_3_grass_mixed',
-          rank: 7,
-          points: 88.7
-        },
-        {
-          date: '2024-12-31',
-          season: '2023-24',
-          category: 'subseason_4_grass_open_women',
-          rank: 4,
-          points: 110.3
-        },
-        {
-          date: '2024-12-31',
-          season: '2023-24',
-          category: 'final_global',
-          rank: 4,
-          points: 414.7
-        },
-        {
-          date: '2025-03-31',
-          season: '2024-25',
-          category: 'subseason_1_beach_mixed',
-          rank: 2,
-          points: 135.8
-        },
-        {
-          date: '2025-06-30',
-          season: '2024-25',
-          category: 'subseason_2_beach_open_women',
-          rank: 1,
-          points: 142.3
-        },
-        {
-          date: '2025-09-30',
-          season: '2024-25',
-          category: 'subseason_3_grass_mixed',
-          rank: 3,
-          points: 98.6
-        },
-        {
-          date: '2025-12-31',
-          season: '2024-25',
-          category: 'subseason_4_grass_open_women',
-          rank: 2,
-          points: 125.4
-        },
-        {
-          date: '2025-12-31',
-          season: '2024-25',
-          category: 'final_global',
-          rank: 2,
-          points: 502.1
-        }
-      ]
-      
-      return mockHistoricalData
-    }, [rankingData, selectedRankingType])
-
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -991,14 +909,14 @@ const RankingPageHybrid: React.FC = () => {
             Evolución del Ranking General
           </h3>
           <p className="text-gray-600 mb-6">
-            Esta gráfica muestra la evolución del ranking general a lo largo de las subtemporadas, 
-            incluyendo las 4 subtemporadas específicas y el ranking global final de cada temporada.
+            Esta gráfica muestra la evolución del ranking general calculado dinámicamente según las subtemporadas jugadas.
+            Los coeficientes se ajustan automáticamente según qué torneos de 1ª división se han completado.
           </p>
           
           <GeneralRankingChart 
-            data={generalRankingData}
             height={400}
             showPoints={true}
+            useDynamicData={true}
           />
         </div>
 
@@ -1009,15 +927,36 @@ const RankingPageHybrid: React.FC = () => {
             </div>
             <div className="ml-3">
               <h3 className="text-sm font-medium text-blue-900">
-                Información sobre el Ranking General
+                Sistema Dinámico de Ranking Global
               </h3>
               <div className="mt-2 text-sm text-blue-700">
                 <ul className="list-disc list-inside space-y-1">
-                  <li><strong>Playa Mixto:</strong> Ranking en la primera subtemporada (Enero-Marzo)</li>
-                  <li><strong>Playa Open/Women:</strong> Ranking combinado en la segunda subtemporada (Abril-Junio)</li>
-                  <li><strong>Césped Mixto:</strong> Ranking en la tercera subtemporada (Julio-Septiembre)</li>
-                  <li><strong>Césped Open/Women:</strong> Ranking combinado en la cuarta subtemporada (Octubre-Diciembre)</li>
-                  <li><strong>Ranking Global Final:</strong> Posición final considerando todas las modalidades</li>
+                  <li><strong>Cálculo automático:</strong> Se recalcula cada vez que se completa un torneo de 1ª división</li>
+                  <li><strong>Coeficientes dinámicos:</strong> Las modalidades jugadas tienen coeficiente 1.0, las no jugadas usan la temporada anterior</li>
+                  <li><strong>Suma total:</strong> Incluye puntos de todas las modalidades (playa mixto, open, women + césped mixto, open, women)</li>
+                  <li><strong>Actualización en tiempo real:</strong> Los datos se actualizan automáticamente sin necesidad de simulación</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <LineChart className="w-5 h-5 text-green-600 mt-0.5" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-green-900">
+                Ejemplo de Funcionamiento
+              </h3>
+              <div className="mt-2 text-sm text-green-700">
+                <p><strong>En marzo 2025:</strong></p>
+                <ul className="list-disc list-inside space-y-1 ml-4">
+                  <li>Playa mixto 2024-25: coeficiente 1.0 (ya se jugó)</li>
+                  <li>Playa open/women 2024-25: coeficiente 1.0 (ya se jugó)</li>
+                  <li>Césped mixto 2023-24: coeficiente 1.0 (el más reciente)</li>
+                  <li>Césped open/women 2023-24: coeficiente 1.0 (el más reciente)</li>
                 </ul>
               </div>
             </div>

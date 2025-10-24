@@ -1,5 +1,6 @@
 import React from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import dynamicRankingService from '@/services/dynamicRankingService'
 
 interface SubseasonDataPoint {
   date: string
@@ -10,103 +11,116 @@ interface SubseasonDataPoint {
 }
 
 interface GeneralRankingChartProps {
-  data: SubseasonDataPoint[]
+  data?: SubseasonDataPoint[]
+  teamId?: string
   teamName?: string
   height?: number
   showPoints?: boolean
+  useDynamicData?: boolean
 }
 
 const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({ 
   data, 
+  teamId,
   teamName, 
   height = 300,
-  showPoints = false 
+  showPoints = false,
+  useDynamicData = false
 }) => {
-  if (!data || data.length === 0) {
+  const [chartData, setChartData] = React.useState<any[]>([])
+  const [isLoading, setIsLoading] = React.useState(false)
+
+  // Cargar datos dinámicos si se solicita
+  React.useEffect(() => {
+    if (useDynamicData && teamId) {
+      setIsLoading(true)
+      dynamicRankingService.getGlobalRankingHistory(teamId)
+        .then(historyData => {
+          const processedData = historyData.map(point => ({
+            date: point.date,
+            displayDate: new Date(point.date).toLocaleDateString('es-ES', { 
+              month: 'short', 
+              year: '2-digit' 
+            }),
+            season: point.season,
+            globalRank: point.rank,
+            globalPoints: point.points
+          }))
+          setChartData(processedData)
+        })
+        .catch(error => {
+          console.error('Error cargando datos dinámicos:', error)
+          setChartData([])
+        })
+        .finally(() => {
+          setIsLoading(false)
+        })
+    } else if (data) {
+      // Para datos estáticos (compatibilidad con versión anterior)
+      const dataByDate: { [key: string]: any } = {}
+      
+      data.forEach(point => {
+        const dateKey = point.date
+        if (!dataByDate[dateKey]) {
+          dataByDate[dateKey] = {
+            date: dateKey,
+            displayDate: new Date(point.date).toLocaleDateString('es-ES', { 
+              month: 'short', 
+              year: '2-digit' 
+            }),
+            season: point.season
+          }
+        }
+        
+        // Agregar datos según la categoría
+        if (point.category === 'subseason_1_beach_mixed') {
+          dataByDate[dateKey].subseason1 = point.rank
+          dataByDate[dateKey].subseason1Points = point.points
+        } else if (point.category === 'subseason_2_beach_open_women') {
+          dataByDate[dateKey].subseason2 = point.rank
+          dataByDate[dateKey].subseason2Points = point.points
+        } else if (point.category === 'subseason_3_grass_mixed') {
+          dataByDate[dateKey].subseason3 = point.rank
+          dataByDate[dateKey].subseason3Points = point.points
+        } else if (point.category === 'subseason_4_grass_open_women') {
+          dataByDate[dateKey].subseason4 = point.rank
+          dataByDate[dateKey].subseason4Points = point.points
+        } else if (point.category === 'final_global') {
+          dataByDate[dateKey].finalGlobal = point.rank
+          dataByDate[dateKey].finalGlobalPoints = point.points
+        }
+      })
+      
+      setChartData(Object.values(dataByDate).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
+    }
+  }, [useDynamicData, teamId, data])
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg">
         <div className="text-center text-gray-500">
-          <p>No hay datos históricos disponibles</p>
-          <p className="text-sm mt-1">Los datos aparecerán después de ejecutar la simulación de subtemporadas</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Cargando datos del ranking global...</p>
         </div>
       </div>
     )
   }
 
-  // Procesar datos para el gráfico
-  const processedData = React.useMemo(() => {
-    // Agrupar por fecha y crear puntos de datos
-    const dataByDate: { [key: string]: any } = {}
-    
-    data.forEach(point => {
-      const dateKey = point.date
-      if (!dataByDate[dateKey]) {
-        dataByDate[dateKey] = {
-          date: dateKey,
-          displayDate: new Date(point.date).toLocaleDateString('es-ES', { 
-            month: 'short', 
-            year: '2-digit' 
-          }),
-          season: point.season
-        }
-      }
-      
-      // Agregar datos según la categoría
-      if (point.category === 'subseason_1_beach_mixed') {
-        dataByDate[dateKey].subseason1 = point.rank
-        dataByDate[dateKey].subseason1Points = point.points
-      } else if (point.category === 'subseason_2_beach_open_women') {
-        dataByDate[dateKey].subseason2 = point.rank
-        dataByDate[dateKey].subseason2Points = point.points
-      } else if (point.category === 'subseason_3_grass_mixed') {
-        dataByDate[dateKey].subseason3 = point.rank
-        dataByDate[dateKey].subseason3Points = point.points
-      } else if (point.category === 'subseason_4_grass_open_women') {
-        dataByDate[dateKey].subseason4 = point.rank
-        dataByDate[dateKey].subseason4Points = point.points
-      } else if (point.category === 'final_global') {
-        dataByDate[dateKey].finalGlobal = point.rank
-        dataByDate[dateKey].finalGlobalPoints = point.points
-      }
-    })
-    
-    return Object.values(dataByDate).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-  }, [data])
-
-  // Configurar líneas del gráfico
-  const lines = [
-    {
-      key: 'subseason1',
-      name: 'Playa Mixto',
-      color: '#3B82F6',
-      dataKey: 'subseason1'
-    },
-    {
-      key: 'subseason2', 
-      name: 'Playa Open/Women',
-      color: '#EF4444',
-      dataKey: 'subseason2'
-    },
-    {
-      key: 'subseason3',
-      name: 'Césped Mixto', 
-      color: '#10B981',
-      dataKey: 'subseason3'
-    },
-    {
-      key: 'subseason4',
-      name: 'Césped Open/Women',
-      color: '#F59E0B', 
-      dataKey: 'subseason4'
-    },
-    {
-      key: 'finalGlobal',
-      name: 'Ranking Global Final',
-      color: '#8B5CF6',
-      dataKey: 'finalGlobal',
-      strokeWidth: 3
-    }
-  ]
+  if (!chartData || chartData.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg">
+        <div className="text-center text-gray-500">
+          <p>No hay datos históricos disponibles</p>
+          <p className="text-sm mt-1">
+            {useDynamicData 
+              ? 'Los datos aparecerán cuando se ejecute la simulación de subtemporadas'
+              : 'Los datos aparecerán después de ejecutar la simulación de subtemporadas'
+            }
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   // Tooltip personalizado
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -116,18 +130,17 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
           <p className="font-medium text-gray-900 mb-2">{label}</p>
           {payload.map((entry: any, index: number) => {
             if (entry.value) {
-              const line = lines.find(l => l.dataKey === entry.dataKey)
               return (
                 <div key={index} className="flex items-center space-x-2 text-sm">
                   <div 
                     className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: entry.color }}
                   />
-                  <span className="text-gray-600">{line?.name}:</span>
+                  <span className="text-gray-600">Ranking Global:</span>
                   <span className="font-medium">#{entry.value}</span>
-                  {showPoints && entry.payload[`${entry.dataKey}Points`] && (
+                  {showPoints && entry.payload.globalPoints && (
                     <span className="text-gray-500">
-                      ({entry.payload[`${entry.dataKey}Points`].toFixed(1)} pts)
+                      ({entry.payload.globalPoints.toFixed(1)} pts)
                     </span>
                   )}
                 </div>
@@ -145,13 +158,13 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
     <div className="w-full">
       {teamName && (
         <div className="mb-4">
-          <h4 className="text-lg font-medium text-gray-900">Evolución del Ranking General</h4>
+          <h4 className="text-lg font-medium text-gray-900">Evolución del Ranking Global</h4>
           <p className="text-sm text-gray-600">Equipo: {teamName}</p>
         </div>
       )}
       
       <ResponsiveContainer width="100%" height={height}>
-        <LineChart data={processedData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis 
             dataKey="displayDate" 
@@ -169,27 +182,84 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
             domain={['dataMin - 1', 'dataMax + 1']}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend />
           
-          {lines.map(line => (
+          {useDynamicData ? (
+            // Para datos dinámicos, mostrar solo línea de ranking global
             <Line
-              key={line.key}
               type="monotone"
-              dataKey={line.dataKey}
-              stroke={line.color}
-              strokeWidth={line.strokeWidth || 2}
-              dot={{ fill: line.color, strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, stroke: line.color, strokeWidth: 2 }}
+              dataKey="globalRank"
+              stroke="#8B5CF6"
+              strokeWidth={3}
+              dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, stroke: '#8B5CF6', strokeWidth: 2 }}
               connectNulls={false}
-              name={line.name}
+              name="Ranking Global"
             />
-          ))}
+          ) : (
+            // Para datos estáticos, mostrar todas las líneas de subtemporadas
+            <>
+              <Line
+                type="monotone"
+                dataKey="subseason1"
+                stroke="#3B82F6"
+                strokeWidth={2}
+                dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2 }}
+                connectNulls={false}
+                name="Playa Mixto"
+              />
+              <Line
+                type="monotone"
+                dataKey="subseason2"
+                stroke="#EF4444"
+                strokeWidth={2}
+                dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: '#EF4444', strokeWidth: 2 }}
+                connectNulls={false}
+                name="Playa Open/Women"
+              />
+              <Line
+                type="monotone"
+                dataKey="subseason3"
+                stroke="#10B981"
+                strokeWidth={2}
+                dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: '#10B981', strokeWidth: 2 }}
+                connectNulls={false}
+                name="Césped Mixto"
+              />
+              <Line
+                type="monotone"
+                dataKey="subseason4"
+                stroke="#F59E0B"
+                strokeWidth={2}
+                dot={{ fill: '#F59E0B', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: '#F59E0B', strokeWidth: 2 }}
+                connectNulls={false}
+                name="Césped Open/Women"
+              />
+              <Line
+                type="monotone"
+                dataKey="finalGlobal"
+                stroke="#8B5CF6"
+                strokeWidth={3}
+                dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: '#8B5CF6', strokeWidth: 2 }}
+                connectNulls={false}
+                name="Ranking Global Final"
+              />
+            </>
+          )}
         </LineChart>
       </ResponsiveContainer>
       
       <div className="mt-4 text-xs text-gray-500 text-center">
         <p>Los rankings se muestran con posición 1 arriba y últimas posiciones abajo</p>
-        <p>Los datos incluyen las 4 subtemporadas más el ranking global final de cada temporada</p>
+        {useDynamicData ? (
+          <p>Datos calculados dinámicamente según subtemporadas jugadas</p>
+        ) : (
+          <p>Los datos incluyen las 4 subtemporadas más el ranking global final de cada temporada</p>
+        )}
       </div>
     </div>
   )
