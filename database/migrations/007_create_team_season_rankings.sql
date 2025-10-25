@@ -48,29 +48,24 @@ CREATE INDEX IF NOT EXISTS idx_team_season_rankings_team_season
   ON team_season_rankings(team_id, season);
 
 -- Índices compuestos para consultas de modalidad específica
+-- (Sin condiciones WHERE para evitar problemas de creación)
 CREATE INDEX IF NOT EXISTS idx_team_season_rankings_season_beach_mixed 
-  ON team_season_rankings(season, beach_mixed_rank) 
-  WHERE beach_mixed_rank IS NOT NULL;
+  ON team_season_rankings(season, beach_mixed_rank);
 
 CREATE INDEX IF NOT EXISTS idx_team_season_rankings_season_beach_open 
-  ON team_season_rankings(season, beach_open_rank) 
-  WHERE beach_open_rank IS NOT NULL;
+  ON team_season_rankings(season, beach_open_rank);
 
 CREATE INDEX IF NOT EXISTS idx_team_season_rankings_season_beach_women 
-  ON team_season_rankings(season, beach_women_rank) 
-  WHERE beach_women_rank IS NOT NULL;
+  ON team_season_rankings(season, beach_women_rank);
 
 CREATE INDEX IF NOT EXISTS idx_team_season_rankings_season_grass_mixed 
-  ON team_season_rankings(season, grass_mixed_rank) 
-  WHERE grass_mixed_rank IS NOT NULL;
+  ON team_season_rankings(season, grass_mixed_rank);
 
 CREATE INDEX IF NOT EXISTS idx_team_season_rankings_season_grass_open 
-  ON team_season_rankings(season, grass_open_rank) 
-  WHERE grass_open_rank IS NOT NULL;
+  ON team_season_rankings(season, grass_open_rank);
 
 CREATE INDEX IF NOT EXISTS idx_team_season_rankings_season_grass_women 
-  ON team_season_rankings(season, grass_women_rank) 
-  WHERE grass_women_rank IS NOT NULL;
+  ON team_season_rankings(season, grass_women_rank);
 
 -- 3. Crear función para actualizar timestamp automáticamente
 CREATE OR REPLACE FUNCTION update_team_season_rankings_updated_at()
