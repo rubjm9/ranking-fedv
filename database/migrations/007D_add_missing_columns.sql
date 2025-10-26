@@ -44,9 +44,18 @@ ALTER COLUMN grass_open_points TYPE DECIMAL(10,2);
 ALTER TABLE team_season_rankings 
 ALTER COLUMN grass_women_points TYPE DECIMAL(10,2);
 
--- Agregar constraint único que faltó
-ALTER TABLE team_season_rankings 
-ADD CONSTRAINT IF NOT EXISTS unique_team_season UNIQUE(team_id, season);
+-- Agregar constraint único que faltó (solo si no existe)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'unique_team_season' 
+    AND conrelid = 'team_season_rankings'::regclass
+  ) THEN
+    ALTER TABLE team_season_rankings 
+    ADD CONSTRAINT unique_team_season UNIQUE(team_id, season);
+  END IF;
+END $$;
 
 -- Verificar estructura final
 SELECT 
