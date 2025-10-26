@@ -183,18 +183,5 @@ const migrateToNewRankingSystem = async (): Promise<MigrationReport> => {
   return report
 }
 
-// Ejecutar si se llama directamente
-if (require.main === module) {
-  migrateToNewRankingSystem()
-    .then(() => {
-      console.log('\n✅ Script de migración finalizado')
-      process.exit(0)
-    })
-    .catch((error) => {
-      console.error('\n❌ Script de migración falló:', error)
-      process.exit(1)
-    })
-}
-
 export default migrateToNewRankingSystem
 
