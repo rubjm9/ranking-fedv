@@ -25,131 +25,76 @@ export interface DynamicRankingEntry {
 const dynamicRankingService = {
   /**
    * Obtener historial de ranking global para gráficas
-   * Usa el nuevo sistema team_season_rankings
+   * Usa rankings pre-calculados de team_season_rankings (MUCHO MÁS RÁPIDO)
    */
   getGlobalRankingHistory: async (teamId?: string): Promise<any[]> => {
     try {
-      if (!supabase) {
-        throw new Error('Supabase no está configurado')
+      if (!supabase || !teamId) {
+        throw new Error('Supabase o teamId no configurado')
       }
 
-      console.log('🔄 Obteniendo historial de ranking global desde team_season_rankings...')
+      console.log(`🔄 Obteniendo ranking global histórico para equipo ${teamId}...`)
 
-      // Obtener todas las temporadas únicas
-      const { data: seasonData, error: seasonError } = await supabase
+      // OPTIMIZADO: Obtener solo los datos del equipo específico, ordenados por temporada
+      const { data: teamRankings, error } = await supabase
         .from('team_season_rankings')
-        .select('season')
-        .order('season', { ascending: false })
+        .select('season, beach_mixed_points, beach_open_points, beach_women_points, grass_mixed_points, grass_open_points, grass_women_points')
+        .eq('team_id', teamId)
+        .order('season', { ascending: true })
 
-      if (seasonError) {
-        console.error('Error obteniendo temporadas:', seasonError)
+      if (error) {
+        console.error('Error obteniendo rankings del equipo:', error)
         return []
       }
 
-      const uniqueSeasons = [...new Set((seasonData || []).map((s: any) => s.season))]
-      console.log(`📅 Temporadas encontradas: ${uniqueSeasons.length}`)
-
-      if (uniqueSeasons.length === 0) {
-        console.log('⚠️ No hay datos en team_season_rankings. Ejecuta la migración primero.')
+      if (!teamRankings || teamRankings.length === 0) {
+        console.log('⚠️ No hay datos en team_season_rankings para este equipo.')
         return []
       }
 
+      console.log(`📊 Registros encontrados: ${teamRankings.length} temporadas`)
+
+      // Para cada temporada, calcular posición global sumando todas las modalidades
       const historyData: any[] = []
 
-      // Para cada temporada, obtener el ranking global
-      for (const season of uniqueSeasons) {
-        try {
-          // IMPORTANTE: Obtener TODOS los equipos de la temporada para calcular ranking global
-          // Luego filtramos por teamId para encontrar su posición
-          const { data: seasonRankings, error } = await supabase
-            .from('team_season_rankings')
-            .select(`
-              team_id,
-              season,
-              beach_mixed_points,
-              beach_open_points,
-              beach_women_points,
-              grass_mixed_points,
-              grass_open_points,
-              grass_women_points,
-              teams(name, region:regions(name))
-            `)
-            .eq('season', season)
+      for (const row of teamRankings) {
+        const totalPoints = (row.beach_mixed_points || 0) + 
+                          (row.beach_open_points || 0) + 
+                          (row.beach_women_points || 0) + 
+                          (row.grass_mixed_points || 0) + 
+                          (row.grass_open_points || 0) + 
+                          (row.grass_women_points || 0)
 
-          if (error) {
-            console.error(`Error obteniendo datos de ${season}:`, error)
-            continue
-          }
+        // Obtener posición global consultando TODOS los equipos de esa temporada
+        const { data: allTeams } = await supabase
+          .from('team_season_rankings')
+          .select('team_id, beach_mixed_points, beach_open_points, beach_women_points, grass_mixed_points, grass_open_points, grass_women_points')
+          .eq('season', row.season)
 
-          if (!seasonRankings || seasonRankings.length === 0) {
-            continue
-          }
+        if (allTeams) {
+          const allPoints = allTeams.map(t => ({
+            team_id: t.team_id,
+            total: (t.beach_mixed_points || 0) + (t.beach_open_points || 0) + 
+                   (t.beach_women_points || 0) + (t.grass_mixed_points || 0) + 
+                   (t.grass_open_points || 0) + (t.grass_women_points || 0)
+          }))
 
-          // Calcular puntos globales para cada equipo
-          const teamGlobalPoints = seasonRankings.map((row: any) => {
-            const totalPoints = (row.beach_mixed_points || 0) + 
-                              (row.beach_open_points || 0) + 
-                              (row.beach_women_points || 0) + 
-                              (row.grass_mixed_points || 0) + 
-                              (row.grass_open_points || 0) + 
-                              (row.grass_women_points || 0)
+          // Ordenar por puntos y encontrar posición del equipo
+          allPoints.sort((a, b) => b.total - a.total)
+          const position = allPoints.findIndex(t => t.team_id === teamId) + 1
 
-            return {
-              team_id: row.team_id,
-              team_name: row.teams?.name || 'Equipo desconocido',
-              total_points: totalPoints
-            }
+          historyData.push({
+            date: `${parseInt(row.season.split('-')[0])}-12-31`,
+            season: row.season,
+            category: 'global',
+            rank: position,
+            points: totalPoints
           })
-
-          // Ordenar por puntos y asignar rankings
-          teamGlobalPoints.sort((a, b) => b.total_points - a.total_points)
-
-          if (teamId) {
-            // Buscar el equipo específico
-            const teamIndex = teamGlobalPoints.findIndex(t => t.team_id === teamId)
-            console.log(`🔍 Temporada ${season} - Buscando equipo ${teamId}`)
-            console.log(`📊 Total equipos: ${teamGlobalPoints.length}`)
-            console.log(`🎯 Índice encontrado: ${teamIndex}`)
-            console.log(`📈 Top 5 equipos:`, teamGlobalPoints.slice(0, 5).map(t => ({
-              name: t.team_name,
-              points: t.total_points
-            })))
-            
-            if (teamIndex >= 0) {
-              const team = teamGlobalPoints[teamIndex]
-              console.log(`✅ Equipo encontrado en posición ${teamIndex + 1}`)
-              historyData.push({
-                date: `${parseInt(season.split('-')[0])}-12-31`,
-                season: season,
-                category: 'global',
-                rank: teamIndex + 1,
-                points: team.total_points
-              })
-            } else {
-              console.log(`❌ Equipo ${teamId} no encontrado en temporada ${season}`)
-            }
-          } else {
-            // Agregar todos los equipos
-            teamGlobalPoints.forEach((team, index) => {
-              if (team.total_points > 0) {
-                historyData.push({
-                  date: `${parseInt(season.split('-')[0])}-12-31`,
-                  season: season,
-                  team_id: team.team_id,
-                  team_name: team.team_name,
-                  rank: index + 1,
-                  points: team.total_points
-                })
-              }
-            })
-          }
-        } catch (error) {
-          console.warn(`⚠️ Error procesando temporada ${season}:`, error)
         }
       }
 
       console.log(`✅ Historial obtenido: ${historyData.length} puntos de datos`)
-      return historyData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      return historyData
 
     } catch (error) {
       console.error('❌ Error obteniendo historial de ranking global:', error)
