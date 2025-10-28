@@ -66,14 +66,14 @@ export const calculateAndSaveSubseasonGlobalRankings = async (
   const uniqueTeams = [...new Set(allTeamsData.map(t => t.team_id))]
   console.log(`👥 Total equipos únicos: ${uniqueTeams.length}`)
 
-  // Obtener TODOS los datos de rankings de una vez
-  const { data: allRankingsData } = await supabase
-    .from('team_season_rankings')
+  // Obtener TODOS los datos de PUNTOS BASE (sin coeficientes aplicados)
+  const { data: allPointsData } = await supabase
+    .from('team_season_points')
     .select('*')
     .in('season', historicalSeasons)
 
-  if (!allRankingsData) {
-    console.log(`⚠️ No hay datos de rankings para estas temporadas`)
+  if (!allPointsData) {
+    console.log(`⚠️ No hay datos de puntos base para estas temporadas`)
     return
   }
 
@@ -107,7 +107,7 @@ export const calculateAndSaveSubseasonGlobalRankings = async (
           const coeff = getAntiquityCoeff(i)
 
           // Buscar en los datos en memoria
-          const data = allRankingsData.find(
+          const data = allPointsData.find(
             r => r.team_id === teamId && r.season === tempSeason
           )
 
