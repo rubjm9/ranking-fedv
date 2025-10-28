@@ -53,7 +53,9 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
               'Final'
             ]
             
-            [point.subupdate1, point.subupdate2, point.subupdate3, point.subupdate4].forEach((subupdate, index) => {
+            const subupdates = [point.subupdate1, point.subupdate2, point.subupdate3, point.subupdate4]
+            
+            subupdates.forEach((subupdate, index) => {
               if (subupdate && subupdate.rank !== null && subupdate.rank !== undefined) {
                 processedData.push({
                   date: `${baseYear}-${(3 * index + 3).toString().padStart(2, '0')}-01`,
