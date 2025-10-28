@@ -1,10 +1,28 @@
 /**
  * Función para calcular y guardar rankings globales de subtemporadas
- * LÓGICA ACUMULATIVA:
- * - Subupdate 1: Solo beach_mixed
- * - Subupdate 2: beach_mixed + beach_open + beach_women
- * - Subupdate 3: Todas las playas + grass_mixed
- * - Subupdate 4: TODAS las 6 modalidades (final)
+ * 
+ * LÓGICA CORRECTA:
+ * En cada subupdate se incluyen TODAS las 6 modalidades, pero los coeficientes
+ * dependen de qué torneos ya se han jugado en la temporada actual.
+ * 
+ * - Subupdate 1: Tras playa mixto
+ *   * beach_mixed actual → x1.0
+ *   * Otras 5 modalidades (aún no jugadas) se toman de temp anterior → x1.0
+ *   * Todas las anteriores → x0.8, x0.5, x0.2
+ * 
+ * - Subupdate 2: Tras playa open + women
+ *   * 3 playas actual → x1.0
+ *   * 3 céspeds (aún no jugados) de temp anterior → x1.0
+ *   * Todas anteriores → x0.8, x0.5, x0.2
+ * 
+ * - Subupdate 3: Tras césped mixto
+ *   * 3 playas + grass_mixed actual → x1.0
+ *   * 2 céspeds restantes de temp anterior → x1.0
+ *   * Todas anteriores → x0.8, x0.5, x0.2
+ * 
+ * - Subupdate 4: Tras césped open + women
+ *   * TODAS las 6 modalidades actual → x1.0
+ *   * Todas anteriores → x0.8, x0.5, x0.2
  * 
  * Las fechas visuales en la gráfica son equidistantes (mar, jun, sep, dic)
  * pero no tienen que corresponder con las fechas reales de los torneos
@@ -29,11 +47,52 @@ const getHistoricalSeasons = (baseSeason: string, count: number = 4): string[] =
 }
 
 /**
- * Calcular coeficiente de antigüedad (el más reciente tiene coef 1.0)
+ * Detectar si una modalidad ya se ha jugado en un subupdate
  */
-const getAntiquityCoeff = (index: number): number => {
-  const coeffs = [1.0, 0.8, 0.5, 0.2]
-  return coeffs[index] || 0
+const isModalityPlayed = (subupdate: number, modality: string): boolean => {
+  const playedModalities = [
+    ['beach_mixed'],                                          // Subupdate 1
+    ['beach_mixed', 'beach_open', 'beach_women'],             // Subupdate 2
+    ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed'], // Subupdate 3
+    ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'] // Subupdate 4
+  ]
+  
+  return playedModalities[subupdate - 1].includes(modality)
+}
+
+/**
+ * Obtener coeficiente de antigüedad dinámicamente
+ * 
+ * @param seasonIndex Índice de la temporada histórica (0 = actual, 1 = anterior, etc.)
+ * @param subupdate Número de subupdate (1-4)
+ * @param modality Modalidad a evaluar
+ * @returns Coeficiente a aplicar
+ */
+const getDynamicCoeff = (
+  seasonIndex: number,
+  subupdate: number,
+  modality: string
+): number => {
+  const isPlayedInCurrentSeason = isModalityPlayed(subupdate, modality)
+  
+  // Si ya se jugó en la temp actual, aplicamos coeff estándar
+  if (isPlayedInCurrentSeason) {
+    const coeffs = [1.0, 0.8, 0.5, 0.2]
+    return coeffs[seasonIndex] || 0
+  }
+  
+  // Si NO se ha jugado aún en la temp actual, se usa la temp anterior con x1.0
+  // La temp actual tiene x0, y la anterior pasa a ser x1.0
+  if (seasonIndex === 0) {
+    return 0 // Temp actual no ha jugado
+  }
+  if (seasonIndex === 1) {
+    return 1.0 // Temp anterior es la más reciente
+  }
+  
+  // Las anteriores a la anterior se desplazan
+  const coeffs = [0, 0, 0.8, 0.5, 0.2]
+  return coeffs[seasonIndex] || 0
 }
 
 /**
@@ -77,42 +136,43 @@ export const calculateAndSaveSubseasonGlobalRankings = async (
     return
   }
 
-  // Definir qué modalidades incluir en cada subupdate
-  const subupdateModalities = [
-    ['beach_mixed'],                           // Subupdate 1: Solo playa mixto
-    ['beach_mixed', 'beach_open', 'beach_women'], // Subupdate 2: Todas las playas
-    ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed'], // Subupdate 3: Playas + césped mixto
-    ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'] // Subupdate 4: Todas las modalidades
+  // Todas las 6 modalidades
+  const allModalities = [
+    'beach_mixed',
+    'beach_open',
+    'beach_women',
+    'grass_mixed',
+    'grass_open',
+    'grass_women'
   ]
 
-  // Para cada subupdate (1-4), calcular ranking acumulativo
+  // Para cada subupdate (1-4), calcular ranking
   for (let subupdate = 1; subupdate <= 4; subupdate++) {
     console.log(`\n📊 Calculando subupdate ${subupdate}...`)
-    
-    const modalitiesForThisSubupdate = subupdateModalities[subupdate - 1]
-    console.log(`📋 Modalidades incluidas: ${modalitiesForThisSubupdate.join(', ')}`)
 
     const teamPoints: Array<{ team_id: string, total: number }> = []
 
     for (const teamId of uniqueTeams) {
       let totalPoints = 0
 
-      // Solo calcular puntos de las modalidades incluidas en este subupdate
-      for (const modality of modalitiesForThisSubupdate) {
+      // Calcular puntos de TODAS las 6 modalidades
+      for (const modality of allModalities) {
         let modalityPoints = 0
 
         // Iterar por las 4 temporadas históricas
         for (let i = 0; i < historicalSeasons.length; i++) {
           const tempSeason = historicalSeasons[i]
-          const coeff = getAntiquityCoeff(i)
+          
+          // Obtener coeficiente dinámico basado en subupdate y modalidad
+          const coeff = getDynamicCoeff(i, subupdate, modality)
 
           // Buscar en los datos en memoria
           const data = allPointsData.find(
             r => r.team_id === teamId && r.season === tempSeason
           )
 
-          if (data && data[`${modality}_points`]) {
-            modalityPoints += data[`${modality}_points`] * coeff
+          if (data && data[`${modality}_points`] && coeff > 0) {
+            modalityPoints += Number(data[`${modality}_points`]) * coeff
           }
         }
 
