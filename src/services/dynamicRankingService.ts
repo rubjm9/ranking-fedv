@@ -59,8 +59,9 @@ const dynamicRankingService = {
       // Para cada temporada, obtener el ranking global
       for (const season of uniqueSeasons) {
         try {
-          // Obtener datos de la temporada
-          let query = supabase
+          // IMPORTANTE: Obtener TODOS los equipos de la temporada para calcular ranking global
+          // Luego filtramos por teamId para encontrar su posición
+          const { data: seasonRankings, error } = await supabase
             .from('team_season_rankings')
             .select(`
               team_id,
@@ -74,12 +75,6 @@ const dynamicRankingService = {
               teams(name, region:regions(name))
             `)
             .eq('season', season)
-
-          if (teamId) {
-            query = query.eq('team_id', teamId)
-          }
-
-          const { data: seasonRankings, error } = await query
 
           if (error) {
             console.error(`Error obteniendo datos de ${season}:`, error)
