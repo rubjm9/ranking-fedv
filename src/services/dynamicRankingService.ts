@@ -38,7 +38,7 @@ const dynamicRankingService = {
       // OPTIMIZADO: Obtener solo los datos del equipo específico, ordenados por temporada
       const { data: teamRankings, error } = await supabase
         .from('team_season_rankings')
-        .select('season, beach_mixed_points, beach_open_points, beach_women_points, grass_mixed_points, grass_open_points, grass_women_points')
+        .select('season, beach_mixed_points, beach_open_points, beach_women_points, grass_mixed_points, grass_open_points, grass_women_points, subupdate_1_global_rank, subupdate_1_global_points, subupdate_2_global_rank, subupdate_2_global_points, subupdate_3_global_rank, subupdate_3_global_points, subupdate_4_global_rank, subupdate_4_global_points')
         .eq('team_id', teamId)
         .order('season', { ascending: true })
 
