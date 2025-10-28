@@ -72,6 +72,90 @@ const hybridRankingService = {
   },
 
   /**
+   * Calcular ranking general (suma de todas las modalidades)
+   * Usa team_season_rankings para obtener datos históricos
+   */
+  getGeneralRanking: async (referenceSeason: string): Promise<RankingEntry[]> => {
+    try {
+      console.log(`📊 Calculando ranking general para temporada ${referenceSeason}...`)
+      
+      // Usar el nuevo sistema para obtener rankings por modalidad
+      const modalities: (keyof CategoryPointsMap)[] = [
+        'beach_mixed', 
+        'beach_open', 
+        'beach_women', 
+        'grass_mixed', 
+        'grass_open', 
+        'grass_women'
+      ]
+      
+      // Obtener rankings de todas las modalidades
+      const allRankings = await Promise.all(
+        modalities.map(modality => 
+          teamSeasonRankingsService.getSeasonRankingByModality(referenceSeason, modality as Modality)
+        )
+      )
+      
+      // Calcular puntos totales por equipo (suma de todas las modalidades)
+      const teamTotals: { [teamId: string]: {
+        team_name: string
+        region_name: string
+        total_points: number
+        modality_points: { [modality: string]: number }
+      }} = {}
+      
+      allRankings.forEach((rankings, index) => {
+        const modality = modalities[index]
+        rankings.forEach(team => {
+          if (!teamTotals[team.team_id]) {
+            teamTotals[team.team_id] = {
+              team_name: team.team_name,
+              region_name: team.region_name || '',
+              total_points: 0,
+              modality_points: {}
+            }
+          }
+          teamTotals[team.team_id].total_points += team.points
+          teamTotals[team.team_id].modality_points[modality] = team.points
+        })
+      })
+      
+      // Ordenar y crear ranking final
+      const sortedTeams = Object.entries(teamTotals)
+        .map(([team_id, data]) => ({
+          team_id,
+          total_points: data.total_points,
+          team_name: data.team_name,
+          region_name: data.region_name,
+          modality_points: data.modality_points
+        }))
+        .sort((a, b) => b.total_points - a.total_points)
+      
+      const rankingEntries: RankingEntry[] = sortedTeams.map((team, index) => ({
+        team_id: team.team_id,
+        team_name: team.team_name,
+        region_name: team.region_name,
+        ranking_category: 'general_all' as any,
+        current_season_points: team.total_points,
+        previous_season_points: 0,
+        two_seasons_ago_points: 0,
+        three_seasons_ago_points: 0,
+        total_points: team.total_points,
+        ranking_position: index + 1,
+        last_calculated: new Date().toISOString(),
+        season_breakdown: team.modality_points
+      }))
+      
+      console.log(`✅ Ranking general calculado: ${rankingEntries.length} equipos`)
+      return rankingEntries
+      
+    } catch (error) {
+      console.error('❌ Error calculando ranking general:', error)
+      return []
+    }
+  },
+
+  /**
    * Calcular ranking actual usando la tabla team_season_points
    * Mucho más rápido que calcular desde positions
    */

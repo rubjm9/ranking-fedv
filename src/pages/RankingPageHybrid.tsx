@@ -909,15 +909,22 @@ const RankingPageHybrid: React.FC = () => {
             Evolución del Ranking General
           </h3>
           <p className="text-gray-600 mb-6">
-            Esta gráfica muestra la evolución del ranking general calculado dinámicamente según las subtemporadas jugadas.
-            Los coeficientes se ajustan automáticamente según qué torneos de 1ª división se han completado.
+            Esta gráfica muestra la evolución del ranking general para todos los equipos.
+            Los datos se calculan dinámicamente desde team_season_rankings.
           </p>
           
-          <GeneralRankingChart 
-            height={400}
-            showPoints={true}
-            useDynamicData={true}
-          />
+          {activeTab === 'general' && (
+            <div className="text-center py-12 bg-gray-50 rounded-lg">
+              <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h4 className="text-lg font-medium text-gray-900 mb-2">
+                Ranking General Dinámico
+              </h4>
+              <p className="text-sm text-gray-600 max-w-2xl mx-auto">
+                El ranking general se calcula dinámicamente sumando todas las modalidades (playa mixto, open, women + césped mixto, open, women).
+                La gráfica de evolución histórica está disponible en la página de detalle de cada equipo.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
