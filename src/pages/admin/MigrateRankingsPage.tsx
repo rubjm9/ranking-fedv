@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import migrateToNewRankingSystem from '@/scripts/migrateToNewRankingSystem'
+import { calculateAllSubseasonGlobalRankings } from '@/scripts/calculateSubseasonGlobalRankings'
 import toast from 'react-hot-toast'
-import { Loader2, Play, CheckCircle2, XCircle, AlertTriangle, Database } from 'lucide-react'
+import { Loader2, Play, CheckCircle2, XCircle, AlertTriangle, Database, BarChart } from 'lucide-react'
 
 interface MigrationResult {
   totalSeasons: number
@@ -15,6 +16,7 @@ interface MigrationResult {
 
 const MigrateRankingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
+  const [isCalculating, setIsCalculating] = useState(false)
   const [result, setResult] = useState<MigrationResult | null>(null)
 
   const handleMigrate = async () => {
@@ -37,6 +39,21 @@ const MigrateRankingsPage: React.FC = () => {
       toast.error('Error al ejecutar la migración')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleCalculateSubseasonRankings = async () => {
+    setIsCalculating(true)
+    
+    try {
+      console.log('🚀 Calculando rankings globales de subtemporadas...')
+      await calculateAllSubseasonGlobalRankings()
+      toast.success('¡Rankings de subtemporadas calculados exitosamente!')
+    } catch (error: any) {
+      console.error('Error al calcular rankings de subtemporadas:', error)
+      toast.error('Error al calcular rankings de subtemporadas')
+    } finally {
+      setIsCalculating(false)
     }
   }
 
@@ -84,28 +101,43 @@ const MigrateRankingsPage: React.FC = () => {
           </div>
 
           {/* Descripción del proceso */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-blue-900 mb-3">¿Qué hace esta migración?</h3>
-            <div className="text-sm text-blue-800 space-y-2">
-              <p><strong>1. Análisis:</strong> Detecta todas las temporadas disponibles en team_season_points</p>
-              <p><strong>2. Cálculo:</strong> Para cada temporada y modalidad:</p>
-              <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>Obtiene puntos base de 4 temporadas (actual + 3 anteriores)</li>
-                <li>Aplica coeficientes de antigüedad</li>
-                <li>Calcula ranking por modalidad individual</li>
-                <li>Guarda en team_season_rankings</li>
-              </ul>
-              <p><strong>3. Validación:</strong> Verifica integridad de datos y genera reporte</p>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-blue-900 mb-3">1️⃣ Ejecutar Migración</h3>
+              <div className="text-sm text-blue-800 space-y-2">
+                <p><strong>Análisis:</strong> Detecta todas las temporadas disponibles en team_season_points</p>
+                <p><strong>Cálculo:</strong> Para cada temporada y modalidad:</p>
+                <ul className="list-disc list-inside space-y-1 ml-4">
+                  <li>Obtiene puntos base de 4 temporadas (actual + 3 anteriores)</li>
+                  <li>Aplica coeficientes de antigüedad (1.0, 0.8, 0.5, 0.2)</li>
+                  <li>Calcula ranking por modalidad individual</li>
+                  <li>Guarda en team_season_rankings</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-purple-900 mb-3">2️⃣ Calcular Rankings Subtemporadas</h3>
+              <div className="text-sm text-purple-800 space-y-2">
+                <p><strong>Proceso:</strong> Para cada temporada, calcula 4 actualizaciones anuales:</p>
+                <ul className="list-disc list-inside space-y-1 ml-4">
+                  <li>Después de jugarse playa mixto</li>
+                  <li>Después de jugarse playa open/women</li>
+                  <li>Después de jugarse césped mixto</li>
+                  <li>Al final de la temporada</li>
+                </ul>
+                <p className="mt-2"><strong>Resultado:</strong> Gráficas con 4 líneas mostrando evolución</p>
+              </div>
             </div>
           </div>
 
-          {/* Botón de ejecución */}
-          <div className="flex justify-center">
+          {/* Botones de ejecución */}
+          <div className="flex justify-center gap-4">
             <button
               onClick={handleMigrate}
-              disabled={isLoading}
+              disabled={isLoading || isCalculating}
               className={`inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white ${
-                isLoading 
+                isLoading || isCalculating
                   ? 'bg-blue-400 cursor-not-allowed' 
                   : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
               }`}
@@ -119,6 +151,28 @@ const MigrateRankingsPage: React.FC = () => {
                 <>
                   <Play className="mr-2 h-5 w-5" />
                   Ejecutar Migración
+                </>
+              )}
+            </button>
+            
+            <button
+              onClick={handleCalculateSubseasonRankings}
+              disabled={isLoading || isCalculating}
+              className={`inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white ${
+                isLoading || isCalculating
+                  ? 'bg-purple-400 cursor-not-allowed' 
+                  : 'bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500'
+              }`}
+            >
+              {isCalculating ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Calculando rankings...
+                </>
+              ) : (
+                <>
+                  <BarChart className="mr-2 h-5 w-5" />
+                  Calcular Rankings Subtemporadas
                 </>
               )}
             </button>
