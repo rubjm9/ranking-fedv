@@ -36,6 +36,7 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
       setIsLoading(true)
       dynamicRankingService.getGlobalRankingHistory(teamId)
         .then(historyData => {
+          console.log('📊 Datos históricos recibidos:', historyData)
           const processedData = historyData.map(point => ({
             date: point.date,
             displayDate: new Date(point.date).toLocaleDateString('es-ES', { 
@@ -46,6 +47,7 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
             globalRank: point.rank,
             globalPoints: point.points
           }))
+          console.log('📊 Datos procesados para gráfica:', processedData)
           setChartData(processedData)
         })
         .catch(error => {
