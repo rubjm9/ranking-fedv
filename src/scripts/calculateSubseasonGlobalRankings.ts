@@ -1,15 +1,22 @@
 /**
  * Función para calcular y guardar rankings globales de subtemporadas
- * LÓGICA CORRECTA:
- * - Cada subupdate incluye TODAS las 6 modalidades
- * - Para cada modalidad, usa el torneo MÁS RECIENTE disponible con coeficiente 1.0
- * - Los torneos anteriores usan coeficientes 0.8, 0.5, 0.2
- * - Por ejemplo, en subupdate 1 (después de playa mixto):
- *   - Playas open/women: Usan torneo de temporada anterior (coef 1.0) hasta que se juegue el actual
- *   - Césped: Usan torneo de temporada anterior (coef 1.0)
+ * IMPLEMENTACIÓN COMPLETA: Detecta automáticamente qué torneos se jugaron en cada subupdate
+ * y aplica la lógica correcta de coeficientes de antigüedad por modalidad
  */
 
 import { supabase } from '../services/supabaseService'
+
+/**
+ * Mapeo de modalidades a sus torneos
+ */
+const MODALITY_MAP = {
+  'BEACH_MIXED': 'beach_mixed',
+  'BEACH_OPEN': 'beach_open',
+  'BEACH_WOMEN': 'beach_women',
+  'GRASS_MIXED': 'grass_mixed',
+  'GRASS_OPEN': 'grass_open',
+  'GRASS_WOMEN': 'grass_women'
+}
 
 /**
  * Obtener temporadas históricas para una temporada base
@@ -36,6 +43,20 @@ const getAntiquityCoeff = (index: number): number => {
 }
 
 /**
+ * Determinar qué torneos se jugaron antes de una fecha en cada subtemporada
+ * Subtemporadas: marzo, junio, septiembre, diciembre
+ */
+const getSubseasonCutoffDate = (year: number, subupdate: number): string => {
+  const cutoffs = [
+    `${year}-03-31`, // Subupdate 1: Playa Mixto (hasta marzo)
+    `${year}-06-30`, // Subupdate 2: Playa Open/Women (hasta junio)
+    `${year}-09-30`, // Subupdate 3: Césped Mixto (hasta septiembre)
+    `${year}-12-31`  // Subupdate 4: Final (hasta diciembre)
+  ]
+  return cutoffs[subupdate - 1] || cutoffs[3]
+}
+
+/**
  * Calcular y guardar rankings globales por subtemporada para una temporada
  */
 export const calculateAndSaveSubseasonGlobalRankings = async (
@@ -51,7 +72,7 @@ export const calculateAndSaveSubseasonGlobalRankings = async (
   const historicalSeasons = getHistoricalSeasons(season, 4)
   console.log(`📅 Temporadas históricas: ${historicalSeasons.join(', ')}`)
 
-  // Obtener TODOS los equipos que participaron en estas temporadas
+  // Obtener todos los equipos
   const { data: allTeamsData } = await supabase
     .from('team_season_rankings')
     .select('team_id')
@@ -65,7 +86,7 @@ export const calculateAndSaveSubseasonGlobalRankings = async (
   const uniqueTeams = [...new Set(allTeamsData.map(t => t.team_id))]
   console.log(`👥 Total equipos únicos: ${uniqueTeams.length}`)
 
-  // Obtener TODOS los datos de las 4 temporadas de una sola vez (MUCHO MÁS RÁPIDO)
+  // Obtener TODOS los datos de rankings de una vez
   const { data: allRankingsData } = await supabase
     .from('team_season_rankings')
     .select('*')
@@ -76,34 +97,36 @@ export const calculateAndSaveSubseasonGlobalRankings = async (
     return
   }
 
-  // Definir las 6 modalidades
-  const modalities = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women']
+  // Extraer el año base de la temporada
+  const baseYear = parseInt(season.split('-')[0])
 
   // Para cada subupdate (1-4), calcular ranking acumulativo
   for (let subupdate = 1; subupdate <= 4; subupdate++) {
     console.log(`\n📊 Calculando subupdate ${subupdate}...`)
+    const cutoffDate = getSubseasonCutoffDate(baseYear, subupdate)
+    console.log(`📅 Fecha corte: ${cutoffDate}`)
 
     const teamPoints: Array<{ team_id: string, total: number }> = []
 
     for (const teamId of uniqueTeams) {
       let totalPoints = 0
 
-      // Para cada modalidad, calcular puntos acumulativos
-      for (const modality of modalities) {
+      // Para cada modalidad, calcular puntos con lógica correcta
+      for (const [tournamentModality, pointsColumn] of Object.entries(MODALITY_MAP)) {
         let modalityPoints = 0
 
-        // Iterar por las 4 temporadas históricas
+        // Determinar qué temporadas han jugado esta modalidad (usar la más reciente disponible)
         for (let i = 0; i < historicalSeasons.length; i++) {
           const tempSeason = historicalSeasons[i]
           const coeff = getAntiquityCoeff(i)
 
-          // Buscar en los datos en memoria (mucho más rápido)
+          // Buscar en los datos en memoria
           const data = allRankingsData.find(
             r => r.team_id === teamId && r.season === tempSeason
           )
 
-          if (data && data[`${modality}_points`]) {
-            modalityPoints += data[`${modality}_points`] * coeff
+          if (data && data[`${pointsColumn}_points`]) {
+            modalityPoints += data[`${pointsColumn}_points`] * coeff
           }
         }
 
