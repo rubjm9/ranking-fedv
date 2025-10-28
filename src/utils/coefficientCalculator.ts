@@ -2,6 +2,9 @@
  * Helper para calcular coeficientes de antigüedad según subtemporada
  * Aplica la lógica correcta donde solo la modalidad jugada tiene x1
  * y las demás mantienen sus coeficientes anteriores
+ * 
+ * NOTA: Actualmente NO se usa. Simplificado para calcular rankings globales
+ * sumando directamente las 6 modalidades de team_season_rankings.
  */
 
 export interface CoeffConfig {
@@ -9,6 +12,10 @@ export interface CoeffConfig {
     [season: string]: number
   }
 }
+
+// TODOs:
+// - Implementar cálculo de coeficientes específicos por subtemporada
+// - Este archivo está preparado para la funcionalidad futura
 
 /**
  * Calcular configuración de coeficientes para cada subtemporada
