@@ -58,39 +58,28 @@ const dynamicRankingService = {
       const historyData: any[] = []
 
       for (const row of teamRankings) {
-        const totalPoints = (row.beach_mixed_points || 0) + 
-                          (row.beach_open_points || 0) + 
-                          (row.beach_women_points || 0) + 
-                          (row.grass_mixed_points || 0) + 
-                          (row.grass_open_points || 0) + 
-                          (row.grass_women_points || 0)
-
-        // Obtener posición global consultando TODOS los equipos de esa temporada
-        const { data: allTeams } = await supabase
-          .from('team_season_rankings')
-          .select('team_id, beach_mixed_points, beach_open_points, beach_women_points, grass_mixed_points, grass_open_points, grass_women_points')
-          .eq('season', row.season)
-
-        if (allTeams) {
-          const allPoints = allTeams.map(t => ({
-            team_id: t.team_id,
-            total: (t.beach_mixed_points || 0) + (t.beach_open_points || 0) + 
-                   (t.beach_women_points || 0) + (t.grass_mixed_points || 0) + 
-                   (t.grass_open_points || 0) + (t.grass_women_points || 0)
-          }))
-
-          // Ordenar por puntos y encontrar posición del equipo
-          allPoints.sort((a, b) => b.total - a.total)
-          const position = allPoints.findIndex(t => t.team_id === teamId) + 1
-
-          historyData.push({
-            date: `${parseInt(row.season.split('-')[0])}-12-31`,
-            season: row.season,
-            category: 'global',
-            rank: position,
-            points: totalPoints
-          })
-        }
+        // Obtener datos de las 4 subtemporadas para esta temporada
+        historyData.push({
+          date: `${parseInt(row.season.split('-')[0])}-12-31`,
+          season: row.season,
+          category: 'global',
+          subupdate1: {
+            rank: row.subupdate_1_global_rank,
+            points: row.subupdate_1_global_points
+          },
+          subupdate2: {
+            rank: row.subupdate_2_global_rank,
+            points: row.subupdate_2_global_points
+          },
+          subupdate3: {
+            rank: row.subupdate_3_global_rank,
+            points: row.subupdate_3_global_points
+          },
+          subupdate4: {
+            rank: row.subupdate_4_global_rank,
+            points: row.subupdate_4_global_points
+          }
+        })
       }
 
       console.log(`✅ Historial obtenido: ${historyData.length} puntos de datos`)
