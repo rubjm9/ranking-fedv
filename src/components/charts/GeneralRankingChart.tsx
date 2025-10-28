@@ -66,12 +66,7 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
                   season: point.season,
                   subseasonLabel: subupdateLabels[index],
                   rank: subupdate.rank,
-                  points: subupdate.points,
-                  // Mantener para las líneas específicas
-                  subupdate1: index === 0 ? subupdate.rank : undefined,
-                  subupdate2: index === 1 ? subupdate.rank : undefined,
-                  subupdate3: index === 2 ? subupdate.rank : undefined,
-                  subupdate4: index === 3 ? subupdate.rank : undefined
+                  points: subupdate.points
                 })
               }
             })
@@ -220,49 +215,35 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
           <Tooltip content={<CustomTooltip />} />
           
           {useDynamicData ? (
-            // Para datos dinámicos, mostrar las 4 líneas de subtemporadas
-            <>
-              <Line
-                type="monotone"
-                dataKey="subupdate1"
-                stroke="#3B82F6"
-                strokeWidth={2}
-                dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2 }}
-                connectNulls={false}
-                name="Después Playa Mixto"
-              />
-              <Line
-                type="monotone"
-                dataKey="subupdate2"
-                stroke="#EF4444"
-                strokeWidth={2}
-                dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#EF4444', strokeWidth: 2 }}
-                connectNulls={false}
-                name="Después Playa Open/Women"
-              />
-              <Line
-                type="monotone"
-                dataKey="subupdate3"
-                stroke="#10B981"
-                strokeWidth={2}
-                dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#10B981', strokeWidth: 2 }}
-                connectNulls={false}
-                name="Después Césped Mixto"
-              />
-              <Line
-                type="monotone"
-                dataKey="subupdate4"
-                stroke="#F59E0B"
-                strokeWidth={3}
-                dot={{ fill: '#F59E0B', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#F59E0B', strokeWidth: 2 }}
-                connectNulls={false}
-                name="Final Temporada"
-              />
-            </>
+            // Para datos dinámicos, mostrar una línea continua con todos los puntos
+            <Line
+              type="monotone"
+              dataKey="rank"
+              stroke="#3B82F6"
+              strokeWidth={2}
+              dot={({ payload }: any) => {
+                // Color del punto según la subtemporada
+                const colors: { [key: string]: string } = {
+                  'Playa Mixto': '#3B82F6',
+                  'Playa Open/Women': '#EF4444',
+                  'Césped Mixto': '#10B981',
+                  'Final': '#F59E0B'
+                }
+                return (
+                  <circle
+                    cx="0"
+                    cy="0"
+                    r="4"
+                    fill={colors[payload.subseasonLabel] || '#3B82F6'}
+                    stroke="#fff"
+                    strokeWidth="2"
+                  />
+                )
+              }}
+              activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2 }}
+              connectNulls={false}
+              name="Ranking Global"
+            />
           ) : (
             // Para datos estáticos, mostrar todas las líneas de subtemporadas
             <>
