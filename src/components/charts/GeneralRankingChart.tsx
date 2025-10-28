@@ -221,25 +221,7 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
               dataKey="rank"
               stroke="#3B82F6"
               strokeWidth={2}
-              dot={({ payload }: any) => {
-                // Color del punto según la subtemporada
-                const colors: { [key: string]: string } = {
-                  'Playa Mixto': '#3B82F6',
-                  'Playa Open/Women': '#EF4444',
-                  'Césped Mixto': '#10B981',
-                  'Final': '#F59E0B'
-                }
-                return (
-                  <circle
-                    cx="0"
-                    cy="0"
-                    r="4"
-                    fill={colors[payload.subseasonLabel] || '#3B82F6'}
-                    stroke="#fff"
-                    strokeWidth="2"
-                  />
-                )
-              }}
+              dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
               activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2 }}
               connectNulls={false}
               name="Ranking Global"
