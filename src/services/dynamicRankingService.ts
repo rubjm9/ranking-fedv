@@ -112,8 +112,17 @@ const dynamicRankingService = {
           if (teamId) {
             // Buscar el equipo específico
             const teamIndex = teamGlobalPoints.findIndex(t => t.team_id === teamId)
+            console.log(`🔍 Temporada ${season} - Buscando equipo ${teamId}`)
+            console.log(`📊 Total equipos: ${teamGlobalPoints.length}`)
+            console.log(`🎯 Índice encontrado: ${teamIndex}`)
+            console.log(`📈 Top 5 equipos:`, teamGlobalPoints.slice(0, 5).map(t => ({
+              name: t.team_name,
+              points: t.total_points
+            })))
+            
             if (teamIndex >= 0) {
               const team = teamGlobalPoints[teamIndex]
+              console.log(`✅ Equipo encontrado en posición ${teamIndex + 1}`)
               historyData.push({
                 date: `${parseInt(season.split('-')[0])}-12-31`,
                 season: season,
@@ -121,6 +130,8 @@ const dynamicRankingService = {
                 rank: teamIndex + 1,
                 points: team.total_points
               })
+            } else {
+              console.log(`❌ Equipo ${teamId} no encontrado en temporada ${season}`)
             }
           } else {
             // Agregar todos los equipos
