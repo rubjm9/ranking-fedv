@@ -38,22 +38,43 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
       dynamicRankingService.getGlobalRankingHistory(teamId)
         .then(historyData => {
           console.log('📊 Datos históricos recibidos:', historyData)
-          const processedData = historyData.map(point => ({
-            date: point.date,
-            displayDate: new Date(point.date).toLocaleDateString('es-ES', { 
-              month: 'short', 
-              year: '2-digit' 
-            }),
-            season: point.season,
-            subupdate1: point.subupdate1?.rank,
-            subupdate1Points: point.subupdate1?.points,
-            subupdate2: point.subupdate2?.rank,
-            subupdate2Points: point.subupdate2?.points,
-            subupdate3: point.subupdate3?.rank,
-            subupdate3Points: point.subupdate3?.points,
-            subupdate4: point.subupdate4?.rank,
-            subupdate4Points: point.subupdate4?.points
-          }))
+          
+          // Transformar: en lugar de 1 punto por año, crear 4 puntos (uno por subtemporada)
+          const processedData: any[] = []
+          
+          historyData.forEach(point => {
+            const baseYear = new Date(point.date).getFullYear()
+            
+            // Crear 4 puntos, uno para cada subtemporada de la temporada
+            const subupdateLabels = [
+              'Playa Mixto',
+              'Playa Open/Women',
+              'Césped Mixto',
+              'Final'
+            ]
+            
+            [point.subupdate1, point.subupdate2, point.subupdate3, point.subupdate4].forEach((subupdate, index) => {
+              if (subupdate && subupdate.rank !== null && subupdate.rank !== undefined) {
+                processedData.push({
+                  date: `${baseYear}-${(3 * index + 3).toString().padStart(2, '0')}-01`,
+                  displayDate: new Date(`${baseYear}-${(3 * index + 3).toString().padStart(2, '0')}-01`).toLocaleDateString('es-ES', { 
+                    month: 'short', 
+                    year: '2-digit' 
+                  }),
+                  season: point.season,
+                  subseasonLabel: subupdateLabels[index],
+                  rank: subupdate.rank,
+                  points: subupdate.points,
+                  // Mantener para las líneas específicas
+                  subupdate1: index === 0 ? subupdate.rank : undefined,
+                  subupdate2: index === 1 ? subupdate.rank : undefined,
+                  subupdate3: index === 2 ? subupdate.rank : undefined,
+                  subupdate4: index === 3 ? subupdate.rank : undefined
+                })
+              }
+            })
+          })
+          
           console.log('📊 Datos procesados para gráfica:', processedData)
           setChartData(processedData)
         })
@@ -134,11 +155,15 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
   // Tooltip personalizado
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      const dataPoint = payload[0]?.payload
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-medium text-gray-900 mb-2">{label}</p>
+          {dataPoint?.subseasonLabel && (
+            <p className="text-xs text-gray-500 mb-2">{dataPoint.subseasonLabel}</p>
+          )}
           {payload.map((entry: any, index: number) => {
-            if (entry.value) {
+            if (entry.value !== undefined && entry.value !== null) {
               return (
                 <div key={index} className="flex items-center space-x-2 text-sm">
                   <div 
@@ -147,9 +172,9 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
                   />
                   <span className="text-gray-600">Ranking Global:</span>
                   <span className="font-medium">#{entry.value}</span>
-                  {showPoints && entry.payload.globalPoints && (
+                  {showPoints && dataPoint?.points && (
                     <span className="text-gray-500">
-                      ({entry.payload.globalPoints.toFixed(1)} pts)
+                      ({dataPoint.points.toFixed(1)} pts)
                     </span>
                   )}
                 </div>
