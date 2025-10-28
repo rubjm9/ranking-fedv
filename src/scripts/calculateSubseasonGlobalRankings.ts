@@ -1,22 +1,16 @@
 /**
  * Función para calcular y guardar rankings globales de subtemporadas
- * IMPLEMENTACIÓN COMPLETA: Detecta automáticamente qué torneos se jugaron en cada subupdate
- * y aplica la lógica correcta de coeficientes de antigüedad por modalidad
+ * LÓGICA ACUMULATIVA:
+ * - Subupdate 1: Solo beach_mixed
+ * - Subupdate 2: beach_mixed + beach_open + beach_women
+ * - Subupdate 3: Todas las playas + grass_mixed
+ * - Subupdate 4: TODAS las 6 modalidades (final)
+ * 
+ * Las fechas visuales en la gráfica son equidistantes (mar, jun, sep, dic)
+ * pero no tienen que corresponder con las fechas reales de los torneos
  */
 
 import { supabase } from '../services/supabaseService'
-
-/**
- * Mapeo de modalidades a sus torneos
- */
-const MODALITY_MAP = {
-  'BEACH_MIXED': 'beach_mixed',
-  'BEACH_OPEN': 'beach_open',
-  'BEACH_WOMEN': 'beach_women',
-  'GRASS_MIXED': 'grass_mixed',
-  'GRASS_OPEN': 'grass_open',
-  'GRASS_WOMEN': 'grass_women'
-}
 
 /**
  * Obtener temporadas históricas para una temporada base
@@ -40,20 +34,6 @@ const getHistoricalSeasons = (baseSeason: string, count: number = 4): string[] =
 const getAntiquityCoeff = (index: number): number => {
   const coeffs = [1.0, 0.8, 0.5, 0.2]
   return coeffs[index] || 0
-}
-
-/**
- * Determinar qué torneos se jugaron antes de una fecha en cada subtemporada
- * Subtemporadas: marzo, junio, septiembre, diciembre
- */
-const getSubseasonCutoffDate = (year: number, subupdate: number): string => {
-  const cutoffs = [
-    `${year}-03-31`, // Subupdate 1: Playa Mixto (hasta marzo)
-    `${year}-06-30`, // Subupdate 2: Playa Open/Women (hasta junio)
-    `${year}-09-30`, // Subupdate 3: Césped Mixto (hasta septiembre)
-    `${year}-12-31`  // Subupdate 4: Final (hasta diciembre)
-  ]
-  return cutoffs[subupdate - 1] || cutoffs[3]
 }
 
 /**
@@ -97,25 +77,31 @@ export const calculateAndSaveSubseasonGlobalRankings = async (
     return
   }
 
-  // Extraer el año base de la temporada
-  const baseYear = parseInt(season.split('-')[0])
+  // Definir qué modalidades incluir en cada subupdate
+  const subupdateModalities = [
+    ['beach_mixed'],                           // Subupdate 1: Solo playa mixto
+    ['beach_mixed', 'beach_open', 'beach_women'], // Subupdate 2: Todas las playas
+    ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed'], // Subupdate 3: Playas + césped mixto
+    ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'] // Subupdate 4: Todas las modalidades
+  ]
 
   // Para cada subupdate (1-4), calcular ranking acumulativo
   for (let subupdate = 1; subupdate <= 4; subupdate++) {
     console.log(`\n📊 Calculando subupdate ${subupdate}...`)
-    const cutoffDate = getSubseasonCutoffDate(baseYear, subupdate)
-    console.log(`📅 Fecha corte: ${cutoffDate}`)
+    
+    const modalitiesForThisSubupdate = subupdateModalities[subupdate - 1]
+    console.log(`📋 Modalidades incluidas: ${modalitiesForThisSubupdate.join(', ')}`)
 
     const teamPoints: Array<{ team_id: string, total: number }> = []
 
     for (const teamId of uniqueTeams) {
       let totalPoints = 0
 
-      // Para cada modalidad, calcular puntos con lógica correcta
-      for (const [tournamentModality, pointsColumn] of Object.entries(MODALITY_MAP)) {
+      // Solo calcular puntos de las modalidades incluidas en este subupdate
+      for (const modality of modalitiesForThisSubupdate) {
         let modalityPoints = 0
 
-        // Determinar qué temporadas han jugado esta modalidad (usar la más reciente disponible)
+        // Iterar por las 4 temporadas históricas
         for (let i = 0; i < historicalSeasons.length; i++) {
           const tempSeason = historicalSeasons[i]
           const coeff = getAntiquityCoeff(i)
@@ -125,8 +111,8 @@ export const calculateAndSaveSubseasonGlobalRankings = async (
             r => r.team_id === teamId && r.season === tempSeason
           )
 
-          if (data && data[`${pointsColumn}_points`]) {
-            modalityPoints += data[`${pointsColumn}_points`] * coeff
+          if (data && data[`${modality}_points`]) {
+            modalityPoints += data[`${modality}_points`] * coeff
           }
         }
 
