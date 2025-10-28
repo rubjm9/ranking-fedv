@@ -65,6 +65,17 @@ export const calculateAndSaveSubseasonGlobalRankings = async (
   const uniqueTeams = [...new Set(allTeamsData.map(t => t.team_id))]
   console.log(`👥 Total equipos únicos: ${uniqueTeams.length}`)
 
+  // Obtener TODOS los datos de las 4 temporadas de una sola vez (MUCHO MÁS RÁPIDO)
+  const { data: allRankingsData } = await supabase
+    .from('team_season_rankings')
+    .select('*')
+    .in('season', historicalSeasons)
+
+  if (!allRankingsData) {
+    console.log(`⚠️ No hay datos de rankings para estas temporadas`)
+    return
+  }
+
   // Definir las 6 modalidades
   const modalities = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women']
 
@@ -86,13 +97,10 @@ export const calculateAndSaveSubseasonGlobalRankings = async (
           const tempSeason = historicalSeasons[i]
           const coeff = getAntiquityCoeff(i)
 
-          // Obtener puntos de esta modalidad para esta temporada
-          const { data } = await supabase
-            .from('team_season_rankings')
-            .select(`${modality}_points`)
-            .eq('team_id', teamId)
-            .eq('season', tempSeason)
-            .single()
+          // Buscar en los datos en memoria (mucho más rápido)
+          const data = allRankingsData.find(
+            r => r.team_id === teamId && r.season === tempSeason
+          )
 
           if (data && data[`${modality}_points`]) {
             modalityPoints += data[`${modality}_points`] * coeff
