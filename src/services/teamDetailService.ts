@@ -88,6 +88,7 @@ export interface TeamStatistics {
   currentSeason: string
   seasonsActive: number
   categoriesPlayed: string[]
+  globalPosition?: number
 }
 
 class TeamDetailService {
@@ -114,6 +115,15 @@ class TeamDetailService {
       // 6. Calcular estadísticas
       const statistics = this.calculateStatistics(tournamentResults, seasonBreakdown)
       
+      // 7. Calcular posición global actual
+      const globalPosition = await this.calculateGlobalPosition(teamId)
+      statistics.globalPosition = globalPosition
+      
+      // 8. Calcular posiciones históricas globales
+      const historicalPositions = await this.calculateHistoricalGlobalPositions(teamId)
+      statistics.bestPosition = historicalPositions.bestPosition
+      statistics.worstPosition = historicalPositions.worstPosition
+      
       return {
         team: teamData,
         currentRankings,
@@ -136,13 +146,26 @@ class TeamDetailService {
       .from('teams')
       .select(`
         *,
-        region:regions(name, coefficient),
-        parentTeam:teams!parentTeamId(name)
+        region:regions(name, coefficient)
       `)
       .eq('id', teamId)
       .single()
 
     if (error) throw error
+
+    // Si es filial, obtener el equipo padre por separado
+    if (data.isFilial && data.parentTeamId) {
+      const { data: parentTeam, error: parentError } = await supabase
+        .from('teams')
+        .select('name')
+        .eq('id', data.parentTeamId)
+        .single()
+
+      if (!parentError && parentTeam) {
+        data.parentTeam = parentTeam
+      }
+    }
+
     return data
   }
 
@@ -227,12 +250,106 @@ class TeamDetailService {
   }
 
   /**
-   * Generar historial de ranking
+   * Generar historial de ranking con datos de subtemporadas
    */
   private async generateRankingHistory(teamId: string): Promise<RankingHistory[]> {
-    // Por ahora, devolver un historial vacío para evitar errores
-    // TODO: Implementar historial real cuando el sistema esté más estable
-    return []
+    try {
+      // Obtener datos históricos del equipo desde team_season_points con rankings de subtemporada
+      const { data: seasonData, error } = await supabase
+        .from('team_season_points')
+        .select(`
+          *,
+          subseason_1_beach_mixed_rank,
+          subseason_2_beach_open_women_rank,
+          subseason_3_grass_mixed_rank,
+          subseason_4_grass_open_women_rank,
+          final_season_global_rank
+        `)
+        .eq('team_id', teamId)
+        .order('season', { ascending: false })
+
+      if (error) throw error
+
+      const history: RankingHistory[] = []
+
+      // Para cada temporada, crear puntos de datos para cada subtemporada
+      for (const season of seasonData || []) {
+        const seasonYear = parseInt(season.season.split('-')[0])
+        
+        // Subtemporada 1: Playa Mixto (Enero-Marzo)
+        if (season.subseason_1_beach_mixed_rank) {
+          history.push({
+            date: `${seasonYear}-03-31`,
+            season: season.season,
+            category: 'subseason_1_beach_mixed',
+            rank: season.subseason_1_beach_mixed_rank,
+            points: season.beach_mixed_points || 0
+          })
+        }
+
+        // Subtemporada 2: Playa Open/Women (Abril-Junio)
+        if (season.subseason_2_beach_open_women_rank) {
+          const avgRank = season.subseason_2_beach_open_women_rank // Promedio de open y women
+          const totalPoints = (season.beach_open_points || 0) + (season.beach_women_points || 0)
+          
+          history.push({
+            date: `${seasonYear}-06-30`,
+            season: season.season,
+            category: 'subseason_2_beach_open_women',
+            rank: avgRank,
+            points: totalPoints
+          })
+        }
+
+        // Subtemporada 3: Césped Mixto (Julio-Septiembre)
+        if (season.subseason_3_grass_mixed_rank) {
+          history.push({
+            date: `${seasonYear}-09-30`,
+            season: season.season,
+            category: 'subseason_3_grass_mixed',
+            rank: season.subseason_3_grass_mixed_rank,
+            points: season.grass_mixed_points || 0
+          })
+        }
+
+        // Subtemporada 4: Césped Open/Women (Octubre-Diciembre)
+        if (season.subseason_4_grass_open_women_rank) {
+          const avgRank = season.subseason_4_grass_open_women_rank // Promedio de open y women
+          const totalPoints = (season.grass_open_points || 0) + (season.grass_women_points || 0)
+          
+          history.push({
+            date: `${seasonYear}-12-31`,
+            season: season.season,
+            category: 'subseason_4_grass_open_women',
+            rank: avgRank,
+            points: totalPoints
+          })
+        }
+
+        // Ranking global final (si está disponible)
+        if (season.final_season_global_rank) {
+          const totalPoints = (season.beach_mixed_points || 0) + (season.beach_open_points || 0) + 
+                             (season.beach_women_points || 0) + (season.grass_mixed_points || 0) + 
+                             (season.grass_open_points || 0) + (season.grass_women_points || 0)
+          
+          history.push({
+            date: `${seasonYear}-12-31`,
+            season: season.season,
+            category: 'final_global',
+            rank: season.final_season_global_rank,
+            points: totalPoints
+          })
+        }
+      }
+
+      // Ordenar por fecha
+      history.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
+      return history
+    } catch (error) {
+      console.error('Error generando historial de ranking:', error)
+      return []
+    }
   }
 
   /**
@@ -281,8 +398,6 @@ class TeamDetailService {
     const podiums = tournamentResults.filter(r => r.position <= 3).length
     const totalPoints = tournamentResults.reduce((sum, r) => sum + r.points, 0)
     const averagePoints = totalTournaments > 0 ? totalPoints / totalTournaments : 0
-    const bestPosition = tournamentResults.length > 0 ? Math.min(...tournamentResults.map(r => r.position)) : 0
-    const worstPosition = tournamentResults.length > 0 ? Math.max(...tournamentResults.map(r => r.position)) : 0
     const seasonsActive = seasonBreakdown.length
     const categoriesPlayed = [...new Set(tournamentResults.map(r => `${r.surface}_${r.modality}`))]
 
@@ -292,11 +407,149 @@ class TeamDetailService {
       podiums,
       totalPoints,
       averagePoints,
-      bestPosition,
-      worstPosition,
+      bestPosition: 0, // Se calculará después
+      worstPosition: 0, // Se calculará después
       currentSeason: '2024-25',
       seasonsActive,
       categoriesPlayed
+    }
+  }
+
+  /**
+   * Calcular posiciones históricas en ranking global
+   */
+  private async calculateHistoricalGlobalPositions(teamId: string): Promise<{ bestPosition: number; worstPosition: number }> {
+    try {
+      // Obtener datos históricos del equipo
+      const { data: teamData, error } = await supabase
+        .from('team_season_points')
+        .select('*')
+        .eq('team_id', teamId)
+        .order('season', { ascending: false })
+
+      if (error || !teamData || teamData.length === 0) {
+        return { bestPosition: 0, worstPosition: 0 }
+      }
+
+      const positions: number[] = []
+
+      // Para cada temporada, calcular la posición global
+      for (const season of teamData) {
+        // Obtener todos los equipos de esa temporada
+        const { data: allTeamsData, error: allError } = await supabase
+          .from('team_season_points')
+          .select(`
+            team_id,
+            beach_mixed_points,
+            beach_open_points,
+            beach_women_points,
+            grass_mixed_points,
+            grass_open_points,
+            grass_women_points
+          `)
+          .eq('season', season.season)
+
+        if (allError || !allTeamsData) continue
+
+        // Calcular puntos totales del equipo actual
+        const teamTotalPoints = (season.beach_mixed_points || 0) + (season.beach_open_points || 0) + 
+                               (season.beach_women_points || 0) + (season.grass_mixed_points || 0) + 
+                               (season.grass_open_points || 0) + (season.grass_women_points || 0)
+
+        // Calcular puntos totales de todos los equipos
+        const allTeamsTotals = allTeamsData.map(row => ({
+          team_id: row.team_id,
+          totalPoints: (row.beach_mixed_points || 0) + (row.beach_open_points || 0) + 
+                      (row.beach_women_points || 0) + (row.grass_mixed_points || 0) + 
+                      (row.grass_open_points || 0) + (row.grass_women_points || 0)
+        }))
+
+        // Ordenar por puntos totales y encontrar posición
+        allTeamsTotals.sort((a, b) => b.totalPoints - a.totalPoints)
+        const position = allTeamsTotals.findIndex(team => team.team_id === teamId) + 1
+
+        if (position > 0) {
+          positions.push(position)
+        }
+      }
+
+      if (positions.length === 0) {
+        return { bestPosition: 0, worstPosition: 0 }
+      }
+
+      return {
+        bestPosition: Math.min(...positions),
+        worstPosition: Math.max(...positions)
+      }
+    } catch (error) {
+      console.error('Error calculando posiciones históricas globales:', error)
+      return { bestPosition: 0, worstPosition: 0 }
+    }
+  }
+
+  /**
+   * Calcular posición global del equipo en todas las categorías
+   */
+  private async calculateGlobalPosition(teamId: string): Promise<number> {
+    try {
+      // Obtener puntos totales del equipo en todas las categorías
+      const { data: teamPoints, error } = await supabase
+        .from('team_season_points')
+        .select(`
+          beach_mixed_points,
+          beach_open_points,
+          beach_women_points,
+          grass_mixed_points,
+          grass_open_points,
+          grass_women_points
+        `)
+        .eq('team_id', teamId)
+        .eq('season', '2024-25')
+
+      if (error || !teamPoints || teamPoints.length === 0) {
+        return 0 // No hay datos
+      }
+
+      const teamTotalPoints = teamPoints.reduce((sum, row) => {
+        return sum + (row.beach_mixed_points || 0) + (row.beach_open_points || 0) + 
+               (row.beach_women_points || 0) + (row.grass_mixed_points || 0) + 
+               (row.grass_open_points || 0) + (row.grass_women_points || 0)
+      }, 0)
+
+      // Obtener todos los equipos con sus puntos totales
+      const { data: allTeamsPoints, error: allError } = await supabase
+        .from('team_season_points')
+        .select(`
+          team_id,
+          beach_mixed_points,
+          beach_open_points,
+          beach_women_points,
+          grass_mixed_points,
+          grass_open_points,
+          grass_women_points
+        `)
+        .eq('season', '2024-25')
+
+      if (allError || !allTeamsPoints) {
+        return 0
+      }
+
+      // Calcular puntos totales de todos los equipos
+      const allTeamsTotals = allTeamsPoints.map(row => ({
+        team_id: row.team_id,
+        totalPoints: (row.beach_mixed_points || 0) + (row.beach_open_points || 0) + 
+                    (row.beach_women_points || 0) + (row.grass_mixed_points || 0) + 
+                    (row.grass_open_points || 0) + (row.grass_women_points || 0)
+      }))
+
+      // Ordenar por puntos totales y encontrar posición
+      allTeamsTotals.sort((a, b) => b.totalPoints - a.totalPoints)
+      const position = allTeamsTotals.findIndex(team => team.team_id === teamId) + 1
+
+      return position > 0 ? position : 0
+    } catch (error) {
+      console.error('Error calculando posición global:', error)
+      return 0
     }
   }
 

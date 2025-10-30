@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { RefreshCw, Lock, Unlock, TrendingUp, BarChart3 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import seasonPointsService from '../../services/seasonPointsService'
@@ -128,11 +129,22 @@ const SeasonManagementPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="border-b border-gray-200 pb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Gestión de temporadas</h1>
-        <p className="text-gray-600 mt-1">
-          Sistema híbrido: cache materializada de temporadas
-        </p>
+      <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Gestión de temporadas</h1>
+          <p className="text-gray-600 mt-1">
+            Sistema híbrido: cache materializada de temporadas
+          </p>
+        </div>
+        <div className="flex items-center space-x-3">
+          <Link
+            to="/admin/ranking-update"
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Actualizar Rankings</span>
+          </Link>
+        </div>
       </div>
 
       {/* Información del sistema */}
@@ -148,36 +160,6 @@ const SeasonManagementPage: React.FC = () => {
           <li>Comparativas entre temporadas</li>
           <li>Regeneración desde datos brutos cuando sea necesario</li>
         </ul>
-      </div>
-
-      {/* Acciones globales */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Acciones globales</h2>
-        
-        <div className="space-y-4">
-          <button
-            onClick={handleRegenerateAll}
-            disabled={isLoading}
-            className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-          >
-            <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
-            <span>{isLoading ? 'Regenerando...' : 'Regenerar todas las temporadas'}</span>
-          </button>
-
-          <button
-            onClick={handleSyncRankings}
-            disabled={isLoading}
-            className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-          >
-            <TrendingUp className="w-5 h-5" />
-            <span>Sincronizar rankings actuales</span>
-          </button>
-        </div>
-
-        <div className="mt-4 text-sm text-gray-600">
-          <p><strong>Regenerar:</strong> Recalcula todas las temporadas desde positions (datos brutos)</p>
-          <p><strong>Sincronizar:</strong> Actualiza current_rankings desde team_season_points</p>
-        </div>
       </div>
 
       {/* Acciones por temporada */}

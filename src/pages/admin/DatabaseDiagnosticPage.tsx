@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { 
   Database, 
   AlertTriangle, 
@@ -169,11 +170,22 @@ const DatabaseDiagnosticPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="border-b border-gray-200 pb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Diagnóstico de Base de Datos</h1>
-        <p className="text-gray-600 mt-1">
-          Verifica el estado de las tablas del sistema híbrido
-        </p>
+      <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Diagnóstico de Base de Datos</h1>
+          <p className="text-gray-600 mt-1">
+            Verifica el estado de las tablas del sistema híbrido
+          </p>
+        </div>
+        <div className="flex items-center space-x-3">
+          <Link
+            to="/admin/ranking-update"
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Actualizar Rankings</span>
+          </Link>
+        </div>
       </div>
 
       {/* Estado de la tabla team_season_points */}
@@ -451,48 +463,6 @@ const DatabaseDiagnosticPage: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Acciones */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Acciones</h2>
-        
-        <div className="space-y-4">
-          <div className="flex flex-wrap gap-4">
-            <button
-              onClick={handleRegenerateData}
-              disabled={isLoading}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-              <span>Regenerar team_season_points desde positions</span>
-            </button>
-
-            <button
-              onClick={handleSyncRankings}
-              disabled={isLoading}
-              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-            >
-              <CheckCircle className="w-4 h-4" />
-              <span>Sincronizar current_rankings</span>
-            </button>
-
-            <button
-              onClick={() => refetchTable()}
-              disabled={isLoading}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span>Actualizar diagnóstico</span>
-            </button>
-          </div>
-
-          <div className="text-sm text-gray-600 space-y-1">
-            <p><strong>Regenerar:</strong> Calcula team_season_points desde los datos brutos de positions</p>
-            <p><strong>Sincronizar:</strong> Actualiza current_rankings desde team_season_points</p>
-            <p><strong>Actualizar:</strong> Refresca el diagnóstico de las tablas</p>
-          </div>
-        </div>
       </div>
 
       {/* Debug adicional */}

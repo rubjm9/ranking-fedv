@@ -16,13 +16,14 @@ import {
   Shield,
   Clock,
   GitCompare,
-  Database
+  Database,
+  RefreshCw
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { user, logout, debugAuth } = useAuth()
+  const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -31,8 +32,11 @@ const AdminLayout: React.FC = () => {
     { name: 'Equipos', href: '/admin/teams', icon: Users },
     { name: 'Regiones', href: '/admin/regions', icon: MapPin },
     { name: 'Torneos', href: '/admin/tournaments', icon: Calendar },
-    { name: 'Ranking', href: '/admin/ranking', icon: TrendingUp },
-    { name: 'Temporadas', href: '/admin/seasons', icon: Clock },
+      { name: 'Ranking', href: '/admin/ranking', icon: TrendingUp },
+      { name: 'Actualizar Rankings', href: '/admin/ranking-update', icon: RefreshCw },
+      { name: 'Simular Subtemporadas', href: '/admin/simulate-rankings', icon: Shield },
+      { name: 'Migrar Sistema Rankings', href: '/admin/migrate-rankings', icon: Database },
+      { name: 'Temporadas', href: '/admin/seasons', icon: Clock },
     { name: 'Comparar Sistemas', href: '/admin/ranking-comparison', icon: GitCompare },
     { name: 'Diagnóstico DB', href: '/admin/database-diagnostic', icon: Database },
     { name: 'Importar/Exportar', href: '/admin/import-export', icon: Upload },
@@ -127,7 +131,7 @@ const AdminLayout: React.FC = () => {
             </div>
             
             <button
-              onClick={debugAuth}
+              onClick={() => console.log('Debug auth:', user)}
               className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200"
               title="Debug Auth"
             >

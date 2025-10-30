@@ -252,6 +252,161 @@ class HomePageService {
   }
 
   /**
+   * Obtener torneos finalizados
+   */
+  async getCompletedTournaments(limit: number = 4): Promise<HomePageTournament[]> {
+    try {
+      // Primero intentar con is_finished, si no existe usar fecha
+      const { data, error } = await supabase
+        .from('tournaments')
+        .select(`
+          id,
+          name,
+          year,
+          season,
+          type,
+          surface,
+          modality,
+          startDate,
+          endDate,
+          is_finished
+        `)
+        .or('is_finished.eq.true,and(endDate.not.is.null,endDate.lt.' + new Date().toISOString().split('T')[0] + ')')
+        .order('endDate', { ascending: false })
+        .limit(limit)
+
+      if (error) {
+        console.warn('Error con is_finished, intentando con fecha:', error)
+        // Fallback: usar solo fecha de fin
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('tournaments')
+          .select(`
+            id,
+            name,
+            year,
+            season,
+            type,
+            surface,
+            modality,
+            startDate,
+            endDate
+          `)
+          .not('endDate', 'is', null)
+          .lt('endDate', new Date().toISOString().split('T')[0])
+          .order('endDate', { ascending: false })
+          .limit(limit)
+
+        if (fallbackError) throw fallbackError
+        return this.processTournamentData(fallbackData || [])
+      }
+
+      return this.processTournamentData(data || [])
+    } catch (error) {
+      console.error('Error obteniendo torneos finalizados:', error)
+      return []
+    }
+  }
+
+  /**
+   * Obtener próximos torneos
+   */
+  async getUpcomingTournaments(limit: number = 4): Promise<HomePageTournament[]> {
+    try {
+      const { data, error } = await supabase
+        .from('tournaments')
+        .select(`
+          id,
+          name,
+          year,
+          season,
+          type,
+          surface,
+          modality,
+          startDate,
+          endDate,
+          is_finished
+        `)
+        .or('is_finished.eq.false,and(startDate.gte.' + new Date().toISOString().split('T')[0] + ')')
+        .order('startDate', { ascending: true })
+        .limit(limit)
+
+      if (error) {
+        console.warn('Error con is_finished, intentando con fecha:', error)
+        // Fallback: usar solo fecha de inicio
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('tournaments')
+          .select(`
+            id,
+            name,
+            year,
+            season,
+            type,
+            surface,
+            modality,
+            startDate,
+            endDate
+          `)
+          .gte('startDate', new Date().toISOString().split('T')[0])
+          .order('startDate', { ascending: true })
+          .limit(limit)
+
+        if (fallbackError) throw fallbackError
+        return this.processTournamentData(fallbackData || [], 'upcoming')
+      }
+
+      return this.processTournamentData(data || [], 'upcoming')
+    } catch (error) {
+      console.error('Error obteniendo próximos torneos:', error)
+      return []
+    }
+  }
+
+  /**
+   * Procesar datos de torneos
+   */
+  private async processTournamentData(tournaments: any[], defaultStatus: string = 'completed'): Promise<HomePageTournament[]> {
+    if (!tournaments.length) return []
+
+    // Obtener conteo de equipos por torneo
+    const tournamentIds = tournaments.map(t => t.id)
+    const { data: positionCounts, error: countError } = await supabase
+      .from('positions')
+      .select('tournamentId')
+      .in('tournamentId', tournamentIds)
+
+    if (countError) {
+      console.warn('Error obteniendo conteo de equipos:', countError)
+    }
+
+    // Contar equipos por torneo
+    const teamCounts = new Map<string, number>()
+    positionCounts?.forEach(position => {
+      const count = teamCounts.get(position.tournamentId) || 0
+      teamCounts.set(position.tournamentId, count + 1)
+    })
+
+    return tournaments.map(tournament => {
+      const teamCount = teamCounts.get(tournament.id) || 0
+      const status = tournament.is_finished !== undefined ? 
+        (tournament.is_finished ? 'completed' : 'upcoming') : 
+        defaultStatus
+
+      return {
+        id: tournament.id,
+        name: tournament.name,
+        year: tournament.year,
+        season: tournament.season || `${tournament.year}-${(tournament.year + 1).toString().slice(-2)}`,
+        type: tournament.type,
+        status,
+        teams: teamCount,
+        startDate: tournament.startDate,
+        surface: tournament.surface,
+        modality: tournament.modality
+      }
+    })
+  }
+
+  /**
    * Obtener torneos recientes
    */
   async getRecentTournaments(limit: number = 4): Promise<HomePageTournament[]> {

@@ -16,6 +16,7 @@ interface TeamSelectorProps {
   placeholder?: string
   disabled?: boolean
   error?: boolean
+  onTeamSelected?: (teamId: string, viaKeyboard?: boolean) => void
 }
 
 const TeamSelector: React.FC<TeamSelectorProps> = ({
@@ -24,11 +25,13 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
   onChange,
   placeholder = 'Seleccionar equipo',
   disabled = false,
-  error = false
+  error = false,
+  onTeamSelected
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredTeams, setFilteredTeams] = useState<Team[]>(teams)
+  const [selectedIndex, setSelectedIndex] = useState(0)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
@@ -40,12 +43,14 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
       team.region?.name.toLowerCase().includes(searchTerm.toLowerCase())
     )
     setFilteredTeams(filtered)
+    setSelectedIndex(0) // Resetear el índice seleccionado cuando cambie el filtro
   }, [teams, searchTerm])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false)
+        setSelectedIndex(0)
       }
     }
 
@@ -63,15 +68,36 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
     }
   }, [isOpen])
 
-  const handleSelect = (team: Team) => {
+  const handleSelect = (team: Team, viaKeyboard = false) => {
     onChange(team.id)
     setIsOpen(false)
     setSearchTerm('')
+    setSelectedIndex(0)
+    onTeamSelected?.(team.id, viaKeyboard)
   }
 
   const handleClear = () => {
     onChange('')
     setSearchTerm('')
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' || e.key === 'Enter') {
+      e.preventDefault()
+      if (filteredTeams.length > 0) {
+        handleSelect(filteredTeams[selectedIndex], true)
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setSelectedIndex(prev => 
+        prev < filteredTeams.length - 1 ? prev + 1 : 0
+      )
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setSelectedIndex(prev => 
+        prev > 0 ? prev - 1 : filteredTeams.length - 1
+      )
+    }
   }
 
   return (
@@ -131,6 +157,7 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="Buscar equipo..."
                 className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 onClick={(e) => e.stopPropagation()}
@@ -144,17 +171,26 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
                 No se encontraron equipos
               </div>
             ) : (
-              filteredTeams.map((team) => (
+              filteredTeams.map((team, index) => (
                 <div
                   key={team.id}
-                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => handleSelect(team)}
+                  className={`px-3 py-2 cursor-pointer transition-colors ${
+                    index === selectedIndex 
+                      ? 'bg-blue-100 text-blue-900' 
+                      : 'hover:bg-gray-100'
+                  }`}
+                  onClick={() => handleSelect(team, false)}
+                  onMouseEnter={() => setSelectedIndex(index)}
                 >
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className={`text-sm font-medium ${
+                    index === selectedIndex ? 'text-blue-900' : 'text-gray-900'
+                  }`}>
                     {team.name}
                   </div>
                   {team.region && (
-                    <div className="text-xs text-gray-500">
+                    <div className={`text-xs ${
+                      index === selectedIndex ? 'text-blue-700' : 'text-gray-500'
+                    }`}>
                       {team.region.name}
                     </div>
                   )}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { 
   Trophy, 
   Medal, 
@@ -113,11 +114,22 @@ const RankingAdminPageHybrid: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="border-b border-gray-200 pb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Ranking Actual</h1>
-        <p className="text-gray-600 mt-1">
-          Sistema híbrido optimizado - Datos desde team_season_points
-        </p>
+      <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Ranking Actual</h1>
+          <p className="text-gray-600 mt-1">
+            Sistema híbrido optimizado - Datos desde team_season_points
+          </p>
+        </div>
+        <div className="flex items-center space-x-3">
+          <Link
+            to="/admin/ranking-update"
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Actualizar Rankings</span>
+          </Link>
+        </div>
       </div>
 
       {/* Información del sistema */}
@@ -170,46 +182,6 @@ const RankingAdminPageHybrid: React.FC = () => {
               ))}
             </select>
           </div>
-        </div>
-      </div>
-
-      {/* Acciones */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Acciones</h2>
-        
-        <div className="flex flex-wrap gap-4">
-          <button
-            onClick={handleRefresh}
-            disabled={isLoadingRanking}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoadingRanking ? 'animate-spin' : ''}`} />
-            <span>Actualizar</span>
-          </button>
-
-          <button
-            onClick={handleSyncRankings}
-            disabled={syncRankingsMutation.isPending}
-            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-          >
-            <CheckCircle className="w-4 h-4" />
-            <span>Sincronizar con current_rankings</span>
-          </button>
-
-          <button
-            onClick={handleRegenerateSeason}
-            disabled={regenerateSeasonMutation.isPending}
-            className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
-          >
-            <TrendingUp className="w-4 h-4" />
-            <span>Regenerar temporada desde datos brutos</span>
-          </button>
-        </div>
-
-        <div className="mt-4 text-sm text-gray-600">
-          <p><strong>Actualizar:</strong> Refresca los datos desde team_season_points</p>
-          <p><strong>Sincronizar:</strong> Actualiza current_rankings desde team_season_points</p>
-          <p><strong>Regenerar:</strong> Recalcula team_season_points desde positions (datos brutos)</p>
         </div>
       </div>
 

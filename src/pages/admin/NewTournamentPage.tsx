@@ -35,6 +35,7 @@ import {
   type PositionRow
 } from '@/utils/tournamentUtils'
 import { tournamentsService, teamsService, regionsService } from '@/services/apiService'
+import seasonPointsService from '@/services/seasonPointsService'
 
 interface Region {
   id: string
@@ -61,6 +62,7 @@ const NewTournamentPage: React.FC = () => {
   const [positions, setPositions] = useState<PositionRow[]>([])
   const [showPasteModal, setShowPasteModal] = useState(false)
   const [generatedName, setGeneratedName] = useState('')
+  const [focusNextPosition, setFocusNextPosition] = useState(false)
 
   // Cargar datos de duplicación si existen
   useEffect(() => {
@@ -284,6 +286,61 @@ const NewTournamentPage: React.FC = () => {
       if (positions.length > 0) {
         const positionsWithTeams = positions.filter(p => p.teamId)
         await tournamentsService.updatePositions(result.data.id, positionsWithTeams)
+        
+        // TRIGGER AUTOMÁTICO: Calcular rankings por subtemporada si es 1ª división
+        if (formData.type === 'CE1' && positionsWithTeams.length > 0) {
+          console.log('🎯 Torneo de 1ª División con resultados completos, calculando rankings...')
+          
+          // Determinar la subtemporada según superficie y modalidad
+          let subseason: 1 | 2 | 3 | 4 | null = null
+          const surface = formData.surface.toLowerCase()
+          const modality = formData.modality.toLowerCase()
+          
+          if (surface === 'beach' && modality === 'mixed') {
+            subseason = 1 // Playa Mixto
+          } else if (surface === 'beach' && (modality === 'open' || modality === 'women')) {
+            subseason = 2 // Playa Open/Women
+          } else if (surface === 'grass' && modality === 'mixed') {
+            subseason = 3 // Césped Mixto
+          } else if (surface === 'grass' && (modality === 'open' || modality === 'women')) {
+            subseason = 4 // Césped Open/Women
+          }
+          
+          if (subseason) {
+            console.log(`📊 Calculando subtemporada ${subseason} para ${formData.season}...`)
+            
+            // Primero recalcular los puntos de la temporada
+            const recalcResult = await seasonPointsService.calculateAndSaveSeasonPoints(
+              formData.season,
+              undefined // Recalcular para todos los equipos
+            )
+            
+            if (recalcResult.success) {
+              console.log(`✅ Puntos de temporada actualizados: ${recalcResult.updated} equipos`)
+              
+              // Luego calcular rankings por subtemporada
+              const rankingResult = await seasonPointsService.calculateSubseasonRankings(
+                formData.season,
+                subseason
+              )
+              
+              if (rankingResult.success) {
+                console.log(`✅ Rankings de subtemporada ${subseason} calculados: ${rankingResult.updated} equipos`)
+                toast.success(`Torneo creado y rankings recalculados para subtemporada ${subseason}`)
+              } else {
+                console.error('❌ Error al calcular rankings:', rankingResult.message)
+                toast.warning('Torneo creado pero hubo un error al calcular rankings')
+              }
+            } else {
+              console.error('❌ Error al actualizar puntos de temporada:', recalcResult.message)
+              toast.warning('Torneo creado pero hubo un error al calcular puntos')
+            }
+          }
+        } else {
+          toast.success('Torneo creado exitosamente')
+        }
+      } else {
+        toast.success('Torneo creado exitosamente')
       }
     } catch (error) {
       console.error('Error al crear torneo:', error)
@@ -299,17 +356,61 @@ const NewTournamentPage: React.FC = () => {
   }
 
   const updatePosition = (index: number, field: keyof PositionRow, value: string | number) => {
-    setPositions(prev => prev.map((pos, i) => {
-      if (i === index) {
-        const updated = { ...pos, [field]: value }
-        // Recalcular puntos si cambió la posición o el tipo de torneo
-        if (field === 'position' && formData.type) {
-          updated.points = getPointsForPosition(Number(value), formData.type)
+    setPositions(prev => {
+      const updatedPositions = prev.map((pos, i) => {
+        if (i === index) {
+          const updated = { ...pos, [field]: value }
+          // Recalcular puntos si cambió la posición o el tipo de torneo
+          if (field === 'position' && formData.type) {
+            updated.points = getPointsForPosition(Number(value), formData.type)
+          }
+          return updated
         }
-        return updated
+        return pos
+      })
+
+      return updatedPositions
+    })
+  }
+
+  const handleTeamSelected = (index: number, teamId: string, viaKeyboard: boolean) => {
+    updatePosition(index, 'teamId', teamId)
+    
+    // Si fue seleccionado por teclado, enfocar el siguiente puesto disponible
+    if (viaKeyboard) {
+      const nextIndex = index + 1
+      
+      // Auto-generar siguiente posición si es necesario (especialmente para el puesto 3)
+      if (index === 2 && positions.length === 3) {
+        addPosition()
+        setTimeout(() => {
+          // Buscar el elemento del puesto 4 que acabamos de crear
+          const newTeamSelector = document.querySelector(`[data-position="4"]`) as HTMLElement
+          if (newTeamSelector) {
+            newTeamSelector.click()
+          }
+        }, 200)
+      } else if (nextIndex < positions.length) {
+        // Enfocar el siguiente puesto existente
+        setTimeout(() => {
+          const nextPosition = positions[nextIndex]
+          const nextTeamSelector = document.querySelector(`[data-position="${nextPosition.position}"]`) as HTMLElement
+          if (nextTeamSelector) {
+            nextTeamSelector.click()
+          }
+        }, 100)
+      } else {
+        // Si no hay siguiente puesto, agregar uno nuevo
+        addPosition()
+        setTimeout(() => {
+          const newPosition = positions.length + 1
+          const newTeamSelector = document.querySelector(`[data-position="${newPosition}"]`) as HTMLElement
+          if (newTeamSelector) {
+            newTeamSelector.click()
+          }
+        }, 200)
       }
-      return pos
-    }))
+    }
   }
 
   const addPosition = () => {
@@ -383,7 +484,7 @@ const NewTournamentPage: React.FC = () => {
   }
 
   // Componente SortableItem
-  const SortableItem = ({ position, index }: { position: PositionRow; index: number }) => {
+  const SortableItem = ({ position, index, shouldFocus }: { position: PositionRow; index: number; shouldFocus?: boolean }) => {
     const {
       attributes,
       listeners,
@@ -397,6 +498,20 @@ const NewTournamentPage: React.FC = () => {
       transform: CSS.Transform.toString(transform),
       transition,
     }
+
+    // Manejar el enfoque automático
+    useEffect(() => {
+      if (shouldFocus) {
+        // Pequeño delay para asegurar que el DOM se haya actualizado
+        setTimeout(() => {
+          const teamSelector = document.querySelector(`[data-position="${position.position}"]`) as HTMLElement
+          if (teamSelector) {
+            teamSelector.click()
+          }
+        }, 100)
+        setFocusNextPosition(false)
+      }
+    }, [shouldFocus, position.position])
 
     return (
       <div
@@ -423,23 +538,26 @@ const NewTournamentPage: React.FC = () => {
           </div>
         </div>
         <div className="col-span-6">
-          <TeamSelector
-            teams={teams.filter(team => {
-              // Filtrar equipos ya seleccionados
-              const notSelected = !positions.some((pos, i) => i !== index && pos.teamId === team.id)
-              
-              // Para torneos regionales, solo mostrar equipos de esa región
-              if (formData.type === 'REGIONAL' && formData.regionId) {
-                return notSelected && team.regionId === formData.regionId
-              }
-              
-              // Para torneos nacionales, mostrar todos los equipos
-              return notSelected
-            })}
-            value={position.teamId}
-            onChange={(teamId) => updatePosition(index, 'teamId', teamId)}
-            placeholder="Seleccionar equipo"
-          />
+          <div data-position={position.position}>
+            <TeamSelector
+              teams={teams.filter(team => {
+                // Filtrar equipos ya seleccionados
+                const notSelected = !positions.some((pos, i) => i !== index && pos.teamId === team.id)
+                
+                // Para torneos regionales, solo mostrar equipos de esa región
+                if (formData.type === 'REGIONAL' && formData.regionId) {
+                  return notSelected && team.regionId === formData.regionId
+                }
+                
+                // Para torneos nacionales, mostrar todos los equipos
+                return notSelected
+              })}
+              value={position.teamId}
+              onChange={(teamId) => updatePosition(index, 'teamId', teamId)}
+              onTeamSelected={(teamId, viaKeyboard) => handleTeamSelected(index, teamId, viaKeyboard)}
+              placeholder="Seleccionar equipo"
+            />
+          </div>
         </div>
         <div className="col-span-2">
           <div className="text-sm font-medium text-gray-900">
@@ -785,7 +903,12 @@ const NewTournamentPage: React.FC = () => {
                         strategy={verticalListSortingStrategy}
                       >
                         {positions.map((position, index) => (
-                          <SortableItem key={`position-${position.position}`} position={position} index={index} />
+                          <SortableItem 
+                            key={`position-${position.position}`} 
+                            position={position} 
+                            index={index} 
+                            shouldFocus={focusNextPosition && index === 3}
+                          />
                         ))}
                       </SortableContext>
                     </DndContext>

@@ -7,6 +7,7 @@ import AdminLayout from '@/components/layout/AdminLayout'
 // Páginas públicas
 import HomePage from '@/pages/HomePage'
 import RankingPageHybrid from '@/pages/RankingPageHybrid'
+import RankingPageNew from '@/pages/RankingPageNew'
 import TeamsPage from '@/pages/TeamsPage'
 import RegionsPage from '@/pages/RegionsPage'
 import TournamentsPage from '@/pages/TournamentsPage'
@@ -26,6 +27,9 @@ import SeasonManagementPage from '@/pages/admin/SeasonManagementPage'
 import RankingComparisonPage from '@/pages/admin/RankingComparisonPage'
 import DatabaseDiagnosticPage from '@/pages/admin/DatabaseDiagnosticPage'
 import RankingAdminPageHybrid from '@/pages/admin/RankingAdminPageHybrid'
+import RankingUpdatePage from '@/pages/admin/RankingUpdatePage'
+import SimulateRankingsPage from '@/pages/admin/SimulateRankingsPage'
+import MigrateRankingsPage from '@/pages/admin/MigrateRankingsPage'
 import NewTeamPage from '@/pages/admin/NewTeamPage'
 import NewTournamentPage from '@/pages/admin/NewTournamentPage'
 import NewRegionPage from '@/pages/admin/NewRegionPage'
@@ -67,6 +71,7 @@ function App() {
             <Route path="/" element={<PublicLayout />}>
               <Route index element={<HomePage />} />
               <Route path="ranking" element={<RankingPageHybrid />} />
+              <Route path="ranking-new" element={<RankingPageNew />} />
               <Route path="teams" element={<TeamsPage />} />
               <Route path="teams/:id" element={<TeamDetailPage />} />
               <Route path="regions" element={<RegionsPage />} />
@@ -104,7 +109,10 @@ function App() {
               <Route path="tournaments/:tournamentId/results/import" element={<ImportResultsPage />} />
               <Route path="results/:id/edit" element={<EditResultPage />} />
               <Route path="ranking" element={<RankingAdminPageHybrid />} />
-              <Route path="configuration" element={<ConfigurationPage />} />
+                  <Route path="ranking-update" element={<RankingUpdatePage />} />
+                  <Route path="simulate-rankings" element={<SimulateRankingsPage />} />
+                  <Route path="migrate-rankings" element={<MigrateRankingsPage />} />
+                  <Route path="configuration" element={<ConfigurationPage />} />
               <Route path="import-export" element={<ImportExportPage />} />
               <Route path="seasons" element={<SeasonManagementPage />} />
               <Route path="ranking-comparison" element={<RankingComparisonPage />} />
