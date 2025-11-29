@@ -142,31 +142,107 @@ class TeamDetailService {
    * Obtener información básica del equipo
    */
   private async getTeamBasicInfo(teamId: string) {
-    const { data, error } = await supabase
-      .from('teams')
-      .select(`
-        *,
-        region:regions(name, coefficient)
-      `)
-      .eq('id', teamId)
-      .single()
+    try {
+      // Validar que el ID no esté vacío
+      if (!teamId || teamId.trim() === '') {
+        const notFoundError = new Error(`ID de equipo inválido: "${teamId}"`)
+        ;(notFoundError as any).code = 'NOT_FOUND'
+        throw notFoundError
+      }
 
-    if (error) throw error
+      console.log(`[TeamDetailService] Buscando equipo con ID: "${teamId}"`)
 
-    // Si es filial, obtener el equipo padre por separado
-    if (data.isFilial && data.parentTeamId) {
-      const { data: parentTeam, error: parentError } = await supabase
+      // Primero intentar obtener el equipo sin la relación de región
+      // para evitar problemas si la región no existe
+      let { data, error } = await supabase
         .from('teams')
-        .select('name')
-        .eq('id', data.parentTeamId)
+        .select('*')
+        .eq('id', teamId)
         .single()
 
-      if (!parentError && parentTeam) {
-        data.parentTeam = parentTeam
+      // Si hay error, lanzarlo
+      if (error) {
+        throw error
       }
-    }
 
-    return data
+      // Si no hay datos, el equipo no existe
+      if (!data) {
+        throw new Error(`Equipo con ID "${teamId}" no encontrado`)
+      }
+
+      // Si el equipo tiene regionId, obtener la región por separado
+      if (data.regionId) {
+        try {
+          const { data: regionData, error: regionError } = await supabase
+            .from('regions')
+            .select('name, coefficient')
+            .eq('id', data.regionId)
+            .single()
+
+          if (!regionError && regionData) {
+            data.region = regionData
+          } else {
+            console.warn(`[TeamDetailService] No se pudo obtener la región ${data.regionId} para el equipo ${teamId}`)
+          }
+        } catch (regionError) {
+          console.warn(`[TeamDetailService] Error al obtener región para equipo ${teamId}:`, regionError)
+          // No fallar si no se puede obtener la región
+        }
+      }
+
+      if (error) {
+        console.error(`[TeamDetailService] Error de Supabase al obtener equipo ${teamId}:`, {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
+
+        // Si el equipo no existe, lanzar un error más descriptivo
+        if (error.code === 'PGRST116' || 
+            error.message?.includes('No rows returned') ||
+            error.message?.includes('not found') ||
+            error.code === 'NOT_FOUND' ||
+            error.message?.includes('JSON object requested, multiple (or no) rows returned')) {
+          const notFoundError = new Error(`Equipo con ID "${teamId}" no encontrado`)
+          ;(notFoundError as any).code = 'NOT_FOUND'
+          throw notFoundError
+        }
+        throw error
+      }
+
+      if (!data) {
+        console.warn(`[TeamDetailService] No se encontraron datos para el equipo ${teamId}`)
+        const notFoundError = new Error(`Equipo con ID "${teamId}" no encontrado`)
+        ;(notFoundError as any).code = 'NOT_FOUND'
+        throw notFoundError
+      }
+
+      console.log(`[TeamDetailService] Equipo encontrado: ${data.name} (ID: ${data.id})`)
+
+      // Si es filial, obtener el equipo padre por separado
+      if (data.isFilial && data.parentTeamId) {
+        try {
+          const { data: parentTeam, error: parentError } = await supabase
+            .from('teams')
+            .select('name')
+            .eq('id', data.parentTeamId)
+            .single()
+
+          if (!parentError && parentTeam) {
+            data.parentTeam = parentTeam
+          }
+        } catch (parentError) {
+          // Si no se puede obtener el equipo padre, no es crítico
+          console.warn('No se pudo obtener el equipo padre:', parentError)
+        }
+      }
+
+      return data
+    } catch (error: any) {
+      // Re-lanzar el error para que se maneje en el nivel superior
+      throw error
+    }
   }
 
   /**
@@ -557,28 +633,46 @@ class TeamDetailService {
    * Obtener equipos relacionados (mismo club padre)
    */
   async getRelatedTeams(teamId: string) {
-    const { data: team, error: teamError } = await supabase
-      .from('teams')
-      .select('parentTeamId, isFilial')
-      .eq('id', teamId)
-      .single()
+    try {
+      const { data: team, error: teamError } = await supabase
+        .from('teams')
+        .select('parentTeamId, isFilial')
+        .eq('id', teamId)
+        .single()
 
-    if (teamError) throw teamError
+      if (teamError) {
+        // Si el equipo no existe, retornar array vacío en lugar de lanzar error
+        if (teamError.code === 'PGRST116' || teamError.message?.includes('No rows returned')) {
+          return []
+        }
+        throw teamError
+      }
 
-    let query = supabase.from('teams').select('*')
+      if (!team) {
+        return []
+      }
 
-    if (team.isFilial && team.parentTeamId) {
-      // Si es filial, obtener otras filiales del mismo club padre
-      query = query.eq('parentTeamId', team.parentTeamId).neq('id', teamId)
-    } else {
-      // Si es principal, obtener sus filiales
-      query = query.eq('parentTeamId', teamId)
+      let query = supabase.from('teams').select('*')
+
+      if (team.isFilial && team.parentTeamId) {
+        // Si es filial, obtener otras filiales del mismo club padre
+        query = query.eq('parentTeamId', team.parentTeamId).neq('id', teamId)
+      } else {
+        // Si es principal, obtener sus filiales
+        query = query.eq('parentTeamId', teamId)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.warn('Error obteniendo equipos relacionados:', error)
+        return []
+      }
+      return data || []
+    } catch (error) {
+      console.warn('Error en getRelatedTeams:', error)
+      return []
     }
-
-    const { data, error } = await query
-
-    if (error) throw error
-    return data || []
   }
 }
 

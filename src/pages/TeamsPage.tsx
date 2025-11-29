@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Search, Filter, Users, MapPin, Trophy, ChevronUp, ChevronDown, Loader2, ArrowUpDown } from 'lucide-react'
 import { teamsService, regionsService } from '@/services/apiService'
 import TeamLogo from '@/components/ui/TeamLogo'
 
 const TeamsPage = () => {
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRegion, setSelectedRegion] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
@@ -252,7 +253,7 @@ const TeamsPage = () => {
                     <tr 
                       key={team.id}
                       className="hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => window.location.href = `/teams/${team.id}`}
+                      onClick={() => navigate(`/teams/${team.id}`)}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">

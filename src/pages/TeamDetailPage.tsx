@@ -17,19 +17,51 @@ const TeamDetailPage: React.FC = () => {
   }, [id])
 
   const loadTeamData = async () => {
-    if (!id) return
+    if (!id) {
+      console.warn('[TeamDetailPage] No se proporcionó ID de equipo')
+      return
+    }
     
+    console.log(`[TeamDetailPage] Cargando datos del equipo con ID: "${id}"`)
     setIsLoading(true)
+    
     try {
       // Cargar datos detallados del equipo
       const data = await teamDetailService.getTeamDetailData(id)
+      console.log('[TeamDetailPage] Datos del equipo cargados exitosamente:', data?.team?.name)
       setTeamData(data)
       
       // Cargar equipos relacionados
-      const related = await teamDetailService.getRelatedTeams(id)
-      setRelatedTeams(related)
-    } catch (error) {
-      console.error('Error al cargar datos del equipo:', error)
+      try {
+        const related = await teamDetailService.getRelatedTeams(id)
+        setRelatedTeams(related)
+      } catch (relatedError) {
+        // Si falla obtener equipos relacionados, no es crítico
+        console.warn('[TeamDetailPage] Error al cargar equipos relacionados:', relatedError)
+        setRelatedTeams([])
+      }
+    } catch (error: any) {
+      console.error('[TeamDetailPage] Error al cargar datos del equipo:', {
+        id,
+        error: error?.message,
+        code: error?.code,
+        stack: error?.stack
+      })
+      
+      // Si el error indica que el equipo no existe, no establecer teamData
+      // para que se muestre el mensaje de "Equipo no encontrado"
+      if (error?.message?.includes('no encontrado') || 
+          error?.code === 'PGRST116' || 
+          error?.code === 'NOT_FOUND' ||
+          error?.message?.includes('NOT_FOUND') ||
+          error?.message?.includes('No rows returned')) {
+        console.warn(`[TeamDetailPage] Equipo con ID "${id}" no encontrado`)
+        setTeamData(null)
+      } else {
+        // Para otros errores, también mostrar el mensaje de no encontrado
+        console.error('[TeamDetailPage] Error desconocido al cargar equipo:', error)
+        setTeamData(null)
+      }
     } finally {
       setIsLoading(false)
     }
