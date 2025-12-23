@@ -33,6 +33,53 @@ const getSeasonCoefficient = (season: string, referenceSeason: string): number =
 
 const hybridRankingService = {
   /**
+   * Obtener la temporada más reciente
+   * Busca la temporada más reciente con datos en team_season_points
+   */
+  getMostRecentSeason: async (): Promise<string> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      // Obtener la temporada más reciente de team_season_points
+      const { data, error } = await supabase
+        .from('team_season_points')
+        .select('season')
+        .order('season', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (error || !data) {
+        // Si no hay datos, calcular basándose en el año actual
+        const currentYear = new Date().getFullYear()
+        const currentMonth = new Date().getMonth() + 1
+        
+        // Si estamos después de julio, la temporada actual es año-año+1
+        // Si estamos antes de julio, la temporada actual es año-1-año
+        if (currentMonth >= 7) {
+          return formatSeason(currentYear)
+        } else {
+          return formatSeason(currentYear - 1)
+        }
+      }
+
+      return data.season
+    } catch (error: any) {
+      console.warn('⚠️ Error obteniendo temporada más reciente, usando temporada por defecto:', error.message)
+      // Fallback: calcular basándose en el año actual
+      const currentYear = new Date().getFullYear()
+      const currentMonth = new Date().getMonth() + 1
+      
+      if (currentMonth >= 7) {
+        return formatSeason(currentYear)
+      } else {
+        return formatSeason(currentYear - 1)
+      }
+    }
+  },
+
+  /**
    * Obtener ranking desde team_season_rankings (nuevo sistema optimizado)
    * Usa rankings pre-calculados con coeficientes aplicados
    */

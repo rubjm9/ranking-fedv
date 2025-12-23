@@ -73,8 +73,13 @@ const RankingPageHybrid: React.FC = () => {
     { value: 'general_women', label: 'Ranking Women', Icon: IconWomen }
   ]
 
-  // Determinar la temporada de referencia
-  const referenceSeason = '2024-25'
+  // Obtener la temporada más reciente dinámicamente
+  const { data: referenceSeason, isLoading: isLoadingSeason } = useQuery({
+    queryKey: ['most-recent-season'],
+    queryFn: () => hybridRankingService.getMostRecentSeason(),
+    staleTime: 10 * 60 * 1000, // 10 minutos
+    retry: 2
+  })
 
   // Mapeo de rankings combinados a categorías
   const getCategoriesForCombinedRanking = (rankingValue: string) => {
@@ -93,6 +98,9 @@ const RankingPageHybrid: React.FC = () => {
   const { data: rankingData, isLoading, error, refetch } = useQuery({
     queryKey: ['hybrid-ranking', selectedCategory, referenceSeason, selectedRankingType],
     queryFn: () => {
+      if (!referenceSeason) {
+        throw new Error('Temporada de referencia no disponible')
+      }
       if (selectedRankingType === 'general') {
         // Para rankings combinados, usar getCombinedRanking
         const categories = getCategoriesForCombinedRanking(selectedCategory)
@@ -108,7 +116,7 @@ const RankingPageHybrid: React.FC = () => {
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
-    enabled: !!selectedCategory && !!referenceSeason
+    enabled: !!selectedCategory && !!referenceSeason && !isLoadingSeason
   })
 
   // Query para estadísticas mejoradas
@@ -125,7 +133,7 @@ const RankingPageHybrid: React.FC = () => {
       // Equipos nuevos: equipos que solo tienen puntos en la temporada actual
       const newTeams = rankingData.filter(team => {
         const seasons = Object.keys(team.season_breakdown || {})
-        return seasons.length === 1 && seasons.includes(referenceSeason)
+        return seasons.length === 1 && seasons.includes(referenceSeason || '')
       }).length
 
       // Consistencia: equipos que han mantenido posiciones altas (top 10) en múltiples temporadas
@@ -550,7 +558,7 @@ const RankingPageHybrid: React.FC = () => {
             </div>
             {/* Tooltip */}
             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-              Equipos que solo tienen puntos en la temporada actual (2024-25)
+              Equipos que solo tienen puntos en la temporada actual{referenceSeason ? ` (${referenceSeason})` : ''}
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
             </div>
           </div>
@@ -608,10 +616,12 @@ const RankingPageHybrid: React.FC = () => {
           </div>
         </div>
         <div className="overflow-x-auto max-h-[70vh]">
-          {isLoading ? (
+          {isLoading || isLoadingSeason ? (
             <div className="p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-500">Cargando ranking...</p>
+              <p className="mt-2 text-gray-500">
+                {isLoadingSeason ? 'Cargando temporada...' : 'Cargando ranking...'}
+              </p>
             </div>
           ) : error ? (
             <div className="p-8 text-center text-red-500">
@@ -958,12 +968,11 @@ const RankingPageHybrid: React.FC = () => {
                 Ejemplo de Funcionamiento
               </h3>
               <div className="mt-2 text-sm text-green-700">
-                <p><strong>En marzo 2025:</strong></p>
+                <p><strong>Ejemplo de funcionamiento:</strong></p>
                 <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>Playa mixto 2024-25: coeficiente 1.0 (ya se jugó)</li>
-                  <li>Playa open/women 2024-25: coeficiente 1.0 (ya se jugó)</li>
-                  <li>Césped mixto 2023-24: coeficiente 1.0 (el más reciente)</li>
-                  <li>Césped open/women 2023-24: coeficiente 1.0 (el más reciente)</li>
+                  <li>Las modalidades ya jugadas en la temporada actual tienen coeficiente 1.0</li>
+                  <li>Las modalidades no jugadas usan la temporada anterior más reciente</li>
+                  <li>Los coeficientes se ajustan automáticamente según los torneos completados</li>
                 </ul>
               </div>
             </div>
