@@ -12,7 +12,7 @@ CREATE INDEX IF NOT EXISTS idx_team_season_rankings_season
 CREATE INDEX IF NOT EXISTS idx_team_season_rankings_team_season 
   ON team_season_rankings(team_id, season);
 
--- Índices compuestos para consultas de modalidad específica
+-- Índices compuestos para consultas de superficie específica
 CREATE INDEX IF NOT EXISTS idx_team_season_rankings_season_beach_mixed 
   ON team_season_rankings(season, beach_mixed_rank);
 

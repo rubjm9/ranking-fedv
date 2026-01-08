@@ -36,7 +36,7 @@ export interface SeasonPoints {
   subseason_ranks_calculated_at?: string       // Timestamp de cuando se calcularon los rankings
 }
 
-export interface CategoryPointsMap {
+export interface SurfacePointsMap {
   beach_mixed: number
   beach_open: number
   beach_women: number
@@ -77,7 +77,7 @@ const seasonPointsService = {
             name,
             year,
             surface,
-            modality
+            category
           ),
           teams:teamId(
             id,
@@ -102,18 +102,18 @@ const seasonPointsService = {
         return { success: true, message: 'No hay posiciones para procesar', updated: 0 }
       }
 
-      // Agrupar puntos por equipo y modalidad
-      const teamPointsMap: { [teamId: string]: Partial<CategoryPointsMap> & { tournaments_played: Partial<CategoryPointsMap>, best_position: Partial<CategoryPointsMap> } } = {}
+      // Agrupar puntos por equipo y superficie
+      const teamPointsMap: { [teamId: string]: Partial<SurfacePointsMap> & { tournaments_played: Partial<SurfacePointsMap>, best_position: Partial<SurfacePointsMap> } } = {}
 
       positions.forEach(position => {
         const tournament = position.tournaments
         const team = position.teams
 
-        if (!tournament || !team || !tournament.surface || !tournament.modality) {
+        if (!tournament || !team || !tournament.surface || !tournament.category) {
           return
         }
 
-        const category = `${tournament.surface.toLowerCase()}_${tournament.modality.toLowerCase()}` as keyof CategoryPointsMap
+        const surface = `${tournament.surface.toLowerCase()}_${tournament.category.toLowerCase()}` as keyof SurfacePointsMap
         const tid = team.id
 
         if (!teamPointsMap[tid]) {
@@ -124,21 +124,21 @@ const seasonPointsService = {
         }
 
         // Sumar puntos
-        if (!teamPointsMap[tid][category]) {
-          teamPointsMap[tid][category] = 0
+        if (!teamPointsMap[tid][surface]) {
+          teamPointsMap[tid][surface] = 0
         }
-        teamPointsMap[tid][category]! += position.points || 0
+        teamPointsMap[tid][surface]! += position.points || 0
 
         // Contar torneos
-        if (!teamPointsMap[tid].tournaments_played[category]) {
-          teamPointsMap[tid].tournaments_played[category] = 0
+        if (!teamPointsMap[tid].tournaments_played[surface]) {
+          teamPointsMap[tid].tournaments_played[surface] = 0
         }
-        teamPointsMap[tid].tournaments_played[category]! += 1
+        teamPointsMap[tid].tournaments_played[surface]! += 1
 
         // Mejor posición
-        const currentBest = teamPointsMap[tid].best_position[category]
+        const currentBest = teamPointsMap[tid].best_position[surface]
         if (!currentBest || position.position < currentBest) {
-          teamPointsMap[tid].best_position[category] = position.position
+          teamPointsMap[tid].best_position[surface] = position.position
         }
       })
 
@@ -194,20 +194,20 @@ const seasonPointsService = {
   },
 
   /**
-   * Marcar una temporada/modalidad como completa
+   * Marcar una temporada/superficie como completa
    */
   closeSeason: async (
     season: string,
-    category?: keyof CategoryPointsMap
+    surface?: keyof SurfacePointsMap
   ): Promise<{ success: boolean; message: string }> => {
     try {
       if (!supabase) {
         throw new Error('Supabase no está configurado')
       }
 
-      console.log(`🔒 Cerrando temporada ${season}${category ? ` para ${category}` : ''}...`)
+      console.log(`🔒 Cerrando temporada ${season}${surface ? ` para ${surface}` : ''}...`)
 
-      // Si se especifica categoría, solo marcar como completa esa modalidad
+      // Si se especifica superficie, solo marcar como completa esa superficie
       // Esto se implementará cuando tengamos un sistema más granular
       // Por ahora, marcar toda la temporada como completa
 
@@ -280,7 +280,7 @@ const seasonPointsService = {
    */
   getTeamHistory: async (
     teamId: string,
-    category?: keyof CategoryPointsMap
+    surface?: keyof SurfacePointsMap
   ): Promise<SeasonPoints[]> => {
     try {
       if (!supabase) {
@@ -309,14 +309,14 @@ const seasonPointsService = {
    */
   getSeasonRanking: async (
     season: string,
-    category: keyof CategoryPointsMap
+    surface: keyof SurfacePointsMap
   ): Promise<{ team_id: string; points: number; season: string }[]> => {
     try {
       if (!supabase) {
         throw new Error('Supabase no está configurado')
       }
 
-      const pointsColumn = `${category}_points`
+      const pointsColumn = `${surface}_points`
 
       const { data, error } = await supabase
         .from('team_season_points')
@@ -440,16 +440,16 @@ const seasonPointsService = {
 
       console.log(`📊 Calculando rankings para subtemporada ${subseason} de ${season}...`)
 
-      // Mapear subtemporada a categorías
-      const subseasonCategories = {
+      // Mapear subtemporada a superficies
+      const subseasonSurfaces = {
         1: ['beach_mixed'],                    // Subtemporada 1: playa mixto
         2: ['beach_open', 'beach_women'],      // Subtemporada 2: playa open/women
         3: ['grass_mixed'],                    // Subtemporada 3: césped mixto
         4: ['grass_open', 'grass_women']       // Subtemporada 4: césped open/women
       }
 
-      const categories = subseasonCategories[subseason] as (keyof CategoryPointsMap)[]
-      console.log(`🎯 Categorías a procesar: ${categories.join(', ')}`)
+      const surfaces = subseasonSurfaces[subseason] as (keyof SurfacePointsMap)[]
+      console.log(`🎯 Superficies a procesar: ${surfaces.join(', ')}`)
 
       // Obtener datos de la temporada actual y las 3 anteriores
       const seasonYear = parseInt(season.split('-')[0])
@@ -468,7 +468,7 @@ const seasonPointsService = {
         .select(`
           team_id,
           season,
-          ${categories.map(cat => `${cat}_points`).join(', ')}
+          ${surfaces.map(surf => `${surf}_points`).join(', ')}
         `)
         .in('season', seasons)
 
@@ -479,11 +479,11 @@ const seasonPointsService = {
 
       console.log(`📦 Registros obtenidos: ${seasonData?.length || 0}`)
 
-      // Calcular rankings para cada categoría
-      const rankingsByCategory: { [category: string]: { team_id: string; total_points: number; rank: number }[] } = {}
+      // Calcular rankings para cada superficie
+      const rankingsBySurface: { [surface: string]: { team_id: string; total_points: number; rank: number }[] } = {}
 
-      for (const category of categories) {
-        console.log(`\n🔄 Procesando categoría: ${category}`)
+      for (const surface of surfaces) {
+        console.log(`\n🔄 Procesando superficie: ${surface}`)
 
         // Agrupar por equipo y calcular puntos totales con coeficientes
         const teamPointsMap: { [teamId: string]: number } = {}
@@ -491,7 +491,7 @@ const seasonPointsService = {
         seasonData?.forEach((row: any) => {
           const teamId = row.team_id
           const season = row.season
-          const basePoints = row[`${category}_points`] || 0
+          const basePoints = row[`${surface}_points`] || 0
 
           if (basePoints <= 0) return
 
@@ -516,21 +516,21 @@ const seasonPointsService = {
           team.rank = index + 1
         })
 
-        rankingsByCategory[category] = sortedTeams
-        console.log(`✅ ${sortedTeams.length} equipos rankeados en ${category}`)
+        rankingsBySurface[surface] = sortedTeams
+        console.log(`✅ ${sortedTeams.length} equipos rankeados en ${surface}`)
       }
 
       // Actualizar team_season_points con los nuevos rankings
       const updates: any[] = []
 
-      for (const category of categories) {
-        const rankings = rankingsByCategory[category]
+      for (const surface of surfaces) {
+        const rankings = rankingsBySurface[surface]
         
         for (const ranking of rankings) {
           const updateData: any = {
             team_id: ranking.team_id,
             season: season,
-            [`subseason_${subseason}_${category}_rank`]: ranking.rank,
+            [`subseason_${subseason}_${surface}_rank`]: ranking.rank,
             subseason_ranks_calculated_at: new Date().toISOString()
           }
 
@@ -719,10 +719,10 @@ const seasonPointsService = {
 
       const stats = {
         total_teams: data?.length || 0,
-        categories: {} as { [key: string]: { teams: number; total_points: number; avg_points: number } }
+        surfaces: {} as { [key: string]: { teams: number; total_points: number; avg_points: number } }
       }
 
-      const categories: (keyof CategoryPointsMap)[] = [
+      const surfaces: (keyof SurfacePointsMap)[] = [
         'beach_mixed',
         'beach_open',
         'beach_women',
@@ -731,12 +731,12 @@ const seasonPointsService = {
         'grass_women'
       ]
 
-      categories.forEach(category => {
-        const pointsColumn = `${category}_points`
+      surfaces.forEach(surface => {
+        const pointsColumn = `${surface}_points`
         const teamsWithPoints = data?.filter(row => row[pointsColumn] > 0) || []
         const totalPoints = teamsWithPoints.reduce((sum, row) => sum + (row[pointsColumn] || 0), 0)
 
-        stats.categories[category] = {
+        stats.surfaces[surface] = {
           teams: teamsWithPoints.length,
           total_points: totalPoints,
           avg_points: teamsWithPoints.length > 0 ? totalPoints / teamsWithPoints.length : 0

@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS team_season_points (
   team_id UUID NOT NULL,
   season VARCHAR(10) NOT NULL, -- Formato: "2024-25"
   
-  -- Puntos base por modalidad (sin coeficientes de antigüedad)
+  -- Puntos base por superficie (sin coeficientes de antigüedad)
   beach_mixed_points DECIMAL(10,2) DEFAULT 0,
   beach_open_points DECIMAL(10,2) DEFAULT 0,
   beach_women_points DECIMAL(10,2) DEFAULT 0,

@@ -8,7 +8,7 @@ export interface TournamentImportRow {
   tipo: string
   temporada: string
   superficie: string
-  modalidad: string
+  categoria: string
   region?: string
   fecha_inicio: string
   fecha_fin: string
@@ -66,7 +66,7 @@ export const tournamentImportService = {
       'tipo',
       'temporada', 
       'superficie',
-      'modalidad',
+      'categoria',
       'region',
       'fecha_inicio',
       'fecha_fin',
@@ -259,7 +259,7 @@ export const tournamentImportService = {
     
     // Campos requeridos
     const requiredFields = [
-      'nombre', 'tipo', 'temporada', 'superficie', 'modalidad', 
+      'nombre', 'tipo', 'temporada', 'superficie', 'categoria', 
       'fecha_inicio', 'fecha_fin', 'ubicacion'
     ]
     
@@ -293,8 +293,8 @@ export const tournamentImportService = {
         errors.push(`Fila ${rowNumber}: Superficie '${row.superficie}' no es válida. Valores válidos: GRASS, BEACH, INDOOR`)
       }
 
-      if (row.modalidad && !['OPEN', 'MIXED', 'WOMEN'].includes(row.modalidad)) {
-        errors.push(`Fila ${rowNumber}: Modalidad '${row.modalidad}' no es válida. Valores válidos: OPEN, MIXED, WOMEN`)
+      if (row.categoria && !['OPEN', 'MIXED', 'WOMEN'].includes(row.categoria)) {
+        errors.push(`Fila ${rowNumber}: Categoría '${row.categoria}' no es válida. Valores válidos: OPEN, MIXED, WOMEN`)
       }
 
       // Validar fechas
@@ -389,7 +389,7 @@ export const tournamentImportService = {
             type: row.tipo,
             year: year,
             surface: row.superficie,
-            modality: row.modalidad,
+            category: row.categoria,
             regionId: row.tipo === 'REGIONAL' && row.region ? 
               regionNameToId.get(row.region.toLowerCase()) || null : null,
             startDate: row.fecha_inicio ? new Date(row.fecha_inicio).toISOString() : null,

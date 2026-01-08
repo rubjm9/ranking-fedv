@@ -16,10 +16,10 @@ CREATE INDEX IF NOT EXISTS idx_team_season_rankings_season_global
 
 -- Comentarios
 COMMENT ON COLUMN team_season_rankings.global_rank IS 
-  'Posición en el ranking global (suma de todas las 6 modalidades)';
+  'Posición en el ranking global (suma de todas las 6 superficies)';
   
 COMMENT ON COLUMN team_season_rankings.global_points IS 
-  'Puntos totales en ranking global (suma de todas las modalidades)';
+  'Puntos totales en ranking global (suma de todas las superficies)';
 
 -- Verificar estructura
 SELECT 

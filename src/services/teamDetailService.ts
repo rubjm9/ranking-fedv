@@ -50,7 +50,7 @@ export interface TournamentResult {
   season: string
   type: string
   surface: string
-  modality: string
+  category: string
   position: number
   points: number
   date: string
@@ -246,28 +246,71 @@ class TeamDetailService {
   }
 
   /**
-   * Obtener rankings actuales por categoría
+   * Obtener rankings actuales por categoría (OPTIMIZADO)
+   * Usa una sola query a team_season_rankings en lugar de 6 queries secuenciales
    */
   private async getCurrentRankings(teamId: string) {
-    const categories = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women']
+    const categories = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'] as const
     const rankings: { [category: string]: { position: number; points: number; change: number } } = {}
 
-    for (const category of categories) {
-      try {
-        const ranking = await hybridRankingService.getRankingFromSeasonPoints(category, '2024-25')
-        const teamRanking = ranking.find(entry => entry.team_id === teamId)
-        
-        if (teamRanking) {
-          rankings[category] = {
-            position: teamRanking.ranking_position,
-            points: teamRanking.total_points,
-            change: 0 // TODO: Calcular cambio respecto a temporada anterior
+    try {
+      // Determinar la temporada más reciente
+      const currentYear = new Date().getFullYear()
+      const currentMonth = new Date().getMonth() + 1
+      const referenceSeason = currentMonth >= 7 
+        ? `${currentYear}-${(currentYear + 1).toString().slice(-2)}`
+        : `${currentYear - 1}-${currentYear.toString().slice(-2)}`
+
+      // Una sola query para obtener todos los rankings del equipo
+      const { data, error } = await supabase
+        .from('team_season_rankings')
+        .select('*')
+        .eq('team_id', teamId)
+        .eq('season', referenceSeason)
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        console.warn('Error obteniendo rankings desde team_season_rankings:', error)
+      }
+
+      if (data) {
+        // Extraer rankings de todas las categorías desde la respuesta
+        for (const category of categories) {
+          const rank = data[`${category}_rank`]
+          const points = data[`${category}_points`]
+          const positionChange = data[`${category}_position_change`] || 0
+
+          if (rank && rank > 0) {
+            rankings[category] = {
+              position: rank,
+              points: points || 0,
+              change: positionChange
+            }
           }
         }
-      } catch (error) {
-        console.warn(`Error obteniendo ranking para ${category}:`, error)
-        // Continuar con las otras categorías aunque una falle
+        return rankings
       }
+
+      // Fallback: Si no hay datos pre-calculados, usar método anterior
+      console.log('Fallback a método tradicional para getCurrentRankings')
+      for (const category of categories) {
+        try {
+          const ranking = await hybridRankingService.getRankingFromSeasonPoints(category, referenceSeason)
+          const teamRanking = ranking.find(entry => entry.team_id === teamId)
+          
+          if (teamRanking) {
+            rankings[category] = {
+              position: teamRanking.ranking_position,
+              points: teamRanking.total_points,
+              change: 0
+            }
+          }
+        } catch (error) {
+          console.warn(`Error obteniendo ranking para ${category}:`, error)
+        }
+      }
+    } catch (error) {
+      console.error('Error en getCurrentRankings:', error)
     }
 
     return rankings
@@ -288,7 +331,7 @@ class TeamDetailService {
           season,
           type,
           surface,
-          modality,
+          category,
           startDate,
           endDate,
           region:regions(name)
@@ -306,7 +349,7 @@ class TeamDetailService {
       season: position.tournaments.season || `${position.tournaments.year}-${(position.tournaments.year + 1).toString().slice(-2)}`,
       type: position.tournaments.type,
       surface: position.tournaments.surface,
-      modality: position.tournaments.modality,
+      category: position.tournaments.category,
       position: position.position,
       points: position.points,
       date: position.tournaments.startDate || position.tournaments.endDate || '',
@@ -475,7 +518,7 @@ class TeamDetailService {
     const totalPoints = tournamentResults.reduce((sum, r) => sum + r.points, 0)
     const averagePoints = totalTournaments > 0 ? totalPoints / totalTournaments : 0
     const seasonsActive = seasonBreakdown.length
-    const categoriesPlayed = [...new Set(tournamentResults.map(r => `${r.surface}_${r.modality}`))]
+    const categoriesPlayed = [...new Set(tournamentResults.map(r => `${r.surface}_${r.category}`))]
 
     return {
       totalTournaments,

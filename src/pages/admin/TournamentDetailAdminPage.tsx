@@ -157,8 +157,8 @@ const TournamentDetailAdminPage: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-600">Modalidad</label>
-              <p className="text-gray-900">{translateModality(tournament.modality)}</p>
+              <label className="text-sm font-medium text-gray-600">Categoría</label>
+              <p className="text-gray-900">{translateModality(tournament.category)}</p>
             </div>
             
             <div className="space-y-2">

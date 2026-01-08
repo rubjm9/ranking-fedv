@@ -641,7 +641,7 @@ const EditTeamPage: React.FC = () => {
                 className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
               />
               <label htmlFor="hasDifferentNames" className="ml-2 block text-sm text-gray-900">
-                Tiene nombres diferentes para cada modalidad
+                Tiene nombres diferentes para cada categoría
               </label>
             </div>
             <p className="text-xs text-gray-500">
@@ -661,7 +661,7 @@ const EditTeamPage: React.FC = () => {
                     value={formData.nameMixed || ''}
                     onChange={(e) => handleInputChange('nameMixed', e.target.value)}
                     className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Nombre específico para modalidad Mixto"
+                    placeholder="Nombre específico para categoría Mixto"
                   />
                 </div>
                 
@@ -675,7 +675,7 @@ const EditTeamPage: React.FC = () => {
                     value={formData.nameWomen || ''}
                     onChange={(e) => handleInputChange('nameWomen', e.target.value)}
                     className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Nombre específico para modalidad Femenino"
+                    placeholder="Nombre específico para categoría Femenino"
                   />
                 </div>
                 
@@ -689,7 +689,7 @@ const EditTeamPage: React.FC = () => {
                     value={formData.nameOpen || ''}
                     onChange={(e) => handleInputChange('nameOpen', e.target.value)}
                     className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Nombre específico para modalidad Open"
+                    placeholder="Nombre específico para categoría Open"
                   />
                 </div>
               </div>

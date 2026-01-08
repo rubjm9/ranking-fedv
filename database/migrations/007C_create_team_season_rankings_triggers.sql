@@ -22,8 +22,8 @@ CREATE TRIGGER trigger_update_team_season_rankings_timestamp
 
 -- Comentarios para documentación
 COMMENT ON TABLE team_season_rankings IS 
-  'Rankings históricos por modalidad con coeficientes de antigüedad aplicados. 
-   Permite consultar el ranking de cualquier equipo en cualquier temporada y modalidad.';
+  'Rankings históricos por superficie con coeficientes de antigüedad aplicados. 
+   Permite consultar el ranking de cualquier equipo en cualquier temporada y superficie.';
 
 COMMENT ON COLUMN team_season_rankings.beach_mixed_rank IS 
   'Posición en el ranking de playa mixto (incluye últimas 4 temporadas con coeficientes)';

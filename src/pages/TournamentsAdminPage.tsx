@@ -30,7 +30,7 @@ interface Tournament {
   type: string
   year: number
   surface: string
-  modality: string
+  category: string
   regionId?: string
   region?: any
   createdAt: string
@@ -38,7 +38,7 @@ interface Tournament {
   hasResults?: boolean
 }
 
-type SortField = 'name' | 'type' | 'year' | 'surface' | 'modality' | 'region'
+type SortField = 'name' | 'type' | 'year' | 'surface' | 'category' | 'region'
 type SortDirection = 'asc' | 'desc'
 
 const TournamentsAdminPage: React.FC = () => {
@@ -48,7 +48,7 @@ const TournamentsAdminPage: React.FC = () => {
   const [selectedType, setSelectedType] = useState('all')
   const [selectedYear, setSelectedYear] = useState('all')
   const [selectedSurface, setSelectedSurface] = useState('all')
-  const [selectedModality, setSelectedModality] = useState('all')
+  const [selectedCategory, setSelectedCategory] = useState('all')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showDeletePositionsModal, setShowDeletePositionsModal] = useState(false)
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null)
@@ -181,8 +181,8 @@ const TournamentsAdminPage: React.FC = () => {
       const matchesType = selectedType === 'all' || tournament.type === selectedType
       const matchesYear = selectedYear === 'all' || tournament.year.toString() === selectedYear
       const matchesSurface = selectedSurface === 'all' || tournament.surface === selectedSurface
-      const matchesModality = selectedModality === 'all' || tournament.modality === selectedModality
-      return matchesSearch && matchesType && matchesYear && matchesSurface && matchesModality
+      const matchesCategory = selectedCategory === 'all' || tournament.category === selectedCategory
+      return matchesSearch && matchesType && matchesYear && matchesSurface && matchesCategory
     })
     .sort((a: Tournament, b: Tournament) => {
       let aValue: any, bValue: any
@@ -204,9 +204,9 @@ const TournamentsAdminPage: React.FC = () => {
           aValue = a.surface
           bValue = b.surface
           break
-        case 'modality':
-          aValue = a.modality
-          bValue = b.modality
+        case 'category':
+          aValue = a.category
+          bValue = b.category
           break
         case 'region':
           aValue = a.region?.name || ''
@@ -340,11 +340,11 @@ const TournamentsAdminPage: React.FC = () => {
           <option value="INDOOR">Indoor</option>
         </select>
         <select
-          value={selectedModality}
-          onChange={(e) => setSelectedModality(e.target.value)}
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
-          <option value="all">Todas las modalidades</option>
+          <option value="all">Todas las categorías</option>
           <option value="OPEN">Open</option>
           <option value="WOMEN">Women</option>
           <option value="MIXED">Mixto</option>
@@ -358,7 +358,7 @@ const TournamentsAdminPage: React.FC = () => {
             <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No hay torneos</h3>
             <p className="text-gray-600 mb-4">
-              {searchTerm || selectedType !== 'all' || selectedYear !== 'all' || selectedSurface !== 'all' || selectedModality !== 'all'
+              {searchTerm || selectedType !== 'all' || selectedYear !== 'all' || selectedSurface !== 'all' || selectedCategory !== 'all'
                 ? 'No se encontraron torneos con los filtros aplicados.' 
                 : 'Aún no se han creado torneos en el sistema.'}
             </p>
@@ -410,9 +410,9 @@ const TournamentsAdminPage: React.FC = () => {
                     </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center space-x-1" onClick={() => handleSort('modality')}>
-                      <span>MODALIDAD</span>
-                      {sortField === 'modality' && (
+                    <div className="flex items-center space-x-1" onClick={() => handleSort('category')}>
+                      <span>CATEGORÍA</span>
+                      {sortField === 'category' && (
                         sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
                       )}
                     </div>
@@ -465,9 +465,9 @@ const TournamentsAdminPage: React.FC = () => {
                        tournament.surface === 'INDOOR' ? 'Indoor' : tournament.surface}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {tournament.modality === 'OPEN' ? 'Open' : 
-                       tournament.modality === 'WOMEN' ? 'Women' : 
-                       tournament.modality === 'MIXED' ? 'Mixto' : tournament.modality}
+                      {tournament.category === 'OPEN' ? 'Open' : 
+                       tournament.category === 'WOMEN' ? 'Women' : 
+                       tournament.category === 'MIXED' ? 'Mixto' : tournament.category || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">

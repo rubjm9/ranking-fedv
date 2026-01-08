@@ -1,55 +1,93 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Calendar, Trophy, MapPin, Users, Filter, Search, ChevronRight, Crown, Medal, Award, Loader2 } from 'lucide-react'
+import { Calendar, Trophy, MapPin, Filter, Search, Loader2, ArrowUpDown, ArrowUp, ArrowDown, X, Eye, Waves, Sprout } from 'lucide-react'
 import { tournamentsService } from '@/services/apiService'
+
+type SortField = 'name' | 'year' | 'type' | 'surface' | 'category' | 'region'
+type SortDirection = 'asc' | 'desc'
 
 const TournamentsPage = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedType, setSelectedType] = useState('')
   const [selectedYear, setSelectedYear] = useState('')
   const [selectedSurface, setSelectedSurface] = useState('')
-  const [selectedModality, setSelectedModality] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
-  const tournamentsPerPage = 9
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [sortField, setSortField] = useState<SortField>('year')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
 
-  // Obtener torneos desde la API
+  // Obtener torneos desde la API (solo una vez, sin filtros)
   const { data: tournamentsData, isLoading, error } = useQuery({
-    queryKey: ['tournaments', searchTerm, selectedType, selectedYear, selectedSurface, selectedModality],
-    queryFn: () => tournamentsService.getAll({
-      search: searchTerm || undefined,
-      type: selectedType || undefined,
-      year: selectedYear ? parseInt(selectedYear) : undefined
-    })
+    queryKey: ['tournaments'],
+    queryFn: () => tournamentsService.getAll()
   })
 
-  const tournaments = tournamentsData?.data || []
+  const allTournaments = tournamentsData?.data || []
 
-  // Filtrar torneos
-  const filteredTournaments = tournaments.filter(tournament => {
+  // Función para formatear temporada
+  const formatSeason = (year: number) => {
+    const nextYear = (year + 1).toString().slice(-2)
+    return `${year}-${nextYear}`
+  }
+
+  // Filtrar torneos localmente (sin query nueva)
+  const filteredTournaments = allTournaments.filter(tournament => {
     const matchesSearch = tournament.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesType = !selectedType || tournament.type === selectedType
     const matchesYear = !selectedYear || tournament.year.toString() === selectedYear
     const matchesSurface = !selectedSurface || tournament.surface === selectedSurface
-    const matchesModality = !selectedModality || tournament.modality === selectedModality
-    return matchesSearch && matchesType && matchesYear && matchesSurface && matchesModality
+    const matchesCategory = !selectedCategory || tournament.category === selectedCategory
+    return matchesSearch && matchesType && matchesYear && matchesSurface && matchesCategory
   })
 
-  // Paginación
-  const totalPages = Math.ceil(filteredTournaments.length / tournamentsPerPage)
-  const startIndex = (currentPage - 1) * tournamentsPerPage
-  const paginatedTournaments = filteredTournaments.slice(startIndex, startIndex + tournamentsPerPage)
+  // Ordenar torneos
+  const sortedTournaments = [...filteredTournaments].sort((a, b) => {
+    let aValue: any, bValue: any
+    
+    switch (sortField) {
+      case 'name':
+        aValue = a.name.toLowerCase()
+        bValue = b.name.toLowerCase()
+        break
+      case 'year':
+        aValue = a.year
+        bValue = b.year
+        break
+      case 'type':
+        aValue = a.type
+        bValue = b.type
+        break
+      case 'surface':
+        aValue = a.surface
+        bValue = b.surface
+        break
+      case 'category':
+        aValue = a.category
+        bValue = b.category
+        break
+      case 'region':
+        aValue = a.region?.name || ''
+        bValue = b.region?.name || ''
+        break
+      default:
+        return 0
+    }
+    
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
+    return 0
+  })
 
-  // Obtener valores únicos para filtros
-  const types = Array.from(new Set(tournaments.map(t => t.type))).filter(Boolean)
-  const years = Array.from(new Set(tournaments.map(t => t.year))).sort((a, b) => b - a)
-  const surfaces = Array.from(new Set(tournaments.map(t => t.surface))).filter(Boolean)
-  const modalities = Array.from(new Set(tournaments.map(t => t.modality))).filter(Boolean)
+  // Obtener valores únicos para filtros (siempre de todos los torneos, no de los filtrados)
+  const types = Array.from(new Set(allTournaments.map(t => t.type))).filter(Boolean).sort()
+  const years = Array.from(new Set(allTournaments.map(t => t.year))).filter(Boolean).sort((a, b) => b - a)
+  const surfaces = Array.from(new Set(allTournaments.map(t => t.surface))).filter(Boolean).sort()
+  const categories = Array.from(new Set(allTournaments.map(t => t.category))).filter(Boolean).sort()
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'CE1': return 'CE1 - 1ª División'
-      case 'CE2': return 'CE2 - 2ª División'
+      case 'CE1': return 'CE1'
+      case 'CE2': return 'CE2'
       case 'REGIONAL': return 'Regional'
       default: return type
     }
@@ -57,20 +95,102 @@ const TournamentsPage = () => {
 
   const getSurfaceLabel = (surface: string) => {
     switch (surface) {
-      case 'GRASS': return 'Hierba'
+      case 'GRASS': return 'Césped'
       case 'BEACH': return 'Playa'
       case 'INDOOR': return 'Interior'
       default: return surface
     }
   }
 
-  const getModalityLabel = (modality: string) => {
-    switch (modality) {
+  const getCategoryLabel = (category: string | null | undefined) => {
+    if (!category) return '-'
+    switch (category.toUpperCase()) {
       case 'OPEN': return 'Open'
-      case 'WOMEN': return 'Femenino'
+      case 'WOMEN': return 'Women'
       case 'MIXED': return 'Mixto'
-      default: return modality
+      default: return category
     }
+  }
+
+  // Iconos SVG ultra minimalistas para categorías
+  // Open = Hombre (♂)
+  const IconOpen = ({ className = 'w-6 h-6' }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={className} aria-hidden="true">
+      <circle cx="12" cy="8" r="3"/>
+      <path d="M12 5l-2 4h4l-2-4z" fill="currentColor"/>
+      <line x1="12" y1="11" x2="12" y2="15"/>
+    </svg>
+  )
+
+  // Women = Mujer (♀)
+  const IconWomen = ({ className = 'w-6 h-6' }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={className} aria-hidden="true">
+      <circle cx="12" cy="7" r="3"/>
+      <line x1="12" y1="10" x2="12" y2="15"/>
+      <line x1="9" y1="12.5" x2="15" y2="12.5"/>
+    </svg>
+  )
+
+  // Mixed = Ambos (♂ y ♀)
+  const IconMixed = ({ className = 'w-6 h-6' }: { className?: string }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={className} aria-hidden="true">
+      <circle cx="8" cy="7" r="2.5"/>
+      <path d="M8 4.5l-1.5 3h3l-1.5-3z" fill="currentColor"/>
+      <line x1="8" y1="9.5" x2="8" y2="12"/>
+      <circle cx="16" cy="7" r="2.5"/>
+      <line x1="16" y1="9.5" x2="16" y2="12"/>
+      <line x1="14" y1="11" x2="18" y2="11"/>
+    </svg>
+  )
+
+  // Función para obtener el icono combinado (superficie + categoría) que reemplaza al trofeo
+  const getCombinedIcon = (surface: string, category: string) => {
+    // Determinar color base según superficie (el color de fondo indica la superficie)
+    const surfaceColor = surface === 'GRASS' ? 'text-green-600' : surface === 'BEACH' ? 'text-yellow-600' : 'text-blue-600'
+    const bgColor = surface === 'GRASS' ? 'bg-green-100' : surface === 'BEACH' ? 'bg-yellow-100' : 'bg-blue-100'
+    
+    // Icono de categoría (centrado y más grande)
+    const CategoryIconComponent = category === 'OPEN' ? IconOpen : category === 'WOMEN' ? IconWomen : category === 'MIXED' ? IconMixed : Trophy
+    
+    return (
+      <div className={`flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center ${bgColor}`} title={`${getSurfaceLabel(surface)} - ${getCategoryLabel(category)}`}>
+        <div className={surfaceColor}>
+          {category === 'OPEN' || category === 'WOMEN' || category === 'MIXED' ? (
+            <CategoryIconComponent className="w-6 h-6" />
+          ) : (
+            <Trophy className="h-6 w-6" />
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('desc')
+    }
+  }
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-4 h-4 text-gray-400" />
+    }
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="w-4 h-4 text-blue-600" />
+      : <ArrowDown className="w-4 h-4 text-blue-600" />
+  }
+
+  const activeFiltersCount = [selectedType, selectedYear, selectedSurface, selectedCategory].filter(Boolean).length
+
+  const clearFilters = () => {
+    setSelectedType('')
+    setSelectedYear('')
+    setSelectedSurface('')
+    setSelectedCategory('')
+    setSearchTerm('')
   }
 
   if (error) {
@@ -94,218 +214,287 @@ const TournamentsPage = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Torneos</h1>
-        <p className="text-xl text-gray-600">
-          Explora todos los torneos del Ranking FEDV
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Torneos</h1>
+        <p className="text-gray-600">
+          Explora y filtra todos los torneos del Ranking FEDV
         </p>
       </div>
 
-      {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Trophy className="h-6 w-6 text-blue-600" />
+      {/* Barra de búsqueda y filtros */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        {/* Panel de filtros */}
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <Filter className="w-5 h-5 text-gray-500" />
+              <h2 className="text-sm font-medium text-gray-700">Filtros</h2>
+              {activeFiltersCount > 0 && (
+                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                  {activeFiltersCount}
+                </span>
+              )}
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Torneos</p>
-              <p className="text-2xl font-bold text-gray-900">{tournaments.length}</p>
+            {activeFiltersCount > 0 && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center space-x-1 text-sm text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-4 h-4" />
+                <span>Limpiar filtros</span>
+              </button>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {/* Búsqueda integrada */}
+            <div className="sm:col-span-2 lg:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Buscar
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Por nombre..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Tipo
+              </label>
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Todos</option>
+                {types.map(type => (
+                  <option key={type} value={type}>{getTypeLabel(type)}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Temporada
+              </label>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Todas</option>
+                {years.map(year => (
+                  <option key={year} value={year.toString()}>
+                    {formatSeason(year)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Superficie
+              </label>
+              <select
+                value={selectedSurface}
+                onChange={(e) => setSelectedSurface(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Todas</option>
+                {surfaces.map(surface => (
+                  <option key={surface} value={surface}>{getSurfaceLabel(surface)}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Categoría
+              </label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Todas</option>
+                {categories.map(category => (
+                  <option key={category} value={category}>{getCategoryLabel(category)}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Calendar className="h-6 w-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Año Actual</p>
-              <p className="text-2xl font-bold text-gray-900">2024</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <MapPin className="h-6 w-6 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Regiones</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {new Set(tournaments.map(t => t.region?.name)).size}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <Users className="h-6 w-6 text-orange-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Modalidades</p>
-              <p className="text-2xl font-bold text-gray-900">{modalities.length}</p>
-            </div>
-          </div>
+
+        {/* Contador de resultados */}
+        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
+          <p className="text-sm text-gray-600">
+            {sortedTournaments.length === filteredTournaments.length 
+              ? `${sortedTournaments.length} torneo${sortedTournaments.length !== 1 ? 's' : ''} encontrado${sortedTournaments.length !== 1 ? 's' : ''}`
+              : `${sortedTournaments.length} de ${filteredTournaments.length} torneos`
+            }
+          </p>
         </div>
       </div>
 
-      {/* Filtros */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar torneos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <select
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Todos los tipos</option>
-            {types.map(type => (
-              <option key={type} value={type}>{getTypeLabel(type)}</option>
-            ))}
-          </select>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Todos los años</option>
-            {years.map(year => (
-              <option key={year} value={year.toString()}>{year}</option>
-            ))}
-          </select>
-          <select
-            value={selectedSurface}
-            onChange={(e) => setSelectedSurface(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Todas las superficies</option>
-            {surfaces.map(surface => (
-              <option key={surface} value={surface}>{getSurfaceLabel(surface)}</option>
-            ))}
-          </select>
-          <select
-            value={selectedModality}
-            onChange={(e) => setSelectedModality(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Todas las modalidades</option>
-            {modalities.map(modality => (
-              <option key={modality} value={modality}>{getModalityLabel(modality)}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Lista de torneos */}
+      {/* Tabla de torneos */}
       {isLoading ? (
-        <div className="flex items-center justify-center h-64">
+        <div className="flex items-center justify-center h-64 bg-white rounded-lg shadow-sm border border-gray-200">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
         </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {paginatedTournaments.map((tournament) => (
-              <Link
-                key={tournament.id}
-                to={`/tournaments/${tournament.id}`}
-                className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-200 p-6 group"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                      <Trophy className="h-6 w-6 text-purple-600" />
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                        {tournament.name}
-                      </h3>
-                      <p className="text-sm text-gray-600">{tournament.year}</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Tipo:</span>
-                    <span className="text-sm font-medium text-blue-600">
-                      {getTypeLabel(tournament.type)}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Superficie:</span>
-                    <span className="text-sm font-medium text-gray-900">
-                      {getSurfaceLabel(tournament.surface)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Modalidad:</span>
-                    <span className="text-sm font-medium text-gray-900">
-                      {getModalityLabel(tournament.modality)}
-                    </span>
-                  </div>
-
-                  {tournament.region && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Región:</span>
-                      <span className="text-sm font-medium text-gray-900">
-                        {tournament.region.name}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Paginación */}
-          {totalPages > 1 && (
-            <div className="flex justify-center">
-              <nav className="flex items-center space-x-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Anterior
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-2 text-sm font-medium rounded-md ${
-                      currentPage === page
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Siguiente
-                </button>
-              </nav>
-            </div>
+      ) : sortedTournaments.length === 0 ? (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+          <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron torneos</h3>
+          <p className="text-gray-600 mb-4">
+            {activeFiltersCount > 0 || searchTerm
+              ? 'Intenta ajustar los filtros o la búsqueda para encontrar más resultados.'
+              : 'Aún no hay torneos registrados en el sistema.'}
+          </p>
+          {activeFiltersCount > 0 && (
+            <button
+              onClick={clearFilters}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Limpiar filtros
+            </button>
           )}
-        </>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('name')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Torneo</span>
+                      {getSortIcon('name')}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('year')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Temporada</span>
+                      {getSortIcon('year')}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('type')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Tipo</span>
+                      {getSortIcon('type')}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('surface')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Superficie</span>
+                      {getSortIcon('surface')}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('category')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Categoría</span>
+                      {getSortIcon('category')}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('region')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Región</span>
+                      {getSortIcon('region')}
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acción
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {sortedTournaments.map((tournament) => (
+                  <tr 
+                    key={tournament.id} 
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center">
+                        {getCombinedIcon(tournament.surface, tournament.category)}
+                        <div className="ml-3">
+                          <Link
+                            to={`/tournaments/${tournament.id}`}
+                            className="text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                          >
+                            {tournament.name}
+                          </Link>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center text-sm text-gray-900">
+                        <Calendar className="h-4 w-4 text-gray-400 mr-2" />
+                        {formatSeason(tournament.year)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        tournament.type === 'CE1' 
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : tournament.type === 'CE2'
+                          ? 'bg-gray-100 text-gray-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {getTypeLabel(tournament.type)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {getSurfaceLabel(tournament.surface)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {tournament.category ? getCategoryLabel(tournament.category) : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {tournament.region ? (
+                        <div className="flex items-center">
+                          <MapPin className="h-4 w-4 text-gray-400 mr-1" />
+                          {tournament.region.name}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">Nacional</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <Link
+                        to={`/tournaments/${tournament.id}`}
+                        className="inline-flex items-center justify-center w-8 h-8 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Ver detalles"
+                      >
+                        <Eye className="h-5 w-5" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   )

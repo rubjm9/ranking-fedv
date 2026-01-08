@@ -2,12 +2,12 @@
  * Función para calcular y guardar rankings globales de subtemporadas
  * 
  * LÓGICA CORRECTA:
- * En cada subupdate se incluyen TODAS las 6 modalidades, pero los coeficientes
+ * En cada subupdate se incluyen TODAS las 6 superficies, pero los coeficientes
  * dependen de qué torneos ya se han jugado en la temporada actual.
  * 
  * - Subupdate 1: Tras playa mixto
  *   * beach_mixed actual → x1.0
- *   * Otras 5 modalidades (aún no jugadas) se toman de temp anterior → x1.0
+ *   * Otras 5 superficies (aún no jugadas) se toman de temp anterior → x1.0
  *   * Todas las anteriores → x0.8, x0.5, x0.2
  * 
  * - Subupdate 2: Tras playa open + women
@@ -21,7 +21,7 @@
  *   * Todas anteriores → x0.8, x0.5, x0.2
  * 
  * - Subupdate 4: Tras césped open + women
- *   * TODAS las 6 modalidades actual → x1.0
+ *   * TODAS las 6 superficies actual → x1.0
  *   * Todas anteriores → x0.8, x0.5, x0.2
  * 
  * Las fechas visuales en la gráfica son equidistantes (mar, jun, sep, dic)
@@ -47,17 +47,17 @@ const getHistoricalSeasons = (baseSeason: string, count: number = 4): string[] =
 }
 
 /**
- * Detectar si una modalidad ya se ha jugado en un subupdate
+ * Detectar si una superficie ya se ha jugado en un subupdate
  */
-const isModalityPlayed = (subupdate: number, modality: string): boolean => {
-  const playedModalities = [
+const isSurfacePlayed = (subupdate: number, surface: string): boolean => {
+  const playedSurfaces = [
     ['beach_mixed'],                                          // Subupdate 1
     ['beach_mixed', 'beach_open', 'beach_women'],             // Subupdate 2
     ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed'], // Subupdate 3
     ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'] // Subupdate 4
   ]
   
-  return playedModalities[subupdate - 1].includes(modality)
+  return playedSurfaces[subupdate - 1].includes(surface)
 }
 
 /**
@@ -65,15 +65,15 @@ const isModalityPlayed = (subupdate: number, modality: string): boolean => {
  * 
  * @param seasonIndex Índice de la temporada histórica (0 = actual, 1 = anterior, etc.)
  * @param subupdate Número de subupdate (1-4)
- * @param modality Modalidad a evaluar
+ * @param surface Superficie a evaluar
  * @returns Coeficiente a aplicar
  */
 const getDynamicCoeff = (
   seasonIndex: number,
   subupdate: number,
-  modality: string
+  surface: string
 ): number => {
-  const isPlayedInCurrentSeason = isModalityPlayed(subupdate, modality)
+  const isPlayedInCurrentSeason = isSurfacePlayed(subupdate, surface)
   
   // Si ya se jugó en la temp actual, aplicamos coeff estándar
   if (isPlayedInCurrentSeason) {
@@ -136,8 +136,8 @@ export const calculateAndSaveSubseasonGlobalRankings = async (
     return
   }
 
-  // Todas las 6 modalidades
-  const allModalities = [
+  // Todas las 6 superficies
+  const allSurfaces = [
     'beach_mixed',
     'beach_open',
     'beach_women',
@@ -155,28 +155,28 @@ export const calculateAndSaveSubseasonGlobalRankings = async (
     for (const teamId of uniqueTeams) {
       let totalPoints = 0
 
-      // Calcular puntos de TODAS las 6 modalidades
-      for (const modality of allModalities) {
-        let modalityPoints = 0
+      // Calcular puntos de TODAS las 6 superficies
+      for (const surface of allSurfaces) {
+        let surfacePoints = 0
 
         // Iterar por las 4 temporadas históricas
         for (let i = 0; i < historicalSeasons.length; i++) {
           const tempSeason = historicalSeasons[i]
           
-          // Obtener coeficiente dinámico basado en subupdate y modalidad
-          const coeff = getDynamicCoeff(i, subupdate, modality)
+          // Obtener coeficiente dinámico basado en subupdate y superficie
+          const coeff = getDynamicCoeff(i, subupdate, surface)
 
           // Buscar en los datos en memoria
           const data = allPointsData.find(
             r => r.team_id === teamId && r.season === tempSeason
           )
 
-          if (data && data[`${modality}_points`] && coeff > 0) {
-            modalityPoints += Number(data[`${modality}_points`]) * coeff
+          if (data && data[`${surface}_points`] && coeff > 0) {
+            surfacePoints += Number(data[`${surface}_points`]) * coeff
           }
         }
 
-        totalPoints += modalityPoints
+        totalPoints += surfacePoints
       }
 
       teamPoints.push({

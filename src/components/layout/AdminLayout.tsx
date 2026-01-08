@@ -20,6 +20,7 @@ import {
   RefreshCw
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import AdminNotificationBanner, { NotificationBadge } from '@/components/admin/AdminNotificationBanner'
 
 const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -167,6 +168,9 @@ const AdminLayout: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-4">
+              {/* Badge de notificaciones */}
+              <NotificationBadge />
+              
               <Link
                 to="/"
                 className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200"
@@ -191,6 +195,9 @@ const AdminLayout: React.FC = () => {
         <main className="flex-1">
           <div className="py-6">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              {/* Banner de notificaciones de administración */}
+              <AdminNotificationBanner className="mb-6" />
+              
               <Outlet />
             </div>
           </div>

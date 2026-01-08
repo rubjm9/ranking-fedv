@@ -41,7 +41,7 @@ WHERE tsr.season = '2025-26'
 ORDER BY tsr.beach_mixed_rank ASC
 LIMIT 5;
 
--- 5. Ver si hay rankings completos (todas las modalidades con data)
+-- 5. Ver si hay rankings completos (todas las superficies con data)
 SELECT 
   season,
   COUNT(*) as equipos,

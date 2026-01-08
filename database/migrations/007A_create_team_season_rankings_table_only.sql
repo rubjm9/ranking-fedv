@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS team_season_rankings (
   team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
   season VARCHAR(10) NOT NULL,
   
-  -- Rankings y puntos por modalidad (CON coeficientes de antigüedad aplicados)
+  -- Rankings y puntos por superficie (CON coeficientes de antigüedad aplicados)
   beach_mixed_rank INTEGER,
   beach_mixed_points DECIMAL(10,2) DEFAULT 0,
   

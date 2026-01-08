@@ -16,7 +16,7 @@ import {
   Clock
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { Tournament, Position, TournamentType, Surface, Modality } from '@/types'
+import { Tournament, Position, TournamentType, Surface, Category } from '@/types'
 
 // Mock data - reemplazar con llamadas a la API real
 const mockTournamentData: Tournament = {
@@ -25,7 +25,7 @@ const mockTournamentData: Tournament = {
   type: TournamentType.CE1,
   year: 2024,
   surface: Surface.GRASS,
-  modality: Modality.OPEN,
+  category: Category.OPEN,
   regionId: null,
   region: null,
   positions: []
@@ -229,16 +229,16 @@ const TournamentPage = () => {
     }
   }
 
-  const getModalityLabel = (modality: Modality) => {
-    switch (modality) {
-      case Modality.OPEN:
+  const getCategoryLabel = (category: Category) => {
+    switch (category) {
+      case Category.OPEN:
         return 'Open'
-      case Modality.WOMEN:
+      case Category.WOMEN:
         return 'Women'
-      case Modality.MIXED:
-        return 'Mixed'
+      case Category.MIXED:
+        return 'Mixto'
       default:
-        return modality
+        return category
     }
   }
 
@@ -299,8 +299,8 @@ const TournamentPage = () => {
                 <div className="flex items-center space-x-2">
                   <Users className="w-5 h-5 text-gray-400" />
                   <div>
-                    <div className="text-sm text-gray-600">Modalidad</div>
-                    <div className="font-medium">{getModalityLabel(tournament.modality)}</div>
+                    <div className="text-sm text-gray-600">Categoría</div>
+                    <div className="font-medium">{getCategoryLabel(tournament.category)}</div>
                   </div>
                 </div>
 
@@ -615,8 +615,8 @@ const TournamentPage = () => {
                   <span className="font-semibold">{getSurfaceLabel(tournament.surface)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Modalidad:</span>
-                  <span className="font-semibold">{getModalityLabel(tournament.modality)}</span>
+                  <span className="text-gray-600">Categoría:</span>
+                  <span className="font-semibold">{getCategoryLabel(tournament.category)}</span>
                 </div>
               </div>
             </div>

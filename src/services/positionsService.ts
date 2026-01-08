@@ -24,7 +24,7 @@ export interface Position {
     type: string
     year: number
     surface: string
-    modality: string
+    category: string
   }
 }
 

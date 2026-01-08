@@ -84,7 +84,7 @@ export enum Surface {
   INDOOR = 'INDOOR'
 }
 
-export enum Modality {
+export enum Category {
   OPEN = 'OPEN',
   MIXED = 'MIXED',
   WOMEN = 'WOMEN'
@@ -96,7 +96,7 @@ export interface Tournament {
   type: TournamentType;
   year: number;
   surface: Surface;
-  modality: Modality;
+  category: Category;
   regionId?: string;
   region?: Region;
   positions?: Position[];
@@ -107,7 +107,7 @@ export interface CreateTournamentRequest {
   type: TournamentType;
   year: number;
   surface: Surface;
-  modality: Modality;
+  category: Category;
   regionId?: string;
 }
 
@@ -138,7 +138,7 @@ export interface CreatePositionsRequest {
 export interface RankingFilters {
   year?: number;
   surface?: Surface;
-  modality?: Modality;
+  category?: Category;
   regionId?: string;
   limit?: number;
   offset?: number;
@@ -237,7 +237,7 @@ export interface TournamentStats {
   type: TournamentType;
   year: number;
   surface: Surface;
-  modality: Modality;
+  category: Category;
   totalTeams: number;
   regionBreakdown: Array<{
     regionId: string;
@@ -270,7 +270,7 @@ export interface FilterOptions {
   regions: Region[];
   years: number[];
   surfaces: Surface[];
-  modalities: Modality[];
+  categories: Category[];
 }
 
 // Tipos para navegación

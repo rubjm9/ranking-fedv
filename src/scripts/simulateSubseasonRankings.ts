@@ -26,7 +26,7 @@ const getSeasonCoefficient = (season: string, referenceSeason: string): number =
   }
 }
 
-// Mapear subtemporada a categorías
+// Mapear subtemporada a superficies
 const subseasonCategories = {
   1: ['beach_mixed'],                    // Subtemporada 1: playa mixto
   2: ['beach_open', 'beach_women'],      // Subtemporada 2: playa open/women
@@ -94,11 +94,11 @@ const simulateAllSubseasonRankings = async (): Promise<{ success: boolean; messa
           continue
         }
 
-        // 6. Calcular rankings para cada categoría
-        const rankingsByCategory: { [category: string]: { team_id: string; total_points: number; rank: number }[] } = {}
+        // 6. Calcular rankings para cada superficie
+        const rankingsBySurface: { [surface: string]: { team_id: string; total_points: number; rank: number }[] } = {}
 
-        for (const category of categories) {
-          console.log(`    🔄 Procesando categoría: ${category}`)
+        for (const surface of categories) {
+          console.log(`    🔄 Procesando superficie: ${surface}`)
 
           // Agrupar por equipo y calcular puntos totales con coeficientes
           const teamPointsMap: { [teamId: string]: number } = {}
@@ -106,7 +106,7 @@ const simulateAllSubseasonRankings = async (): Promise<{ success: boolean; messa
           seasonData?.forEach((row: any) => {
             const teamId = row.team_id
             const season = row.season
-            const basePoints = row[`${category}_points`] || 0
+            const basePoints = row[`${surface}_points`] || 0
 
             if (basePoints <= 0) return
 
@@ -130,21 +130,21 @@ const simulateAllSubseasonRankings = async (): Promise<{ success: boolean; messa
             team.rank = index + 1
           })
 
-          rankingsByCategory[category] = sortedTeams
-          console.log(`    ✅ ${sortedTeams.length} equipos rankeados en ${category}`)
+          rankingsBySurface[surface] = sortedTeams
+          console.log(`    ✅ ${sortedTeams.length} equipos rankeados en ${surface}`)
         }
 
         // 7. Actualizar team_season_points con los nuevos rankings
         const updates: any[] = []
 
-        for (const category of categories) {
-          const rankings = rankingsByCategory[category]
+        for (const surface of categories) {
+          const rankings = rankingsBySurface[surface]
           
           for (const ranking of rankings) {
             const updateData: any = {
               team_id: ranking.team_id,
               season: season,
-              [`subseason_${subseason}_${category}_rank`]: ranking.rank,
+              [`subseason_${subseason}_${surface}_rank`]: ranking.rank,
               subseason_ranks_calculated_at: new Date().toISOString()
             }
 

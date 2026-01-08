@@ -70,8 +70,8 @@ function App() {
             {/* Rutas públicas */}
             <Route path="/" element={<PublicLayout />}>
               <Route index element={<HomePage />} />
-              <Route path="ranking" element={<RankingPageHybrid />} />
-              <Route path="ranking-new" element={<RankingPageNew />} />
+              <Route path="ranking" element={<RankingPageNew />} />
+              <Route path="ranking-old" element={<RankingPageHybrid />} />
               <Route path="teams" element={<TeamsPage />} />
               <Route path="teams/:id" element={<TeamDetailPage />} />
               <Route path="regions" element={<RegionsPage />} />

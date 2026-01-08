@@ -5,9 +5,9 @@
  */
 
 import { supabase } from './supabaseService'
-import seasonPointsService, { CategoryPointsMap } from './seasonPointsService'
+import seasonPointsService, { SurfacePointsMap } from './seasonPointsService'
 import { RankingEntry } from './rankingService'
-import teamSeasonRankingsService, { type Modality } from './teamSeasonRankingsService'
+import teamSeasonRankingsService, { type Surface } from './teamSeasonRankingsService'
 
 // Formatear temporada (YYYY-YY)
 const formatSeason = (year: number): string => {
@@ -80,25 +80,60 @@ const hybridRankingService = {
   },
 
   /**
+   * Obtener la temporada más reciente disponible para una categoría específica
+   * Busca la temporada más reciente que tenga datos (puntos > 0) para esa categoría
+   */
+  getMostRecentSeasonForCategory: async (category: keyof SurfacePointsMap): Promise<string> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      const pointsColumn = `${category}_points`
+
+      // Obtener la temporada más reciente que tenga datos para esta categoría
+      const { data, error } = await supabase
+        .from('team_season_points')
+        .select('season')
+        .gt(pointsColumn, 0)
+        .order('season', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (error || !data) {
+        // Si no hay datos para esta categoría, usar la temporada más reciente global
+        console.warn(`⚠️ No hay datos para ${category}, usando temporada global más reciente`)
+        return await hybridRankingService.getMostRecentSeason()
+      }
+
+      return data.season
+    } catch (error: any) {
+      console.warn(`⚠️ Error obteniendo temporada más reciente para ${category}, usando temporada global:`, error.message)
+      // Fallback: usar temporada global más reciente
+      return await hybridRankingService.getMostRecentSeason()
+    }
+  },
+
+  /**
    * Obtener ranking desde team_season_rankings (nuevo sistema optimizado)
    * Usa rankings pre-calculados con coeficientes aplicados
    */
   getRankingFromTeamSeasonRankings: async (
-    category: keyof CategoryPointsMap,
+    surface: keyof SurfacePointsMap,
     season: string
   ): Promise<RankingEntry[]> => {
     try {
-      console.log(`📊 Obteniendo ranking de ${category} desde team_season_rankings para ${season}...`)
+      console.log(`📊 Obteniendo ranking de ${surface} desde team_season_rankings para ${season}...`)
       
-      const modality = category as Modality
-      const rankings = await teamSeasonRankingsService.getSeasonRankingByModality(season, modality)
+      const surfaceType = surface as Surface
+      const rankings = await teamSeasonRankingsService.getSeasonRankingBySurface(season, surfaceType)
       
       // Convertir al formato esperado
       const rankingEntries: RankingEntry[] = rankings.map(entry => ({
         team_id: entry.team_id,
         team_name: entry.team_name,
         region_name: entry.region_name || '',
-        ranking_category: category,
+        ranking_category: surface,
         current_season_points: entry.points, // Puntos totales con coeficientes
         previous_season_points: 0,
         two_seasons_ago_points: 0,
@@ -113,21 +148,21 @@ const hybridRankingService = {
       return rankingEntries
       
     } catch (error) {
-      console.error(`❌ Error obteniendo ranking de ${category}:`, error)
+      console.error(`❌ Error obteniendo ranking de ${surface}:`, error)
       return []
     }
   },
 
   /**
-   * Calcular ranking general (suma de todas las modalidades)
+   * Calcular ranking general (suma de todas las superficies)
    * Usa team_season_rankings para obtener datos históricos
    */
   getGeneralRanking: async (referenceSeason: string): Promise<RankingEntry[]> => {
     try {
       console.log(`📊 Calculando ranking general para temporada ${referenceSeason}...`)
       
-      // Usar el nuevo sistema para obtener rankings por modalidad
-      const modalities: (keyof CategoryPointsMap)[] = [
+      // Usar el nuevo sistema para obtener rankings por superficie
+      const surfaces: (keyof SurfacePointsMap)[] = [
         'beach_mixed', 
         'beach_open', 
         'beach_women', 
@@ -136,34 +171,34 @@ const hybridRankingService = {
         'grass_women'
       ]
       
-      // Obtener rankings de todas las modalidades
+      // Obtener rankings de todas las superficies
       const allRankings = await Promise.all(
-        modalities.map(modality => 
-          teamSeasonRankingsService.getSeasonRankingByModality(referenceSeason, modality as Modality)
+        surfaces.map(surface => 
+          teamSeasonRankingsService.getSeasonRankingBySurface(referenceSeason, surface as Surface)
         )
       )
       
-      // Calcular puntos totales por equipo (suma de todas las modalidades)
+      // Calcular puntos totales por equipo (suma de todas las superficies)
       const teamTotals: { [teamId: string]: {
         team_name: string
         region_name: string
         total_points: number
-        modality_points: { [modality: string]: number }
+        surface_points: { [surface: string]: number }
       }} = {}
       
       allRankings.forEach((rankings, index) => {
-        const modality = modalities[index]
+        const surface = surfaces[index]
         rankings.forEach(team => {
           if (!teamTotals[team.team_id]) {
             teamTotals[team.team_id] = {
               team_name: team.team_name,
               region_name: team.region_name || '',
               total_points: 0,
-              modality_points: {}
+              surface_points: {}
             }
           }
           teamTotals[team.team_id].total_points += team.points
-          teamTotals[team.team_id].modality_points[modality] = team.points
+          teamTotals[team.team_id].surface_points[surface] = team.points
         })
       })
       
@@ -174,7 +209,7 @@ const hybridRankingService = {
           total_points: data.total_points,
           team_name: data.team_name,
           region_name: data.region_name,
-          modality_points: data.modality_points
+          surface_points: data.surface_points
         }))
         .sort((a, b) => b.total_points - a.total_points)
       
@@ -190,7 +225,7 @@ const hybridRankingService = {
         total_points: team.total_points,
         ranking_position: index + 1,
         last_calculated: new Date().toISOString(),
-        season_breakdown: team.modality_points
+        season_breakdown: team.surface_points
       }))
       
       console.log(`✅ Ranking general calculado: ${rankingEntries.length} equipos`)
@@ -207,7 +242,7 @@ const hybridRankingService = {
    * Mucho más rápido que calcular desde positions
    */
   getRankingFromSeasonPoints: async (
-    category: keyof CategoryPointsMap,
+    surface: keyof SurfacePointsMap,
     referenceSeason: string
   ): Promise<RankingEntry[]> => {
     try {
@@ -215,7 +250,7 @@ const hybridRankingService = {
         throw new Error('Supabase no está configurado')
       }
 
-      console.log(`📊 Calculando ranking de ${category} desde team_season_points...`)
+      console.log(`📊 Calculando ranking de ${surface} desde team_season_points...`)
 
       // Obtener las últimas 4 temporadas
       const referenceYear = parseInt(referenceSeason.split('-')[0])
@@ -234,10 +269,10 @@ const hybridRankingService = {
         .select(`
           team_id,
           season,
-          ${category}_points
+          ${surface}_points
         `)
         .in('season', seasons)
-        .gt(`${category}_points`, 0)
+        .gt(`${surface}_points`, 0)
 
       if (error) {
         console.error('❌ Error obteniendo datos de temporada:', error)
@@ -265,7 +300,7 @@ const hybridRankingService = {
       seasonData?.forEach((row: any) => {
         const teamId = row.team_id
         const season = row.season
-        const basePoints = row[`${category}_points`] || 0
+        const basePoints = row[`${surface}_points`] || 0
 
         if (!teamPointsMap[teamId]) {
           teamPointsMap[teamId] = {
@@ -331,7 +366,7 @@ const hybridRankingService = {
         team_id: team.id,
         team_name: team.name,
         region_name: team.regions?.name || 'N/A',
-        ranking_category: category,
+        ranking_category: surface,
         current_season_points: teamPointsMap[team.id].current_season_points,
         previous_season_points: teamPointsMap[team.id].previous_season_points,
         two_seasons_ago_points: teamPointsMap[team.id].two_seasons_ago_points,
@@ -372,17 +407,17 @@ const hybridRankingService = {
    */
   getHistoricalRanking: async (
     season: string,
-    category: keyof CategoryPointsMap
+    surface: keyof SurfacePointsMap
   ): Promise<RankingEntry[]> => {
     try {
       if (!supabase) {
         throw new Error('Supabase no está configurado')
       }
 
-      console.log(`📜 Obteniendo ranking histórico de ${season} - ${category}...`)
+      console.log(`📜 Obteniendo ranking histórico de ${season} - ${surface}...`)
 
       // Usar el mismo método que getRankingFromSeasonPoints
-      return await hybridRankingService.getRankingFromSeasonPoints(category, season)
+      return await hybridRankingService.getRankingFromSeasonPoints(surface, season)
 
     } catch (error: any) {
       console.error('❌ Error obteniendo ranking histórico:', error)
@@ -394,13 +429,13 @@ const hybridRankingService = {
    * Actualizar team_season_points cuando cambian las posiciones
    * Llamar desde autoRankingService
    */
-  updateSeasonPointsForCategory: async (
-    category: keyof CategoryPointsMap,
+  updateSeasonPointsForSurface: async (
+    surface: keyof SurfacePointsMap,
     tournamentYear: number
   ): Promise<{ success: boolean; message: string }> => {
     try {
       const season = formatSeason(tournamentYear)
-      console.log(`🔄 Actualizando team_season_points para ${season} - ${category}...`)
+      console.log(`🔄 Actualizando team_season_points para ${season} - ${surface}...`)
 
       // Recalcular y guardar puntos de la temporada
       const result = await seasonPointsService.calculateAndSaveSeasonPoints(season)
@@ -422,7 +457,7 @@ const hybridRankingService = {
    * Asegura que ambas tablas estén alineadas
    */
   syncWithCurrentRankings: async (
-    category: keyof CategoryPointsMap,
+    surface: keyof SurfacePointsMap,
     referenceSeason: string
   ): Promise<{ success: boolean; message: string }> => {
     try {
@@ -430,11 +465,11 @@ const hybridRankingService = {
         throw new Error('Supabase no está configurado')
       }
 
-      console.log(`🔄 Sincronizando ${category} con current_rankings...`)
+      console.log(`🔄 Sincronizando ${surface} con current_rankings...`)
 
       // Obtener ranking desde team_season_points
       const rankingEntries = await hybridRankingService.getRankingFromSeasonPoints(
-        category,
+        surface,
         referenceSeason
       )
 
@@ -445,11 +480,11 @@ const hybridRankingService = {
         }
       }
 
-      // Eliminar rankings antiguos de esta categoría
+      // Eliminar rankings antiguos de esta superficie
       const { error: deleteError } = await supabase
         .from('current_rankings')
         .delete()
-        .eq('ranking_category', category)
+        .eq('ranking_category', surface)
 
       if (deleteError) {
         console.error('❌ Error eliminando rankings antiguos:', deleteError)
@@ -459,7 +494,7 @@ const hybridRankingService = {
       // Insertar nuevos rankings
       const rankingsToInsert = rankingEntries.map(entry => ({
         team_id: entry.team_id,
-        ranking_category: category,
+        ranking_category: surface,
         current_season_points: entry.current_season_points,
         previous_season_points: entry.previous_season_points,
         two_seasons_ago_points: entry.two_seasons_ago_points,
@@ -495,10 +530,10 @@ const hybridRankingService = {
   },
 
   /**
-   * Calcular ranking combinado (suma de múltiples modalidades)
+   * Calcular ranking combinado (suma de múltiples superficies)
    */
   getCombinedRanking: async (
-    categories: (keyof CategoryPointsMap)[],
+    surfaces: (keyof SurfacePointsMap)[],
     referenceSeason: string
   ): Promise<RankingEntry[]> => {
     try {
@@ -506,7 +541,7 @@ const hybridRankingService = {
         throw new Error('Supabase no está configurado')
       }
 
-      console.log(`📊 Calculando ranking combinado de [${categories.join(', ')}] desde team_season_points...`)
+      console.log(`📊 Calculando ranking combinado de [${surfaces.join(', ')}] desde team_season_points...`)
 
       // Obtener las últimas 4 temporadas
       const referenceYear = parseInt(referenceSeason.split('-')[0])
@@ -519,8 +554,8 @@ const hybridRankingService = {
 
       console.log(`📅 Temporadas a considerar: ${seasons.join(', ')}`)
 
-      // Construir la selección dinámica de columnas para todas las categorías
-      const pointsColumns = categories.map(cat => `${cat}_points`).join(', ')
+      // Construir la selección dinámica de columnas para todas las superficies
+      const pointsColumns = surfaces.map(surf => `${surf}_points`).join(', ')
 
       // Obtener datos de team_season_points para estas temporadas
       const { data: seasonData, error } = await supabase
@@ -559,10 +594,10 @@ const hybridRankingService = {
         const teamId = row.team_id
         const season = row.season
 
-        // Sumar puntos de todas las categorías para esta temporada
+        // Sumar puntos de todas las superficies para esta temporada
         let basePoints = 0
-        categories.forEach(cat => {
-          basePoints += row[`${cat}_points`] || 0
+        surfaces.forEach(surf => {
+          basePoints += row[`${surf}_points`] || 0
         })
 
         if (basePoints === 0) return // Saltar si no hay puntos
@@ -635,7 +670,7 @@ const hybridRankingService = {
         team_id: team.id,
         team_name: team.name,
         region_name: team.regions?.name || 'N/A',
-        ranking_category: categories.join('_'), // Categoría combinada
+        ranking_category: surfaces.join('_'), // Superficie combinada
         current_season_points: teamPointsMap[team.id].current_season_points,
         previous_season_points: teamPointsMap[team.id].previous_season_points,
         two_seasons_ago_points: teamPointsMap[team.id].two_seasons_ago_points,
@@ -677,7 +712,7 @@ const hybridRankingService = {
   compareSeasons: async (
     season1: string,
     season2: string,
-    category: keyof CategoryPointsMap
+    surface: keyof SurfacePointsMap
   ): Promise<{
     season1_ranking: RankingEntry[]
     season2_ranking: RankingEntry[]
@@ -689,12 +724,12 @@ const hybridRankingService = {
     }[]
   }> => {
     try {
-      console.log(`📊 Comparando temporadas ${season1} y ${season2} - ${category}...`)
+      console.log(`📊 Comparando temporadas ${season1} y ${season2} - ${surface}...`)
 
       // Obtener rankings de ambas temporadas
       const [ranking1, ranking2] = await Promise.all([
-        hybridRankingService.getHistoricalRanking(season1, category),
-        hybridRankingService.getHistoricalRanking(season2, category)
+        hybridRankingService.getHistoricalRanking(season1, surface),
+        hybridRankingService.getHistoricalRanking(season2, surface)
       ])
 
       // Calcular cambios

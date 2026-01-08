@@ -75,8 +75,8 @@ console.log(result)
 | `last_updated` | TIMESTAMP | Última actualización |
 | `is_complete` | BOOLEAN | ¿Temporada cerrada? |
 | `completion_date` | TIMESTAMP | Fecha de cierre |
-| `tournaments_played` | JSONB | Torneos jugados por modalidad |
-| `best_position` | JSONB | Mejor posición por modalidad |
+| `tournaments_played` | JSONB | Torneos jugados por superficie |
+| `best_position` | JSONB | Mejor posición por superficie |
 
 ## Flujo de trabajo
 

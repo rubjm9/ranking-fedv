@@ -11,7 +11,7 @@ export interface TournamentFormData {
   type: string
   season: string
   surface: string
-  modality: string
+  category: string
   regionId: string
   startDate: string
   endDate: string
@@ -58,10 +58,10 @@ export const generateTournamentName = (
   type: string,
   regionName?: string,
   surface?: string,
-  modality?: string,
+  category?: string,
   season?: string
 ): string => {
-  if (!type || !surface || !modality || !season) {
+  if (!type || !surface || !category || !season) {
     return ''
   }
   
@@ -77,7 +77,7 @@ export const generateTournamentName = (
     'INDOOR': 'Indoor'
   }
   
-  const modalityLabels: Record<string, string> = {
+  const categoryLabels: Record<string, string> = {
     'OPEN': 'Open',
     'MIXED': 'Mixto',
     'WOMEN': 'Women'
@@ -85,7 +85,7 @@ export const generateTournamentName = (
   
   const typeLabel = typeLabels[type] || type
   const surfaceLabel = surfaceLabels[surface] || surface
-  const modalityLabel = modalityLabels[modality] || modality
+  const categoryLabel = categoryLabels[category] || category
   
   let name = typeLabel
   
@@ -93,7 +93,7 @@ export const generateTournamentName = (
     name += ` ${regionName}`
   }
   
-  name += ` ${surfaceLabel} ${modalityLabel} (${season})`
+  name += ` ${surfaceLabel} ${categoryLabel} (${season})`
   
   return name
 }

@@ -3,7 +3,7 @@
 -- Eliminar columnas de rankings por subtemporada
 -- ================================================
 
--- 1. Eliminar columnas de rankings por subtemporada (mezclan modalidades)
+-- 1. Eliminar columnas de rankings por subtemporada (mezclan superficies)
 ALTER TABLE team_season_points DROP COLUMN IF EXISTS subseason_1_beach_mixed_rank;
 ALTER TABLE team_season_points DROP COLUMN IF EXISTS subseason_2_beach_open_women_rank;
 ALTER TABLE team_season_points DROP COLUMN IF EXISTS subseason_3_grass_mixed_rank;

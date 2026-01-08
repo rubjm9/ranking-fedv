@@ -68,7 +68,7 @@ const DatabaseDiagnosticPage: React.FC = () => {
       
       const { data, error } = await supabase
         .from('positions')
-        .select('id, points, teamId, tournamentId, tournaments:tournamentId(year, surface, modality)')
+        .select('id, points, teamId, tournamentId, tournaments:tournamentId(year, surface, category)')
         .limit(10)
 
       if (error) throw error
@@ -84,7 +84,7 @@ const DatabaseDiagnosticPage: React.FC = () => {
       
       const { data, error } = await supabase
         .from('tournaments')
-        .select('id, name, year, surface, modality')
+        .select('id, name, year, surface, category')
         .not('year', 'is', null)
         .order('year', { ascending: false })
 
@@ -340,7 +340,7 @@ const DatabaseDiagnosticPage: React.FC = () => {
                     <div key={tournament.id} className="flex justify-between">
                       <span className="text-gray-600">{tournament.name}</span>
                       <span className="text-gray-800 font-medium">
-                        {tournament.year} - {tournament.surface}/{tournament.modality}
+                        {tournament.year} - {tournament.surface}/{tournament.category}
                       </span>
                     </div>
                   ))}

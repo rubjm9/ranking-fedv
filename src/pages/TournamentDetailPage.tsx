@@ -13,7 +13,7 @@ interface Tournament {
   year: number
   type: string
   surface: string
-  modality: string
+  category: string
   regionId?: string
   region?: {
     id: string
@@ -275,8 +275,8 @@ const TournamentDetailPage: React.FC = () => {
                   
                   <div className="flex items-center">
                     <Users className="h-5 w-5 text-gray-400 mr-3" />
-                    <span className="text-gray-600">Modalidad:</span>
-                    <span className="ml-2 font-medium text-gray-900">{translateModality(tournament.modality)}</span>
+                    <span className="text-gray-600">Categoría:</span>
+                    <span className="ml-2 font-medium text-gray-900">{translateModality(tournament.category)}</span>
                   </div>
                   
                   <div className="flex items-center">

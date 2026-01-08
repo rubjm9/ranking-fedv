@@ -545,7 +545,7 @@ const HomePage: React.FC = () => {
                   <h3 className="text-2xl font-bold text-gray-900">Participación en Torneos</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-6">
-                  Los equipos obtienen puntos en base a las posiciones obtenidas en los compiten en torneos oficiales de la FEDV: <strong>Campeonatos de España</strong> (1ª y 2ª División) y <strong>Campeonatos Regionales</strong> (en las modalidades en las que haya). Cada combinación de modalidad y superficie tiene su propio ranking independiente.
+                  Los equipos obtienen puntos en base a las posiciones obtenidas en los compiten en torneos oficiales de la FEDV: <strong>Campeonatos de España</strong> (1ª y 2ª División) y <strong>Campeonatos Regionales</strong> (en las categorías en las que haya). Cada categoría tiene su propio ranking independiente.
                 </p>
 
                 <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-8 shadow-lg border border-gray-100">
@@ -554,51 +554,51 @@ const HomePage: React.FC = () => {
                       <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-sm font-bold">🏆</span>
                       </div>
-                      <h4 className="text-xl font-bold text-gray-800">Rankings por Modalidad</h4>
+                      <h4 className="text-xl font-bold text-gray-800">Rankings por categoría</h4>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Playa Section */}
                     <div className="relative">
-                      <div className="absolute -top-2 -left-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                      <div className="absolute -top-2 -left-2 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-xs">🏖️</span>
                       </div>
-                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border-2 border-blue-200 shadow-md">
+                      <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-6 border-2 border-yellow-200 shadow-md">
                         <div className="flex items-center mb-4">
-                          <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                          <h5 className="text-lg font-bold text-blue-800">Playa</h5>
+                          <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
+                          <h5 className="text-lg font-bold text-yellow-800">Playa</h5>
                         </div>
                         <div className="space-y-3">
-                          <div className="group p-4 bg-white rounded-lg border border-blue-200 hover:shadow-md transition-all duration-200 hover:border-blue-300">
+                          <div className="group p-4 bg-white rounded-lg border border-yellow-200 hover:shadow-md transition-all duration-200 hover:border-yellow-300">
             <div className="flex items-center justify-between">
                               <div className="flex items-center">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
                                 <span className="font-medium text-gray-700">Mixto</span>
                               </div>
-                              <div className="text-xs text-blue-600 font-semibold bg-blue-50 px-2 py-1 rounded-full">
+                              <div className="text-xs text-yellow-600 font-semibold bg-yellow-50 px-2 py-1 rounded-full">
                                 MIXED
                               </div>
                             </div>
                           </div>
-                          <div className="group p-4 bg-white rounded-lg border border-blue-200 hover:shadow-md transition-all duration-200 hover:border-blue-300">
+                          <div className="group p-4 bg-white rounded-lg border border-yellow-200 hover:shadow-md transition-all duration-200 hover:border-yellow-300">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
                                 <span className="font-medium text-gray-700">Open</span>
                               </div>
-                              <div className="text-xs text-blue-600 font-semibold bg-blue-50 px-2 py-1 rounded-full">
+                              <div className="text-xs text-yellow-600 font-semibold bg-yellow-50 px-2 py-1 rounded-full">
                                 OPEN
                               </div>
                             </div>
                           </div>
-                          <div className="group p-4 bg-white rounded-lg border border-blue-200 hover:shadow-md transition-all duration-200 hover:border-blue-300">
+                          <div className="group p-4 bg-white rounded-lg border border-yellow-200 hover:shadow-md transition-all duration-200 hover:border-yellow-300">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
                                 <span className="font-medium text-gray-700">Women</span>
                               </div>
-                              <div className="text-xs text-blue-600 font-semibold bg-blue-50 px-2 py-1 rounded-full">
+                              <div className="text-xs text-yellow-600 font-semibold bg-yellow-50 px-2 py-1 rounded-full">
                                 WOMEN
                               </div>
                             </div>
@@ -893,7 +893,7 @@ const HomePage: React.FC = () => {
                       </div>
                       <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                         <div className="font-medium text-gray-900">Global</div>
-                        <div className="text-sm text-gray-600">Todas las modalidades</div>
+                        <div className="text-sm text-gray-600">Todas las superficies</div>
                       </div>
                     </div>
                   </div>

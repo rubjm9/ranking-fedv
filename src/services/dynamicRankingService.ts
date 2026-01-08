@@ -54,7 +54,7 @@ const dynamicRankingService = {
 
       console.log(`📊 Registros encontrados: ${teamRankings.length} temporadas`)
 
-      // Para cada temporada, calcular posición global sumando todas las modalidades
+      // Para cada temporada, calcular posición global sumando todas las superficies
       const historyData: any[] = []
 
       for (const row of teamRankings) {

@@ -1,11 +1,22 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { MapPin, Users, TrendingUp, Trophy, ChevronRight, BarChart3, Loader2 } from 'lucide-react'
 import { regionsService } from '@/services/apiService'
+import hybridRankingService from '@/services/hybridRankingService'
+import { supabase } from '@/services/supabaseService'
 
 const RegionsPage = () => {
   const [sortBy, setSortBy] = useState<'name' | 'coefficient' | 'teams' | 'points'>('coefficient')
+  const [regionStats, setRegionStats] = useState<{
+    mostActive: { name: string; count: number } | null
+    mostCompetitive: { name: string; avgPoints: number } | null
+    bestRegion: { name: string; totalPoints: number } | null
+  }>({
+    mostActive: null,
+    mostCompetitive: null,
+    bestRegion: null
+  })
 
   // Obtener regiones desde la API
   const { data: regionsData, isLoading, error } = useQuery({
@@ -14,6 +25,99 @@ const RegionsPage = () => {
   })
 
   const regions = regionsData?.data || []
+
+  // Calcular estadísticas de regiones
+  useEffect(() => {
+    const calculateRegionStats = async () => {
+      try {
+        // Obtener temporada más reciente
+        const referenceSeason = await hybridRankingService.getMostRecentSeason()
+        
+        // Obtener datos de todas las categorías
+        const categories = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women']
+        const allCategoryData = await Promise.all(
+          categories.map(cat => hybridRankingService.getRankingFromSeasonPoints(cat as any, referenceSeason))
+        )
+
+        // Calcular ranking global sumando todas las categorías
+        const teamGlobalPoints: { [key: string]: { team: any, totalPoints: number } } = {}
+        
+        allCategoryData.forEach(categoryData => {
+          categoryData.forEach((team) => {
+            const teamId = team.team_id
+            if (!teamGlobalPoints[teamId]) {
+              teamGlobalPoints[teamId] = {
+                team: team,
+                totalPoints: 0
+              }
+            }
+            teamGlobalPoints[teamId].totalPoints += team.total_points || 0
+          })
+        })
+
+        const globalRanking = Object.values(teamGlobalPoints)
+          .map(item => ({
+            ...item.team,
+            global_points: item.totalPoints
+          }))
+
+        // Obtener información de regiones de los equipos
+        const teamIds = globalRanking.map(team => team.team_id)
+        const { data: teamsData } = await supabase
+          .from('teams')
+          .select('id, regionId, regions:regionId(id, name)')
+          .in('id', teamIds)
+
+        // Crear mapa de regiones por equipo
+        const teamRegionMap = new Map(
+          teamsData?.map(team => [team.id, team.regions?.name || 'Sin región']) || []
+        )
+
+        // Calcular estadísticas por región
+        const regionStatsMap: { [regionName: string]: { count: number, totalPoints: number, teams: any[] } } = {}
+
+        globalRanking.forEach(team => {
+          const regionName = teamRegionMap.get(team.team_id) || 'Sin región'
+          if (!regionStatsMap[regionName]) {
+            regionStatsMap[regionName] = { count: 0, totalPoints: 0, teams: [] }
+          }
+          regionStatsMap[regionName].count++
+          regionStatsMap[regionName].totalPoints += team.global_points || 0
+          regionStatsMap[regionName].teams.push(team)
+        })
+
+        // Región más activa (más equipos)
+        const mostActive = Object.entries(regionStatsMap)
+          .map(([name, data]) => ({ name, count: data.count }))
+          .sort((a, b) => b.count - a.count)[0]
+
+        // Región más competitiva (mayor promedio de puntos)
+        const mostCompetitive = Object.entries(regionStatsMap)
+          .map(([name, data]) => ({
+            name,
+            avgPoints: data.count > 0 ? data.totalPoints / data.count : 0
+          }))
+          .sort((a, b) => b.avgPoints - a.avgPoints)[0]
+
+        // Mejor región (mayor suma total de puntos)
+        const bestRegion = Object.entries(regionStatsMap)
+          .map(([name, data]) => ({ name, totalPoints: data.totalPoints }))
+          .sort((a, b) => b.totalPoints - a.totalPoints)[0]
+
+        setRegionStats({
+          mostActive: mostActive || null,
+          mostCompetitive: mostCompetitive || null,
+          bestRegion: bestRegion || null
+        })
+      } catch (error) {
+        console.error('Error calculando estadísticas de regiones:', error)
+      }
+    }
+
+    if (regions.length > 0) {
+      calculateRegionStats()
+    }
+  }, [regions])
 
   // Ordenar regiones
   const sortedRegions = [...regions].sort((a, b) => {
@@ -65,8 +169,8 @@ const RegionsPage = () => {
         </p>
       </div>
 
-      {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* Estadísticas generales */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -98,6 +202,40 @@ const RegionsPage = () => {
               <p className="text-sm font-medium text-gray-600">Coef. Promedio</p>
               <p className="text-2xl font-bold text-gray-900">{averageCoefficient}</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Estadísticas destacadas de regiones */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-lg shadow p-6 border-2 border-blue-200 bg-blue-50">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-1">Región Activa</h3>
+              <p className="text-lg font-bold text-gray-900">{regionStats.mostActive?.name || 'N/A'}</p>
+              <p className="text-xs text-gray-600 mt-1">{regionStats.mostActive?.count || 0} equipos</p>
+            </div>
+            <MapPin className="w-6 h-6 text-blue-600 opacity-60" />
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6 border-2 border-green-200 bg-green-50">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-1">Región Competitiva</h3>
+              <p className="text-lg font-bold text-gray-900">{regionStats.mostCompetitive?.name || 'N/A'}</p>
+              <p className="text-xs text-gray-600 mt-1">{regionStats.mostCompetitive?.avgPoints?.toFixed(1) || '0'} pts</p>
+            </div>
+            <Trophy className="w-6 h-6 text-green-600 opacity-60" />
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6 border-2 border-yellow-200 bg-yellow-50">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs font-medium text-gray-600 uppercase tracking-wide mb-1">Mejor Región</h3>
+              <p className="text-lg font-bold text-gray-900">{regionStats.bestRegion?.name || 'N/A'}</p>
+              <p className="text-xs text-gray-600 mt-1">{regionStats.bestRegion?.totalPoints?.toFixed(1) || '0'} pts</p>
+            </div>
+            <BarChart3 className="w-6 h-6 text-yellow-600 opacity-60" />
           </div>
         </div>
       </div>

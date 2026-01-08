@@ -42,7 +42,7 @@ export interface Tournament {
   type: string
   year: number
   surface: string
-  modality: string
+  category: string
   regionId?: string
   region?: Region
   startDate?: string
@@ -163,7 +163,7 @@ export const regionsService = {
           type,
           year,
           surface,
-          modality
+          category
         )
       `)
       .eq('id', id)
@@ -808,7 +808,7 @@ export const importExportService = {
         year,
         season,
         surface,
-        modality,
+        category,
         regionId,
         startDate,
         endDate,
@@ -831,9 +831,9 @@ export const importExportService = {
       superficie: tournament.surface === 'GRASS' ? 'Césped' : 
                   tournament.surface === 'BEACH' ? 'Playa' : 
                   tournament.surface === 'INDOOR' ? 'Indoor' : tournament.surface,
-      modalidad: tournament.modality === 'OPEN' ? 'Open' : 
-                 tournament.modality === 'WOMEN' ? 'Women' : 
-                 tournament.modality === 'MIXED' ? 'Mixto' : tournament.modality,
+      categoria: tournament.category === 'OPEN' ? 'Open' : 
+                 tournament.category === 'WOMEN' ? 'Women' : 
+                 tournament.category === 'MIXED' ? 'Mixto' : tournament.category,
       region: tournament.type === 'REGIONAL' ? (tournament.region?.name || 'Sin región') : 'Nacional',
       fecha_inicio: tournament.startDate ? new Date(tournament.startDate).toLocaleDateString('es-ES') : '',
       fecha_fin: tournament.endDate ? new Date(tournament.endDate).toLocaleDateString('es-ES') : '',

@@ -106,11 +106,11 @@ const MigrateRankingsPage: React.FC = () => {
               <h3 className="text-lg font-semibold text-blue-900 mb-3">1️⃣ Ejecutar Migración</h3>
               <div className="text-sm text-blue-800 space-y-2">
                 <p><strong>Análisis:</strong> Detecta todas las temporadas disponibles en team_season_points</p>
-                <p><strong>Cálculo:</strong> Para cada temporada y modalidad:</p>
+                <p><strong>Cálculo:</strong> Para cada temporada y superficie:</p>
                 <ul className="list-disc list-inside space-y-1 ml-4">
                   <li>Obtiene puntos base de 4 temporadas (actual + 3 anteriores)</li>
                   <li>Aplica coeficientes de antigüedad (1.0, 0.8, 0.5, 0.2)</li>
-                  <li>Calcula ranking por modalidad individual</li>
+                  <li>Calcula ranking por superficie individual</li>
                   <li>Guarda en team_season_rankings</li>
                 </ul>
               </div>

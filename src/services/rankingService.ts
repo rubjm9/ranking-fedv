@@ -133,14 +133,14 @@ const formatSeason = (year: number): string => {
   return `${year}-${nextYear}`
 }
 
-// Obtener temporada de referencia por modalidad/superficie
-const getCurrentSeason = async (category?: string): Promise<string> => {
+// Obtener temporada de referencia por superficie
+const getCurrentSeason = async (surface?: string): Promise<string> => {
   try {
-    // Si no se especifica categoría, buscar el CE más reciente completado de cualquier modalidad
-    if (!category) {
+    // Si no se especifica superficie, buscar el CE más reciente completado de cualquier superficie
+    if (!surface) {
       const { data: ceTournaments, error } = await supabase
         .from('tournaments')
-        .select('id, year, name, surface, modality')
+        .select('id, year, name, surface, category')
         .ilike('name', '%campeonato de españa%')
         .not('year', 'is', null)
         .order('year', { ascending: false })
@@ -173,26 +173,26 @@ const getCurrentSeason = async (category?: string): Promise<string> => {
       return formatSeason(currentYear - 1)
     }
 
-    // Para categorías específicas, verificar si hay CE de 1ª división completado
-    const categoryParts = category.split('_')
-    const surface = categoryParts[0] // beach o grass
-    const modality = categoryParts[1] // mixed, open, women
+    // Para superficies específicas, verificar si hay CE de 1ª división completado
+    const surfaceParts = surface.split('_')
+    const surfaceType = surfaceParts[0] // beach o grass
+    const category = surfaceParts[1] // mixed, open, women
 
-    // Buscar el CE de 1ª división más reciente para esta modalidad/superficie específica
+    // Buscar el CE de 1ª división más reciente para esta superficie específica
     const { data: ceTournaments, error } = await supabase
-      .from('tournaments')
-      .select('id, year, name, surface, modality')
-      .eq('surface', surface)
-      .eq('modality', modality)
+        .from('tournaments')
+        .select('id, year, name, surface, category')
+        .eq('surface', surfaceType.toUpperCase())
+        .eq('category', category.toUpperCase())
       .ilike('name', '%campeonato de españa%')
       .not('year', 'is', null)
       .order('year', { ascending: false })
 
-    if (error) {
-      console.warn(`⚠️ Error obteniendo CE para ${category}:`, error.message)
-      // Fallback a la lógica general sin categoría
-      return getCurrentSeason()
-    }
+      if (error) {
+        console.warn(`⚠️ Error obteniendo CE para ${surface}:`, error.message)
+        // Fallback a la lógica general sin superficie
+        return getCurrentSeason()
+      }
 
     if (ceTournaments && ceTournaments.length > 0) {
       // Verificar que el CE más reciente tenga posiciones definidas
@@ -215,38 +215,38 @@ const getCurrentSeason = async (category?: string): Promise<string> => {
       if (positions && positions.length > 0) {
         // El CE tiene posiciones, esta temporada está completa
         const referenceSeason = formatSeason(latestCE.year)
-        console.log(`📅 Temporada de referencia para ${category}: ${referenceSeason} (CE completado: ${latestCE.name} - ${surface}/${modality})`)
+        console.log(`📅 Temporada de referencia para ${surface}: ${referenceSeason} (CE completado: ${latestCE.name} - ${surfaceType}/${category})`)
         return referenceSeason
       } else {
         // El CE no tiene posiciones, usar temporada anterior
         const previousYear = latestCE.year - 1
         const referenceSeason = formatSeason(previousYear)
-        console.log(`📅 Temporada de referencia para ${category}: ${referenceSeason} (CE ${latestCE.name} sin posiciones - ${surface}/${modality})`)
+        console.log(`📅 Temporada de referencia para ${surface}: ${referenceSeason} (CE ${latestCE.name} sin posiciones - ${surfaceType}/${category})`)
         return referenceSeason
       }
     }
 
-    // Si no hay CE específico, usar la lógica general sin categoría
-    console.log(`📅 No se encontró CE específico para ${category}, usando lógica general`)
+    // Si no hay CE específico, usar la lógica general sin superficie
+    console.log(`📅 No se encontró CE específico para ${surface}, usando lógica general`)
     return getCurrentSeason()
 
   } catch (error) {
-    console.warn('⚠️ Error obteniendo temporada de referencia por categoría:', error)
+    console.warn('⚠️ Error obteniendo temporada de referencia por superficie:', error)
     const currentYear = new Date().getFullYear()
     return formatSeason(currentYear)
   }
 }
 
 const rankingService = {
-  // Obtener ranking por categoría
-  // Obtener ranking por categoría con cache optimizado
-  getRanking: async (category: string = 'beach_mixed'): Promise<RankingResponse> => {
+  // Obtener ranking por superficie
+  // Obtener ranking por superficie con cache optimizado
+  getRanking: async (surface: string = 'beach_mixed'): Promise<RankingResponse> => {
     try {
       if (!supabase) {
         throw new Error('Supabase no está configurado')
       }
 
-      const cacheKey = `ranking_${category}`
+      const cacheKey = `ranking_${surface}`
       const cachedData = getFromCache(cacheKey)
       
       if (cachedData) {
@@ -270,7 +270,7 @@ const rankingService = {
             )
           )
         `)
-        .eq('ranking_category', category)
+        .eq('ranking_category', surface)
         .order('ranking_position', { ascending: true })
 
       if (error) {
@@ -279,7 +279,7 @@ const rankingService = {
       }
 
       // Transformar datos para incluir nombres de equipos y desglose por temporadas
-      const referenceSeason = await getCurrentSeason(category)
+      const referenceSeason = await getCurrentSeason(surface)
       const transformedData: RankingEntry[] = (rankingData || []).map(ranking => {
         // Calcular desglose por temporadas
         const seasonBreakdown: { [season: string]: { base_points: number, weighted_points: number, coefficient: number } } = {}
@@ -461,7 +461,7 @@ const rankingService = {
             type,
             year,
             surface,
-            modality,
+            category,
             regionId
           ),
           teams:teamId(
@@ -503,8 +503,8 @@ const rankingService = {
           return
         }
 
-        // Determinar categoría basada en superficie y modalidad
-        const category = `${tournament.surface.toLowerCase()}_${tournament.modality.toLowerCase()}`
+        // Determinar superficie basada en superficie y categoría
+        const surface = `${tournament.surface.toLowerCase()}_${tournament.category.toLowerCase()}`
         const teamKey = team.id
         const season = formatSeason(tournament.year)
 
@@ -512,15 +512,15 @@ const rankingService = {
           teamPoints[teamKey] = {}
         }
 
-        if (!teamPoints[teamKey][category]) {
-          teamPoints[teamKey][category] = {}
+        if (!teamPoints[teamKey][surface]) {
+          teamPoints[teamKey][surface] = {}
         }
 
-        if (!teamPoints[teamKey][category][season]) {
-          teamPoints[teamKey][category][season] = 0
+        if (!teamPoints[teamKey][surface][season]) {
+          teamPoints[teamKey][surface][season] = 0
         }
 
-        teamPoints[teamKey][category][season] += position.points || 0
+        teamPoints[teamKey][surface][season] += position.points || 0
       })
 
       console.log('📈 Puntos agrupados:', teamPoints)
@@ -541,11 +541,12 @@ const rankingService = {
 
       // Insertar nuevos rankings con cálculo por temporadas
       const rankingEntries = []
+      // Nota: category aquí almacena superficies (beach_mixed, etc.)
       const currentSeason = await getCurrentSeason(category)
       
       Object.keys(teamPoints).forEach(teamId => {
-        Object.keys(teamPoints[teamId]).forEach(categoryKey => {
-          const seasonPoints = teamPoints[teamId][categoryKey]
+        Object.keys(teamPoints[teamId]).forEach(surfaceKey => {
+          const seasonPoints = teamPoints[teamId][surfaceKey]
           
           // Calcular puntos por temporada con coeficientes
           let currentSeasonPoints = 0
@@ -576,7 +577,7 @@ const rankingService = {
           if (totalPoints > 0) {
           rankingEntries.push({
             team_id: teamId,
-            ranking_category: categoryKey,
+            ranking_category: surfaceKey,
               current_season_points: currentSeasonPoints,
               previous_season_points: previousSeasonPoints,
               two_seasons_ago_points: twoSeasonsAgoPoints,
@@ -631,16 +632,17 @@ const rankingService = {
     }
   },
 
-  // Método para recalcular solo una categoría específica
+  // Método para recalcular solo una superficie específica
+  // Nota: el parámetro category almacena superficies (beach_mixed, etc.)
   recalculateSpecificCategory: async (category: string): Promise<any> => {
     try {
       if (!supabase) {
         throw new Error('Supabase no está configurado')
       }
 
-      console.log(`🔄 Recalculando categoría específica: ${category}`)
+      console.log(`🔄 Recalculando superficie específica: ${category}`)
 
-      // Obtener todas las posiciones de la categoría específica
+      // Obtener todas las posiciones de la superficie específica
       const { data: positions, error: positionsError } = await supabase
         .from('positions')
         .select(`
@@ -651,7 +653,7 @@ const rankingService = {
             type,
             year,
             surface,
-            modality,
+            category,
             regionId
           ),
           teams:teamId(
@@ -661,7 +663,7 @@ const rankingService = {
           )
         `)
         .eq('tournaments.surface', category.split('_')[0].toUpperCase())
-        .eq('tournaments.modality', category.split('_')[1].toUpperCase())
+        .eq('tournaments.category', category.split('_')[1].toUpperCase())
 
       if (positionsError) {
         console.error('Error al obtener posiciones:', positionsError)
@@ -670,20 +672,20 @@ const rankingService = {
 
       console.log(`📊 Posiciones obtenidas para ${category}:`, positions?.length || 0)
 
-      // Eliminar rankings existentes de esta categoría
+      // Eliminar rankings existentes de esta superficie
       const { error: deleteError } = await supabase
         .from('current_rankings')
         .delete()
         .eq('ranking_category', category)
 
       if (deleteError) {
-        console.error('Error al eliminar rankings de la categoría:', deleteError)
+        console.error('Error al eliminar rankings de la superficie:', deleteError)
         throw deleteError
       }
 
       if (!positions || positions.length === 0) {
-        console.log(`ℹ️ No hay posiciones para la categoría ${category}`)
-        return { message: `No hay posiciones para la categoría ${category}` }
+        console.log(`ℹ️ No hay posiciones para la superficie ${category}`)
+        return { message: `No hay posiciones para la superficie ${category}` }
       }
 
       // Agrupar puntos por equipo
@@ -749,16 +751,16 @@ const rankingService = {
         }
       }
 
-      console.log(`✅ Categoría ${category} recalculada exitosamente`)
+      console.log(`✅ Superficie ${category} recalculada exitosamente`)
 
-      // Limpiar cache específico de la categoría
+      // Limpiar cache específico de la superficie
       clearCache(`ranking_${category}`)
 
       return { 
-        message: `Categoría ${category} recalculada exitosamente. ${rankingEntries.length} entradas procesadas.` 
+        message: `Superficie ${category} recalculada exitosamente. ${rankingEntries.length} entradas procesadas.` 
       }
     } catch (error) {
-      console.error(`Error al recalcular categoría ${category}:`, error)
+      console.error(`Error al recalcular superficie ${category}:`, error)
       throw error
     }
   },

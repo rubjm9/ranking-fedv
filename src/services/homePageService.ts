@@ -5,6 +5,177 @@
 import { supabase } from './supabaseService'
 import hybridRankingService from './hybridRankingService'
 
+// Función auxiliar para obtener ranking de una categoría de la temporada anterior desde team_season_rankings
+const getPreviousSeasonCategoryRanking = async (category: string, referenceSeason: string) => {
+  try {
+    if (!supabase) return null
+
+    const referenceYear = parseInt(referenceSeason.split('-')[0])
+    const previousYear = referenceYear - 1
+    const previousSeason = `${previousYear}-${(previousYear + 1).toString().slice(-2)}`
+
+    // Mapear categoría a columna de la tabla
+    const rankColumn = `${category}_rank`
+    const pointsColumn = `${category}_points`
+
+    // Obtener ranking de la categoría para la temporada anterior
+    const { data: rankingsData, error } = await supabase
+      .from('team_season_rankings')
+      .select(`
+        team_id,
+        ${rankColumn},
+        ${pointsColumn}
+      `)
+      .eq('season', previousSeason)
+      .not(rankColumn, 'is', null)
+      .order(rankColumn, { ascending: true })
+
+    if (error) {
+      console.error('Error obteniendo ranking de categoría de temporada anterior:', error)
+      return null
+    }
+
+    if (!rankingsData || rankingsData.length === 0) {
+      return []
+    }
+
+    // Convertir a formato compatible
+    return rankingsData.map((row: any) => ({
+      team_id: row.team_id,
+      total_points: parseFloat(row[pointsColumn] || 0),
+      ranking_position: row[rankColumn]
+    }))
+  } catch (error) {
+    console.error('Error obteniendo ranking de categoría de temporada anterior:', error)
+    return null
+  }
+}
+
+// Función para calcular el cambio de posición usando team_season_rankings
+const calculatePositionChange = async (data: any[], category: string, referenceSeason: string) => {
+  if (!data || data.length === 0) return []
+  if (!referenceSeason) return data // Si no hay temporada de referencia, no calculamos cambios
+  
+  // Calcular ranking actual (con las últimas 4 temporadas)
+  const currentRanking = [...data].sort((a, b) => b.total_points - a.total_points)
+  
+  // Obtener ranking de la temporada anterior desde team_season_rankings
+  const previousRanking = await getPreviousSeasonCategoryRanking(category, referenceSeason) || []
+  
+  // Si no hay datos de la temporada anterior, retornar datos sin cambios
+  if (!previousRanking || previousRanking.length === 0) {
+    return currentRanking.map(team => ({
+      ...team,
+      position_change: 0
+    }))
+  }
+  
+  // Crear un mapa de posiciones anteriores
+  const previousPositionsMap = new Map(
+    previousRanking.map((team) => [team.team_id, team.ranking_position || 0])
+  )
+  
+  // Agregar cambio de posición a cada equipo
+  return currentRanking.map((team, index) => {
+    const currentPosition = index + 1
+    const previousPosition = previousPositionsMap.get(team.team_id)
+    
+    // Si el equipo no estaba en la temporada anterior, no hay cambio
+    const positionChange = previousPosition !== undefined 
+      ? previousPosition - currentPosition // Positivo si subió, negativo si bajó
+      : 0
+    
+    return {
+      ...team,
+      position_change: positionChange
+    }
+  })
+}
+
+// Función auxiliar para obtener ranking global de la temporada anterior desde team_season_rankings
+const getPreviousSeasonGlobalRanking = async (referenceSeason: string) => {
+  try {
+    if (!supabase) return null
+
+    const referenceYear = parseInt(referenceSeason.split('-')[0])
+    const previousYear = referenceYear - 1
+    const previousSeason = `${previousYear}-${(previousYear + 1).toString().slice(-2)}`
+
+    // Obtener rankings de la temporada anterior desde team_season_rankings
+    // Usamos subupdate_4_global_rank que es el ranking final de la temporada
+    const { data: rankingsData, error } = await supabase
+      .from('team_season_rankings')
+      .select(`
+        team_id,
+        subupdate_4_global_rank,
+        subupdate_4_global_points
+      `)
+      .eq('season', previousSeason)
+      .not('subupdate_4_global_rank', 'is', null)
+      .order('subupdate_4_global_rank', { ascending: true })
+
+    if (error) {
+      console.error('Error obteniendo ranking global de temporada anterior:', error)
+      return null
+    }
+
+    if (!rankingsData || rankingsData.length === 0) {
+      return null
+    }
+
+    // Convertir a formato compatible
+    return rankingsData.map((row: any) => ({
+      team_id: row.team_id,
+      total_points: parseFloat(row.subupdate_4_global_points || 0),
+      ranking_position: row.subupdate_4_global_rank
+    }))
+  } catch (error) {
+    console.error('Error obteniendo ranking de temporada anterior:', error)
+    return null
+  }
+}
+
+// Función para calcular el cambio de posición del ranking general usando team_season_rankings
+const calculateGeneralPositionChange = async (data: any[], referenceSeason: string) => {
+  if (!data || data.length === 0) return []
+  if (!referenceSeason) return data // Si no hay temporada de referencia, no calculamos cambios
+  
+  // Calcular ranking actual (con las últimas 4 temporadas)
+  const currentRanking = [...data].sort((a, b) => b.total_points - a.total_points)
+  
+  // Obtener ranking global de la temporada anterior desde team_season_rankings
+  const previousRanking = await getPreviousSeasonGlobalRanking(referenceSeason) || []
+  
+  // Si no hay datos de la temporada anterior, retornar datos sin cambios
+  if (!previousRanking || previousRanking.length === 0) {
+    return currentRanking.map(team => ({
+      ...team,
+      position_change: 0
+    }))
+  }
+  
+  // Crear un mapa de posiciones anteriores
+  const previousPositionsMap = new Map(
+    previousRanking.map((team) => [team.team_id, team.ranking_position || 0])
+  )
+  
+  // Agregar cambio de posición a cada equipo
+  return currentRanking.map((team, index) => {
+    const currentPosition = index + 1
+    const previousPosition = previousPositionsMap.get(team.team_id)
+    
+    // Si el equipo no estaba en la temporada anterior, no hay cambio
+    const positionChange = previousPosition !== undefined 
+      ? previousPosition - currentPosition // Positivo si subió, negativo si bajó
+      : 0
+    
+    return {
+      ...team,
+      position_change: positionChange
+    }
+  })
+}
+
 export interface HomePageTeam {
   id: string
   name: string
@@ -38,7 +209,7 @@ export interface HomePageTournament {
   teams: number
   startDate: string
   surface: string
-  modality: string
+  category: string
 }
 
 export interface HomePageStats {
@@ -56,55 +227,116 @@ export interface RankingHistory {
 
 class HomePageService {
   /**
-   * Obtener equipos para el ranking principal de la homepage
+   * Obtener equipos top por categoría (OPTIMIZADO)
+   * Usa datos pre-calculados de team_season_rankings con position_change incluido
    */
-  async getTopTeamsByCategory(category: string, limit: number = 5): Promise<HomePageTeam[]> {
+  async getTopTeamsByCategory(category: string, limit: number = 5, season?: string): Promise<HomePageTeam[]> {
     try {
-      // Obtener ranking específico por categoría
-      const categoryRanking = await hybridRankingService.getRankingFromSeasonPoints(category, '2024-25')
+      // Obtener temporada más reciente si no se proporciona
+      const referenceSeason = season || await hybridRankingService.getMostRecentSeason()
       
-      // Obtener información de equipos y regiones
-      const teamIds = categoryRanking.slice(0, limit).map(team => team.team_id)
-      
-      const { data: teamsData, error: teamsError } = await supabase
-        .from('teams')
+      const rankCol = `${category}_rank`
+      const pointsCol = `${category}_points`
+      const posChangeCol = `${category}_position_change`
+
+      // Query única que obtiene ranking, info de equipos y cambios de posición
+      const { data: rankingsData, error: rankingsError } = await supabase
+        .from('team_season_rankings')
         .select(`
-          id,
-          name,
-          logo,
-          region:regions(name)
+          team_id,
+          ${rankCol},
+          ${pointsCol},
+          ${posChangeCol},
+          teams(id, name, logo, region:regions(name))
         `)
-        .in('id', teamIds)
+        .eq('season', referenceSeason)
+        .not(rankCol, 'is', null)
+        .order(rankCol, { ascending: true })
+        .limit(limit)
 
-      if (teamsError) throw teamsError
+      if (rankingsError) {
+        console.error('Error obteniendo ranking por categoría:', rankingsError)
+        // Fallback al método anterior
+        return this.getTopTeamsByCategoryLegacy(category, limit, referenceSeason)
+      }
 
-      // Crear mapa de equipos para acceso rápido
-      const teamsMap = new Map(teamsData?.map(team => [team.id, team]) || [])
+      if (!rankingsData || rankingsData.length === 0) {
+        return this.getTopTeamsByCategoryLegacy(category, limit, referenceSeason)
+      }
 
-      // Obtener estadísticas de torneos por equipo
-      const { data: tournamentStats, error: statsError } = await supabase
+      // Obtener conteo de torneos en una sola query
+      const teamIds = rankingsData.map((r: any) => r.team_id)
+      const { data: tournamentStats } = await supabase
         .from('positions')
         .select('teamId')
         .in('teamId', teamIds)
 
-      if (statsError) throw statsError
-
-      // Contar torneos por equipo
       const tournamentCounts = new Map<string, number>()
       tournamentStats?.forEach(stat => {
         const count = tournamentCounts.get(stat.teamId) || 0
         tournamentCounts.set(stat.teamId, count + 1)
       })
 
-      // Combinar datos y crear resultado
-      const result: HomePageTeam[] = categoryRanking.slice(0, limit).map((ranking, index) => {
+      // Construir respuesta
+      return rankingsData.map((ranking: any) => {
+        const team = ranking.teams
+        const change = ranking[posChangeCol] || 0
+        const currentRank = ranking[rankCol]
+        const regionName = team?.region?.name || 'Sin región'
+        
+        return {
+          id: ranking.team_id,
+          name: team?.name || 'Equipo desconocido',
+          region: regionName,
+          regionCode: regionName.toLowerCase().replace(/\s+/g, '_'),
+          logo: team?.logo,
+          currentRank: currentRank,
+          previousRank: currentRank - change,
+          points: ranking[pointsCol] || 0,
+          tournaments: tournamentCounts.get(ranking.team_id) || 0,
+          change: change,
+          lastUpdate: new Date().toISOString(),
+          category: category
+        }
+      })
+    } catch (error) {
+      console.error('Error obteniendo equipos top por categoría:', error)
+      return []
+    }
+  }
+
+  /**
+   * Método legacy para fallback cuando no hay datos pre-calculados
+   */
+  private async getTopTeamsByCategoryLegacy(category: string, limit: number, referenceSeason: string): Promise<HomePageTeam[]> {
+    try {
+      const categoryRanking = await hybridRankingService.getRankingFromSeasonPoints(category, referenceSeason)
+      const teamIds = categoryRanking.slice(0, limit).map(team => team.team_id)
+      
+      const { data: teamsData } = await supabase
+        .from('teams')
+        .select('id, name, logo, region:regions(name)')
+        .in('id', teamIds)
+
+      const teamsMap = new Map(teamsData?.map(team => [team.id, team]) || [])
+
+      const { data: tournamentStats } = await supabase
+        .from('positions')
+        .select('teamId')
+        .in('teamId', teamIds)
+
+      const tournamentCounts = new Map<string, number>()
+      tournamentStats?.forEach(stat => {
+        const count = tournamentCounts.get(stat.teamId) || 0
+        tournamentCounts.set(stat.teamId, count + 1)
+      })
+
+      const rankingWithChanges = await calculatePositionChange(categoryRanking, category, referenceSeason)
+      
+      return rankingWithChanges.slice(0, limit).map((ranking, index) => {
         const teamData = teamsMap.get(ranking.team_id)
         const regionName = teamData?.region?.name || 'Sin región'
-        
-        // Calcular cambio de posición (simulado por ahora)
-        const currentRank = index + 1
-        const previousRank = currentRank + Math.floor(Math.random() * 3) - 1 // Simulación temporal
-        const change = previousRank - currentRank
+        const change = ranking.position_change || 0
         
         return {
           id: ranking.team_id,
@@ -112,8 +344,8 @@ class HomePageService {
           region: regionName,
           regionCode: regionName.toLowerCase().replace(/\s+/g, '_'),
           logo: teamData?.logo,
-          currentRank: currentRank,
-          previousRank: previousRank,
+          currentRank: index + 1,
+          previousRank: index + 1 - change,
           points: ranking.total_points || 0,
           tournaments: tournamentCounts.get(ranking.team_id) || 0,
           change: change,
@@ -121,76 +353,157 @@ class HomePageService {
           category: category
         }
       })
-
-      return result
     } catch (error) {
-      console.error('Error obteniendo equipos top por categoría:', error)
+      console.error('Error en getTopTeamsByCategoryLegacy:', error)
       return []
     }
   }
 
-  async getTopTeams(limit: number = 10): Promise<HomePageTeam[]> {
+  /**
+   * Obtener equipos top para ranking general (OPTIMIZADO)
+   * Usa datos pre-calculados de team_season_rankings con position_change incluido
+   */
+  async getTopTeams(limit: number = 10, season?: string): Promise<HomePageTeam[]> {
     try {
-      // Obtener ranking general combinado (todos los puntos)
-      const generalRanking = await hybridRankingService.getCombinedRanking(
-        ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'],
-        '2024-25'
-      )
-
-      // Obtener información de equipos y regiones (sin columna code)
-      const teamIds = generalRanking.slice(0, limit).map(team => team.team_id)
+      // Obtener temporada más reciente si no se proporciona
+      const referenceSeason = season || await hybridRankingService.getMostRecentSeason()
       
-      const { data: teamsData, error: teamsError } = await supabase
-        .from('teams')
+      // Determinar subupdate más reciente disponible
+      let subupdateToUse = 4
+      for (let i = 4; i >= 1; i--) {
+        const { data: checkData } = await supabase
+          .from('team_season_rankings')
+          .select('team_id')
+          .eq('season', referenceSeason)
+          .not(`subupdate_${i}_global_rank`, 'is', null)
+          .limit(1)
+
+        if (checkData && checkData.length > 0) {
+          subupdateToUse = i
+          break
+        }
+      }
+
+      const rankCol = `subupdate_${subupdateToUse}_global_rank`
+      const pointsCol = `subupdate_${subupdateToUse}_global_points`
+      const posChangeCol = `subupdate_${subupdateToUse}_global_position_change`
+
+      // Query única que obtiene ranking, info de equipos y cambios de posición
+      const { data: rankingsData, error: rankingsError } = await supabase
+        .from('team_season_rankings')
         .select(`
-          id,
-          name,
-          logo,
-          region:regions(name)
+          team_id,
+          ${rankCol},
+          ${pointsCol},
+          ${posChangeCol},
+          teams(id, name, logo, region:regions(name))
         `)
-        .in('id', teamIds)
+        .eq('season', referenceSeason)
+        .not(rankCol, 'is', null)
+        .order(rankCol, { ascending: true })
+        .limit(limit)
 
-      if (teamsError) throw teamsError
+      if (rankingsError) {
+        console.error('Error obteniendo ranking global:', rankingsError)
+        // Fallback al método anterior
+        return this.getTopTeamsLegacy(limit, referenceSeason)
+      }
 
-      // Crear mapa de equipos para acceso rápido
-      const teamsMap = new Map(teamsData?.map(team => [team.id, team]) || [])
+      if (!rankingsData || rankingsData.length === 0) {
+        return this.getTopTeamsLegacy(limit, referenceSeason)
+      }
 
-      // Obtener estadísticas de torneos por equipo
-      const { data: tournamentStats, error: statsError } = await supabase
+      // Obtener conteo de torneos en una sola query
+      const teamIds = rankingsData.map((r: any) => r.team_id)
+      const { data: tournamentStats } = await supabase
         .from('positions')
         .select('teamId')
         .in('teamId', teamIds)
 
-      if (statsError) throw statsError
+      const tournamentCounts = new Map<string, number>()
+      tournamentStats?.forEach(stat => {
+        const count = tournamentCounts.get(stat.teamId) || 0
+        tournamentCounts.set(stat.teamId, count + 1)
+      })
 
-      // Contar torneos por equipo
+      // Construir respuesta
+      return rankingsData.map((ranking: any) => {
+        const team = ranking.teams
+        const change = ranking[posChangeCol] || 0
+        const currentRank = ranking[rankCol]
+        
+        return {
+          id: ranking.team_id,
+          name: team?.name || 'Equipo desconocido',
+          region: team?.region?.name || 'Sin región',
+          regionCode: team?.region?.name ? team.region.name.substring(0, 3).toUpperCase() : 'N/A',
+          logo: team?.logo,
+          currentRank: currentRank,
+          previousRank: currentRank - change,
+          points: ranking[pointsCol] || 0,
+          tournaments: tournamentCounts.get(ranking.team_id) || 0,
+          change: change,
+          lastUpdate: new Date().toISOString().split('T')[0]
+        }
+      })
+    } catch (error) {
+      console.error('Error obteniendo equipos top:', error)
+      return []
+    }
+  }
+
+  /**
+   * Método legacy para fallback cuando no hay datos pre-calculados
+   */
+  private async getTopTeamsLegacy(limit: number, referenceSeason: string): Promise<HomePageTeam[]> {
+    try {
+      const generalRanking = await hybridRankingService.getCombinedRanking(
+        ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'],
+        referenceSeason
+      )
+
+      const teamIds = generalRanking.slice(0, limit).map(team => team.team_id)
+      
+      const { data: teamsData } = await supabase
+        .from('teams')
+        .select('id, name, logo, region:regions(name)')
+        .in('id', teamIds)
+
+      const teamsMap = new Map(teamsData?.map(team => [team.id, team]) || [])
+
+      const { data: tournamentStats } = await supabase
+        .from('positions')
+        .select('teamId')
+        .in('teamId', teamIds)
+
       const tournamentCounts = new Map<string, number>()
       tournamentStats?.forEach(position => {
         const count = tournamentCounts.get(position.teamId) || 0
         tournamentCounts.set(position.teamId, count + 1)
       })
 
-      // Construir respuesta
-      return generalRanking.slice(0, limit).map((ranking, index) => {
+      const rankingWithChanges = await calculateGeneralPositionChange(generalRanking, referenceSeason)
+
+      return rankingWithChanges.slice(0, limit).map((ranking, index) => {
         const team = teamsMap.get(ranking.team_id)
-        const tournaments = tournamentCounts.get(ranking.team_id) || 0
+        const change = ranking.position_change || 0
         
         return {
           id: ranking.team_id,
           name: team?.name || 'Equipo desconocido',
           region: team?.region?.name || 'Sin región',
-          regionCode: team?.region?.name ? team.region.name.substring(0, 3).toUpperCase() : 'N/A', // Generado dinámicamente
+          regionCode: team?.region?.name ? team.region.name.substring(0, 3).toUpperCase() : 'N/A',
           logo: team?.logo,
           currentRank: index + 1,
-          previousRank: index + 1, // TODO: Calcular ranking anterior
+          previousRank: index + 1 - change,
           points: ranking.total_points,
-          tournaments,
-          change: 0, // TODO: Calcular cambio real
+          tournaments: tournamentCounts.get(ranking.team_id) || 0,
+          change: change,
           lastUpdate: new Date().toISOString().split('T')[0]
         }
       })
     } catch (error) {
-      console.error('Error obteniendo equipos top:', error)
+      console.error('Error en getTopTeamsLegacy:', error)
       return []
     }
   }
@@ -266,7 +579,7 @@ class HomePageService {
           season,
           type,
           surface,
-          modality,
+          category,
           startDate,
           endDate,
           is_finished
@@ -287,7 +600,7 @@ class HomePageService {
             season,
             type,
             surface,
-            modality,
+            category,
             startDate,
             endDate
           `)
@@ -321,7 +634,7 @@ class HomePageService {
           season,
           type,
           surface,
-          modality,
+          category,
           startDate,
           endDate,
           is_finished
@@ -342,7 +655,7 @@ class HomePageService {
             season,
             type,
             surface,
-            modality,
+            category,
             startDate,
             endDate
           `)
@@ -401,7 +714,7 @@ class HomePageService {
         teams: teamCount,
         startDate: tournament.startDate,
         surface: tournament.surface,
-        modality: tournament.modality
+        category: tournament.category
       }
     })
   }
@@ -420,7 +733,7 @@ class HomePageService {
           season,
           type,
           surface,
-          modality,
+          category,
           startDate,
           endDate,
           is_finished
@@ -469,7 +782,7 @@ class HomePageService {
           teams: teamCount,
           startDate: tournament.startDate,
           surface: tournament.surface,
-          modality: tournament.modality
+          category: tournament.category
         }
       })
     } catch (error) {

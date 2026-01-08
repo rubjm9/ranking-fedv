@@ -1,6 +1,6 @@
 /**
  * Servicio para gestionar la tabla team_season_rankings
- * Rankings históricos por modalidad con coeficientes de antigüedad aplicados
+ * Rankings históricos por superficie con coeficientes de antigüedad aplicados
  */
 
 import { supabase } from './supabaseService'
@@ -11,16 +11,44 @@ export interface TeamSeasonRanking {
   season: string
   beach_mixed_rank?: number
   beach_mixed_points: number
+  beach_mixed_position_change?: number
+  beach_mixed_points_change?: number
   beach_open_rank?: number
   beach_open_points: number
+  beach_open_position_change?: number
+  beach_open_points_change?: number
   beach_women_rank?: number
   beach_women_points: number
+  beach_women_position_change?: number
+  beach_women_points_change?: number
   grass_mixed_rank?: number
   grass_mixed_points: number
+  grass_mixed_position_change?: number
+  grass_mixed_points_change?: number
   grass_open_rank?: number
   grass_open_points: number
+  grass_open_position_change?: number
+  grass_open_points_change?: number
   grass_women_rank?: number
   grass_women_points: number
+  grass_women_position_change?: number
+  grass_women_points_change?: number
+  subupdate_1_global_rank?: number
+  subupdate_1_global_points?: number
+  subupdate_1_global_position_change?: number
+  subupdate_1_global_points_change?: number
+  subupdate_2_global_rank?: number
+  subupdate_2_global_points?: number
+  subupdate_2_global_position_change?: number
+  subupdate_2_global_points_change?: number
+  subupdate_3_global_rank?: number
+  subupdate_3_global_points?: number
+  subupdate_3_global_position_change?: number
+  subupdate_3_global_points_change?: number
+  subupdate_4_global_rank?: number
+  subupdate_4_global_points?: number
+  subupdate_4_global_position_change?: number
+  subupdate_4_global_points_change?: number
   calculated_at: string
   created_at: string
   updated_at: string
@@ -40,24 +68,84 @@ export interface RankingEntry {
   }
 }
 
-export type Modality = 'beach_mixed' | 'beach_open' | 'beach_women' | 'grass_mixed' | 'grass_open' | 'grass_women'
+export type Surface = 'beach_mixed' | 'beach_open' | 'beach_women' | 'grass_mixed' | 'grass_open' | 'grass_women'
 
 const SEASON_COEFFICIENTS = [1.0, 0.8, 0.5, 0.2]
 
+// Helper: Obtener temporada anterior
+const getPreviousSeason = (season: string): string => {
+  const year = parseInt(season.split('-')[0])
+  return `${year - 1}-${(year).toString().slice(-2)}`
+}
+
 const teamSeasonRankingsService = {
   /**
-   * Calcula el ranking para una modalidad específica en una temporada
+   * Obtiene los rankings de la temporada anterior para calcular cambios de posición
    */
-  calculateModalityRanking: async (
+  getPreviousSeasonRankings: async (
+    season: string
+  ): Promise<Map<string, { [key: string]: { rank: number; points: number } }>> => {
+    try {
+      if (!supabase) {
+        return new Map()
+      }
+
+      const previousSeason = getPreviousSeason(season)
+
+      const { data, error } = await supabase
+        .from('team_season_rankings')
+        .select(`
+          team_id,
+          beach_mixed_rank, beach_mixed_points,
+          beach_open_rank, beach_open_points,
+          beach_women_rank, beach_women_points,
+          grass_mixed_rank, grass_mixed_points,
+          grass_open_rank, grass_open_points,
+          grass_women_rank, grass_women_points,
+          subupdate_4_global_rank, subupdate_4_global_points
+        `)
+        .eq('season', previousSeason)
+
+      if (error || !data) {
+        console.log(`⚠️ No hay datos de la temporada anterior ${previousSeason}`)
+        return new Map()
+      }
+
+      const previousRankings = new Map<string, { [key: string]: { rank: number; points: number } }>()
+
+      data.forEach((row: any) => {
+        previousRankings.set(row.team_id, {
+          beach_mixed: { rank: row.beach_mixed_rank || 0, points: row.beach_mixed_points || 0 },
+          beach_open: { rank: row.beach_open_rank || 0, points: row.beach_open_points || 0 },
+          beach_women: { rank: row.beach_women_rank || 0, points: row.beach_women_points || 0 },
+          grass_mixed: { rank: row.grass_mixed_rank || 0, points: row.grass_mixed_points || 0 },
+          grass_open: { rank: row.grass_open_rank || 0, points: row.grass_open_points || 0 },
+          grass_women: { rank: row.grass_women_rank || 0, points: row.grass_women_points || 0 },
+          global: { rank: row.subupdate_4_global_rank || 0, points: row.subupdate_4_global_points || 0 }
+        })
+      })
+
+      console.log(`📊 Datos de temporada anterior cargados: ${previousRankings.size} equipos`)
+      return previousRankings
+
+    } catch (error) {
+      console.error('Error obteniendo rankings de temporada anterior:', error)
+      return new Map()
+    }
+  },
+  /**
+   * Calcula el ranking para una superficie específica en una temporada
+   */
+  calculateSurfaceRanking: async (
     season: string,
-    modality: Modality
+    surface: Surface
   ): Promise<{ success: boolean; message: string; teamRankings: Array<{ team_id: string; rank: number; points: number }> }> => {
     try {
       if (!supabase) {
         throw new Error('Supabase no está configurado')
       }
 
-      console.log(`🔄 Calculando ranking de ${modality} para temporada ${season}...`)
+      console.log(`🔄 Calculando ranking de ${surface} para temporada ${season}...`)
 
       // Calcular las 4 temporadas a considerar
       const seasonYear = parseInt(season.split('-')[0])
@@ -76,7 +164,7 @@ const teamSeasonRankingsService = {
         .select(`
           team_id,
           season,
-          ${modality}_points
+          ${surface}_points
         `)
         .in('season', seasons)
 
@@ -96,7 +184,7 @@ const teamSeasonRankingsService = {
       seasonPoints.forEach((row: any) => {
         const teamId = row.team_id
         const rowSeason = row.season
-        const basePoints = row[`${modality}_points`] || 0
+        const basePoints = row[`${surface}_points`] || 0
 
         if (basePoints <= 0) return
 
@@ -130,12 +218,12 @@ const teamSeasonRankingsService = {
 
       return {
         success: true,
-        message: `Ranking de ${modality} calculado para ${season}`,
+        message: `Ranking de ${surface} calculado para ${season}`,
         teamRankings
       }
 
     } catch (error: any) {
-      console.error(`❌ Error calculando ranking de ${modality}:`, error)
+      console.error(`❌ Error calculando ranking de ${surface}:`, error)
       return {
         success: false,
         message: error.message || 'Error desconocido',
@@ -145,7 +233,8 @@ const teamSeasonRankingsService = {
   },
 
   /**
-   * Calcula rankings para todas las modalidades en una temporada
+   * Calcula rankings para todas las superficies en una temporada
+   * Incluye cálculo de cambios de posición respecto a la temporada anterior
    */
   calculateSeasonRankings: async (
     season: string
@@ -157,7 +246,7 @@ const teamSeasonRankingsService = {
 
       console.log(`🚀 Calculando rankings para temporada ${season}...`)
 
-      const modalities: Modality[] = [
+      const surfaces: Surface[] = [
         'beach_mixed',
         'beach_open',
         'beach_women',
@@ -166,23 +255,26 @@ const teamSeasonRankingsService = {
         'grass_women'
       ]
 
-      // Calcular rankings para cada modalidad
-      const rankingsByModality: { [key: string]: Array<{ team_id: string; rank: number; points: number }> } = {}
+      // Obtener rankings de la temporada anterior para calcular cambios
+      const previousRankings = await teamSeasonRankingsService.getPreviousSeasonRankings(season)
 
-      for (const modality of modalities) {
-        const result = await teamSeasonRankingsService.calculateModalityRanking(season, modality)
+      // Calcular rankings para cada superficie
+      const rankingsBySurface: { [key: string]: Array<{ team_id: string; rank: number; points: number }> } = {}
+
+      for (const surface of surfaces) {
+        const result = await teamSeasonRankingsService.calculateSurfaceRanking(season, surface)
         if (result.success) {
-          rankingsByModality[modality] = result.teamRankings
+          rankingsBySurface[surface] = result.teamRankings
         }
       }
 
       // Obtener todos los equipos únicos
       const allTeamIds = new Set<string>()
-      Object.values(rankingsByModality).forEach(rankings => {
+      Object.values(rankingsBySurface).forEach(rankings => {
         rankings.forEach(r => allTeamIds.add(r.team_id))
       })
 
-      // Preparar datos para upsert
+      // Preparar datos para upsert (incluyendo cambios de posición)
       const upsertData = Array.from(allTeamIds).map(teamId => {
         const rankingData: any = {
           team_id: teamId,
@@ -190,17 +282,36 @@ const teamSeasonRankingsService = {
           calculated_at: new Date().toISOString()
         }
 
-        // Agregar datos de cada modalidad
-        modalities.forEach(modality => {
-          const rankings = rankingsByModality[modality] || []
+        // Obtener datos de la temporada anterior para este equipo
+        const prevData = previousRankings.get(teamId)
+
+        // Agregar datos de cada superficie (incluyendo cambios)
+        surfaces.forEach(surface => {
+          const rankings = rankingsBySurface[surface] || []
           const teamRanking = rankings.find(r => r.team_id === teamId)
           
           if (teamRanking) {
-            rankingData[`${modality}_rank`] = teamRanking.rank
-            rankingData[`${modality}_points`] = teamRanking.points
+            rankingData[`${surface}_rank`] = teamRanking.rank
+            rankingData[`${surface}_points`] = teamRanking.points
+
+            // Calcular cambio de posición
+            const prevRank = prevData?.[surface]?.rank || 0
+            const prevPoints = prevData?.[surface]?.points || 0
+            
+            if (prevRank > 0) {
+              // Positivo = subió (antes estaba en posición mayor/peor)
+              rankingData[`${surface}_position_change`] = prevRank - teamRanking.rank
+              rankingData[`${surface}_points_change`] = parseFloat((teamRanking.points - prevPoints).toFixed(2))
+            } else {
+              // Equipo nuevo, no hay cambio
+              rankingData[`${surface}_position_change`] = 0
+              rankingData[`${surface}_points_change`] = 0
+            }
           } else {
-            rankingData[`${modality}_rank`] = null
-            rankingData[`${modality}_points`] = 0
+            rankingData[`${surface}_rank`] = null
+            rankingData[`${surface}_points`] = 0
+            rankingData[`${surface}_position_change`] = 0
+            rankingData[`${surface}_points_change`] = 0
           }
         })
 
@@ -221,11 +332,11 @@ const teamSeasonRankingsService = {
         throw error
       }
 
-      console.log(`✅ Rankings guardados: ${data?.length || 0} equipos`)
+      console.log(`✅ Rankings guardados: ${data?.length || 0} equipos (con cambios de posición)`)
 
       return {
         success: true,
-        message: `Rankings calculados para temporada ${season}`,
+        message: `Rankings calculados para temporada ${season} con cambios de posición`,
         updated: data?.length || 0
       }
 
@@ -240,11 +351,11 @@ const teamSeasonRankingsService = {
   },
 
   /**
-   * Obtiene el ranking completo de una modalidad para una temporada
+   * Obtiene el ranking completo de una superficie para una temporada
    */
-  getSeasonRankingByModality: async (
+  getSeasonRankingBySurface: async (
     season: string,
-    modality: Modality
+    surface: Surface
   ): Promise<RankingEntry[]> => {
     try {
       if (!supabase) {
@@ -255,13 +366,13 @@ const teamSeasonRankingsService = {
         .from('team_season_rankings')
         .select(`
           team_id,
-          ${modality}_rank,
-          ${modality}_points,
+          ${surface}_rank,
+          ${surface}_points,
           teams(name, region:regions(name))
         `)
         .eq('season', season)
-        .not(`${modality}_rank`, 'is', null)
-        .order(`${modality}_rank`, { ascending: true })
+        .not(`${surface}_rank`, 'is', null)
+        .order(`${surface}_rank`, { ascending: true })
 
       if (error) {
         console.error('Error obteniendo ranking:', error)
@@ -272,22 +383,22 @@ const teamSeasonRankingsService = {
         team_id: row.team_id,
         team_name: row.teams?.name || 'Equipo desconocido',
         region_name: row.teams?.region?.name || 'Sin región',
-        rank: row[`${modality}_rank`],
-        points: row[`${modality}_points`]
+        rank: row[`${surface}_rank`],
+        points: row[`${surface}_points`]
       }))
 
     } catch (error) {
-      console.error('Error obteniendo ranking por modalidad:', error)
+      console.error('Error obteniendo ranking por superficie:', error)
       return []
     }
   },
 
   /**
-   * Obtiene el historial de rankings de un equipo en una modalidad
+   * Obtiene el historial de rankings de un equipo en una superficie
    */
   getTeamRankingHistory: async (
     teamId: string,
-    modality: Modality
+    surface: Surface
   ): Promise<Array<{ season: string; rank: number; points: number }>> => {
     try {
       if (!supabase) {
@@ -298,11 +409,11 @@ const teamSeasonRankingsService = {
         .from('team_season_rankings')
         .select(`
           season,
-          ${modality}_rank,
-          ${modality}_points
+          ${surface}_rank,
+          ${surface}_points
         `)
         .eq('team_id', teamId)
-        .not(`${modality}_rank`, 'is', null)
+        .not(`${surface}_rank`, 'is', null)
         .order('season', { ascending: false })
 
       if (error) {
@@ -312,12 +423,51 @@ const teamSeasonRankingsService = {
 
       return (data || []).map((row: any) => ({
         season: row.season,
-        rank: row[`${modality}_rank`],
-        points: row[`${modality}_points`]
+        rank: row[`${surface}_rank`],
+        points: row[`${surface}_points`]
       }))
 
     } catch (error) {
       console.error('Error obteniendo historial de equipo:', error)
+      return []
+    }
+  },
+
+  /**
+   * Obtiene el historial de ranking global de un equipo (usando subupdate_4)
+   */
+  getTeamGlobalRankingHistory: async (
+    teamId: string
+  ): Promise<Array<{ season: string; rank: number; points: number }>> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      const { data, error } = await supabase
+        .from('team_season_rankings')
+        .select(`
+          season,
+          subupdate_4_global_rank,
+          subupdate_4_global_points
+        `)
+        .eq('team_id', teamId)
+        .not('subupdate_4_global_rank', 'is', null)
+        .order('season', { ascending: false })
+
+      if (error) {
+        console.error('Error obteniendo historial global:', error)
+        throw error
+      }
+
+      return (data || []).map((row: any) => ({
+        season: row.season,
+        rank: row.subupdate_4_global_rank,
+        points: row.subupdate_4_global_points || 0
+      }))
+
+    } catch (error) {
+      console.error('Error obteniendo historial global de equipo:', error)
       return []
     }
   },
@@ -406,6 +556,147 @@ const teamSeasonRankingsService = {
     } catch (error) {
       console.error('Error obteniendo rankings de equipo:', error)
       return null
+    }
+  },
+
+  /**
+   * Obtiene el ranking de una superficie con cambios de posición pre-calculados
+   * Optimizado: No requiere cálculos adicionales en el frontend
+   */
+  getRankingWithPositionChanges: async (
+    season: string,
+    surface: Surface
+  ): Promise<Array<{
+    team_id: string
+    team_name: string
+    region_name: string
+    logo?: string
+    rank: number
+    points: number
+    position_change: number
+    points_change: number
+  }>> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      const { data, error } = await supabase
+        .from('team_season_rankings')
+        .select(`
+          team_id,
+          ${surface}_rank,
+          ${surface}_points,
+          ${surface}_position_change,
+          ${surface}_points_change,
+          teams(name, logo, region:regions(name))
+        `)
+        .eq('season', season)
+        .not(`${surface}_rank`, 'is', null)
+        .order(`${surface}_rank`, { ascending: true })
+
+      if (error) {
+        console.error('Error obteniendo ranking con cambios:', error)
+        throw error
+      }
+
+      return (data || []).map((row: any) => ({
+        team_id: row.team_id,
+        team_name: row.teams?.name || 'Equipo desconocido',
+        region_name: row.teams?.region?.name || 'Sin región',
+        logo: row.teams?.logo || null,
+        rank: row[`${surface}_rank`],
+        points: row[`${surface}_points`],
+        position_change: row[`${surface}_position_change`] || 0,
+        points_change: row[`${surface}_points_change`] || 0
+      }))
+
+    } catch (error) {
+      console.error('Error obteniendo ranking con cambios de posición:', error)
+      return []
+    }
+  },
+
+  /**
+   * Obtiene el ranking global con cambios de posición pre-calculados
+   * Usa la subtemporada más reciente disponible
+   */
+  getGlobalRankingWithPositionChanges: async (
+    season: string,
+    subupdate?: 1 | 2 | 3 | 4
+  ): Promise<Array<{
+    team_id: string
+    team_name: string
+    region_name: string
+    logo?: string
+    rank: number
+    points: number
+    position_change: number
+    points_change: number
+  }>> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      // Determinar qué subupdate usar
+      let subupdateToUse = subupdate || 4
+
+      // Si no se especifica, encontrar la más reciente disponible
+      if (!subupdate) {
+        for (let i = 4; i >= 1; i--) {
+          const { data: checkData } = await supabase
+            .from('team_season_rankings')
+            .select('team_id')
+            .eq('season', season)
+            .not(`subupdate_${i}_global_rank`, 'is', null)
+            .limit(1)
+
+          if (checkData && checkData.length > 0) {
+            subupdateToUse = i as 1 | 2 | 3 | 4
+            break
+          }
+        }
+      }
+
+      const rankCol = `subupdate_${subupdateToUse}_global_rank`
+      const pointsCol = `subupdate_${subupdateToUse}_global_points`
+      const posChangeCol = `subupdate_${subupdateToUse}_global_position_change`
+      const ptsChangeCol = `subupdate_${subupdateToUse}_global_points_change`
+
+      const { data, error } = await supabase
+        .from('team_season_rankings')
+        .select(`
+          team_id,
+          ${rankCol},
+          ${pointsCol},
+          ${posChangeCol},
+          ${ptsChangeCol},
+          teams(name, logo, region:regions(name))
+        `)
+        .eq('season', season)
+        .not(rankCol, 'is', null)
+        .order(rankCol, { ascending: true })
+
+      if (error) {
+        console.error('Error obteniendo ranking global con cambios:', error)
+        throw error
+      }
+
+      return (data || []).map((row: any) => ({
+        team_id: row.team_id,
+        team_name: row.teams?.name || 'Equipo desconocido',
+        region_name: row.teams?.region?.name || 'Sin región',
+        logo: row.teams?.logo || null,
+        rank: row[rankCol],
+        points: row[pointsCol],
+        position_change: row[posChangeCol] || 0,
+        points_change: row[ptsChangeCol] || 0
+      }))
+
+    } catch (error) {
+      console.error('Error obteniendo ranking global con cambios de posición:', error)
+      return []
     }
   }
 }

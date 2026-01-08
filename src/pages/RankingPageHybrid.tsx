@@ -6,7 +6,8 @@ import TeamLogo from '@/components/ui/TeamLogo'
 import GeneralRankingChart from '@/components/charts/GeneralRankingChart'
 
 const RankingPageHybrid: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('beach_mixed')
+  // Nota: selectedSurface puede almacenar superficies (beach_mixed, etc.) o rankings combinados (general_all, etc.)
+  const [selectedSurface, setSelectedSurface] = useState<string>('beach_mixed')
   const [activeTab, setActiveTab] = useState<'ranking' | 'analysis' | 'performers' | 'advanced' | 'general'>('ranking')
   const [sortBy, setSortBy] = useState<string>('total')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
@@ -81,9 +82,9 @@ const RankingPageHybrid: React.FC = () => {
     retry: 2
   })
 
-  // Mapeo de rankings combinados a categorías
-  const getCategoriesForCombinedRanking = (rankingValue: string) => {
-    const categoriesMap: { [key: string]: string[] } = {
+  // Mapeo de rankings combinados a superficies
+  const getSurfacesForCombinedRanking = (rankingValue: string) => {
+    const surfacesMap: { [key: string]: string[] } = {
       'general_all': ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'],
       'general_beach': ['beach_mixed', 'beach_open', 'beach_women'],
       'general_grass': ['grass_mixed', 'grass_open', 'grass_women'],
@@ -91,37 +92,37 @@ const RankingPageHybrid: React.FC = () => {
       'general_open': ['beach_open', 'grass_open'],
       'general_women': ['beach_women', 'grass_women']
     }
-    return categoriesMap[rankingValue] || []
+    return surfacesMap[rankingValue] || []
   }
 
   // Query optimizada usando el sistema híbrido
   const { data: rankingData, isLoading, error, refetch } = useQuery({
-    queryKey: ['hybrid-ranking', selectedCategory, referenceSeason, selectedRankingType],
+    queryKey: ['hybrid-ranking', selectedSurface, referenceSeason, selectedRankingType],
     queryFn: () => {
       if (!referenceSeason) {
         throw new Error('Temporada de referencia no disponible')
       }
       if (selectedRankingType === 'general') {
         // Para rankings combinados, usar getCombinedRanking
-        const categories = getCategoriesForCombinedRanking(selectedCategory)
+        const surfaces = getSurfacesForCombinedRanking(selectedSurface)
         return hybridRankingService.getCombinedRanking(
-          categories as any,
+          surfaces as any,
           referenceSeason
         )
       } else {
         return hybridRankingService.getRankingFromSeasonPoints(
-          selectedCategory as any,
+          selectedSurface as any,
           referenceSeason
         )
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
-    enabled: !!selectedCategory && !!referenceSeason && !isLoadingSeason
+    enabled: !!selectedSurface && !!referenceSeason && !isLoadingSeason
   })
 
   // Query para estadísticas mejoradas
   const { data: stats } = useQuery({
-    queryKey: ['ranking-stats', selectedCategory],
+    queryKey: ['ranking-stats', selectedSurface],
     queryFn: async () => {
       if (!rankingData) return null
       
@@ -455,17 +456,17 @@ const RankingPageHybrid: React.FC = () => {
     return '='
   }
 
-  const getRankingExplanation = (category: string, rankingType: 'specific' | 'general') => {
+  const getRankingExplanation = (surface: string, rankingType: 'specific' | 'general') => {
     if (rankingType === 'specific') {
       return {
         title: 'Ranking Específico',
-        explanation: 'Este ranking muestra la clasificación de equipos en una modalidad específica (superficie + categoría). Los puntos se calculan sumando todos los torneos de esa modalidad en las últimas 4 temporadas, aplicando coeficientes de antigüedad: temporada actual (1.0x), año anterior (0.8x), dos años atrás (0.5x) y tres años atrás (0.2x). Además, se aplica un coeficiente regional que multiplica todos los puntos obtenidos en torneos regionales.'
+        explanation: 'Este ranking muestra la clasificación de equipos en una superficie específica. Los puntos se calculan sumando todos los torneos de esa superficie en las últimas 4 temporadas, aplicando coeficientes de antigüedad: temporada actual (1.0x), año anterior (0.8x), dos años atrás (0.5x) y tres años atrás (0.2x). Además, se aplica un coeficiente regional que multiplica todos los puntos obtenidos en torneos regionales.'
       }
     } else {
       const explanations: Record<string, { title: string; explanation: string }> = {
         'general_all': {
           title: 'Ranking General',
-          explanation: 'Suma de puntos de todas las modalidades (Playa Mixto + Playa Open + Playa Women + Césped Mixto + Césped Open + Césped Women). Representa el rendimiento global del equipo en todas las categorías.'
+          explanation: 'Suma de puntos de todas las superficies (Playa Mixto + Playa Open + Playa Women + Césped Mixto + Césped Open + Césped Women). Representa el rendimiento global del equipo en todas las superficies.'
         },
         'general_beach': {
           title: 'Ranking Playa',
@@ -477,18 +478,18 @@ const RankingPageHybrid: React.FC = () => {
         },
         'general_mixed': {
           title: 'Ranking Mixto',
-          explanation: 'Suma de puntos de todos los torneos mixtos (Playa Mixto + Césped Mixto). Refleja el rendimiento del equipo en competiciones con equipos mixtos.'
+          explanation: 'Suma de puntos de todos los torneos mixtos (Playa Mixto + Césped Mixto). Refleja el rendimiento del equipo en competiciones de categoría mixta.'
         },
         'general_open': {
           title: 'Ranking Open',
-          explanation: 'Suma de puntos de todos los torneos open (Playa Open + Césped Open). Refleja el rendimiento del equipo en competiciones de categoría masculina.'
+          explanation: 'Suma de puntos de todos los torneos open (Playa Open + Césped Open). Refleja el rendimiento del equipo en competiciones de categoría open.'
         },
         'general_women': {
           title: 'Ranking Women',
-          explanation: 'Suma de puntos de todos los torneos women (Playa Women + Césped Women). Refleja el rendimiento del equipo en competiciones de categoría femenina.'
+          explanation: 'Suma de puntos de todos los torneos women (Playa Women + Césped Women). Refleja el rendimiento del equipo en competiciones de categoría women.'
         }
       }
-      return explanations[category] || { title: 'Ranking Combinado', explanation: 'Ranking que combina múltiples modalidades según criterios específicos.' }
+      return explanations[surface] || { title: 'Ranking Combinado', explanation: 'Ranking que combina múltiples superficies según criterios específicos.' }
     }
   }
 
@@ -602,8 +603,8 @@ const RankingPageHybrid: React.FC = () => {
             <h2 className="text-lg font-semibold text-gray-900">
               Ranking Actual – {
                 selectedRankingType === 'specific' 
-                  ? specificChampionships.find(c => c.value === selectedCategory)?.label
-                  : generalRankings.find(c => c.value === selectedCategory)?.label
+                  ? specificChampionships.find(c => c.value === selectedSurface)?.label
+                  : generalRankings.find(c => c.value === selectedSurface)?.label
               }
             </h2>
             <button
@@ -930,7 +931,7 @@ const RankingPageHybrid: React.FC = () => {
                 Ranking General Dinámico
               </h4>
               <p className="text-sm text-gray-600 max-w-2xl mx-auto">
-                El ranking general se calcula dinámicamente sumando todas las modalidades (playa mixto, open, women + césped mixto, open, women).
+                El ranking general se calcula dinámicamente sumando todas las superficies (playa mixto, open, women + césped mixto, open, women).
                 La gráfica de evolución histórica está disponible en la página de detalle de cada equipo.
               </p>
             </div>
@@ -949,8 +950,8 @@ const RankingPageHybrid: React.FC = () => {
               <div className="mt-2 text-sm text-blue-700">
                 <ul className="list-disc list-inside space-y-1">
                   <li><strong>Cálculo automático:</strong> Se recalcula cada vez que se completa un torneo de 1ª división</li>
-                  <li><strong>Coeficientes dinámicos:</strong> Las modalidades jugadas tienen coeficiente 1.0, las no jugadas usan la temporada anterior</li>
-                  <li><strong>Suma total:</strong> Incluye puntos de todas las modalidades (playa mixto, open, women + césped mixto, open, women)</li>
+                  <li><strong>Coeficientes dinámicos:</strong> Las superficies jugadas tienen coeficiente 1.0, las no jugadas usan la temporada anterior</li>
+                  <li><strong>Suma total:</strong> Incluye puntos de todas las superficies (playa mixto, open, women + césped mixto, open, women)</li>
                   <li><strong>Actualización en tiempo real:</strong> Los datos se actualizan automáticamente sin necesidad de simulación</li>
                 </ul>
               </div>
@@ -970,8 +971,8 @@ const RankingPageHybrid: React.FC = () => {
               <div className="mt-2 text-sm text-green-700">
                 <p><strong>Ejemplo de funcionamiento:</strong></p>
                 <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>Las modalidades ya jugadas en la temporada actual tienen coeficiente 1.0</li>
-                  <li>Las modalidades no jugadas usan la temporada anterior más reciente</li>
+                  <li>Las superficies ya jugadas en la temporada actual tienen coeficiente 1.0</li>
+                  <li>Las superficies no jugadas usan la temporada anterior más reciente</li>
                   <li>Los coeficientes se ajustan automáticamente según los torneos completados</li>
                 </ul>
               </div>
@@ -1415,7 +1416,7 @@ const RankingPageHybrid: React.FC = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Ranking</h1>
           <p className="mt-2 text-gray-600">
-            Clasificación oficial de equipos por modalidad y temporada. Selecciona una modalidad para ver el ranking específico, o alguno de los rankings combinados.
+            Clasificación oficial de equipos por superficie y temporada. Selecciona una superficie para ver el ranking específico, o alguno de los rankings combinados.
           </p>
         </div>
 
@@ -1427,10 +1428,10 @@ const RankingPageHybrid: React.FC = () => {
               <RankingButton
                 key={championship.value}
                 item={championship}
-                isSelected={selectedRankingType === 'specific' && selectedCategory === championship.value}
+                isSelected={selectedRankingType === 'specific' && selectedSurface === championship.value}
                 onClick={() => {
                   setSelectedRankingType('specific')
-                  setSelectedCategory(championship.value)
+                  setSelectedSurface(championship.value)
                 }}
               />
             ))}
@@ -1445,10 +1446,10 @@ const RankingPageHybrid: React.FC = () => {
               <RankingButton
                 key={ranking.value}
                 item={ranking}
-                isSelected={selectedRankingType === 'general' && selectedCategory === ranking.value}
+                isSelected={selectedRankingType === 'general' && selectedSurface === ranking.value}
                 onClick={() => {
                   setSelectedRankingType('general')
-                  setSelectedCategory(ranking.value)
+                  setSelectedSurface(ranking.value)
                 }}
               />
             ))}
@@ -1456,7 +1457,7 @@ const RankingPageHybrid: React.FC = () => {
         </div>
 
         {/* Explicación del ranking seleccionado */}
-        {selectedCategory && (
+        {selectedSurface && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <div className="flex items-start">
               <div className="flex-shrink-0">
@@ -1464,10 +1465,10 @@ const RankingPageHybrid: React.FC = () => {
               </div>
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-blue-900">
-                  {getRankingExplanation(selectedCategory, selectedRankingType).title}
+                  {getRankingExplanation(selectedSurface, selectedRankingType).title}
                 </h3>
                 <p className="mt-1 text-sm text-blue-700">
-                  {getRankingExplanation(selectedCategory, selectedRankingType).explanation}
+                  {getRankingExplanation(selectedSurface, selectedRankingType).explanation}
                 </p>
               </div>
             </div>

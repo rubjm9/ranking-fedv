@@ -55,7 +55,7 @@ CREATE INDEX IF NOT EXISTS idx_team_season_rankings_season_sub4
 
 -- Comentarios (actualizados con lógica correcta de coeficientes)
 COMMENT ON COLUMN team_season_rankings.subupdate_1_global_rank IS 
-  'Posición en ranking global después de jugarse playa mixto. Play mixto: actual*1, prev*0.8, prev2*0.5, prev3*0.2. Otras modalidades: prev*1, prev2*0.8, prev3*0.5, prev4*0.2';
+  'Posición en ranking global después de jugarse playa mixto. Play mixto: actual*1, prev*0.8, prev2*0.5, prev3*0.2. Otras superficies: prev*1, prev2*0.8, prev3*0.5, prev4*0.2';
   
 COMMENT ON COLUMN team_season_rankings.subupdate_2_global_rank IS 
   'Posición en ranking global después de jugarse playa open/women. Play mixto y open/women: actual*1, prev*0.8, prev2*0.5, prev3*0.2. Césped: prev*1, prev2*0.8, prev3*0.5, prev4*0.2';
@@ -64,19 +64,19 @@ COMMENT ON COLUMN team_season_rankings.subupdate_3_global_rank IS
   'Posición en ranking global después de jugarse césped mixto. Play: actual*1, prev*0.8. Césped mixto: actual*1, prev*0.8. Césped open/women: prev*1, prev2*0.8';
   
 COMMENT ON COLUMN team_season_rankings.subupdate_4_global_rank IS 
-  'Posición en ranking global al finalizar temporada. Todas modalidades: actual*1, prev*0.8, prev2*0.5, prev3*0.2';
+  'Posición en ranking global al finalizar temporada. Todas superficies: actual*1, prev*0.8, prev2*0.5, prev3*0.2';
 
 COMMENT ON COLUMN team_season_rankings.subupdate_1_global_points IS 
-  'Puntos globales (suma todas modalidades) después de playa mixto con coeficientes aplicados según temporalidad de cada modalidad';
+  'Puntos globales (suma todas superficies) después de playa mixto con coeficientes aplicados según temporalidad de cada superficie';
   
 COMMENT ON COLUMN team_season_rankings.subupdate_2_global_points IS 
-  'Puntos globales (suma todas modalidades) después de playa open/women con coeficientes aplicados según temporalidad';
+  'Puntos globales (suma todas superficies) después de playa open/women con coeficientes aplicados según temporalidad';
   
 COMMENT ON COLUMN team_season_rankings.subupdate_3_global_points IS 
-  'Puntos globales (suma todas modalidades) después de césped mixto con coeficientes aplicados según temporalidad';
+  'Puntos globales (suma todas superficies) después de césped mixto con coeficientes aplicados según temporalidad';
   
 COMMENT ON COLUMN team_season_rankings.subupdate_4_global_points IS 
-  'Puntos globales (suma todas modalidades) al final de temporada con coeficientes completos aplicados';
+  'Puntos globales (suma todas superficies) al final de temporada con coeficientes completos aplicados';
 
 -- Verificar estructura
 SELECT 

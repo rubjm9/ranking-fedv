@@ -1,6 +1,6 @@
 -- ================================================
 -- Migración: Sistema optimizado de rankings
--- Tabla: team_season_rankings (rankings históricos por modalidad)
+-- Tabla: team_season_rankings (rankings históricos por superficie)
 -- ================================================
 
 -- 1. Crear tabla team_season_rankings
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS team_season_rankings (
   team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
   season VARCHAR(10) NOT NULL,
   
-  -- Rankings y puntos por modalidad (CON coeficientes de antigüedad aplicados)
+  -- Rankings y puntos por superficie (CON coeficientes de antigüedad aplicados)
   beach_mixed_rank INTEGER,
   beach_mixed_points DECIMAL(10,2) DEFAULT 0,
   
@@ -47,7 +47,7 @@ CREATE INDEX IF NOT EXISTS idx_team_season_rankings_season
 CREATE INDEX IF NOT EXISTS idx_team_season_rankings_team_season 
   ON team_season_rankings(team_id, season);
 
--- Índices compuestos para consultas de modalidad específica
+-- Índices compuestos para consultas de superficie específica
 -- (Sin condiciones WHERE para evitar problemas de creación)
 CREATE INDEX IF NOT EXISTS idx_team_season_rankings_season_beach_mixed 
   ON team_season_rankings(season, beach_mixed_rank);
@@ -87,8 +87,8 @@ CREATE TRIGGER trigger_update_team_season_rankings_timestamp
 
 -- 5. Comentarios para documentación
 COMMENT ON TABLE team_season_rankings IS 
-  'Rankings históricos por modalidad con coeficientes de antigüedad aplicados. 
-   Permite consultar el ranking de cualquier equipo en cualquier temporada y modalidad.';
+  'Rankings históricos por superficie con coeficientes de antigüedad aplicados. 
+   Permite consultar el ranking de cualquier equipo en cualquier temporada y superficie.';
 
 COMMENT ON COLUMN team_season_rankings.beach_mixed_rank IS 
   'Posición en el ranking de playa mixto (incluye últimas 4 temporadas con coeficientes)';

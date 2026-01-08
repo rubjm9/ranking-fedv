@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Trash2, Plus, Eye, Clipboard, Copy } from 'lucide-react'
+import subseasonDetectionService from '@/services/subseasonDetectionService'
 import {
   DndContext,
   closestCenter,
@@ -58,7 +59,7 @@ interface Tournament {
   year: number
   type: string
   surface: string
-  modality: string
+  category: string
   regionId?: string
   startDate: string
   endDate: string
@@ -79,7 +80,7 @@ const EditTournamentPage: React.FC = () => {
     type: '',
     season: '',
     surface: '',
-    modality: '',
+    category: '',
     regionId: '',
     startDate: '',
     endDate: '',
@@ -127,7 +128,7 @@ const EditTournamentPage: React.FC = () => {
     { value: 'INDOOR', label: 'Indoor' }
   ]
 
-  const modalities = [
+  const categories = [
     { value: 'OPEN', label: 'Open' },
     { value: 'WOMEN', label: 'Women' },
     { value: 'MIXED', label: 'Mixto' }
@@ -136,9 +137,20 @@ const EditTournamentPage: React.FC = () => {
   // Mutación para actualizar torneo
   const updateTournamentMutation = useMutation({
     mutationFn: (data: any) => tournamentsService.update(id!, data),
-    onSuccess: () => {
+    onSuccess: async (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
       toast.success('Torneo actualizado exitosamente')
+      
+      // Verificar si hay subtemporadas/temporadas completadas (semiautomático)
+      if (variables.season) {
+        try {
+          await subseasonDetectionService.runFullCheck(variables.season)
+          queryClient.invalidateQueries({ queryKey: ['admin-notifications-pending'] })
+        } catch (error) {
+          console.warn('Error verificando subtemporadas:', error)
+        }
+      }
+      
       navigate('/admin/tournaments')
     },
     onError: (error: any) => {
@@ -180,7 +192,7 @@ const EditTournamentPage: React.FC = () => {
         type: tournament.type,
         season: seasonValue,
         surface: tournament.surface,
-        modality: tournament.modality,
+        category: tournament.category,
         regionId: tournament.regionId || '',
         startDate: tournament.startDate ? new Date(tournament.startDate).toISOString().split('T')[0] : '',
         endDate: tournament.endDate ? new Date(tournament.endDate).toISOString().split('T')[0] : '',
@@ -214,11 +226,11 @@ const EditTournamentPage: React.FC = () => {
       formData.type,
       selectedRegion?.name,
       formData.surface,
-      formData.modality,
+      formData.category,
       formData.season
     )
     setGeneratedName(name)
-  }, [formData.type, formData.regionId, formData.surface, formData.modality, formData.season, regions])
+  }, [formData.type, formData.regionId, formData.surface, formData.category, formData.season, regions])
 
   // Generar posiciones por defecto cuando cambie el tipo de torneo
   useEffect(() => {
@@ -242,8 +254,8 @@ const EditTournamentPage: React.FC = () => {
       newErrors.surface = 'La superficie es requerida'
     }
 
-    if (!formData.modality) {
-      newErrors.modality = 'La modalidad es requerida'
+    if (!formData.category) {
+      newErrors.category = 'La categoría es requerida'
     }
 
     if (formData.type === 'REGIONAL' && !formData.regionId) {
@@ -292,11 +304,11 @@ const EditTournamentPage: React.FC = () => {
         }
         break
         
-      case 'modality':
+      case 'category':
         if (!value) {
-          newErrors.modality = 'La modalidad es requerida'
+          newErrors.category = 'La categoría es requerida'
         } else {
-          delete newErrors.modality
+          delete newErrors.category
         }
         break
         
@@ -348,7 +360,7 @@ const EditTournamentPage: React.FC = () => {
         type: formData.type,
         year: getYearFromSeason(formData.season),
         surface: formData.surface,
-        modality: formData.modality,
+        category: formData.category,
         regionId: formData.regionId || null,
         startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
         endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
@@ -366,18 +378,18 @@ const EditTournamentPage: React.FC = () => {
         if (formData.type === 'CE1' && positionsWithTeams.length > 0) {
           console.log('🎯 Torneo de 1ª División con resultados completos, calculando rankings...')
           
-          // Determinar la subtemporada según superficie y modalidad
+          // Determinar la subtemporada según superficie y categoría
           let subseason: 1 | 2 | 3 | 4 | null = null
           const surface = formData.surface.toLowerCase()
-          const modality = formData.modality.toLowerCase()
+          const category = formData.category.toLowerCase()
           
-          if (surface === 'beach' && modality === 'mixed') {
+          if (surface === 'beach' && category === 'mixed') {
             subseason = 1 // Playa Mixto
-          } else if (surface === 'beach' && (modality === 'open' || modality === 'women')) {
+          } else if (surface === 'beach' && (category === 'open' || category === 'women')) {
             subseason = 2 // Playa Open/Women
-          } else if (surface === 'grass' && modality === 'mixed') {
+          } else if (surface === 'grass' && category === 'mixed') {
             subseason = 3 // Césped Mixto
-          } else if (surface === 'grass' && (modality === 'open' || modality === 'women')) {
+          } else if (surface === 'grass' && (category === 'open' || category === 'women')) {
             subseason = 4 // Césped Open/Women
           }
           
@@ -529,7 +541,7 @@ const EditTournamentPage: React.FC = () => {
         type: duplicatedData.type,
         season: duplicatedData.season,
         surface: duplicatedData.surface,
-        modality: duplicatedData.modality,
+        category: duplicatedData.category,
         regionId: duplicatedData.regionId || '',
         location: duplicatedData.location
       })
@@ -837,33 +849,33 @@ const EditTournamentPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Modality */}
+              {/* Category */}
               <div>
-                <label htmlFor="modality" className="block text-sm font-medium text-gray-700 mb-2">
-                  Modalidad *
+                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                  Categoría *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Users className="h-5 w-5 text-gray-400" />
                   </div>
                   <select
-                    id="modality"
-                    value={formData.modality}
-                    onChange={(e) => handleInputChange('modality', e.target.value)}
+                    id="category"
+                    value={formData.category}
+                    onChange={(e) => handleInputChange('category', e.target.value)}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.modality ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.category ? 'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
                   >
-                    <option value="">Seleccionar modalidad</option>
-                    {modalities.map((modality) => (
-                      <option key={modality.value} value={modality.value}>
-                        {modality.label}
+                    <option value="">Seleccionar categoría</option>
+                    {categories.map((category) => (
+                      <option key={category.value} value={category.value}>
+                        {category.label}
                       </option>
                     ))}
                   </select>
                 </div>
-                {errors.modality && (
-                  <p className="mt-1 text-sm text-red-600">{errors.modality}</p>
+                {errors.category && (
+                  <p className="mt-1 text-sm text-red-600">{errors.category}</p>
                 )}
               </div>
             </div>

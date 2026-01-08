@@ -6,13 +6,14 @@ import { Toaster } from 'react-hot-toast'
 import App from './App.tsx'
 import './index.css'
 
-// Crear cliente de React Query
+// Crear cliente de React Query con configuración optimizada
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutos
+      staleTime: 10 * 60 * 1000, // 10 minutos - datos de ranking cambian poco
+      gcTime: 30 * 60 * 1000, // 30 minutos en garbage collection
     },
   },
 })

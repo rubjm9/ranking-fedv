@@ -6,7 +6,7 @@ export interface Tournament {
   type: string
   year: number
   surface: string
-  modality: string
+  category: string
   regionId?: string
   region?: Region
   createdAt: string
