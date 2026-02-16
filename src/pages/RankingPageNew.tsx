@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Trophy, Medal, TrendingUp, TrendingDown, Users, Calendar, RefreshCw, BarChart3, LineChart, Star, MapPin, ChevronRight, Info } from 'lucide-react'
 import hybridRankingService from '@/services/hybridRankingService'
 import { supabase } from '@/services/supabaseService'
@@ -192,13 +192,18 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
   )
 }
 
+const VALID_CATEGORY_TABS = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'] as const
+
 const RankingPageNew: React.FC = () => {
+  const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState<'summary' | 'general' | 'beach_mixed' | 'beach_open' | 'beach_women' | 'grass_mixed' | 'grass_open' | 'grass_women'>('summary')
   // Nota: selectedSurface almacena superficies (beach_mixed, etc.)
   const [selectedSurface, setSelectedSurface] = useState<string>('beach_mixed')
   // highlightStats ahora viene de una query cacheada más abajo
   const [selectedRankingType, setSelectedRankingType] = useState<string>('current')
   const [showAllResults, setShowAllResults] = useState<boolean>(false)
+  // Durante la animación de colapsar mantenemos todas las filas renderizadas para que se vea la transición
+  const [isCollapsing, setIsCollapsing] = useState<boolean>(false)
   const [selectedTeamsForAnalysis, setSelectedTeamsForAnalysis] = useState<string[]>([])
   const [analysisView, setAnalysisView] = useState<'points' | 'positions'>('points')
   const [hoveredPoint, setHoveredPoint] = useState<{team: any, point: any, x: number, y: number} | null>(null)
@@ -207,6 +212,16 @@ const RankingPageNew: React.FC = () => {
   const [detailedViewMode, setDetailedViewMode] = useState<'ranking' | 'historical' | 'clubs' | 'analysis' | 'advanced'>('ranking')
   const [selectedSeasonForDetailedView, setSelectedSeasonForDetailedView] = useState<string | null>(null)
   // categoryHighlightStats ahora viene de una query cacheada más abajo
+
+  // Al cargar o al cambiar la URL, si viene ?category=... desde la homepage, abrir esa pestaña
+  useEffect(() => {
+    const category = searchParams.get('category')
+    if (category && VALID_CATEGORY_TABS.includes(category as typeof VALID_CATEGORY_TABS[number])) {
+      setActiveTab(category as typeof activeTab)
+      setSelectedSurface(category)
+      setDetailedViewMode('ranking')
+    }
+  }, [searchParams])
 
   // Obtener la temporada más reciente dinámicamente (para ranking general)
   const { data: referenceSeason, isLoading: isLoadingSeason } = useQuery({
@@ -247,16 +262,16 @@ const RankingPageNew: React.FC = () => {
     </svg>
   )
 
-  // Configuración de las pestañas
+  // Configuración de las pestañas: Mixto, Women, Open (primero playa, luego césped)
   const tabs = [
     { id: 'summary', label: 'Resumen', icon: BarChart3 },
     { id: 'general', label: 'Ranking General', icon: LineChart },
     { id: 'beach_mixed', label: 'Playa Mixto', icon: IconBeach },
-    { id: 'beach_open', label: 'Playa Open', icon: IconBeach },
     { id: 'beach_women', label: 'Playa Women', icon: IconBeach },
+    { id: 'beach_open', label: 'Playa Open', icon: IconBeach },
     { id: 'grass_mixed', label: 'Césped Mixto', icon: IconGrass },
-    { id: 'grass_open', label: 'Césped Open', icon: IconGrass },
-    { id: 'grass_women', label: 'Césped Women', icon: IconGrass }
+    { id: 'grass_women', label: 'Césped Women', icon: IconGrass },
+    { id: 'grass_open', label: 'Césped Open', icon: IconGrass }
   ]
 
   // Función auxiliar para determinar la subtemporada más reciente disponible para una temporada
@@ -2852,8 +2867,13 @@ const RankingPageNew: React.FC = () => {
             </div>
           </div>
 
-        {/* Tabla estilo UEFA */}
-          <div className="overflow-x-auto">
+        {/* Tabla estilo UEFA - wrapper con animación expandir/colapsar */}
+          <div
+            className="overflow-hidden transition-[max-height] duration-500 ease-in-out"
+            style={{ maxHeight: showAllResults ? '5000px' : '760px' }}
+            onTransitionEnd={() => { if (isCollapsing) setIsCollapsing(false) }}
+          >
+            <div className="overflow-x-auto">
             <table className="w-full">
             <thead className="bg-gray-100">
               <tr>
@@ -2883,7 +2903,7 @@ const RankingPageNew: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {finalRankingData?.slice(0, showAllResults ? undefined : 10).map((team, index) => {
+              {finalRankingData?.slice(0, (showAllResults || isCollapsing) ? undefined : 10).map((team, index) => {
                 const isEvenRow = index % 2 === 1
                 
                 return (
@@ -2931,14 +2951,22 @@ const RankingPageNew: React.FC = () => {
                 })}
               </tbody>
             </table>
+            </div>
           </div>
 
         {/* Footer estilo UEFA */}
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
             <div className="flex items-center justify-between">
               <button
-                onClick={() => setShowAllResults(!showAllResults)}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                onClick={() => {
+                  if (showAllResults) {
+                    setIsCollapsing(true)
+                    setShowAllResults(false)
+                  } else {
+                    setShowAllResults(true)
+                  }
+                }}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
               >
                 {showAllResults ? 'Ver solo top 10' : 'Ver ranking completo'} ✓
               </button>
@@ -3662,8 +3690,13 @@ const RankingPageNew: React.FC = () => {
             </div>
           </div>
 
-        {/* Tabla estilo UEFA */}
-        <div className="overflow-x-auto">
+        {/* Tabla estilo UEFA - wrapper con animación expandir/colapsar */}
+        <div
+          className="overflow-hidden transition-[max-height] duration-500 ease-in-out"
+          style={{ maxHeight: showAllResults ? '5000px' : '760px' }}
+          onTransitionEnd={() => { if (isCollapsing) setIsCollapsing(false) }}
+        >
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-100">
               <tr>
@@ -3692,7 +3725,7 @@ const RankingPageNew: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {rankingDataWithRecalculatedPoints?.slice(0, showAllResults ? undefined : 10).map((team, index) => {
+              {rankingDataWithRecalculatedPoints?.slice(0, (showAllResults || isCollapsing) ? undefined : 10).map((team, index) => {
                 const isEvenRow = index % 2 === 1
                 
                 return (
@@ -3740,14 +3773,22 @@ const RankingPageNew: React.FC = () => {
               })}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Footer estilo UEFA */}
         <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
             <button
-              onClick={() => setShowAllResults(!showAllResults)}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              onClick={() => {
+                if (showAllResults) {
+                  setIsCollapsing(true)
+                  setShowAllResults(false)
+                } else {
+                  setShowAllResults(true)
+                }
+              }}
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
             >
               {showAllResults ? 'Ver solo top 10' : 'Ver ranking completo'}
             </button>

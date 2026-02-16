@@ -4,6 +4,7 @@
 
 import { supabase } from './supabaseService'
 import hybridRankingService from './hybridRankingService'
+import type { SurfacePointsMap } from './seasonPointsService'
 
 // Función auxiliar para obtener ranking de una categoría de la temporada anterior desde team_season_rankings
 const getPreviousSeasonCategoryRanking = async (category: string, referenceSeason: string) => {
@@ -228,12 +229,14 @@ export interface RankingHistory {
 class HomePageService {
   /**
    * Obtener equipos top por categoría (OPTIMIZADO)
-   * Usa datos pre-calculados de team_season_rankings con position_change incluido
+   * Usa datos pre-calculados de team_season_rankings con position_change incluido.
+   * Usa la misma lógica que la página Rankings: temporada más reciente por categoría
+   * (getMostRecentSeasonForCategory), no una temporada global.
    */
   async getTopTeamsByCategory(category: string, limit: number = 5, season?: string): Promise<HomePageTeam[]> {
     try {
-      // Obtener temporada más reciente si no se proporciona
-      const referenceSeason = season || await hybridRankingService.getMostRecentSeason()
+      // Misma lógica que la página Rankings: temporada más reciente con datos para esta categoría
+      const referenceSeason = season || await hybridRankingService.getMostRecentSeasonForCategory(category as keyof SurfacePointsMap)
       
       const rankCol = `${category}_rank`
       const pointsCol = `${category}_points`
@@ -310,7 +313,7 @@ class HomePageService {
    */
   private async getTopTeamsByCategoryLegacy(category: string, limit: number, referenceSeason: string): Promise<HomePageTeam[]> {
     try {
-      const categoryRanking = await hybridRankingService.getRankingFromSeasonPoints(category, referenceSeason)
+      const categoryRanking = await hybridRankingService.getRankingFromSeasonPoints(category as keyof SurfacePointsMap, referenceSeason)
       const teamIds = categoryRanking.slice(0, limit).map(team => team.team_id)
       
       const { data: teamsData } = await supabase
