@@ -23,6 +23,7 @@ import {
 import toast from 'react-hot-toast'
 import { tournamentsService, supabase } from '../services/apiService'
 import ActionButtonGroup from '../components/ui/ActionButtonGroup'
+import { generateSeasons } from '../utils/tournamentUtils'
 
 interface Tournament {
   id: string
@@ -325,9 +326,11 @@ const TournamentsAdminPage: React.FC = () => {
           className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
           <option value="all">Todas las temporadas</option>
-          <option value="2024">2024-25</option>
-          <option value="2023">2023-24</option>
-          <option value="2022">2022-23</option>
+          {generateSeasons().map((season) => (
+            <option key={season.value} value={season.startYear}>
+              {season.label}
+            </option>
+          ))}
         </select>
         <select
           value={selectedSurface}

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Users, MapPin, Trophy, Calendar, TrendingUp, BarChart3, Mail, Award, Target } from 'lucide-react'
-import { teamDetailService, TeamDetailData, TournamentResult, RankingHistory, SeasonBreakdown } from '@/services/teamDetailService'
+import { teamDetailService, TeamDetailData } from '@/services/teamDetailService'
+import { teamsService } from '@/services/apiService'
 import TeamLogo from '@/components/ui/TeamLogo'
 import GeneralRankingChart from '@/components/charts/GeneralRankingChart'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
@@ -10,7 +12,6 @@ import Tabs, { TabItem } from '@/components/ui/Tabs'
 import StickyHeader from '@/components/ui/StickyHeader'
 import ShareButton from '@/components/ui/ShareButton'
 import TournamentTable from '@/components/ui/TournamentTable'
-import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 
 const TeamDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -19,9 +20,14 @@ const TeamDetailPage: React.FC = () => {
   const [teamData, setTeamData] = useState<TeamDetailData | null>(null)
   const [relatedTeams, setRelatedTeams] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview')
-  
-  // Lazy loading para gráfico
-  const [chartRef, isChartVisible] = useIntersectionObserver({ threshold: 0.1 })
+  const [chartMetric, setChartMetric] = useState<'position' | 'points'>('position')
+  const [compareWithTeamId, setCompareWithTeamId] = useState<string>('')
+
+  const { data: teamsResponse } = useQuery({
+    queryKey: ['teams-list-all'],
+    queryFn: () => teamsService.getAll({})
+  })
+  const allTeams = teamsResponse?.data ?? []
 
   useEffect(() => {
     loadTeamData()
@@ -415,24 +421,66 @@ const TeamDetailPage: React.FC = () => {
       icon: TrendingUp,
       content: (
         <div className="space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6" ref={chartRef}>
-            {isChartVisible && (
-              <GeneralRankingChart 
-                teamId={team.id}
-                teamName={team.name}
-                height={400}
-                showPoints={true}
-                useDynamicData={true}
-              />
-            )}
-            {!isChartVisible && (
-              <div className="h-96 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Cargando gráfico...</p>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">Ver por:</span>
+                <div className="inline-flex rounded-lg border border-gray-200 p-0.5 bg-gray-50">
+                  <button
+                    type="button"
+                    onClick={() => setChartMetric('position')}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                      chartMetric === 'position'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Posición
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setChartMetric('points')}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                      chartMetric === 'points'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Puntos
+                  </button>
                 </div>
               </div>
-            )}
+              <div className="flex items-center gap-2">
+                <label htmlFor="compare-team" className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                  Comparar con:
+                </label>
+                <select
+                  id="compare-team"
+                  value={compareWithTeamId}
+                  onChange={(e) => setCompareWithTeamId(e.target.value)}
+                  className="block w-full sm:w-56 rounded-lg border border-gray-300 py-2 pl-3 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Ninguno</option>
+                  {allTeams
+                    .filter((t: { id: string }) => t.id !== team.id)
+                    .map((t: { id: string; name: string }) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
+            <GeneralRankingChart 
+              teamId={team.id}
+              teamName={team.name}
+              height={400}
+              showPoints={chartMetric === 'points'}
+              useDynamicData={true}
+              metric={chartMetric}
+              compareWithTeamId={compareWithTeamId || undefined}
+              compareWithTeamName={compareWithTeamId ? allTeams.find((t: { id: string }) => t.id === compareWithTeamId)?.name : undefined}
+            />
           </div>
         </div>
       )

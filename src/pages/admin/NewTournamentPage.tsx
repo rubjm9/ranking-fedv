@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Plus, Trash2, Clipboard } from 'lucide-react'
@@ -64,22 +64,31 @@ const NewTournamentPage: React.FC = () => {
   const [showPasteModal, setShowPasteModal] = useState(false)
   const [generatedName, setGeneratedName] = useState('')
   const [focusNextPosition, setFocusNextPosition] = useState(false)
+  const duplicateToastShownRef = useRef(false)
 
-  // Cargar datos de duplicación si existen
+  // Cargar datos de duplicación si existen (toast una sola vez aunque el efecto se ejecute dos veces p. ej. Strict Mode)
   useEffect(() => {
     const isDuplicate = searchParams.get('duplicate') === 'true'
-    if (isDuplicate) {
-      const duplicateData: TournamentFormData = {
-        type: searchParams.get('type') || '',
-        season: searchParams.get('season') || '',
-        surface: searchParams.get('surface') || '',
-        category: searchParams.get('category') || '',
-        regionId: searchParams.get('regionId') || '',
-        startDate: '',
-        endDate: '',
-        location: searchParams.get('location') || ''
-      }
-      setFormData(duplicateData)
+    if (!isDuplicate) {
+      duplicateToastShownRef.current = false
+      return
+    }
+    const duplicateData: TournamentFormData = {
+      type: searchParams.get('type') || '',
+      season: searchParams.get('season') || '',
+      surface: searchParams.get('surface') || '',
+      category: searchParams.get('category') || '',
+      regionId: searchParams.get('regionId') || '',
+      startDate: '',
+      endDate: '',
+      location: searchParams.get('location') || ''
+    }
+    setFormData(duplicateData)
+    if (!duplicateToastShownRef.current) {
+      duplicateToastShownRef.current = true
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/23e69a74-9e17-4b71-b357-55aeb2900bbd',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d1831b'},body:JSON.stringify({sessionId:'d1831b',location:'NewTournamentPage.tsx:useEffect-duplicate',message:'Toast desde useEffect duplicate',data:{isDuplicate:true},hypothesisId:'B',timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       toast.success('Datos del torneo cargados. Puedes editarlos antes de guardar.')
     }
   }, [searchParams])
@@ -144,8 +153,10 @@ const NewTournamentPage: React.FC = () => {
     },
     onSuccess: async (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
-      toast.success('Torneo creado exitosamente')
-      
+      // Toast solo en handleSubmit para evitar duplicado (onSuccess + handleSubmit)
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/23e69a74-9e17-4b71-b357-55aeb2900bbd',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d1831b'},body:JSON.stringify({sessionId:'d1831b',location:'NewTournamentPage.tsx:onSuccess',message:'Toast desde mutation onSuccess',data:{source:'createTournamentMutation.onSuccess'},hypothesisId:'A',timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       // Verificar si hay subtemporadas/temporadas completadas (semiautomático)
       if (variables.season) {
         try {
@@ -338,20 +349,29 @@ const NewTournamentPage: React.FC = () => {
               
               if (rankingResult.success) {
                 console.log(`✅ Rankings de subtemporada ${subseason} calculados: ${rankingResult.updated} equipos`)
+                // #region agent log
+                fetch('http://127.0.0.1:7243/ingest/23e69a74-9e17-4b71-b357-55aeb2900bbd',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d1831b'},body:JSON.stringify({sessionId:'d1831b',location:'NewTournamentPage.tsx:handleSubmit',message:'Toast desde handleSubmit',data:{branch:'ranking-recalc'},hypothesisId:'A',timestamp:Date.now()})}).catch(()=>{});
+                // #endregion
                 toast.success(`Torneo creado y rankings recalculados para subtemporada ${subseason}`)
               } else {
                 console.error('❌ Error al calcular rankings:', rankingResult.message)
-                toast.warning('Torneo creado pero hubo un error al calcular rankings')
+                toast.error('Torneo creado pero hubo un error al calcular rankings')
               }
             } else {
               console.error('❌ Error al actualizar puntos de temporada:', recalcResult.message)
-              toast.warning('Torneo creado pero hubo un error al calcular puntos')
+              toast.error('Torneo creado pero hubo un error al calcular puntos')
             }
           }
         } else {
+          // #region agent log
+          fetch('http://127.0.0.1:7243/ingest/23e69a74-9e17-4b71-b357-55aeb2900bbd',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d1831b'},body:JSON.stringify({sessionId:'d1831b',location:'NewTournamentPage.tsx:handleSubmit',message:'Toast desde handleSubmit',data:{branch:'positions-no-ce1'},hypothesisId:'A',timestamp:Date.now()})}).catch(()=>{});
+          // #endregion
           toast.success('Torneo creado exitosamente')
         }
       } else {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/23e69a74-9e17-4b71-b357-55aeb2900bbd',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d1831b'},body:JSON.stringify({sessionId:'d1831b',location:'NewTournamentPage.tsx:handleSubmit',message:'Toast desde handleSubmit',data:{branch:'no-positions'},hypothesisId:'A',timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         toast.success('Torneo creado exitosamente')
       }
     } catch (error) {

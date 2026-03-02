@@ -185,8 +185,10 @@ const EditTournamentPage: React.FC = () => {
       const response = await tournamentsService.getById(id!)
       const tournament = response.data
       
-      // Convertir año a temporada
-      const seasonValue = `${tournament.year}/${(tournament.year + 1).toString().slice(-2)}`
+      // Convertir año a temporada (mismo formato que las opciones del select: "2021-22")
+      const seasonValue = tournament.year != null
+        ? `${tournament.year}-${(tournament.year + 1).toString().slice(-2)}`
+        : ''
       
       setFormData({
         type: tournament.type,
@@ -416,11 +418,11 @@ const EditTournamentPage: React.FC = () => {
                 toast.success(`Torneo actualizado y rankings recalculados para subtemporada ${subseason}`)
               } else {
                 console.error('❌ Error al calcular rankings:', rankingResult.message)
-                toast.warning('Torneo actualizado pero hubo un error al calcular rankings')
+                toast.error('Torneo actualizado pero hubo un error al calcular rankings')
               }
             } else {
               console.error('❌ Error al actualizar puntos de temporada:', recalcResult.message)
-              toast.warning('Torneo actualizado pero hubo un error al calcular puntos')
+              toast.error('Torneo actualizado pero hubo un error al calcular puntos')
             }
           }
         }

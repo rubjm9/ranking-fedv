@@ -1,5 +1,5 @@
 import React from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import dynamicRankingService from '@/services/dynamicRankingService'
 
 interface SubseasonDataPoint {
@@ -10,6 +10,59 @@ interface SubseasonDataPoint {
   points: number
 }
 
+const SUBSEASON_LABELS = ['Playa Mixto', 'Playa Open/Women', 'Césped Mixto', 'Final']
+
+function flattenHistory(historyData: any[]): any[] {
+  const processed: any[] = []
+  historyData.forEach(point => {
+    const baseYear = new Date(point.date).getFullYear()
+    const subupdates = [point.subupdate1, point.subupdate2, point.subupdate3, point.subupdate4]
+    subupdates.forEach((subupdate: any, index: number) => {
+      if (subupdate && subupdate.rank != null) {
+        const dateStr = `${baseYear}-${(3 * index + 3).toString().padStart(2, '0')}-01`
+        processed.push({
+          date: dateStr,
+          displayDate: new Date(dateStr).toLocaleDateString('es-ES', { month: 'short', year: '2-digit' }),
+          season: point.season,
+          subseasonLabel: SUBSEASON_LABELS[index],
+          rank: subupdate.rank,
+          points: subupdate.points ?? 0
+        })
+      }
+    })
+  })
+  return processed.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+}
+
+function mergeHistories(mainData: any[], compareData: any[]): any[] {
+  const byDate: Record<string, any> = {}
+  mainData.forEach(row => {
+    byDate[row.date] = {
+      ...row,
+      compareRank: null as number | null,
+      comparePoints: null as number | null
+    }
+  })
+  compareData.forEach(row => {
+    if (!byDate[row.date]) {
+      byDate[row.date] = {
+        date: row.date,
+        displayDate: row.displayDate,
+        season: row.season,
+        subseasonLabel: row.subseasonLabel,
+        rank: null,
+        points: null,
+        compareRank: row.rank,
+        comparePoints: row.points ?? 0
+      }
+    } else {
+      byDate[row.date].compareRank = row.rank
+      byDate[row.date].comparePoints = row.points ?? 0
+    }
+  })
+  return Object.values(byDate).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+}
+
 interface GeneralRankingChartProps {
   data?: SubseasonDataPoint[]
   teamId?: string
@@ -17,6 +70,12 @@ interface GeneralRankingChartProps {
   height?: number
   showPoints?: boolean
   useDynamicData?: boolean
+  /** 'position' = gráfica de posición (ranking), 'points' = gráfica de puntos */
+  metric?: 'position' | 'points'
+  /** ID del equipo con el que comparar */
+  compareWithTeamId?: string
+  /** Nombre del equipo con el que comparar (para leyenda) */
+  compareWithTeamName?: string
 }
 
 const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({ 
@@ -25,63 +84,38 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
   teamName, 
   height = 300,
   showPoints = false,
-  useDynamicData = false
+  useDynamicData = false,
+  metric = 'position',
+  compareWithTeamId,
+  compareWithTeamName
 }) => {
   const [chartData, setChartData] = React.useState<any[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
 
-  // Cargar datos dinámicos si se solicita
+  // Cargar datos dinámicos (y opcionalmente del equipo a comparar)
   React.useEffect(() => {
     if (useDynamicData && teamId) {
       setIsLoading(true)
-      // Obtener datos de las 4 subtemporadas para cada temporada
-      dynamicRankingService.getGlobalRankingHistory(teamId)
-        .then(historyData => {
-          console.log('📊 Datos históricos recibidos:', historyData)
-          
-          // Transformar: en lugar de 1 punto por año, crear 4 puntos (uno por subtemporada)
-          const processedData: any[] = []
-          
-          historyData.forEach(point => {
-            const baseYear = new Date(point.date).getFullYear()
-            
-            // Crear 4 puntos, uno para cada subtemporada de la temporada
-            const subupdateLabels = [
-              'Playa Mixto',
-              'Playa Open/Women',
-              'Césped Mixto',
-              'Final'
-            ]
-            
-            const subupdates = [point.subupdate1, point.subupdate2, point.subupdate3, point.subupdate4]
-            
-            subupdates.forEach((subupdate, index) => {
-              if (subupdate && subupdate.rank !== null && subupdate.rank !== undefined) {
-                processedData.push({
-                  date: `${baseYear}-${(3 * index + 3).toString().padStart(2, '0')}-01`,
-                  displayDate: new Date(`${baseYear}-${(3 * index + 3).toString().padStart(2, '0')}-01`).toLocaleDateString('es-ES', { 
-                    month: 'short', 
-                    year: '2-digit' 
-                  }),
-                  season: point.season,
-                  subseasonLabel: subupdateLabels[index],
-                  rank: subupdate.rank,
-                  points: subupdate.points
-                })
-              }
-            })
-          })
-          
-          console.log('📊 Datos procesados para gráfica:', processedData)
-          setChartData(processedData)
+      const loadMain = dynamicRankingService.getGlobalRankingHistory(teamId)
+      const loadCompare = compareWithTeamId
+        ? dynamicRankingService.getGlobalRankingHistory(compareWithTeamId)
+        : Promise.resolve([])
+
+      Promise.all([loadMain, loadCompare])
+        .then(([mainHistory, compareHistory]) => {
+          const mainFlat = flattenHistory(mainHistory)
+          if (compareWithTeamId && compareHistory.length > 0) {
+            const compareFlat = flattenHistory(compareHistory)
+            setChartData(mergeHistories(mainFlat, compareFlat))
+          } else {
+            setChartData(mainFlat)
+          }
         })
         .catch(error => {
           console.error('Error cargando datos dinámicos:', error)
           setChartData([])
         })
-        .finally(() => {
-          setIsLoading(false)
-        })
+        .finally(() => setIsLoading(false))
     } else if (data) {
       // Para datos estáticos (compatibilidad con versión anterior)
       const dataByDate: { [key: string]: any } = {}
@@ -99,16 +133,28 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
           }
         }
         
-        // Agregar datos según la categoría
+        // Agregar datos según la categoría (open y women por separado cuando existan)
         if (point.category === 'subseason_1_beach_mixed') {
           dataByDate[dateKey].subseason1 = point.rank
           dataByDate[dateKey].subseason1Points = point.points
+        } else if (point.category === 'subseason_2_beach_open') {
+          dataByDate[dateKey].subseason2Open = point.rank
+          dataByDate[dateKey].subseason2OpenPoints = point.points
+        } else if (point.category === 'subseason_2_beach_women') {
+          dataByDate[dateKey].subseason2Women = point.rank
+          dataByDate[dateKey].subseason2WomenPoints = point.points
         } else if (point.category === 'subseason_2_beach_open_women') {
           dataByDate[dateKey].subseason2 = point.rank
           dataByDate[dateKey].subseason2Points = point.points
         } else if (point.category === 'subseason_3_grass_mixed') {
           dataByDate[dateKey].subseason3 = point.rank
           dataByDate[dateKey].subseason3Points = point.points
+        } else if (point.category === 'subseason_4_grass_open') {
+          dataByDate[dateKey].subseason4Open = point.rank
+          dataByDate[dateKey].subseason4OpenPoints = point.points
+        } else if (point.category === 'subseason_4_grass_women') {
+          dataByDate[dateKey].subseason4Women = point.rank
+          dataByDate[dateKey].subseason4WomenPoints = point.points
         } else if (point.category === 'subseason_4_grass_open_women') {
           dataByDate[dateKey].subseason4 = point.rank
           dataByDate[dateKey].subseason4Points = point.points
@@ -120,7 +166,7 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
       
       setChartData(Object.values(dataByDate).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
     }
-  }, [useDynamicData, teamId, data])
+  }, [useDynamicData, teamId, compareWithTeamId, data])
 
   if (isLoading) {
     return (
@@ -149,40 +195,40 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
     )
   }
 
+  const isComparing = Boolean(compareWithTeamId && compareWithTeamName)
+  const dataKey = metric === 'points' ? 'points' : 'rank'
+  const compareDataKey = metric === 'points' ? 'comparePoints' : 'compareRank'
+
   // Tooltip personalizado
   const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const dataPoint = payload[0]?.payload
-      return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-900 mb-2">{label}</p>
-          {dataPoint?.subseasonLabel && (
-            <p className="text-xs text-gray-500 mb-2">{dataPoint.subseasonLabel}</p>
-          )}
-          {payload.map((entry: any, index: number) => {
-            if (entry.value !== undefined && entry.value !== null) {
-              return (
-                <div key={index} className="flex items-center space-x-2 text-sm">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: entry.color }}
-                  />
-                  <span className="text-gray-600">Ranking Global:</span>
-                  <span className="font-medium">#{entry.value}</span>
-                  {showPoints && dataPoint?.points && (
-                    <span className="text-gray-500">
-                      ({dataPoint.points.toFixed(1)} pts)
-                    </span>
-                  )}
-                </div>
-              )
-            }
-            return null
-          })}
-        </div>
-      )
-    }
-    return null
+    if (!active || !payload?.length) return null
+    const dataPoint = payload[0]?.payload
+    return (
+      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg min-w-[160px]">
+        <p className="font-medium text-gray-900 mb-2">{label}</p>
+        {dataPoint?.subseasonLabel && (
+          <p className="text-xs text-gray-500 mb-2">{dataPoint.subseasonLabel}</p>
+        )}
+        {payload.map((entry: any, index: number) => {
+          if (entry.value == null && entry.dataKey !== compareDataKey) return null
+          const isCompare = entry.dataKey === compareDataKey
+          const labelText = isCompare ? compareWithTeamName : (teamName || 'Este equipo')
+          const value = entry.value
+          if (value == null) return null
+          return (
+            <div key={index} className="flex items-center gap-2 text-sm mb-1">
+              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+              <span className="text-gray-600 truncate">{labelText}:</span>
+              {metric === 'position' ? (
+                <span className="font-medium">#{value}</span>
+              ) : (
+                <span className="font-medium">{Number(value).toFixed(1)} pts</span>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    )
   }
 
   return (
@@ -209,23 +255,37 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
             fontSize={12}
             tickLine={false}
             axisLine={false}
-            reversed={true}
-            domain={['dataMin - 1', 'dataMax + 1']}
+            reversed={metric === 'position'}
+            domain={metric === 'position' ? ['dataMin - 1', 'dataMax + 1'] : [0, 'auto']}
           />
           <Tooltip content={<CustomTooltip />} />
+          {isComparing && <Legend />}
           
           {useDynamicData ? (
-            // Para datos dinámicos, mostrar una línea continua con todos los puntos
-            <Line
-              type="monotone"
-              dataKey="rank"
-              stroke="#3B82F6"
-              strokeWidth={2}
-              dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2 }}
-              connectNulls={false}
-              name="Ranking Global"
-            />
+            <>
+              <Line
+                type="monotone"
+                dataKey={dataKey}
+                stroke="#3B82F6"
+                strokeWidth={2}
+                dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2 }}
+                connectNulls={false}
+                name={teamName || 'Este equipo'}
+              />
+              {isComparing && (
+                <Line
+                  type="monotone"
+                  dataKey={compareDataKey}
+                  stroke="#F59E0B"
+                  strokeWidth={2}
+                  dot={{ fill: '#F59E0B', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, stroke: '#F59E0B', strokeWidth: 2 }}
+                  connectNulls={false}
+                  name={compareWithTeamName || 'Otro equipo'}
+                />
+              )}
+            </>
           ) : (
             // Para datos estáticos, mostrar todas las líneas de subtemporadas
             <>
@@ -241,13 +301,33 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
               />
               <Line
                 type="monotone"
-                dataKey="subseason2"
+                dataKey="subseason2Open"
                 stroke="#EF4444"
                 strokeWidth={2}
                 dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6, stroke: '#EF4444', strokeWidth: 2 }}
                 connectNulls={false}
-                name="Playa Open/Women"
+                name="Playa Open"
+              />
+              <Line
+                type="monotone"
+                dataKey="subseason2Women"
+                stroke="#EC4899"
+                strokeWidth={2}
+                dot={{ fill: '#EC4899', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: '#EC4899', strokeWidth: 2 }}
+                connectNulls={false}
+                name="Playa Women"
+              />
+              <Line
+                type="monotone"
+                dataKey="subseason2"
+                stroke="#F97316"
+                strokeWidth={1.5}
+                strokeDasharray="4 2"
+                dot={{ fill: '#F97316', strokeWidth: 2, r: 3 }}
+                connectNulls={false}
+                name="Playa (combinado)"
               />
               <Line
                 type="monotone"
@@ -261,13 +341,33 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
               />
               <Line
                 type="monotone"
-                dataKey="subseason4"
+                dataKey="subseason4Open"
                 stroke="#F59E0B"
                 strokeWidth={2}
                 dot={{ fill: '#F59E0B', strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6, stroke: '#F59E0B', strokeWidth: 2 }}
                 connectNulls={false}
-                name="Césped Open/Women"
+                name="Césped Open"
+              />
+              <Line
+                type="monotone"
+                dataKey="subseason4Women"
+                stroke="#8B5CF6"
+                strokeWidth={2}
+                dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: '#8B5CF6', strokeWidth: 2 }}
+                connectNulls={false}
+                name="Césped Women"
+              />
+              <Line
+                type="monotone"
+                dataKey="subseason4"
+                stroke="#84CC16"
+                strokeWidth={1.5}
+                strokeDasharray="4 2"
+                dot={{ fill: '#84CC16', strokeWidth: 2, r: 3 }}
+                connectNulls={false}
+                name="Césped (combinado)"
               />
               <Line
                 type="monotone"
@@ -285,11 +385,13 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
       </ResponsiveContainer>
       
       <div className="mt-4 text-xs text-gray-500 text-center">
-        <p>Los rankings se muestran con posición 1 arriba y últimas posiciones abajo</p>
-        {useDynamicData ? (
-          <p>Datos calculados dinámicamente según subtemporadas jugadas</p>
+        {metric === 'position' ? (
+          <p>Posición: 1 arriba (mejor), últimas posiciones abajo</p>
         ) : (
-          <p>Los datos incluyen las 4 subtemporadas más el ranking global final de cada temporada</p>
+          <p>Puntos acumulados en el ranking global por subtemporada</p>
+        )}
+        {useDynamicData && (
+          <p>Datos calculados dinámicamente según subtemporadas jugadas</p>
         )}
       </div>
     </div>

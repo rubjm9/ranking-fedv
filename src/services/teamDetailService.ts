@@ -379,8 +379,12 @@ class TeamDetailService {
         .select(`
           *,
           subseason_1_beach_mixed_rank,
+          subseason_2_beach_open_rank,
+          subseason_2_beach_women_rank,
           subseason_2_beach_open_women_rank,
           subseason_3_grass_mixed_rank,
+          subseason_4_grass_open_rank,
+          subseason_4_grass_women_rank,
           subseason_4_grass_open_women_rank,
           final_season_global_rank
         `)
@@ -406,17 +410,23 @@ class TeamDetailService {
           })
         }
 
-        // Subtemporada 2: Playa Open/Women (Abril-Junio)
-        if (season.subseason_2_beach_open_women_rank) {
-          const avgRank = season.subseason_2_beach_open_women_rank // Promedio de open y women
-          const totalPoints = (season.beach_open_points || 0) + (season.beach_women_points || 0)
-          
+        // Subtemporada 2: Playa Open y Women por separado (Abril-Junio)
+        if (season.subseason_2_beach_open_rank != null) {
           history.push({
             date: `${seasonYear}-06-30`,
             season: season.season,
-            category: 'subseason_2_beach_open_women',
-            rank: avgRank,
-            points: totalPoints
+            category: 'subseason_2_beach_open',
+            rank: season.subseason_2_beach_open_rank,
+            points: season.beach_open_points || 0
+          })
+        }
+        if (season.subseason_2_beach_women_rank != null) {
+          history.push({
+            date: `${seasonYear}-06-30`,
+            season: season.season,
+            category: 'subseason_2_beach_women',
+            rank: season.subseason_2_beach_women_rank,
+            points: season.beach_women_points || 0
           })
         }
 
@@ -431,17 +441,23 @@ class TeamDetailService {
           })
         }
 
-        // Subtemporada 4: Césped Open/Women (Octubre-Diciembre)
-        if (season.subseason_4_grass_open_women_rank) {
-          const avgRank = season.subseason_4_grass_open_women_rank // Promedio de open y women
-          const totalPoints = (season.grass_open_points || 0) + (season.grass_women_points || 0)
-          
+        // Subtemporada 4: Césped Open y Women por separado (Octubre-Diciembre)
+        if (season.subseason_4_grass_open_rank != null) {
           history.push({
             date: `${seasonYear}-12-31`,
             season: season.season,
-            category: 'subseason_4_grass_open_women',
-            rank: avgRank,
-            points: totalPoints
+            category: 'subseason_4_grass_open',
+            rank: season.subseason_4_grass_open_rank,
+            points: season.grass_open_points || 0
+          })
+        }
+        if (season.subseason_4_grass_women_rank != null) {
+          history.push({
+            date: `${seasonYear}-12-31`,
+            season: season.season,
+            category: 'subseason_4_grass_women',
+            rank: season.subseason_4_grass_women_rank,
+            points: season.grass_women_points || 0
           })
         }
 

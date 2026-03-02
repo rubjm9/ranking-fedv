@@ -29,9 +29,13 @@ export interface SeasonPoints {
   }
   // Rankings por subtemporada
   subseason_1_beach_mixed_rank?: number        // Ranking en subtemporada 1: playa mixto
-  subseason_2_beach_open_women_rank?: number  // Ranking en subtemporada 2: playa open/women
+  subseason_2_beach_open_women_rank?: number  // (legacy) Ranking combinado subtemporada 2
+  subseason_2_beach_open_rank?: number        // Ranking en subtemporada 2: playa open
+  subseason_2_beach_women_rank?: number       // Ranking en subtemporada 2: playa women
   subseason_3_grass_mixed_rank?: number       // Ranking en subtemporada 3: césped mixto
-  subseason_4_grass_open_women_rank?: number  // Ranking en subtemporada 4: césped open/women
+  subseason_4_grass_open_women_rank?: number  // (legacy) Ranking combinado subtemporada 4
+  subseason_4_grass_open_rank?: number       // Ranking en subtemporada 4: césped open
+  subseason_4_grass_women_rank?: number       // Ranking en subtemporada 4: césped women
   final_season_global_rank?: number           // Ranking global final de la temporada
   subseason_ranks_calculated_at?: string       // Timestamp de cuando se calcularon los rankings
 }
@@ -142,8 +146,10 @@ const seasonPointsService = {
         }
       })
 
-      // Preparar datos para upsert
+      // Preparar datos para upsert (sin best_position: columna eliminada en migración 006)
       const upsertData = Object.keys(teamPointsMap).map(tid => {
+        const tournamentsPlayed = teamPointsMap[tid].tournaments_played || {}
+        const totalPlayed = Object.values(tournamentsPlayed).reduce((sum, count) => sum + (count || 0), 0)
         return {
           team_id: tid,
           season: season,
@@ -153,8 +159,7 @@ const seasonPointsService = {
           grass_mixed_points: teamPointsMap[tid].grass_mixed || 0,
           grass_open_points: teamPointsMap[tid].grass_open || 0,
           grass_women_points: teamPointsMap[tid].grass_women || 0,
-          tournaments_played: Object.values(teamPointsMap[tid].tournaments_played).reduce((sum, count) => sum + (count || 0), 0),
-          best_position: Math.min(...Object.values(teamPointsMap[tid].best_position).filter(pos => pos !== null && pos !== undefined)),
+          tournaments_played: totalPlayed,
           last_updated: new Date().toISOString()
         }
       })
@@ -440,29 +445,19 @@ const seasonPointsService = {
 
       console.log(`📊 Calculando rankings para subtemporada ${subseason} de ${season}...`)
 
-      // Mapear subtemporada a superficies
-      const subseasonSurfaces = {
-        1: ['beach_mixed'],                    // Subtemporada 1: playa mixto
-        2: ['beach_open', 'beach_women'],      // Subtemporada 2: playa open/women
-        3: ['grass_mixed'],                    // Subtemporada 3: césped mixto
-        4: ['grass_open', 'grass_women']       // Subtemporada 4: césped open/women
-      }
-
-      const surfaces = subseasonSurfaces[subseason] as (keyof SurfacePointsMap)[]
-      console.log(`🎯 Superficies a procesar: ${surfaces.join(', ')}`)
-
-      // Obtener datos de la temporada actual y las 3 anteriores
+      // Subtemporadas 1 y 3: una sola modalidad. Subtemporadas 2 y 4: open y women por separado.
       const seasonYear = parseInt(season.split('-')[0])
-      const seasons = [
+      const seasonsList = [
         season,
         `${seasonYear - 1}-${seasonYear.toString().slice(-2)}`,
         `${seasonYear - 2}-${(seasonYear - 1).toString().slice(-2)}`,
         `${seasonYear - 3}-${(seasonYear - 2).toString().slice(-2)}`
       ]
 
-      console.log(`📅 Temporadas a considerar: ${seasons.join(', ')}`)
+      console.log(`📅 Temporadas a considerar: ${seasonsList.join(', ')}`)
 
-      // Obtener datos de team_season_points para estas temporadas
+      const surfaces = subseason === 1 ? ['beach_mixed'] : subseason === 2 ? ['beach_open', 'beach_women'] : subseason === 3 ? ['grass_mixed'] : ['grass_open', 'grass_women']
+
       const { data: seasonData, error } = await supabase
         .from('team_season_points')
         .select(`
@@ -470,7 +465,7 @@ const seasonPointsService = {
           season,
           ${surfaces.map(surf => `${surf}_points`).join(', ')}
         `)
-        .in('season', seasons)
+        .in('season', seasonsList)
 
       if (error) {
         console.error('❌ Error obteniendo datos de temporada:', error)
@@ -479,63 +474,71 @@ const seasonPointsService = {
 
       console.log(`📦 Registros obtenidos: ${seasonData?.length || 0}`)
 
-      // Calcular rankings para cada superficie
-      const rankingsBySurface: { [surface: string]: { team_id: string; total_points: number; rank: number }[] } = {}
+      let updates: any[]
 
-      for (const surface of surfaces) {
-        console.log(`\n🔄 Procesando superficie: ${surface}`)
-
-        // Agrupar por equipo y calcular puntos totales con coeficientes
+      if (subseason === 1 || subseason === 3) {
+        // Una sola modalidad: un ranking, una columna
+        const column = subseason === 1 ? 'subseason_1_beach_mixed_rank' : 'subseason_3_grass_mixed_rank'
+        const surface = surfaces[0]
         const teamPointsMap: { [teamId: string]: number } = {}
-
         seasonData?.forEach((row: any) => {
           const teamId = row.team_id
-          const season = row.season
+          const seasonRow = row.season
           const basePoints = row[`${surface}_points`] || 0
-
           if (basePoints <= 0) return
-
-          // Calcular coeficiente según la temporada
-          const seasonIndex = seasons.indexOf(season)
-          const coefficient = [1.0, 0.8, 0.5, 0.2][seasonIndex] || 0
-          const weightedPoints = basePoints * coefficient
-
-          if (!teamPointsMap[teamId]) {
-            teamPointsMap[teamId] = 0
-          }
-          teamPointsMap[teamId] += weightedPoints
+          const seasonIndex = seasonsList.indexOf(seasonRow)
+          const coefficient = [1.0, 0.8, 0.5, 0.2][seasonIndex] ?? 0
+          if (!teamPointsMap[teamId]) teamPointsMap[teamId] = 0
+          teamPointsMap[teamId] += basePoints * coefficient
         })
-
-        // Ordenar por puntos y asignar rankings
-        const sortedTeams = Object.entries(teamPointsMap)
-          .map(([teamId, totalPoints]) => ({ team_id: teamId, total_points: totalPoints, rank: 0 }))
+        const sorted = Object.entries(teamPointsMap)
+          .map(([team_id, total_points]) => ({ team_id, total_points, rank: 0 }))
           .sort((a, b) => b.total_points - a.total_points)
+        sorted.forEach((t, i) => { t.rank = i + 1 })
+        console.log(`✅ ${sorted.length} equipos rankeados en ${surface}`)
+        updates = sorted.map(r => ({
+          team_id: r.team_id,
+          season,
+          [column]: r.rank,
+          subseason_ranks_calculated_at: new Date().toISOString()
+        }))
+      } else {
+        // Subtemporada 2 o 4: open y women por separado (dos rankings, dos columnas)
+        const colOpen = subseason === 2 ? 'subseason_2_beach_open_rank' : 'subseason_4_grass_open_rank'
+        const colWomen = subseason === 2 ? 'subseason_2_beach_women_rank' : 'subseason_4_grass_women_rank'
+        const [surfaceOpen, surfaceWomen] = surfaces
 
-        // Asignar rankings
-        sortedTeams.forEach((team, index) => {
-          team.rank = index + 1
-        })
-
-        rankingsBySurface[surface] = sortedTeams
-        console.log(`✅ ${sortedTeams.length} equipos rankeados en ${surface}`)
-      }
-
-      // Actualizar team_season_points con los nuevos rankings
-      const updates: any[] = []
-
-      for (const surface of surfaces) {
-        const rankings = rankingsBySurface[surface]
-        
-        for (const ranking of rankings) {
-          const updateData: any = {
-            team_id: ranking.team_id,
-            season: season,
-            [`subseason_${subseason}_${surface}_rank`]: ranking.rank,
-            subseason_ranks_calculated_at: new Date().toISOString()
-          }
-
-          updates.push(updateData)
+        const rankBySurface = (surf: keyof SurfacePointsMap) => {
+          const teamPointsMap: { [teamId: string]: number } = {}
+          seasonData?.forEach((row: any) => {
+            const teamId = row.team_id
+            const seasonRow = row.season
+            const basePoints = row[`${surf}_points`] || 0
+            if (basePoints <= 0) return
+            const seasonIndex = seasonsList.indexOf(seasonRow)
+            const coefficient = [1.0, 0.8, 0.5, 0.2][seasonIndex] ?? 0
+            if (!teamPointsMap[teamId]) teamPointsMap[teamId] = 0
+            teamPointsMap[teamId] += basePoints * coefficient
+          })
+          const sorted = Object.entries(teamPointsMap)
+            .map(([team_id, total_points]) => ({ team_id, total_points, rank: 0 }))
+            .sort((a, b) => b.total_points - a.total_points)
+          sorted.forEach((t, i) => { t.rank = i + 1 })
+          return Object.fromEntries(sorted.map(t => [t.team_id, t.rank]))
         }
+
+        const rankOpen = rankBySurface(surfaceOpen as keyof SurfacePointsMap)
+        const rankWomen = rankBySurface(surfaceWomen as keyof SurfacePointsMap)
+        console.log(`✅ ${Object.keys(rankOpen).length} equipos en ${surfaceOpen}, ${Object.keys(rankWomen).length} en ${surfaceWomen}`)
+
+        const allTeamIds = new Set([...Object.keys(rankOpen), ...Object.keys(rankWomen)])
+        updates = Array.from(allTeamIds).map(team_id => ({
+          team_id,
+          season,
+          [colOpen]: rankOpen[team_id] ?? null,
+          [colWomen]: rankWomen[team_id] ?? null,
+          subseason_ranks_calculated_at: new Date().toISOString()
+        }))
       }
 
       console.log(`💾 Actualizando ${updates.length} registros...`)
