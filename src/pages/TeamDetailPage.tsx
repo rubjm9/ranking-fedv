@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Users, MapPin, Trophy, Calendar, TrendingUp, BarChart3, Mail, Award, Target } from 'lucide-react'
+import { ArrowLeft, Users, MapPin, Trophy, Calendar, TrendingUp, BarChart3, Mail, Award, Target, History } from 'lucide-react'
 import { teamDetailService, TeamDetailData } from '@/services/teamDetailService'
-import { teamsService } from '@/services/apiService'
+import { teamsService, tournamentsService } from '@/services/apiService'
 import TeamLogo from '@/components/ui/TeamLogo'
 import GeneralRankingChart from '@/components/charts/GeneralRankingChart'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
@@ -28,6 +28,16 @@ const TeamDetailPage: React.FC = () => {
     queryFn: () => teamsService.getAll({})
   })
   const allTeams = teamsResponse?.data ?? []
+
+  const { data: historicoTournamentsData } = useQuery({
+    queryKey: ['historico-tournaments'],
+    queryFn: async () => {
+      const res = await tournamentsService.getForHistorico()
+      if (!res.success || !res.data) return []
+      return res.data as Array<{ id: string; year: number; surface: string; modality: string; type: string; teamCount: number }>
+    }
+  })
+  const historicoTournaments = historicoTournamentsData ?? []
 
   useEffect(() => {
     loadTeamData()
@@ -417,7 +427,7 @@ const TeamDetailPage: React.FC = () => {
     },
     {
       id: 'history',
-      label: 'Historial',
+      label: 'Progresión',
       icon: TrendingUp,
       content: (
         <div className="space-y-6">
@@ -486,6 +496,108 @@ const TeamDetailPage: React.FC = () => {
       )
     },
     {
+      id: 'historico',
+      label: 'Histórico',
+      icon: History,
+      content: (() => {
+        const SURFACES = ['BEACH', 'GRASS'] as const
+        const MODALITIES = ['MIXED', 'WOMEN', 'OPEN'] as const
+        const TYPES = ['CE1', 'CE2', 'REGIONAL'] as const
+        const TYPE_LABEL: Record<string, string> = { CE1: '1Div', CE2: '2Div', REGIONAL: 'Regs' }
+        const SURFACE_LABEL: Record<string, string> = { BEACH: 'Playa', GRASS: 'Césped' }
+        const MODALITY_LABEL: Record<string, string> = { MIXED: 'Mixto', WOMEN: 'Women', OPEN: 'Open' }
+        const formatSeason = (year: number) => `${year}-${String((year + 1) % 100).padStart(2, '0')}`
+        const seasons = Array.from(new Set(historicoTournaments.map((t: { year: number }) => t.year))).sort((a, b) => b - a)
+        const existingCells = new Set(historicoTournaments.map((t: { year: number; surface: string; modality: string; type: string }) => `${t.year}-${t.surface}-${t.modality}-${t.type}`))
+        const teamPositionByCell: Record<string, number> = {}
+        tournamentResults.forEach((r: { year: number; surface: string; category: string; type: string; position: number }) => {
+          const key = `${r.year}-${r.surface}-${r.category}-${r.type}`
+          teamPositionByCell[key] = r.position
+        })
+        const getCell = (year: number, surface: string, modality: string, type: string): number | '✕' | 'No p.' => {
+          const key = `${year}-${surface}-${modality}-${type}`
+          if (!existingCells.has(key)) return '✕'
+          if (teamPositionByCell[key] == null) return 'No p.'
+          return teamPositionByCell[key]
+        }
+        // Césped no tiene regionales; solo Playa tiene Regs
+        const typesForSurface = (surface: string) => surface === 'GRASS' ? (['CE1', 'CE2'] as const) : TYPES
+        const rowKeys = SURFACES.flatMap(surface =>
+          MODALITIES.flatMap(modality =>
+            typesForSurface(surface).map(type => ({ surface, modality, type }))
+          )
+        )
+        return (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Posición del equipo por torneo y temporada</h3>
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="px-4 py-3 text-left font-medium text-gray-700 border-r border-gray-200 w-48">Competición</th>
+                    {seasons.map((year: number) => (
+                      <th key={year} className="px-3 py-3 text-center font-medium text-gray-700 border-r border-gray-200 last:border-r-0 min-w-[4rem]">
+                        {formatSeason(year)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {seasons.length === 0 ? (
+                    <tr>
+                      <td colSpan={2} className="px-4 py-8 text-center text-gray-500">No hay datos de torneos.</td>
+                    </tr>
+                  ) : rowKeys.map(({ surface, modality, type }) => (
+                    <tr key={`${surface}-${modality}-${type}`} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="px-4 py-2 font-medium text-gray-900 border-r border-gray-200 whitespace-nowrap">
+                        {SURFACE_LABEL[surface]} – {MODALITY_LABEL[modality]} – {TYPE_LABEL[type]}
+                      </td>
+                      {seasons.map((year: number) => {
+                        const cell = getCell(year, surface, modality, type)
+                        return (
+                          <td key={year} className="px-3 py-2 text-center border-r border-gray-100 last:border-r-0">
+                            {cell === '✕' ? (
+                              <span className="text-gray-400 font-medium" title="El torneo no se disputó">✕</span>
+                            ) : cell === 'No p.' ? (
+                              <span className="text-gray-500 text-xs" title="El equipo no participó">No p.</span>
+                            ) : typeof cell === 'number' && cell <= 3 ? (
+                              <span
+                                className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border ${
+                                  cell === 1
+                                    ? 'bg-amber-400 text-gray-900 border-amber-500'
+                                    : cell === 2
+                                    ? 'bg-gray-300 text-gray-800 border-gray-400'
+                                    : 'bg-amber-700 text-white border-amber-800'
+                                }`}
+                                title={`${cell}º puesto`}
+                              >
+                                {cell}
+                              </span>
+                            ) : (
+                              <span className="font-medium text-gray-900">{cell}º</span>
+                            )}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 pt-4 border-t border-gray-200 text-sm text-gray-600 space-y-1">
+              <p className="font-medium text-gray-700">Leyenda:</p>
+              <ul className="list-disc list-inside space-y-0.5">
+                <li><strong>Círculo dorado (1), plateado (2) o bronce (3):</strong> medalla (1º, 2º o 3º puesto).</li>
+                <li><strong>Número (4º en adelante):</strong> posición en la que quedó este equipo en ese torneo.</li>
+                <li><strong>✕</strong> (cruz gris): el torneo no existió o no se disputó en esa temporada.</li>
+                <li><strong>No p.:</strong> el torneo sí se disputó pero este equipo no participó.</li>
+              </ul>
+            </div>
+          </div>
+        )
+      })()
+    },
+    {
       id: 'seasons',
       label: 'Temporadas',
       icon: Calendar,
@@ -541,7 +653,7 @@ const TeamDetailPage: React.FC = () => {
     id: tab.id,
     label: tab.label,
     icon: tab.icon,
-    badge: tab.badge
+    badge: typeof tab.badge === 'number' ? tab.badge : undefined
   }))
 
   return (
@@ -594,14 +706,14 @@ const TeamDetailPage: React.FC = () => {
           </div>
           
           {/* Team Info */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-6">
-            <TeamLogo 
-              logo={team.logo} 
-              name={team.name} 
+          <div className="flex flex-col sm:flex-row items-center sm:items-center gap-6 mb-6">
+            <TeamLogo
+              logo={team.logo}
+              name={team.name}
               size="xl"
               className="h-32 w-32 sm:h-40 sm:w-40"
             />
-            <div>
+            <div className="text-center sm:text-left">
               <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">{team.name}</h1>
               <p className="text-base sm:text-lg text-gray-600 mb-1">
                 {team.isFilial && team.parentTeam ? (

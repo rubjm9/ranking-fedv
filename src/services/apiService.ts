@@ -379,6 +379,27 @@ export const tournamentsService = {
     }
   },
 
+  // Obtener todos los torneos con conteo de posiciones (para histórico admin)
+  getForHistorico: async () => {
+    if (!supabase) {
+      throw new Error('Supabase client not initialized')
+    }
+    const { data: tournaments, error } = await supabase
+      .from('tournaments')
+      .select('id, year, surface, category, type, positions(id)')
+      .order('year', { ascending: false })
+    if (error) throw error
+    const withCount = (tournaments || []).map((t: any) => ({
+      id: t.id,
+      year: t.year,
+      surface: t.surface,
+      modality: t.category ?? t.modality,
+      type: t.type,
+      teamCount: Array.isArray(t.positions) ? t.positions.length : 0
+    }))
+    return { success: true, data: withCount, message: 'OK' }
+  },
+
   // Obtener un torneo por ID
   getById: async (id: string) => {
     if (!supabase) {

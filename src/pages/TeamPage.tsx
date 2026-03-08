@@ -185,7 +185,7 @@ const TeamPage = () => {
         <nav className="flex space-x-8">
           {[
             { id: 'overview', label: 'Resumen', icon: BarChart3 },
-            { id: 'history', label: 'Historial', icon: Calendar },
+            { id: 'history', label: 'Progresión', icon: Calendar },
             { id: 'statistics', label: 'Estadísticas', icon: TrendingUp }
           ].map(tab => (
             <button

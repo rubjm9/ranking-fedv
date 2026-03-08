@@ -482,8 +482,7 @@ const NewTournamentPage: React.FC = () => {
 
     // Reemplazar todas las posiciones existentes
     setPositions(newPositions)
-    
-    toast.success(`${teamNames.length} posiciones aplicadas correctamente`)
+    // Toast mostrado por PastePositionsModal al aplicar
   }
 
   // Sensores para drag and drop

@@ -17,7 +17,8 @@ import {
   Clock,
   GitCompare,
   Database,
-  RefreshCw
+  RefreshCw,
+  History
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import AdminNotificationBanner, { NotificationBadge } from '@/components/admin/AdminNotificationBanner'
@@ -33,6 +34,7 @@ const AdminLayout: React.FC = () => {
     { name: 'Equipos', href: '/admin/teams', icon: Users },
     { name: 'Regiones', href: '/admin/regions', icon: MapPin },
     { name: 'Torneos', href: '/admin/tournaments', icon: Calendar },
+    { name: 'Histórico', href: '/admin/historico', icon: History },
       { name: 'Ranking', href: '/admin/ranking', icon: TrendingUp },
       { name: 'Actualizar Rankings', href: '/admin/ranking-update', icon: RefreshCw },
       { name: 'Simular Subtemporadas', href: '/admin/simulate-rankings', icon: Shield },

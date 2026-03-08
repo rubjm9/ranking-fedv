@@ -139,8 +139,7 @@ const EditTournamentPage: React.FC = () => {
     mutationFn: (data: any) => tournamentsService.update(id!, data),
     onSuccess: async (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
-      toast.success('Torneo actualizado exitosamente')
-      
+      // Toast solo en handleSubmit para evitar duplicado (onSuccess + handleSubmit)
       // Verificar si hay subtemporadas/temporadas completadas (semiautomático)
       if (variables.season) {
         try {
@@ -524,8 +523,7 @@ const EditTournamentPage: React.FC = () => {
 
     // Reemplazar todas las posiciones existentes
     setPositions(newPositions)
-    
-    toast.success(`${teamNames.length} posiciones aplicadas correctamente`)
+    // Toast mostrado por PastePositionsModal al aplicar
   }
 
   const handleDuplicateTournament = () => {
