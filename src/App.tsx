@@ -42,6 +42,7 @@ import EditTournamentPage from '@/pages/admin/EditTournamentPage'
 import EditRegionPage from '@/pages/admin/EditRegionPage'
 import RegionDetailAdminPage from '@/pages/admin/RegionDetailAdminPage'
 import HistoricoPage from '@/pages/admin/HistoricoPage'
+import SubseasonsManagementPage from '@/pages/admin/SubseasonsManagementPage'
 import TeamDetailPage from '@/pages/TeamDetailPage'
 import TournamentDetailPage from '@/pages/TournamentDetailPage'
 import RegionDetailPage from '@/pages/RegionDetailPage'
@@ -117,6 +118,7 @@ function App() {
                   <Route path="configuration" element={<ConfigurationPage />} />
               <Route path="import-export" element={<ImportExportPage />} />
               <Route path="seasons" element={<SeasonManagementPage />} />
+              <Route path="subseasons" element={<SubseasonsManagementPage />} />
               <Route path="ranking-comparison" element={<RankingComparisonPage />} />
               <Route path="database-diagnostic" element={<DatabaseDiagnosticPage />} />
             </Route>

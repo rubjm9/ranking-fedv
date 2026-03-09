@@ -36,7 +36,6 @@ import {
   type PositionRow
 } from '@/utils/tournamentUtils'
 import { tournamentsService, teamsService, regionsService } from '@/services/apiService'
-import seasonPointsService from '@/services/seasonPointsService'
 
 interface Region {
   id: string
@@ -370,61 +369,10 @@ const EditTournamentPage: React.FC = () => {
 
       const result = await updateTournamentMutation.mutateAsync(tournamentData)
 
-      // Si hay posiciones, actualizarlas también
+      // Si hay posiciones, actualizarlas también (el cierre de subtemporadas se hace desde Admin > Subtemporadas)
       if (positions.length > 0) {
         const positionsWithTeams = positions.filter(p => p.teamId)
         await tournamentsService.updatePositions(id!, positionsWithTeams)
-        
-        // TRIGGER AUTOMÁTICO: Calcular rankings por subtemporada si es 1ª división
-        if (formData.type === 'CE1' && positionsWithTeams.length > 0) {
-          console.log('🎯 Torneo de 1ª División con resultados completos, calculando rankings...')
-          
-          // Determinar la subtemporada según superficie y categoría
-          let subseason: 1 | 2 | 3 | 4 | null = null
-          const surface = formData.surface.toLowerCase()
-          const category = formData.category.toLowerCase()
-          
-          if (surface === 'beach' && category === 'mixed') {
-            subseason = 1 // Playa Mixto
-          } else if (surface === 'beach' && (category === 'open' || category === 'women')) {
-            subseason = 2 // Playa Open/Women
-          } else if (surface === 'grass' && category === 'mixed') {
-            subseason = 3 // Césped Mixto
-          } else if (surface === 'grass' && (category === 'open' || category === 'women')) {
-            subseason = 4 // Césped Open/Women
-          }
-          
-          if (subseason) {
-            console.log(`📊 Calculando subtemporada ${subseason} para ${formData.season}...`)
-            
-            // Primero recalcular los puntos de la temporada
-            const recalcResult = await seasonPointsService.calculateAndSaveSeasonPoints(
-              formData.season,
-              undefined // Recalcular para todos los equipos
-            )
-            
-            if (recalcResult.success) {
-              console.log(`✅ Puntos de temporada actualizados: ${recalcResult.updated} equipos`)
-              
-              // Luego calcular rankings por subtemporada
-              const rankingResult = await seasonPointsService.calculateSubseasonRankings(
-                formData.season,
-                subseason
-              )
-              
-              if (rankingResult.success) {
-                console.log(`✅ Rankings de subtemporada ${subseason} calculados: ${rankingResult.updated} equipos`)
-                toast.success(`Torneo actualizado y rankings recalculados para subtemporada ${subseason}`)
-              } else {
-                console.error('❌ Error al calcular rankings:', rankingResult.message)
-                toast.error('Torneo actualizado pero hubo un error al calcular rankings')
-              }
-            } else {
-              console.error('❌ Error al actualizar puntos de temporada:', recalcResult.message)
-              toast.error('Torneo actualizado pero hubo un error al calcular puntos')
-            }
-          }
-        }
       } else {
         // Si no hay posiciones, eliminar las existentes
         await tournamentsService.updatePositions(id!, [])
