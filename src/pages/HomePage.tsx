@@ -136,86 +136,59 @@ const HomePage: React.FC = () => {
       ) : (
         <>
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="relative bg-slate-900 text-white overflow-hidden">
+        <div className="absolute inset-0 hero-dots"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Ranking FEDV
+            <h1 className="font-display text-5xl md:text-7xl font-bold mb-6 tracking-tight">
+              Ranking <span className="text-accent-400">FEDV</span>
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-primary-100">
+            <p className="text-lg md:text-xl mb-10 text-slate-400 max-w-2xl mx-auto">
               El ranking oficial de Ultimate Frisbee en España
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/ranking"
-                className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                className="bg-primary-600 hover:bg-primary-500 text-white px-8 py-3 rounded-xl font-semibold transition-colors"
               >
                 Ver Ranking Completo
               </Link>
               <Link
                 to="/teams"
-                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-primary-600 transition-colors"
+                className="border border-slate-600 text-slate-300 px-8 py-3 rounded-xl font-semibold hover:border-slate-400 hover:text-white transition-colors"
               >
                 Explorar Equipos
               </Link>
+            </div>
+            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-slate-800 pt-10">
+              <div className="text-center">
+                <div className="font-display text-3xl font-bold text-white">{mainStats.totalTeams}</div>
+                <div className="text-sm text-slate-400 mt-1">Equipos Activos</div>
+              </div>
+              <div className="text-center">
+                <div className="font-display text-3xl font-bold text-white">{mainStats.totalTournaments}</div>
+                <div className="text-sm text-slate-400 mt-1">Torneos</div>
+              </div>
+              <div className="text-center">
+                <div className="font-display text-3xl font-bold text-white">{mainStats.totalRegions}</div>
+                <div className="text-sm text-slate-400 mt-1">Regiones</div>
+              </div>
+              <div className="text-center">
+                <div className="font-display text-3xl font-bold text-white">{mainStats.averagePoints.toLocaleString()}</div>
+                <div className="text-sm text-slate-400 mt-1">Puntos Promedio</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Stats Section */}
+      {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Equipos Activos</p>
-                <p className="text-2xl font-bold text-gray-900">{mainStats.totalTeams}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Trophy className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Torneos registrados</p>
-                <p className="text-2xl font-bold text-gray-900">{mainStats.totalTournaments}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <MapPin className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Regiones</p>
-                <p className="text-2xl font-bold text-gray-900">{mainStats.totalRegions}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <BarChart3 className="h-6 w-6 text-orange-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Promedio Puntos</p>
-                <p className="text-2xl font-bold text-gray-900">{mainStats.averagePoints.toLocaleString()}</p>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Ranking Section - 6 Small Tables */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Ranking actual</h2>
+              <h2 className="section-title mb-2">Ranking actual</h2>
               <Link
                 to="/ranking"
                 className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
@@ -228,10 +201,11 @@ const HomePage: React.FC = () => {
           {/* 6 Small Ranking Tables */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Playa Mixto */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600">
-                <h3 className="text-white font-semibold text-sm">🏖️ Playa Mixto</h3>
-                </div>
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+              <div className="px-4 py-3 bg-slate-900 flex items-center justify-between">
+                <h3 className="text-white font-semibold text-sm">Playa Mixto</h3>
+                <span className="text-xs font-medium text-primary-300 bg-primary-900/40 px-2 py-0.5 rounded-full">BEACH</span>
+              </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -267,7 +241,7 @@ const HomePage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
-              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
                 <Link
                   to="/ranking?category=beach_mixed"
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
@@ -278,10 +252,11 @@ const HomePage: React.FC = () => {
           </div>
 
             {/* Playa Women */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600">
-                <h3 className="text-white font-semibold text-sm">🏖️ Playa Women</h3>
-                </div>
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+              <div className="px-4 py-3 bg-slate-900 flex items-center justify-between">
+                <h3 className="text-white font-semibold text-sm">Playa Women</h3>
+                <span className="text-xs font-medium text-primary-300 bg-primary-900/40 px-2 py-0.5 rounded-full">BEACH</span>
+              </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -317,7 +292,7 @@ const HomePage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
-              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
                       <Link
                   to="/ranking?category=beach_women"
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
@@ -328,9 +303,10 @@ const HomePage: React.FC = () => {
             </div>
 
             {/* Playa Open */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600">
-                <h3 className="text-white font-semibold text-sm">🏖️ Playa Open</h3>
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+              <div className="px-4 py-3 bg-slate-900 flex items-center justify-between">
+                <h3 className="text-white font-semibold text-sm">Playa Open</h3>
+                <span className="text-xs font-medium text-primary-300 bg-primary-900/40 px-2 py-0.5 rounded-full">BEACH</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -367,7 +343,7 @@ const HomePage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
-              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
                 <Link
                   to="/ranking?category=beach_open"
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
@@ -378,9 +354,10 @@ const HomePage: React.FC = () => {
             </div>
 
             {/* Césped Mixto */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-green-500 to-green-600">
-                <h3 className="text-white font-semibold text-sm">🌱 Césped Mixto</h3>
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+              <div className="px-4 py-3 bg-slate-900 flex items-center justify-between">
+                <h3 className="text-white font-semibold text-sm">Césped Mixto</h3>
+                <span className="text-xs font-medium text-emerald-300 bg-emerald-900/40 px-2 py-0.5 rounded-full">GRASS</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -417,7 +394,7 @@ const HomePage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
-              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
                 <Link
                   to="/ranking?category=grass_mixed"
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
@@ -428,9 +405,10 @@ const HomePage: React.FC = () => {
           </div>
 
             {/* Césped Women */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600">
-                <h3 className="text-white font-semibold text-sm">🌱 Césped Women</h3>
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+              <div className="px-4 py-3 bg-slate-900 flex items-center justify-between">
+                <h3 className="text-white font-semibold text-sm">Césped Women</h3>
+                <span className="text-xs font-medium text-emerald-300 bg-emerald-900/40 px-2 py-0.5 rounded-full">GRASS</span>
               </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -467,7 +445,7 @@ const HomePage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
-              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
                       <Link
                   to="/ranking?category=grass_women"
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
@@ -478,9 +456,10 @@ const HomePage: React.FC = () => {
             </div>
 
             {/* Césped Open */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="px-4 py-3 bg-gradient-to-r from-teal-500 to-teal-600">
-                <h3 className="text-white font-semibold text-sm">🌱 Césped Open</h3>
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+              <div className="px-4 py-3 bg-slate-900 flex items-center justify-between">
+                <h3 className="text-white font-semibold text-sm">Césped Open</h3>
+                <span className="text-xs font-medium text-emerald-300 bg-emerald-900/40 px-2 py-0.5 rounded-full">GRASS</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -517,7 +496,7 @@ const HomePage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
-              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
+              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
                 <Link
                   to="/ranking?category=grass_open"
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
@@ -532,7 +511,7 @@ const HomePage: React.FC = () => {
         {/* How Ranking Works Section */}
         <div className="mb-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">¿Cómo funciona el Ranking?</h2>
+            <h2 className="section-title mb-2">¿Cómo funciona el Ranking?</h2>
             <p className="text-lg text-gray-600">Sistema transparente y justo para clasificar equipos de Ultimate</p>
           </div>
 
@@ -541,17 +520,17 @@ const HomePage: React.FC = () => {
             <div className="flex flex-col lg:flex-row items-center gap-8">
               <div className="flex-1 text-center lg:text-left lg:w-2/3">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
-                  <span className="bg-blue-500 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">1</span>
+                  <span className="bg-primary-600 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">1</span>
                   <h3 className="text-2xl font-bold text-gray-900">Participación en Torneos</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-6">
                   Los equipos obtienen puntos en base a las posiciones obtenidas en los compiten en torneos oficiales de la FEDV: <strong>Campeonatos de España</strong> (1ª y 2ª División) y <strong>Campeonatos Regionales</strong> (en las categorías en las que haya). Cada categoría tiene su propio ranking independiente.
                 </p>
 
-                <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-8 shadow-lg border border-gray-100">
+                <div className="bg-white rounded-xl p-8 shadow-sm border border-slate-100">
                   <div className="flex items-center justify-center mb-6">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
                         <span className="text-white text-sm font-bold">🏆</span>
                       </div>
                       <h4 className="text-xl font-bold text-gray-800">Rankings por categoría</h4>
@@ -561,44 +540,44 @@ const HomePage: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Playa Section */}
                     <div className="relative">
-                      <div className="absolute -top-2 -left-2 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center">
+                      <div className="absolute -top-2 -left-2 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center">
                         <span className="text-white text-xs">🏖️</span>
                       </div>
-                      <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-6 border-2 border-yellow-200 shadow-md">
+                      <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
                         <div className="flex items-center mb-4">
-                          <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
-                          <h5 className="text-lg font-bold text-yellow-800">Playa</h5>
+                          <div className="w-3 h-3 bg-primary-600 rounded-full mr-3"></div>
+                          <h5 className="text-lg font-bold text-slate-800">Playa</h5>
                         </div>
                         <div className="space-y-3">
-                          <div className="group p-4 bg-white rounded-lg border border-yellow-200 hover:shadow-md transition-all duration-200 hover:border-yellow-300">
-            <div className="flex items-center justify-between">
+                          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 hover:shadow-sm transition-all duration-200">
+                            <div className="flex items-center justify-between">
                               <div className="flex items-center">
-                                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
-                                <span className="font-medium text-gray-700">Mixto</span>
+                                <div className="w-2 h-2 bg-primary-500 rounded-full mr-3"></div>
+                                <span className="font-medium text-slate-700">Mixto</span>
                               </div>
-                              <div className="text-xs text-yellow-600 font-semibold bg-yellow-50 px-2 py-1 rounded-full">
+                              <div className="text-xs text-primary-600 font-semibold bg-primary-50 px-2 py-1 rounded-full">
                                 MIXED
                               </div>
                             </div>
                           </div>
-                          <div className="group p-4 bg-white rounded-lg border border-yellow-200 hover:shadow-md transition-all duration-200 hover:border-yellow-300">
+                          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 hover:shadow-sm transition-all duration-200">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center">
-                                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
-                                <span className="font-medium text-gray-700">Open</span>
+                                <div className="w-2 h-2 bg-primary-500 rounded-full mr-3"></div>
+                                <span className="font-medium text-slate-700">Open</span>
                               </div>
-                              <div className="text-xs text-yellow-600 font-semibold bg-yellow-50 px-2 py-1 rounded-full">
+                              <div className="text-xs text-primary-600 font-semibold bg-primary-50 px-2 py-1 rounded-full">
                                 OPEN
                               </div>
                             </div>
                           </div>
-                          <div className="group p-4 bg-white rounded-lg border border-yellow-200 hover:shadow-md transition-all duration-200 hover:border-yellow-300">
+                          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 hover:shadow-sm transition-all duration-200">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center">
-                                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
-                                <span className="font-medium text-gray-700">Women</span>
+                                <div className="w-2 h-2 bg-primary-500 rounded-full mr-3"></div>
+                                <span className="font-medium text-slate-700">Women</span>
                               </div>
-                              <div className="text-xs text-yellow-600 font-semibold bg-yellow-50 px-2 py-1 rounded-full">
+                              <div className="text-xs text-primary-600 font-semibold bg-primary-50 px-2 py-1 rounded-full">
                                 WOMEN
                               </div>
                             </div>
@@ -609,44 +588,44 @@ const HomePage: React.FC = () => {
                     
                     {/* Césped Section */}
                     <div className="relative">
-                      <div className="absolute -top-2 -left-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                      <div className="absolute -top-2 -left-2 w-6 h-6 bg-emerald-600 rounded-full flex items-center justify-center">
                         <span className="text-white text-xs">🌱</span>
                       </div>
-                      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border-2 border-green-200 shadow-md">
+                      <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
                         <div className="flex items-center mb-4">
-                          <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                          <h5 className="text-lg font-bold text-green-800">Césped</h5>
+                          <div className="w-3 h-3 bg-emerald-600 rounded-full mr-3"></div>
+                          <h5 className="text-lg font-bold text-slate-800">Césped</h5>
                         </div>
                         <div className="space-y-3">
-                          <div className="group p-4 bg-white rounded-lg border border-green-200 hover:shadow-md transition-all duration-200 hover:border-green-300">
+                          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 hover:shadow-sm transition-all duration-200">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center">
-                                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                                <span className="font-medium text-gray-700">Mixto</span>
+                                <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
+                                <span className="font-medium text-slate-700">Mixto</span>
                               </div>
-                              <div className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full">
+                              <div className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full">
                                 MIXED
                               </div>
                             </div>
                           </div>
-                          <div className="group p-4 bg-white rounded-lg border border-green-200 hover:shadow-md transition-all duration-200 hover:border-green-300">
+                          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 hover:shadow-sm transition-all duration-200">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center">
-                                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                                <span className="font-medium text-gray-700">Open</span>
+                                <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
+                                <span className="font-medium text-slate-700">Open</span>
                               </div>
-                              <div className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full">
+                              <div className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full">
                                 OPEN
                               </div>
                             </div>
                           </div>
-                          <div className="group p-4 bg-white rounded-lg border border-green-200 hover:shadow-md transition-all duration-200 hover:border-green-300">
+                          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 hover:shadow-sm transition-all duration-200">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center">
-                                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                                <span className="font-medium text-gray-700">Women</span>
+                                <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
+                                <span className="font-medium text-slate-700">Women</span>
                               </div>
-                              <div className="text-xs text-green-600 font-semibold bg-green-50 px-2 py-1 rounded-full">
+                              <div className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full">
                                 WOMEN
                               </div>
                             </div>
@@ -672,7 +651,7 @@ const HomePage: React.FC = () => {
             <div className="flex flex-col lg:flex-row-reverse items-center gap-8">
               <div className="flex-1 text-center lg:text-left">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
-                  <span className="bg-green-500 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">2</span>
+                  <span className="bg-primary-600 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">2</span>
                   <h3 className="text-2xl font-bold text-gray-900">Cálculo de Puntos</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
@@ -685,7 +664,7 @@ const HomePage: React.FC = () => {
                         <div>
                       <h5 className="font-medium text-gray-900 mb-2 text-center">🏆 1ª División</h5>
                       <div className="space-y-1 text-sm">
-                        <div className="flex justify-between p-2 bg-yellow-50 rounded">
+                        <div className="flex justify-between p-2 bg-accent-50 rounded">
                           <span>1º lugar</span>
                           <span className="font-mono font-semibold">1000 pts</span>
                         </div>
@@ -693,7 +672,7 @@ const HomePage: React.FC = () => {
                           <span>2º lugar</span>
                           <span className="font-mono font-semibold">850 pts</span>
                         </div>
-                        <div className="flex justify-between p-2 bg-orange-50 rounded">
+                        <div className="flex justify-between p-2 bg-slate-100 rounded">
                           <span>3º lugar</span>
                           <span className="font-mono font-semibold">725 pts</span>
                         </div>
@@ -713,7 +692,7 @@ const HomePage: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-900 mb-2 text-center">🥈 2ª División</h5>
                       <div className="space-y-1 text-sm">
-                        <div className="flex justify-between p-2 bg-yellow-50 rounded">
+                        <div className="flex justify-between p-2 bg-accent-50 rounded">
                           <span>1º lugar</span>
                           <span className="font-mono font-semibold">230 pts</span>
                         </div>
@@ -721,7 +700,7 @@ const HomePage: React.FC = () => {
                           <span>2º lugar</span>
                           <span className="font-mono font-semibold">195 pts</span>
                         </div>
-                        <div className="flex justify-between p-2 bg-orange-50 rounded">
+                        <div className="flex justify-between p-2 bg-slate-100 rounded">
                           <span>3º lugar</span>
                           <span className="font-mono font-semibold">165 pts</span>
                         </div>
@@ -741,7 +720,7 @@ const HomePage: React.FC = () => {
                     <div>
                       <h5 className="font-medium text-gray-900 mb-2 text-center">🏅 Regionales</h5>
                       <div className="space-y-1 text-sm">
-                        <div className="flex justify-between p-2 bg-yellow-50 rounded">
+                        <div className="flex justify-between p-2 bg-accent-50 rounded">
                           <span>1º lugar</span>
                           <div className="text-right">
                             <span className="font-mono font-semibold">140 pts</span>
@@ -755,7 +734,7 @@ const HomePage: React.FC = () => {
                             <span className="text-xs text-gray-500 ml-1">x coef. regional</span>
                           </div>
                         </div>
-                        <div className="flex justify-between p-2 bg-orange-50 rounded">
+                        <div className="flex justify-between p-2 bg-slate-100 rounded">
                           <span>3º lugar</span>
                           <div className="text-right">
                             <span className="font-mono font-semibold">100 pts</span>
@@ -793,7 +772,7 @@ const HomePage: React.FC = () => {
             <div className="flex flex-col lg:flex-row items-center gap-8">
               <div className="flex-1 text-center lg:text-left lg:w-2/3">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
-                  <span className="bg-yellow-500 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">3</span>
+                  <span className="bg-primary-600 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">3</span>
                   <h3 className="text-2xl font-bold text-gray-900">Peso Temporal</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
@@ -803,19 +782,19 @@ const HomePage: React.FC = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                     <div className="text-center">
                       <div className="font-bold text-gray-900">Temporada Actual</div>
-                      <div className="text-yellow-600 font-semibold">100%</div>
+                      <div className="text-primary-600 font-semibold">100%</div>
                     </div>
                     <div className="text-center">
                       <div className="font-bold text-gray-900">1 año atrás</div>
-                      <div className="text-yellow-600 font-semibold">80%</div>
+                      <div className="text-primary-600 font-semibold">80%</div>
                     </div>
                     <div className="text-center">
                       <div className="font-bold text-gray-900">2 años atrás</div>
-                      <div className="text-yellow-600 font-semibold">50%</div>
+                      <div className="text-primary-600 font-semibold">50%</div>
                     </div>
                     <div className="text-center">
                       <div className="font-bold text-gray-900">3 años atrás</div>
-                      <div className="text-yellow-600 font-semibold">20%</div>
+                      <div className="text-primary-600 font-semibold">20%</div>
                     </div>
                   </div>
                 </div>
@@ -828,7 +807,7 @@ const HomePage: React.FC = () => {
             <div className="flex flex-col lg:flex-row items-center gap-8">
               <div className="flex-1 text-center lg:text-left lg:w-2/3">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
-                  <span className="bg-indigo-500 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">4</span>
+                  <span className="bg-primary-600 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">4</span>
                   <h3 className="text-2xl font-bold text-gray-900">Coeficiente Regional</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
@@ -838,15 +817,15 @@ const HomePage: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div className="text-center">
                       <div className="font-bold text-gray-900">Región Líder</div>
-                      <div className="text-indigo-600 font-semibold">Coef. 1.2</div>
+                      <div className="text-primary-600 font-semibold">Coef. 1.2</div>
                     </div>
                     <div className="text-center">
                       <div className="font-bold text-gray-900">Regiones Medias</div>
-                      <div className="text-indigo-600 font-semibold">Coef. 0.9-1.1</div>
+                      <div className="text-primary-600 font-semibold">Coef. 0.9-1.1</div>
                     </div>
                     <div className="text-center">
                       <div className="font-bold text-gray-900">Región Menor</div>
-                      <div className="text-indigo-600 font-semibold">Coef. 0.8</div>
+                      <div className="text-primary-600 font-semibold">Coef. 0.8</div>
                     </div>
                   </div>
                 </div>
@@ -859,7 +838,7 @@ const HomePage: React.FC = () => {
             <div className="flex flex-col lg:flex-row-reverse items-center gap-8">
               <div className="flex-1 text-center lg:text-left">
                 <div className="flex items-center justify-center lg:justify-start mb-3">
-                  <span className="bg-purple-500 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">5</span>
+                  <span className="bg-primary-600 text-white text-xl font-bold w-12 h-12 rounded-full flex items-center justify-center mr-3">5</span>
                   <h3 className="text-2xl font-bold text-gray-900">Rankings Combinados</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
@@ -911,14 +890,14 @@ const HomePage: React.FC = () => {
 
         {/* Torneos Pasados y Próximos Torneos */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Torneos</h2>
+          <h2 className="section-title mb-2">Torneos</h2>
           <p className="text-lg text-gray-600">Consulta los torneos pasados y próximos</p>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Torneos Pasados */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Torneos pasados</h3>
+          <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Torneos pasados</h3>
             <div className="space-y-4">
               {completedTournaments.map((tournament) => (
                 <Link
@@ -927,8 +906,8 @@ const HomePage: React.FC = () => {
                   className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-                      <Trophy className="h-5 w-5 text-green-600" />
+                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mr-4">
+                      <Trophy className="h-5 w-5 text-primary-600" />
                     </div>
                     <div>
                       <h4 className="font-medium text-gray-900">{tournament.name}</h4>
@@ -938,7 +917,7 @@ const HomePage: React.FC = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-600">
                       Finalizado
                     </span>
                     <p className="text-sm text-gray-500 mt-1">
@@ -963,8 +942,8 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Próximos Torneos */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Próximos torneos</h3>
+          <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Próximos torneos</h3>
             <div className="space-y-4">
               {upcomingTournaments.map((tournament) => (
                 <Link
@@ -973,8 +952,8 @@ const HomePage: React.FC = () => {
                   className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                      <Calendar className="h-5 w-5 text-blue-600" />
+                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mr-4">
+                      <Calendar className="h-5 w-5 text-primary-600" />
                     </div>
                     <div>
                       <h4 className="font-medium text-gray-900">{tournament.name}</h4>
@@ -984,7 +963,7 @@ const HomePage: React.FC = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-primary-100 text-primary-700">
                       Próximo
                     </span>
                     <p className="text-sm text-gray-500 mt-1">
@@ -1013,11 +992,11 @@ const HomePage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link
             to="/teams"
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-slate-100"
           >
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-6 w-6 text-blue-600" />
+              <div className="p-2 bg-primary-100 rounded-lg">
+                <Users className="h-6 w-6 text-primary-600" />
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-gray-900">Equipos</h3>
@@ -1027,11 +1006,11 @@ const HomePage: React.FC = () => {
           </Link>
           <Link
             to="/tournaments"
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-slate-100"
           >
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Trophy className="h-6 w-6 text-green-600" />
+              <div className="p-2 bg-primary-100 rounded-lg">
+                <Trophy className="h-6 w-6 text-primary-600" />
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-gray-900">Torneos</h3>
@@ -1041,11 +1020,11 @@ const HomePage: React.FC = () => {
           </Link>
           <Link
             to="/regions"
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-slate-100"
           >
             <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <MapPin className="h-6 w-6 text-purple-600" />
+              <div className="p-2 bg-primary-100 rounded-lg">
+                <MapPin className="h-6 w-6 text-primary-600" />
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-gray-900">Regiones</h3>
