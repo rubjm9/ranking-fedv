@@ -22,7 +22,7 @@ const Tabs: React.FC<TabsProps> = ({
   defaultTab,
   onChange,
   className = '',
-  variant = 'default'
+  variant = 'pills',
 }) => {
   const [activeTab, setActiveTab] = React.useState(defaultTab || items[0]?.id || '')
 
@@ -37,44 +37,43 @@ const Tabs: React.FC<TabsProps> = ({
     onChange?.(tabId)
   }
 
-  const activeContent = items.find(item => item.id === activeTab)?.content
+  const activeContent = items.find((item) => item.id === activeTab)?.content
 
   const getTabButtonClasses = (isActive: boolean) => {
-    const baseClasses = 'flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-t-lg'
-    
+    const baseClasses =
+      'flex items-center gap-2 px-4 py-2 min-h-[44px] text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-xl whitespace-nowrap'
+
     if (variant === 'pills') {
-      return `${baseClasses} rounded-lg ${
+      return `${baseClasses} ${
         isActive
-          ? 'bg-blue-600 text-white'
-          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          ? 'bg-primary-50 text-primary-700'
+          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
       }`
     }
-    
+
     if (variant === 'underline') {
-      return `${baseClasses} border-b-2 ${
+      return `${baseClasses} rounded-none border-b-2 ${
         isActive
-          ? 'border-blue-600 text-blue-600'
-          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          ? 'border-primary-600 text-primary-700'
+          : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
       }`
     }
-    
-    // default variant
+
     return `${baseClasses} ${
       isActive
-        ? 'bg-white text-blue-600 border-b-2 border-blue-600'
-        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+        ? 'bg-white text-primary-700 border-b-2 border-primary-600'
+        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
     }`
   }
 
   return (
     <div className={className}>
-      {/* Tab Navigation */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="flex space-x-1 overflow-x-auto" aria-label="Tabs">
+      <div className={`mb-6 ${variant === 'underline' || variant === 'default' ? 'border-b border-slate-200' : ''}`}>
+        <nav className="flex gap-1 overflow-x-auto pb-1" aria-label="Tabs" role="tablist">
           {items.map((item) => {
             const Icon = item.icon
             const isActive = activeTab === item.id
-            
+
             return (
               <button
                 key={item.id}
@@ -88,11 +87,13 @@ const Tabs: React.FC<TabsProps> = ({
                 {Icon && <Icon className="h-4 w-4" />}
                 <span>{item.label}</span>
                 {item.badge !== undefined && (
-                  <span className={`ml-1 px-2 py-0.5 text-xs rounded-full ${
-                    isActive
-                      ? variant === 'pills' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}>
+                  <span
+                    className={`ml-1 px-2 py-0.5 text-xs rounded-full ${
+                      isActive
+                        ? 'bg-primary-100 text-primary-700'
+                        : 'bg-slate-200 text-slate-600'
+                    }`}
+                  >
                     {item.badge}
                   </span>
                 )}
@@ -102,7 +103,6 @@ const Tabs: React.FC<TabsProps> = ({
         </nav>
       </div>
 
-      {/* Tab Content */}
       <div
         role="tabpanel"
         id={`tab-panel-${activeTab}`}
@@ -116,9 +116,3 @@ const Tabs: React.FC<TabsProps> = ({
 }
 
 export default Tabs
-
-
-
-
-
-

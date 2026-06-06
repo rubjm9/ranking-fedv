@@ -16,22 +16,22 @@ const StatsCard: React.FC<StatsCardProps> = ({
   label,
   value,
   isLoading = false,
-  iconBgColor = 'bg-blue-100',
-  iconColor = 'text-blue-600',
-  className = ''
+  iconBgColor = 'bg-primary-100',
+  iconColor = 'text-primary-600',
+  className = '',
 }) => {
   return (
-    <div className={`bg-white rounded-lg shadow p-6 ${className}`}>
+    <div className={`bg-white rounded-2xl shadow-sm p-6 ${className}`}>
       <div className="flex items-center">
-        <div className={`p-2 ${iconBgColor} rounded-lg`}>
+        <div className={`p-2 ${iconBgColor} rounded-xl`}>
           <Icon className={`h-6 w-6 ${iconColor}`} />
         </div>
         <div className="ml-4">
-          <p className="text-sm font-medium text-gray-600">{label}</p>
+          <p className="text-sm font-medium text-slate-600">{label}</p>
           {isLoading ? (
-            <div className="h-8 w-16 bg-gray-200 rounded animate-pulse mt-1"></div>
+            <div className="h-8 w-16 bg-slate-200 rounded animate-pulse mt-1" />
           ) : (
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
+            <p className="text-2xl font-bold text-slate-900">{value}</p>
           )}
         </div>
       </div>
@@ -40,9 +40,3 @@ const StatsCard: React.FC<StatsCardProps> = ({
 }
 
 export default StatsCard
-
-
-
-
-
-

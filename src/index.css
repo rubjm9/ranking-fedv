@@ -8,7 +8,7 @@
   }
 
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-secondary-50 text-secondary-900;
   }
 }
 
@@ -63,6 +63,38 @@
 
   .badge-error {
     @apply bg-red-100 text-red-800;
+  }
+
+  .page-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+  }
+
+  .page-header {
+    @apply mb-8;
+  }
+
+  .page-header-title {
+    @apply font-display text-3xl font-bold text-slate-900;
+  }
+
+  .page-header-subtitle {
+    @apply mt-2 text-lg text-slate-600;
+  }
+
+  .data-table-wrapper {
+    @apply overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0;
+  }
+
+  .surface-badge-beach {
+    @apply badge bg-primary-100 text-primary-800;
+  }
+
+  .surface-badge-grass {
+    @apply badge bg-emerald-100 text-emerald-800;
+  }
+
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
   }
 }
 
@@ -194,4 +226,19 @@
 
 .loading-dots > div:nth-child(3) {
   animation-delay: 0.2s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-bounce-gentle,
+  .loading-spinner,
+  .loading-dots > div {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  * {
+    scroll-behavior: auto !important;
+  }
 }

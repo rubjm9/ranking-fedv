@@ -12,6 +12,9 @@ import Pagination from '@/components/ui/Pagination'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import CardSkeleton from '@/components/ui/CardSkeleton'
 import StatsCard from '@/components/ui/StatsCard'
+import PageContainer from '@/components/layout/PageContainer'
+import PageHeader from '@/components/layout/PageHeader'
+import DataTable from '@/components/ui/DataTable'
 
 const TeamsPage = () => {
   const navigate = useNavigate()
@@ -135,11 +138,11 @@ const TeamsPage = () => {
   // Función para obtener el icono de ordenamiento
   const getSortIcon = (field: keyof any) => {
     if (sortField !== field) {
-      return <ArrowUpDown className="h-4 w-4 text-gray-400" />
+      return <ArrowUpDown className="h-4 w-4 text-slate-400" />
     }
     return sortDirection === 'asc' 
-      ? <ChevronUp className="h-4 w-4 text-blue-600" />
-      : <ChevronDown className="h-4 w-4 text-blue-600" />
+      ? <ChevronUp className="h-4 w-4 text-primary-600" />
+      : <ChevronDown className="h-4 w-4 text-primary-600" />
   }
 
   // Función para obtener tooltip de ordenamiento
@@ -152,37 +155,31 @@ const TeamsPage = () => {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Breadcrumbs items={[{ label: 'Equipos' }]} />
-        <div className="mt-8">
-          <EmptyState
-            icon={Users}
-            title="Error al cargar los equipos"
-            description="No se pudieron cargar los equipos. Por favor, intenta recargar la página."
-            action={{
-              label: "Reintentar",
-              onClick: () => window.location.reload()
-            }}
-          />
-        </div>
-      </div>
+      <PageContainer>
+        <PageHeader
+          title="Equipos"
+          breadcrumbs={<Breadcrumbs items={[{ label: 'Equipos' }]} />}
+        />
+        <EmptyState
+          icon={Users}
+          title="Error al cargar los equipos"
+          description="No se pudieron cargar los equipos. Por favor, intenta recargar la página."
+          action={{
+            label: 'Reintentar',
+            onClick: () => window.location.reload(),
+          }}
+        />
+      </PageContainer>
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Breadcrumbs */}
-      <div className="mb-6">
-        <Breadcrumbs items={[{ label: 'Equipos' }]} />
-      </div>
-
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Equipos</h1>
-        <p className="text-xl text-gray-600">
-          Descubre todos los equipos participantes en el Ranking FEDV
-        </p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Equipos"
+        subtitle="Descubre todos los equipos participantes en el ranking FEDV"
+        breadcrumbs={<Breadcrumbs items={[{ label: 'Equipos' }]} />}
+      />
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -191,8 +188,8 @@ const TeamsPage = () => {
           label="Total Equipos"
           value={statsData?.totalTeams || teams.length}
           isLoading={statsLoading}
-          iconBgColor="bg-blue-100"
-          iconColor="text-blue-600"
+          iconBgColor="bg-primary-100"
+          iconColor="text-primary-600"
         />
         <StatsCard
           icon={MapPin}
@@ -213,17 +210,17 @@ const TeamsPage = () => {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
+      <div className="card mb-8">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <div className="flex-1 w-full">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Buscar equipos por nombre o ubicación..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="input-field pl-10"
                 aria-label="Buscar equipos"
               />
             </div>
@@ -231,7 +228,7 @@ const TeamsPage = () => {
           <select
             value={selectedRegion}
             onChange={(e) => setSelectedRegion(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="input-field w-auto min-w-[160px]"
             aria-label="Filtrar por región"
           >
             <option value="">Todas las regiones</option>
@@ -242,7 +239,7 @@ const TeamsPage = () => {
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
               aria-label="Limpiar filtros"
             >
               <X className="h-4 w-4" />
@@ -251,7 +248,7 @@ const TeamsPage = () => {
           )}
         </div>
         {hasActiveFilters && (
-          <div className="mt-4 text-sm text-gray-600">
+          <div className="mt-4 text-sm text-slate-600">
             Mostrando {filteredAndSortedTeams.length} {filteredAndSortedTeams.length === 1 ? 'equipo' : 'equipos'}
             {searchTerm && ` que coinciden con "${searchTerm}"`}
             {selectedRegion && ` de la región seleccionada`}
@@ -262,14 +259,14 @@ const TeamsPage = () => {
       {/* Controles de vista y ordenamiento */}
       {!isLoading && filteredAndSortedTeams.length > 0 && (
         <div className="flex items-center justify-between mb-4">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-slate-600">
             {filteredAndSortedTeams.length} {filteredAndSortedTeams.length === 1 ? 'equipo encontrado' : 'equipos encontrados'}
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setViewMode('table')}
               className={`p-2 rounded-lg transition-colors ${
-                viewMode === 'table' ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:bg-gray-100'
+                viewMode === 'table' ? 'bg-primary-100 text-primary-600' : 'text-slate-400 hover:bg-slate-100'
               }`}
               aria-label="Vista de tabla"
             >
@@ -278,7 +275,7 @@ const TeamsPage = () => {
             <button
               onClick={() => setViewMode('cards')}
               className={`p-2 rounded-lg transition-colors ${
-                viewMode === 'cards' ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:bg-gray-100'
+                viewMode === 'cards' ? 'bg-primary-100 text-primary-600' : 'text-slate-400 hover:bg-slate-100'
               }`}
               aria-label="Vista de tarjetas"
             >
@@ -305,13 +302,11 @@ const TeamsPage = () => {
       ) : (
         <>
           {viewMode === 'table' ? (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+            <DataTable caption="Listado de equipos" darkHeader={false}>
+              <thead className="bg-secondary-50">
                     <tr>
                       <th 
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                        className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
                         onClick={() => handleSort('name')}
                         title={getSortTooltip('name')}
                         aria-label="Ordenar por nombre"
@@ -322,7 +317,7 @@ const TeamsPage = () => {
                         </div>
                       </th>
                       <th 
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                        className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
                         onClick={() => handleSort('region')}
                         title={getSortTooltip('region')}
                         aria-label="Ordenar por región"
@@ -332,11 +327,11 @@ const TeamsPage = () => {
                           {getSortIcon('region')}
                         </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                         Ubicación
                       </th>
                       <th 
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                        className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
                         onClick={() => handleSort('points')}
                         title={getSortTooltip('points')}
                         aria-label="Ordenar por puntos"
@@ -348,11 +343,11 @@ const TeamsPage = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-slate-200">
                     {paginatedTeams.map((team) => (
                     <tr 
                       key={team.id}
-                      className="hover:bg-gray-50 cursor-pointer transition-colors duration-150 focus-within:bg-blue-50 focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-inset"
+                      className="hover:bg-secondary-50 cursor-pointer transition-colors duration-150 focus-within:bg-primary-50 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-inset"
                       onClick={() => navigate(`/teams/${team.id}`)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -373,11 +368,11 @@ const TeamsPage = () => {
                               className="mr-3"
                             />
                             <div>
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className="text-sm font-medium text-slate-900">
                                 {team.name}
                               </div>
                               {team.isFilial && (
-                                <div className="text-xs text-blue-600">
+                                <div className="text-xs text-primary-600">
                                   Equipo filial
                                 </div>
                               )}
@@ -385,26 +380,24 @@ const TeamsPage = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-slate-900">
                             {team.region?.name || 'Sin región'}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-sm text-slate-900">
                             {team.location || '-'}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-slate-900">
                             {getTeamTotalPoints(team).toFixed(1)}
                           </div>
                         </td>
                       </tr>
                     ))}
                   </tbody>
-                </table>
-              </div>
-            </div>
+            </DataTable>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {paginatedTeams.map((team) => (
@@ -420,7 +413,7 @@ const TeamsPage = () => {
                   tabIndex={0}
                   role="button"
                   aria-label={`Ver detalles de ${team.name}`}
-                  className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="card-hover"
                 >
                   <div className="flex items-center space-x-4">
                     <TeamLogo 
@@ -429,23 +422,23 @@ const TeamsPage = () => {
                       size="lg"
                     />
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-gray-900 truncate">
+                      <h3 className="text-lg font-semibold text-slate-900 truncate">
                         {team.name}
                       </h3>
                       {team.isFilial && (
-                        <div className="text-xs text-blue-600 mt-1">
+                        <div className="text-xs text-primary-600 mt-1">
                           Equipo filial
                         </div>
                       )}
-                      <div className="text-sm text-gray-600 mt-1">
+                      <div className="text-sm text-slate-600 mt-1">
                         {team.region?.name || 'Sin región'}
                       </div>
                       {team.location && (
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className="text-xs text-slate-500 mt-1">
                           {team.location}
                         </div>
                       )}
-                      <div className="text-sm font-medium text-gray-900 mt-2">
+                      <div className="text-sm font-medium text-slate-900 mt-2">
                         {getTeamTotalPoints(team).toFixed(1)} puntos
                       </div>
                     </div>
@@ -470,7 +463,7 @@ const TeamsPage = () => {
           )}
         </>
       )}
-    </div>
+    </PageContainer>
   )
 }
 

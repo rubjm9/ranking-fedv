@@ -10,31 +10,44 @@ interface BreadcrumbItem {
 interface BreadcrumbsProps {
   items: BreadcrumbItem[]
   className?: string
+  variant?: 'light' | 'dark'
 }
 
-const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, className = '' }) => {
+const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
+  items,
+  className = '',
+  variant = 'light',
+}) => {
+  const linkClass =
+    variant === 'dark'
+      ? 'text-slate-400 hover:text-white'
+      : 'text-slate-500 hover:text-slate-700'
+  const currentClass = variant === 'dark' ? 'text-white font-medium' : 'text-slate-900 font-medium'
+  const iconClass = variant === 'dark' ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-600'
+  const chevronClass = variant === 'dark' ? 'text-slate-500' : 'text-slate-400'
+
   return (
     <nav className={`flex items-center space-x-2 text-sm ${className}`} aria-label="Breadcrumb">
       <Link
         to="/"
-        className="text-gray-400 hover:text-gray-600 transition-colors"
+        className={`${iconClass} transition-colors rounded-lg p-0.5 focus:outline-none focus:ring-2 focus:ring-primary-500`}
         aria-label="Inicio"
       >
         <Home className="h-4 w-4" />
       </Link>
-      
+
       {items.map((item, index) => (
         <React.Fragment key={index}>
-          <ChevronRight className="h-4 w-4 text-gray-400" />
+          <ChevronRight className={`h-4 w-4 ${chevronClass}`} aria-hidden="true" />
           {item.href && index < items.length - 1 ? (
             <Link
               to={item.href}
-              className="text-gray-500 hover:text-gray-700 transition-colors"
+              className={`${linkClass} transition-colors rounded-lg px-1 focus:outline-none focus:ring-2 focus:ring-primary-500`}
             >
               {item.label}
             </Link>
           ) : (
-            <span className="text-gray-900 font-medium" aria-current="page">
+            <span className={currentClass} aria-current="page">
               {item.label}
             </span>
           )}
@@ -45,9 +58,3 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, className = '' }) => {
 }
 
 export default Breadcrumbs
-
-
-
-
-
-

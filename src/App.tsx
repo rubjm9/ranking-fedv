@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/contexts/SimpleAuthContext'
 import PublicLayout from '@/components/layout/PublicLayout'
@@ -6,12 +6,14 @@ import AdminLayout from '@/components/layout/AdminLayout'
 
 // Páginas públicas
 import HomePage from '@/pages/HomePage'
-import RankingPageHybrid from '@/pages/RankingPageHybrid'
 import RankingPageNew from '@/pages/RankingPageNew'
 import TeamsPage from '@/pages/TeamsPage'
 import RegionsPage from '@/pages/RegionsPage'
 import TournamentsPage from '@/pages/TournamentsPage'
 import AboutPage from '@/pages/AboutPage'
+import NotFoundPage from '@/pages/NotFoundPage'
+import PrivacyPage from '@/pages/PrivacyPage'
+import TermsPage from '@/pages/TermsPage'
 
 // Páginas de autenticación
 import LoginPage from '@/pages/LoginPage'
@@ -73,7 +75,7 @@ function App() {
             <Route path="/" element={<PublicLayout />}>
               <Route index element={<HomePage />} />
               <Route path="ranking" element={<RankingPageNew />} />
-              <Route path="ranking-old" element={<RankingPageHybrid />} />
+              <Route path="ranking-old" element={<Navigate to="/ranking" replace />} />
               <Route path="teams" element={<TeamsPage />} />
               <Route path="teams/:id" element={<TeamDetailPage />} />
               <Route path="regions" element={<RegionsPage />} />
@@ -81,6 +83,9 @@ function App() {
               <Route path="tournaments" element={<TournamentsPage />} />
               <Route path="tournaments/:id" element={<TournamentDetailPage />} />
               <Route path="about" element={<AboutPage />} />
+              <Route path="privacy" element={<PrivacyPage />} />
+              <Route path="terms" element={<TermsPage />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Route>
 
             {/* Rutas de autenticación */}
@@ -122,27 +127,6 @@ function App() {
               <Route path="ranking-comparison" element={<RankingComparisonPage />} />
               <Route path="database-diagnostic" element={<DatabaseDiagnosticPage />} />
             </Route>
-
-            {/* Ruta 404 */}
-            <Route path="*" element={
-              <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                  <h1 className="text-6xl font-bold text-gray-300 mb-4">404</h1>
-                  <h2 className="text-2xl font-semibold text-gray-600 mb-4">
-                    Página no encontrada
-                  </h2>
-                  <p className="text-gray-500 mb-8">
-                    La página que buscas no existe o ha sido movida.
-                  </p>
-                  <a
-                    href="/"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                  >
-                    Volver al inicio
-                  </a>
-                </div>
-              </div>
-            } />
           </Routes>
         </AuthProvider>
       </ErrorBoundary>

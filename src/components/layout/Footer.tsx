@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Mail, MapPin, Phone } from 'lucide-react'
+import { Mail, MapPin } from 'lucide-react'
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear()
@@ -23,6 +23,7 @@ const Footer: React.FC = () => {
             <div className="flex space-x-4">
               <a
                 href="mailto:info@fedv.es"
+                aria-label="Enviar correo a info@fedv.es"
                 className="text-slate-400 hover:text-white transition-colors duration-200"
               >
                 <Mail className="w-5 h-5" />
@@ -31,6 +32,7 @@ const Footer: React.FC = () => {
                 href="https://fedv.es"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Visitar sitio web de FEDV"
                 className="text-slate-400 hover:text-white transition-colors duration-200"
               >
                 <MapPin className="w-5 h-5" />
@@ -68,11 +70,9 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-slate-500" />
-                <span className="text-slate-400 text-sm">info@fedv.es</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Phone className="w-4 h-4 text-slate-500" />
-                <span className="text-slate-400 text-sm">+34 XXX XXX XXX</span>
+                <a href="mailto:info@fedv.es" className="text-slate-400 text-sm hover:text-white transition-colors">
+                  info@fedv.es
+                </a>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4 text-slate-500" />

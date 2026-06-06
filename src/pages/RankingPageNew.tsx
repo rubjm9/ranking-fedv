@@ -6,6 +6,13 @@ import hybridRankingService from '@/services/hybridRankingService'
 import { supabase } from '@/services/supabaseService'
 import TeamLogo from '@/components/ui/TeamLogo'
 import GeneralRankingChart from '@/components/charts/GeneralRankingChart'
+import RankingTabNav from '@/components/ranking/RankingTabNav'
+import RankingPageHeader from '@/components/ranking/RankingPageHeader'
+import StatsBlock from '@/components/ranking/StatsBlock'
+import RankingSummaryView from '@/components/ranking/RankingSummaryView'
+import RankingGeneralView from '@/components/ranking/RankingGeneralView'
+import RankingCategoryView from '@/components/ranking/RankingCategoryView'
+import EmptyState from '@/components/ui/EmptyState'
 import dynamicRankingService from '@/services/dynamicRankingService'
 import teamSeasonRankingsService from '@/services/teamSeasonRankingsService'
 import { useMostRecentSeasons } from '@/hooks/useMostRecentSeasons'
@@ -61,7 +68,7 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
 
   return (
     <div className="w-full overflow-x-auto relative">
-      <svg width={width} height={height} className="border border-gray-200 rounded-lg">
+      <svg width={width} height={height} className="border border-slate-200 rounded-lg">
         {/* Ejes */}
         <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#E5E7EB" strokeWidth="2" />
         <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#E5E7EB" strokeWidth="2" />
@@ -73,7 +80,7 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
             x={xScale(index)}
             y={height - padding + 20}
             textAnchor="middle"
-            className="text-xs fill-gray-600"
+            className="text-xs fill-slate-600"
           >
             {season}
           </text>
@@ -88,7 +95,7 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
               x={padding - 10}
               y={yScale(value) + 4}
               textAnchor="end"
-              className="text-xs fill-gray-600"
+              className="text-xs fill-slate-600"
             >
               {value.toFixed(0)}
             </text>
@@ -101,7 +108,7 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
               x={padding - 10}
               y={yScale(value) + 4}
               textAnchor="end"
-              className="text-xs fill-gray-600"
+              className="text-xs fill-slate-600"
             >
               {value.toFixed(0)}
             </text>
@@ -177,7 +184,7 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
       {/* Tooltip flotante */}
       {hoveredPoint && (
         <div 
-          className="absolute bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg pointer-events-none z-10"
+          className="absolute bg-slate-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg pointer-events-none z-10"
           style={{
             left: Math.max(10, Math.min(hoveredPoint.x - 60, width - 120)),
             top: Math.max(10, hoveredPoint.y - 50),
@@ -746,9 +753,9 @@ const RankingPageNew: React.FC = () => {
 
   const getRankIcon = (position: number) => {
     if (position === 1) return <Trophy className="w-6 h-6 text-yellow-500" />
-    if (position === 2) return <Medal className="w-6 h-6 text-gray-400" />
+    if (position === 2) return <Medal className="w-6 h-6 text-slate-400" />
     if (position === 3) return <Medal className="w-6 h-6 text-orange-500" />
-    return <span className="text-sm font-semibold text-gray-500">#{position}</span>
+    return <span className="text-sm font-semibold text-slate-500">#{position}</span>
   }
 
   // Obtener las últimas 4 temporadas ordenadas (más reciente primero)
@@ -2446,7 +2453,7 @@ const RankingPageNew: React.FC = () => {
   const getChangeIcon = (change: number) => {
     if (change > 0) return <TrendingUp className="h-4 w-4 text-green-500" />
     if (change < 0) return <TrendingDown className="h-4 w-4 text-red-500" />
-    return <BarChart3 className="h-4 w-4 text-gray-400" />
+    return <BarChart3 className="h-4 w-4 text-slate-400" />
   }
 
   const getChangeText = (change: number) => {
@@ -2455,198 +2462,15 @@ const RankingPageNew: React.FC = () => {
     return '='
   }
 
-  // Función para obtener color del header según categoría
-  const getCategoryHeaderColor = (category: string) => {
-    const colors: { [key: string]: string } = {
-      'beach_mixed': 'from-yellow-500 to-yellow-600',
-      'beach_women': 'from-amber-500 to-amber-600',
-      'beach_open': 'from-orange-500 to-orange-600',
-      'grass_mixed': 'from-green-500 to-green-600',
-      'grass_women': 'from-emerald-500 to-emerald-600',
-      'grass_open': 'from-teal-500 to-teal-600'
-    }
-    return colors[category] || 'from-gray-500 to-gray-600'
-  }
-
-  // Función para obtener emoji según categoría
-  const getCategoryEmoji = (category: string) => {
-    if (category.includes('beach')) return '🏖️'
-    if (category.includes('grass')) return '🌱'
-    return '🏆'
-  }
-
-  // Función para obtener nombre corto de categoría
-  const getCategoryShortName = (category: string) => {
-    const names: { [key: string]: string } = {
-      'beach_mixed': 'Playa Mixto',
-      'beach_women': 'Playa Women',
-      'beach_open': 'Playa Open',
-      'grass_mixed': 'Césped Mixto',
-      'grass_women': 'Césped Women',
-      'grass_open': 'Césped Open'
-    }
-    return names[category] || category
-  }
-
-  // Componente para tarjeta de resumen de ranking con estilo de HomePage
-  const SummaryCard = ({ title, data, category }: { title: string, data: any[], category: string }) => {
-    const top5 = data?.slice(0, 5) || []
-    
-    // Calcular cambios de posición usando position_change si está disponible
-    const dataWithChanges = top5.map((team, index) => {
-      const currentPosition = index + 1
-      // Usar position_change del equipo si está disponible, sino calcular basándose en ranking_position
-      const change = team.position_change !== undefined 
-        ? team.position_change 
-        : (team.ranking_position ? team.ranking_position - currentPosition : 0)
-      
-      return {
-        ...team,
-        change: change
-      }
-    })
-    
-    return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className={`px-4 py-3 bg-gradient-to-r ${getCategoryHeaderColor(category)}`}>
-          <h3 className="text-white font-semibold text-sm">{getCategoryEmoji(category)} {getCategoryShortName(category)}</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pos</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Cambio</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {dataWithChanges.map((team, index) => (
-                <tr key={team.team_id} className="hover:bg-gray-50">
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <div className="flex items-center">
-                      {getRankIcon(index + 1)}
-                    </div>
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <div className="flex items-center">
-                      {getChangeIcon(team.change)}
-                      <span className={`ml-1 text-sm font-medium ${
-                        team.change > 0 ? 'text-green-600' : 
-                        team.change < 0 ? 'text-red-600' : 'text-gray-500'
-                      }`}>
-                        {getChangeText(team.change)}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
-                      <div className="ml-2">
-                        <div className="text-sm font-medium text-gray-900">{team.team_name}</div>
-                        <div className="text-xs text-gray-500">{team.region_name || 'N/A'}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <span className="text-sm font-medium text-gray-900">{team.total_points?.toFixed(1) || '0.0'}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="px-4 py-2 bg-gray-50 border-t border-gray-200">
-          <button
-            onClick={() => handleTabClick(category)}
-            className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-          >
-            Ver ranking completo →
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // Componente para bloques de estadísticas destacadas
-  const StatsBlock = ({ title, value, subtitle, icon: Icon, color = "blue", logo, teamName, tooltip, useLogoAsBackground = false }: { 
-    title: string, 
-    value: string | number, 
-    subtitle: string, 
-    icon: React.FC<{ className?: string }>, 
-    color?: string,
-    logo?: string | null,
-    teamName?: string,
-    tooltip?: string,
-    useLogoAsBackground?: boolean
-  }) => {
-    return (
-      <div className="relative group h-full flex flex-col">
-        <div 
-          className="bg-white rounded-lg border border-gray-200 shadow-sm relative overflow-hidden h-full flex flex-col"
-        >
-          {/* Overlay con opacidad para el logo de fondo */}
-          {useLogoAsBackground && logo && (
-            <div 
-              className="absolute inset-0 opacity-20 pointer-events-none rounded-lg overflow-hidden"
-              style={{
-                backgroundImage: `url(${logo})`,
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'center center',
-                backgroundSize: 'cover',
-              }}
-            />
-          )}
-           {/* Título con fondo traslúcido pegado al borde superior */}
-           <div className="relative z-20 bg-white/60 backdrop-blur-md px-4 py-2 border-b border-gray-200/50 rounded-t-lg">
-             <div className="flex items-center justify-between">
-            <h3 className="text-xs font-medium text-gray-600 uppercase tracking-wide">{title}</h3>
-               {/* Icono de información en esquina superior derecha */}
-               {tooltip && (
-                 <div className="relative z-50">
-                   <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors cursor-help">
-                     <Info className="w-2.5 h-2.5 text-gray-600" />
-          </div>
-        </div>
-               )}
-             </div>
-           </div>
-          {/* Logo del equipo o icono en esquina superior derecha (solo si no es fondo) */}
-          {!useLogoAsBackground && (
-            <div className="absolute top-1/2 right-3 transform -translate-y-1/2 z-10">
-              {logo && teamName ? (
-                <TeamLogo name={teamName} logo={logo} size="md" />
-              ) : (
-                <Icon className="w-4 h-4 opacity-40" />
-              )}
-            </div>
-          )}
-          {/* Contenido principal */}
-          <div className="relative z-10 p-4 pt-3 flex-1 flex flex-col justify-end">
-            <p className="text-lg font-bold text-gray-900 break-words line-clamp-2 leading-tight" style={{ textShadow: '0 0 4px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 255, 255, 0.7)' }}>{value}</p>
-            <p className="text-[10px] text-gray-500 mt-1 leading-tight line-clamp-3 break-words" style={{ textShadow: '0 0 2px rgba(255, 255, 255, 0.8), 0 0 4px rgba(255, 255, 255, 0.6)' }}>{subtitle}</p>
-          </div>
-         </div>
-        {/* Tooltip fuera del contenedor con overflow-hidden */}
-        {tooltip && (
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[100]">
-            {tooltip}
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-          </div>
-        )}
-      </div>
-    )
-  }
 
   // Renderizar vista de ranking general
   const renderGeneralView = () => {
     if (isLoadingGeneral) {
       return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-500">Cargando ranking general...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-2 text-slate-500">Cargando ranking general...</p>
           </div>
         </div>
       )
@@ -2668,6 +2492,17 @@ const RankingPageNew: React.FC = () => {
     const seasons = rankingTypeToUse === 'historical' 
       ? allGeneralSeasons 
       : getLastFourSeasons(generalRankingData || [])
+
+    if (!finalRankingData || finalRankingData.length === 0) {
+      return (
+        <EmptyState
+          icon={Trophy}
+          title="No hay equipos en el ranking"
+          description="Aún no hay equipos con puntos registrados para esta vista."
+          actionLink={{ label: 'Ver torneos recientes', href: '/tournaments' }}
+        />
+      )
+    }
 
     // Si está en modo análisis o avanzadas, mostrar esas vistas
     if (detailedViewMode === 'analysis') {
@@ -2764,16 +2599,16 @@ const RankingPageNew: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4">
             <div className="bg-white rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
-                <Users className="w-8 h-8 text-blue-500" />
+                <Users className="w-8 h-8 text-primary-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Total Equipos</p>
-                  <p className="text-2xl font-semibold text-gray-900">{generalStats.total_teams}</p>
+                  <p className="text-sm font-medium text-slate-500">Total Equipos</p>
+                  <p className="text-2xl font-semibold text-slate-900">{generalStats.total_teams}</p>
                 </div>
               </div>
               {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                 Número total de equipos registrados en este ranking
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
               </div>
             </div>
             
@@ -2781,14 +2616,14 @@ const RankingPageNew: React.FC = () => {
               <div className="flex items-center">
                 <TrendingUp className="w-8 h-8 text-green-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Equipos Nuevos</p>
-                  <p className="text-2xl font-semibold text-gray-900">{generalStats.new_teams}</p>
+                  <p className="text-sm font-medium text-slate-500">Equipos Nuevos</p>
+                  <p className="text-2xl font-semibold text-slate-900">{generalStats.new_teams}</p>
                 </div>
               </div>
               {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                 Equipos nuevos desde que se registran datos en el ranking{referenceSeason ? ` (solo tienen puntos en ${referenceSeason})` : ''}
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
               </div>
             </div>
             
@@ -2796,14 +2631,14 @@ const RankingPageNew: React.FC = () => {
               <div className="flex items-center">
                 <Trophy className="w-8 h-8 text-yellow-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Consistencia</p>
-                  <p className="text-2xl font-semibold text-gray-900">{generalStats.consistent_teams}</p>
+                  <p className="text-sm font-medium text-slate-500">Consistencia</p>
+                  <p className="text-2xl font-semibold text-slate-900">{generalStats.consistent_teams}</p>
                 </div>
               </div>
               {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                 Equipos que han estado en top 10 en al menos 2 temporadas
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
               </div>
             </div>
             
@@ -2811,30 +2646,30 @@ const RankingPageNew: React.FC = () => {
               <div className="flex items-center">
                 <Calendar className="w-8 h-8 text-orange-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Actividad</p>
-                  <p className="text-2xl font-semibold text-gray-900">{generalStats.avg_activity.toFixed(1)}</p>
+                  <p className="text-sm font-medium text-slate-500">Actividad</p>
+                  <p className="text-2xl font-semibold text-slate-900">{generalStats.avg_activity.toFixed(1)}</p>
                 </div>
               </div>
               {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                 Promedio de temporadas activas por equipo
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
               </div>
             </div>
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
           {/* Header con controles estilo UEFA */}
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="px-6 py-4 border-b border-slate-200 bg-secondary-50">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <LineChart className="w-6 h-6 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-900">
+                <LineChart className="w-6 h-6 text-primary-600" />
+                <h2 className="text-xl font-semibold text-slate-900">
                   Ranking General - Temporada {referenceSeason}
                 </h2>
               </div>
-              <div className="flex items-center space-x-4 text-sm text-gray-600">
+              <div className="flex items-center space-x-4 text-sm text-slate-600">
                 <span>
                   {rankingTypeToUse === 'clubs' 
                     ? `${finalRankingData?.length || 0} clubes` 
@@ -2842,10 +2677,10 @@ const RankingPageNew: React.FC = () => {
                   }
                 </span>
                 {rankingTypeToUse === 'historical' && (
-                  <span className="text-xs text-gray-500">• Suma total histórica</span>
+                  <span className="text-xs text-slate-500">• Suma total histórica</span>
                 )}
                 {rankingTypeToUse === 'clubs' && (
-                  <span className="text-xs text-gray-500">• Incluye filiales</span>
+                  <span className="text-xs text-slate-500">• Incluye filiales</span>
                 )}
               </div>
             </div>
@@ -2853,8 +2688,8 @@ const RankingPageNew: React.FC = () => {
             {/* Controles de tabla estilo UEFA */}
             <div className="flex items-center justify-end">
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">Temporada:</label>
-                <select className="text-sm border border-gray-300 rounded px-3 py-1 bg-white">
+                <label className="text-sm font-medium text-slate-700">Temporada:</label>
+                <select className="text-sm border border-slate-300 rounded px-3 py-1 bg-white">
                   {seasons.map((season) => {
                     const year1 = season.split('-')[0]
                     const year2 = season.split('-')[1]
@@ -2875,11 +2710,11 @@ const RankingPageNew: React.FC = () => {
           >
             <div className="overflow-x-auto">
             <table className="w-full">
-            <thead className="bg-gray-100">
+            <thead className="bg-slate-100">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posición</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cambio</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipo</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Posición</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cambio</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Equipo</th>
                 {seasons.map((season, index) => {
                   const coefficients = [1.0, 0.8, 0.5, 0.2]
                   const year1 = season.split('-')[0]
@@ -2887,28 +2722,28 @@ const RankingPageNew: React.FC = () => {
                   const coefficient = coefficients[index] || 0
                   
                   return (
-                    <th key={season} className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th key={season} className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
                       <div className="flex flex-col">
                         <span>{year1}/{year2}</span>
                         {rankingTypeToUse !== 'historical' && (
-                          <span className="text-xs text-gray-400 font-normal">{coefficient}</span>
+                          <span className="text-xs text-slate-400 font-normal">{coefficient}</span>
                         )}
                       </div>
                     </th>
                   )
                 })}
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Pts <span className="text-blue-500">?</span>
+                <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Pts <span className="text-primary-500">?</span>
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-slate-200">
               {finalRankingData?.slice(0, (showAllResults || isCollapsing) ? undefined : 10).map((team, index) => {
                 const isEvenRow = index % 2 === 1
                 
                 return (
-                  <tr key={team.team_id} className={`hover:bg-gray-50 ${isEvenRow ? 'bg-gray-50' : 'bg-white'}`}>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <tr key={team.team_id} className={`hover:bg-secondary-50 ${isEvenRow ? 'bg-secondary-50' : 'bg-white'}`}>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
                       <div className="flex items-center">
                         {getRankIcon(index + 1)}
                       </div>
@@ -2918,7 +2753,7 @@ const RankingPageNew: React.FC = () => {
                         {getChangeIcon(team.position_change || 0)}
                         <span className={`ml-1 text-sm font-medium ${
                           (team.position_change || 0) > 0 ? 'text-green-600' : 
-                          (team.position_change || 0) < 0 ? 'text-red-600' : 'text-gray-500'
+                          (team.position_change || 0) < 0 ? 'text-red-600' : 'text-slate-500'
                         }`}>
                           {getChangeText(team.position_change || 0)}
                         </span>
@@ -2928,22 +2763,22 @@ const RankingPageNew: React.FC = () => {
                       <div className="flex items-center">
                         <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">{team.team_name}</div>
+                          <div className="text-sm font-medium text-slate-900">{team.team_name}</div>
                           {team.region_name && (
-                            <div className="text-xs text-gray-500">{team.region_name}</div>
+                            <div className="text-xs text-slate-500">{team.region_name}</div>
                           )}
                           {rankingTypeToUse === 'clubs' && team.teams_count && team.teams_count > 1 && (
-                            <div className="text-xs text-blue-600">{team.teams_count} equipos</div>
+                            <div className="text-xs text-primary-600">{team.teams_count} equipos</div>
                           )}
                         </div>
                       </div>
                     </td>
                       {seasons.map((season) => (
-                        <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                        <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-slate-900 text-right">
                           {team.season_breakdown?.[season]?.base_points?.toFixed(2) || '0.00'}
                         </td>
                       ))}
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-slate-900 text-right">
                         {team.total_points?.toFixed(2) || '0.00'}
                       </td>
                     </tr>
@@ -2955,7 +2790,7 @@ const RankingPageNew: React.FC = () => {
           </div>
 
         {/* Footer estilo UEFA */}
-          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div className="px-6 py-4 border-t border-slate-200 bg-secondary-50">
             <div className="flex items-center justify-between">
               <button
                 onClick={() => {
@@ -2966,7 +2801,7 @@ const RankingPageNew: React.FC = () => {
                     setShowAllResults(true)
                   }
                 }}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                className="text-sm text-primary-600 hover:text-primary-800 font-medium transition-colors"
               >
                 {showAllResults ? 'Ver solo top 10' : 'Ver ranking completo'} ✓
               </button>
@@ -2981,10 +2816,10 @@ const RankingPageNew: React.FC = () => {
   const renderGeneralAnalysisTab = () => {
     if (isLoadingGeneral || !generalRankingData) {
       return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-500">Cargando datos...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-2 text-slate-500">Cargando datos...</p>
           </div>
         </div>
       )
@@ -3000,21 +2835,21 @@ const RankingPageNew: React.FC = () => {
     return (
       <div>
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
             <LineChart className="w-5 h-5 mr-2" />
             Análisis de Equipos - Ranking General
             </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-slate-600 mb-6">
             Selecciona equipos para comparar su evolución de puntos y posiciones a lo largo del tiempo.
           </p>
           
           {/* Selector de equipos múltiple */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-700">
                 Seleccionar equipos para análisis:
               </label>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-slate-500">
                 {selectedTeamsForAnalysis.length} equipos seleccionados
               </span>
           </div>
@@ -3026,7 +2861,7 @@ const RankingPageNew: React.FC = () => {
                 placeholder="Buscar equipos..."
                 value={teamSearchTerm}
                 onChange={(e) => setTeamSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="input-field text-sm"
           />
         </div>
 
@@ -3036,19 +2871,19 @@ const RankingPageNew: React.FC = () => {
                 onClick={() => setShowAllTeams(!showAllTeams)}
                 className={`px-3 py-1 rounded-lg text-sm font-medium ${
                   showAllTeams
-                    ? 'bg-blue-100 text-blue-700 border border-gray-200'
-                    : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                    ? 'bg-primary-100 text-primary-700 border border-slate-200'
+                    : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
                 }`}
               >
                 {showAllTeams ? 'Mostrar solo top 20' : 'Mostrar todos los equipos'}
               </button>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-slate-500">
                 {rankingDataWithChanges?.length || 0} equipos disponibles
               </span>
           </div>
 
             {/* Lista de equipos */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto border border-slate-200 rounded-lg p-3">
               {rankingDataWithChanges
                 ?.filter(team => 
                   team.team_name.toLowerCase().includes(teamSearchTerm.toLowerCase()) ||
@@ -3056,12 +2891,12 @@ const RankingPageNew: React.FC = () => {
                 )
                 ?.slice(0, showAllTeams ? undefined : 20)
                 ?.map((team) => (
-                <label key={team.team_id} className="flex items-center space-x-2 text-sm hover:bg-gray-50 p-1 rounded">
+                <label key={team.team_id} className="flex items-center space-x-2 text-sm hover:bg-secondary-50 p-1 rounded">
                   <input
                     type="checkbox"
                     checked={selectedTeamsForAnalysis.includes(team.team_id)}
                     onChange={(e) => handleTeamSelection(team.team_id, e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                   />
                   <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
                   <span className="truncate">{team.team_name}</span>
@@ -3074,7 +2909,7 @@ const RankingPageNew: React.FC = () => {
               team.team_name.toLowerCase().includes(teamSearchTerm.toLowerCase()) ||
               team.region_name?.toLowerCase().includes(teamSearchTerm.toLowerCase())
             )?.length === 0 && teamSearchTerm && (
-              <div className="text-center py-4 text-gray-500">
+              <div className="text-center py-4 text-slate-500">
                 No se encontraron equipos que coincidan con "{teamSearchTerm}"
               </div>
             )}
@@ -3083,12 +2918,12 @@ const RankingPageNew: React.FC = () => {
                 {selectedTeamsForAnalysis.map(teamId => {
                   const team = rankingDataWithChanges?.find(t => t.team_id === teamId)
                   return team ? (
-                    <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                    <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary-100 text-primary-800">
                       <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
                       <span className="ml-1">{team.team_name}</span>
                       <button
                         onClick={() => handleTeamSelection(teamId, false)}
-                        className="ml-1 text-blue-600 hover:text-blue-800"
+                        className="ml-1 text-primary-600 hover:text-primary-800"
                       >
                         ×
                       </button>
@@ -3107,8 +2942,8 @@ const RankingPageNew: React.FC = () => {
                   onClick={() => setAnalysisView('points')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'points'
-                      ? 'bg-blue-100 text-blue-700 border border-gray-200'
-                      : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                      ? 'bg-primary-100 text-primary-700 border border-slate-200'
+                      : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
                   }`}
                 >
                   Evolución de Puntos
@@ -3117,8 +2952,8 @@ const RankingPageNew: React.FC = () => {
                   onClick={() => setAnalysisView('positions')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'positions'
-                      ? 'bg-blue-100 text-blue-700 border border-gray-200'
-                      : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                      ? 'bg-primary-100 text-primary-700 border border-slate-200'
+                      : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
                   }`}
                 >
                   Evolución de Posiciones
@@ -3129,16 +2964,16 @@ const RankingPageNew: React.FC = () => {
 
           {/* Gráfica */}
           {selectedTeamsForAnalysis.length === 0 ? (
-            <div className="bg-gray-50 rounded-lg p-8 text-center">
-              <LineChart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Selecciona equipos para ver su comparación</p>
-              <p className="text-sm text-gray-400 mt-2">Puedes seleccionar hasta 6 equipos para comparar</p>
+            <div className="bg-secondary-50 rounded-lg p-8 text-center">
+              <LineChart className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+              <p className="text-slate-500">Selecciona equipos para ver su comparación</p>
+              <p className="text-sm text-slate-400 mt-2">Puedes seleccionar hasta 6 equipos para comparar</p>
             </div>
           ) : (
             <div className="space-y-6">
               {/* Gráfica */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="text-md font-medium text-gray-900 mb-4">
+              <div className="bg-secondary-50 rounded-lg p-4">
+                <h4 className="text-md font-medium text-slate-900 mb-4">
                   {analysisView === 'points' ? 'Evolución de Puntos por Temporada' : 'Evolución de Posiciones por Temporada'}
                 </h4>
                 <SimpleChart 
@@ -3150,8 +2985,8 @@ const RankingPageNew: React.FC = () => {
               </div>
 
               {/* Leyenda */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h5 className="text-sm font-medium text-gray-900 mb-3">Equipos seleccionados:</h5>
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <h5 className="text-sm font-medium text-slate-900 mb-3">Equipos seleccionados:</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {analysisData.map((team, index) => {
                     const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
@@ -3162,8 +2997,8 @@ const RankingPageNew: React.FC = () => {
                           style={{ backgroundColor: colors[index % colors.length] }}
                         />
                         <TeamLogo name={team.team_name} logo={rankingDataWithChanges?.find(t => t.team_id === team.team_id)?.logo} size="sm" />
-                        <span className="text-sm text-gray-900">{team.team_name}</span>
-                        <span className="text-xs text-gray-500">({team.region_name})</span>
+                        <span className="text-sm text-slate-900">{team.team_name}</span>
+                        <span className="text-xs text-slate-500">({team.region_name})</span>
                       </div>
                     )
                   })}
@@ -3171,8 +3006,8 @@ const RankingPageNew: React.FC = () => {
               </div>
 
               {/* Resumen estadístico */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h5 className="text-sm font-medium text-gray-900 mb-3">Resumen estadístico:</h5>
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <h5 className="text-sm font-medium text-slate-900 mb-3">Resumen estadístico:</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {analysisData.map(team => {
                     const totalPoints = team.data.reduce((sum, d) => sum + d.points, 0)
@@ -3181,12 +3016,12 @@ const RankingPageNew: React.FC = () => {
                     const minPoints = Math.min(...team.data.map(d => d.points))
                     
                     return (
-                      <div key={team.team_id} className="bg-gray-50 rounded-lg p-3">
+                      <div key={team.team_id} className="bg-secondary-50 rounded-lg p-3">
                         <div className="flex items-center mb-2">
                           <TeamLogo name={team.team_name} logo={rankingDataWithChanges?.find(t => t.team_id === team.team_id)?.logo} size="sm" />
-                          <span className="ml-2 font-medium text-gray-900">{team.team_name}</span>
+                          <span className="ml-2 font-medium text-slate-900">{team.team_name}</span>
                         </div>
-                        <div className="text-sm text-gray-600 space-y-1">
+                        <div className="text-sm text-slate-600 space-y-1">
                           <div>Total: {totalPoints.toFixed(1)} pts</div>
                           <div>Promedio: {avgPoints.toFixed(1)} pts</div>
                           <div>Máximo: {maxPoints.toFixed(1)} pts</div>
@@ -3208,10 +3043,10 @@ const RankingPageNew: React.FC = () => {
   const renderGeneralAdvancedTab = () => {
     if (isLoadingGeneral || !generalRankingData) {
       return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-500">Cargando datos...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-2 text-slate-500">Cargando datos...</p>
           </div>
         </div>
       )
@@ -3225,17 +3060,17 @@ const RankingPageNew: React.FC = () => {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
             <MapPin className="w-5 h-5 mr-2" />
             Estadísticas Avanzadas - Ranking General
             </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-slate-600 mb-6">
             Análisis detallado de la distribución geográfica y competitividad del ranking general.
           </p>
           
           {/* Estadísticas por región */}
           <div className="mb-6">
-            <h4 className="text-md font-medium text-gray-900 mb-3">Distribución por Región</h4>
+            <h4 className="text-md font-medium text-slate-900 mb-3">Distribución por Región</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(
                 rankingDataWithChanges?.reduce((acc: { [key: string]: number }, team) => {
@@ -3244,10 +3079,10 @@ const RankingPageNew: React.FC = () => {
                   return acc
                 }, {}) || {}
               ).map(([region, count]) => (
-                <div key={region} className="bg-gray-50 rounded-lg p-4">
+                <div key={region} className="bg-secondary-50 rounded-lg p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-900">{region}</span>
-                    <span className="text-lg font-semibold text-blue-600">{count as number}</span>
+                    <span className="text-sm font-medium text-slate-900">{region}</span>
+                    <span className="text-lg font-semibold text-primary-600">{count as number}</span>
                   </div>
                 </div>
               ))}
@@ -3256,26 +3091,26 @@ const RankingPageNew: React.FC = () => {
 
           {/* Competitividad */}
           <div className="mb-6">
-            <h4 className="text-md font-medium text-gray-900 mb-3">Análisis de Competitividad</h4>
+            <h4 className="text-md font-medium text-slate-900 mb-3">Análisis de Competitividad</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-sm text-gray-600">Diferencia 1º-2º</div>
-                <div className="text-xl font-semibold text-gray-900">
+              <div className="bg-secondary-50 rounded-lg p-4">
+                <div className="text-sm text-slate-600">Diferencia 1º-2º</div>
+                <div className="text-xl font-semibold text-slate-900">
                   {rankingDataWithChanges && rankingDataWithChanges.length > 1 
                     ? (rankingDataWithChanges[0].total_points - rankingDataWithChanges[1].total_points).toFixed(1)
                     : '0.0'
                   }
                 </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-sm text-gray-600">Equipos en Top 10</div>
-                <div className="text-xl font-semibold text-gray-900">
+              <div className="bg-secondary-50 rounded-lg p-4">
+                <div className="text-sm text-slate-600">Equipos en Top 10</div>
+                <div className="text-xl font-semibold text-slate-900">
                   {Math.min(10, rankingDataWithChanges?.length || 0)}
                 </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-sm text-gray-600">Densidad Competitiva</div>
-                <div className="text-xl font-semibold text-gray-900">
+              <div className="bg-secondary-50 rounded-lg p-4">
+                <div className="text-sm text-slate-600">Densidad Competitiva</div>
+                <div className="text-xl font-semibold text-slate-900">
                   {rankingDataWithChanges && rankingDataWithChanges.length > 0
                     ? ((rankingDataWithChanges.slice(0, 10).reduce((sum, team) => sum + (team.total_points || 0), 0) / 10) / 
                        (rankingDataWithChanges[0].total_points || 1) * 100).toFixed(1) + '%'
@@ -3291,123 +3126,15 @@ const RankingPageNew: React.FC = () => {
   }
 
 
-  const renderSummaryView = () => {
-    return (
-      <div className="space-y-8">
-        {/* Bloques de estadísticas destacadas en una fila */}
-        {highlightStats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-4 items-stretch">
-            <StatsBlock
-              title="Mejor Global"
-              value={highlightStats.bestGlobalTeam?.team_name || 'N/A'}
-              subtitle={`${highlightStats.bestGlobalTeam?.global_points?.toFixed(1) || '0'} pts`}
-              icon={Trophy}
-              color="blue"
-              logo={highlightStats.bestGlobalTeam?.logo}
-              teamName={highlightStats.bestGlobalTeam?.team_name}
-              tooltip="Equipo con más puntos sumando todas las categorías con coeficientes de antigüedad aplicados."
-              useLogoAsBackground={true}
-            />
-            <StatsBlock
-              title="Equipo Revelación"
-              value={highlightStats.mostPointsGained?.team_name || 'N/A'}
-              subtitle={`+${highlightStats.mostPointsGained?.points_gained?.toFixed(1) || '0'} pts`}
-              icon={BarChart3}
-              color="yellow"
-              logo={highlightStats.mostPointsGained?.logo}
-              teamName={highlightStats.mostPointsGained?.team_name}
-              tooltip="Equipo que ha ganado más puntos comparando la temporada actual con la anterior."
-              useLogoAsBackground={true}
-            />
-            <StatsBlock
-              title="Subida en el ranking"
-              value={highlightStats.biggestRise?.team_name || 'N/A'}
-              subtitle={`+${highlightStats.biggestRise?.positions_gained || 0} puestos`}
-              icon={TrendingUp}
-              color="green"
-              logo={highlightStats.biggestRise?.logo}
-              teamName={highlightStats.biggestRise?.team_name}
-              tooltip="Equipo que ha subido más posiciones comparando la temporada actual con la anterior."
-              useLogoAsBackground={true}
-            />
-            <StatsBlock
-              title="Mejor Filial"
-              value={highlightStats.bestFilial?.team_name || 'Sin filiales'}
-              subtitle={highlightStats.bestFilial ? `${highlightStats.bestFilial.global_points?.toFixed(1) || '0'} pts` : 'No hay filiales'}
-              icon={Users}
-              color="purple"
-              logo={highlightStats.bestFilial?.logo}
-              teamName={highlightStats.bestFilial?.team_name}
-              tooltip="Equipo filial (secundario de un club principal) con más puntos en el ranking."
-              useLogoAsBackground={true}
-            />
-            <StatsBlock
-              title="Líder histórico"
-              value={highlightStats.bestHistorical?.team_name || 'N/A'}
-              subtitle={`${highlightStats.bestHistorical?.historical_points?.toFixed(1) || '0'} pts`}
-              icon={Star}
-              color="orange"
-              logo={highlightStats.bestHistorical?.logo}
-              teamName={highlightStats.bestHistorical?.team_name}
-              tooltip="Equipo con más puntos acumulados desde que se registran datos en el ranking, en todas las temporadas sin aplicar coeficientes."
-              useLogoAsBackground={true}
-            />
-            <StatsBlock
-              title="Total Equipos"
-              value={highlightStats.totalTeams}
-              subtitle="Con torneos disputados"
-              icon={Users}
-              color="red"
-              tooltip="Número total de equipos únicos con puntos en el ranking actual."
-            />
-          </div>
-        )}
-
-        {/* Grid de rankings - Orden: Playa (Mixto, Women, Open) luego Césped (Mixto, Women, Open) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <SummaryCard 
-            title="Playa Mixto" 
-            data={beachMixedData || []} 
-            category="beach_mixed" 
-          />
-          <SummaryCard 
-            title="Playa Women" 
-            data={beachWomenData || []} 
-            category="beach_women" 
-          />
-          <SummaryCard 
-            title="Playa Open" 
-            data={beachOpenData || []} 
-            category="beach_open" 
-          />
-          <SummaryCard 
-            title="Césped Mixto" 
-            data={grassMixedData || []} 
-            category="grass_mixed" 
-          />
-          <SummaryCard 
-            title="Césped Women" 
-            data={grassWomenData || []} 
-            category="grass_women" 
-          />
-          <SummaryCard 
-            title="Césped Open" 
-            data={grassOpenData || []} 
-            category="grass_open" 
-          />
-        </div>
-      </div>
-    )
-  }
 
   // Renderizar vista detallada de ranking
   const renderDetailedView = () => {
     if (isLoading) {
       return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-500">Cargando ranking...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-2 text-slate-500">Cargando ranking...</p>
           </div>
         </div>
       )
@@ -3415,7 +3142,7 @@ const RankingPageNew: React.FC = () => {
 
     if (error) {
       return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
           <div className="text-center text-red-500">
             <p>Error al cargar el ranking</p>
           </div>
@@ -3504,6 +3231,17 @@ const RankingPageNew: React.FC = () => {
       ...team,
       total_points: calculateTotalPoints(team)
     })).sort((a, b) => (b.total_points || 0) - (a.total_points || 0))
+
+    if (!rankingDataWithRecalculatedPoints || rankingDataWithRecalculatedPoints.length === 0) {
+      return (
+        <EmptyState
+          icon={Trophy}
+          title="No hay equipos en esta categoría"
+          description="Aún no hay equipos con puntos registrados en esta categoría."
+          actionLink={{ label: 'Ver torneos recientes', href: '/tournaments' }}
+        />
+      )
+    }
     
     return (
       <div className="space-y-6">
@@ -3583,16 +3321,16 @@ const RankingPageNew: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4">
             <div className="bg-white rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
-                <Users className="w-8 h-8 text-blue-500" />
+                <Users className="w-8 h-8 text-primary-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Total Equipos</p>
-                  <p className="text-2xl font-semibold text-gray-900">{stats.total_teams}</p>
+                  <p className="text-sm font-medium text-slate-500">Total Equipos</p>
+                  <p className="text-2xl font-semibold text-slate-900">{stats.total_teams}</p>
                 </div>
               </div>
               {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                 Número total de equipos registrados en este ranking
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
               </div>
             </div>
             
@@ -3600,14 +3338,14 @@ const RankingPageNew: React.FC = () => {
               <div className="flex items-center">
                 <TrendingUp className="w-8 h-8 text-green-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Equipos Nuevos</p>
-                  <p className="text-2xl font-semibold text-gray-900">{stats.new_teams}</p>
+                  <p className="text-sm font-medium text-slate-500">Equipos Nuevos</p>
+                  <p className="text-2xl font-semibold text-slate-900">{stats.new_teams}</p>
                 </div>
               </div>
               {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                 Equipos nuevos desde que se registran datos en el ranking{referenceSeason ? ` (solo tienen puntos en ${referenceSeason})` : ''}
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
               </div>
             </div>
             
@@ -3615,14 +3353,14 @@ const RankingPageNew: React.FC = () => {
               <div className="flex items-center">
                 <Trophy className="w-8 h-8 text-yellow-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Consistencia</p>
-                  <p className="text-2xl font-semibold text-gray-900">{stats.consistent_teams}</p>
+                  <p className="text-sm font-medium text-slate-500">Consistencia</p>
+                  <p className="text-2xl font-semibold text-slate-900">{stats.consistent_teams}</p>
                 </div>
               </div>
               {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                 Equipos que han estado en top 10 en al menos 2 temporadas
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
               </div>
             </div>
             
@@ -3630,30 +3368,30 @@ const RankingPageNew: React.FC = () => {
               <div className="flex items-center">
                 <Calendar className="w-8 h-8 text-orange-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-500">Actividad</p>
-                  <p className="text-2xl font-semibold text-gray-900">{stats.avg_activity.toFixed(1)}</p>
+                  <p className="text-sm font-medium text-slate-500">Actividad</p>
+                  <p className="text-2xl font-semibold text-slate-900">{stats.avg_activity.toFixed(1)}</p>
                 </div>
               </div>
               {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                 Promedio de temporadas activas por equipo
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-slate-900"></div>
               </div>
             </div>
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
           {/* Header con controles estilo UEFA */}
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="px-6 py-4 border-b border-slate-200 bg-secondary-50">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <currentTab.icon className="w-6 h-6 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-900">
+                <currentTab.icon className="w-6 h-6 text-primary-600" />
+                <h2 className="text-xl font-semibold text-slate-900">
                 {currentTab?.label} - Temporada {currentReferenceSeason || referenceSeason}
                 </h2>
               </div>
-              <div className="flex items-center space-x-4 text-sm text-gray-600">
+              <div className="flex items-center space-x-4 text-sm text-slate-600">
                 <span>
                   {rankingTypeToUse === 'clubs' 
                     ? `${finalRankingData?.length || 0} clubes` 
@@ -3661,10 +3399,10 @@ const RankingPageNew: React.FC = () => {
                   }
                 </span>
                 {rankingTypeToUse === 'historical' && (
-                  <span className="text-xs text-gray-500">• Suma total histórica</span>
+                  <span className="text-xs text-slate-500">• Suma total histórica</span>
                 )}
                 {rankingTypeToUse === 'clubs' && (
-                  <span className="text-xs text-gray-500">• Incluye filiales</span>
+                  <span className="text-xs text-slate-500">• Incluye filiales</span>
                 )}
               </div>
             </div>
@@ -3672,11 +3410,11 @@ const RankingPageNew: React.FC = () => {
             {/* Controles de tabla estilo UEFA */}
             <div className="flex items-center justify-end">
                 <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">Temporada:</label>
+                <label className="text-sm font-medium text-slate-700">Temporada:</label>
                   <select 
                 value={selectedSeasonForDetailedView || referenceSeason || ''}
                 onChange={(e) => setSelectedSeasonForDetailedView(e.target.value || null)}
-                    className="text-sm border border-gray-300 rounded px-3 py-1 bg-white"
+                    className="text-sm border border-slate-300 rounded px-3 py-1 bg-white"
                   >
                 {allSeasons.map((season) => {
                   const year1 = season.split('-')[0]
@@ -3698,39 +3436,39 @@ const RankingPageNew: React.FC = () => {
         >
           <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-100">
+            <thead className="bg-slate-100">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Posición</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cambio</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipo</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Posición</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cambio</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Equipo</th>
                 {seasons.map((season, index) => {
                   const year1 = season.split('-')[0]
                   const year2 = season.split('-')[1]
                   const coefficient = coefficients[index] || 0
                   
                   return (
-                    <th key={season} className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th key={season} className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
                       <div className="flex flex-col">
                         <span>{year1}/{year2}</span>
                         {rankingTypeToUse !== 'historical' && (
-                          <span className="text-xs text-gray-400 font-normal">{coefficient}</span>
+                          <span className="text-xs text-slate-400 font-normal">{coefficient}</span>
                         )}
                       </div>
                     </th>
                   )
                 })}
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Pts <span className="text-blue-500">?</span>
+                <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Pts <span className="text-primary-500">?</span>
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-slate-200">
               {rankingDataWithRecalculatedPoints?.slice(0, (showAllResults || isCollapsing) ? undefined : 10).map((team, index) => {
                 const isEvenRow = index % 2 === 1
                 
                 return (
-                  <tr key={team.team_id} className={`hover:bg-gray-50 ${isEvenRow ? 'bg-gray-50' : 'bg-white'}`}>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <tr key={team.team_id} className={`hover:bg-secondary-50 ${isEvenRow ? 'bg-secondary-50' : 'bg-white'}`}>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
                       <div className="flex items-center">
                         {getRankIcon(index + 1)}
                       </div>
@@ -3740,7 +3478,7 @@ const RankingPageNew: React.FC = () => {
                         {getChangeIcon(team.position_change || 0)}
                         <span className={`ml-1 text-sm font-medium ${
                           (team.position_change || 0) > 0 ? 'text-green-600' : 
-                          (team.position_change || 0) < 0 ? 'text-red-600' : 'text-gray-500'
+                          (team.position_change || 0) < 0 ? 'text-red-600' : 'text-slate-500'
                         }`}>
                           {getChangeText(team.position_change || 0)}
                         </span>
@@ -3750,22 +3488,22 @@ const RankingPageNew: React.FC = () => {
                       <div className="flex items-center">
                         <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">{team.team_name}</div>
+                          <div className="text-sm font-medium text-slate-900">{team.team_name}</div>
                           {team.region_name && (
-                            <div className="text-xs text-gray-500">{team.region_name}</div>
+                            <div className="text-xs text-slate-500">{team.region_name}</div>
                           )}
                           {rankingTypeToUse === 'clubs' && team.teams_count && team.teams_count > 1 && (
-                            <div className="text-xs text-blue-600">{team.teams_count} equipos</div>
+                            <div className="text-xs text-primary-600">{team.teams_count} equipos</div>
                           )}
                         </div>
                       </div>
                     </td>
                     {seasons.map((season) => (
-                      <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                      <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-slate-900 text-right">
                         {getSeasonPoints(team, season).toFixed(2)}
                       </td>
                     ))}
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-slate-900 text-right">
                       {team.total_points?.toFixed(2) || '0.00'}
                     </td>
                   </tr>
@@ -3777,7 +3515,7 @@ const RankingPageNew: React.FC = () => {
         </div>
 
         {/* Footer estilo UEFA */}
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="px-6 py-4 border-t border-slate-200 bg-secondary-50">
           <div className="flex items-center justify-between">
             <button
               onClick={() => {
@@ -3788,11 +3526,11 @@ const RankingPageNew: React.FC = () => {
                   setShowAllResults(true)
                 }
               }}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+              className="text-sm text-primary-600 hover:text-primary-800 font-medium transition-colors"
             >
               {showAllResults ? 'Ver solo top 10' : 'Ver ranking completo'}
             </button>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-slate-500">
               Última actualización: {new Date().toLocaleDateString('es-ES')} {new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>
@@ -3807,10 +3545,10 @@ const RankingPageNew: React.FC = () => {
   const renderAnalysisTab = () => {
     if (isLoading) {
       return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-500">Cargando datos...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-2 text-slate-500">Cargando datos...</p>
           </div>
         </div>
       )
@@ -3818,7 +3556,7 @@ const RankingPageNew: React.FC = () => {
 
     if (error || !rankingData) {
       return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
           <div className="text-center text-red-500">
             <p>Error al cargar los datos del ranking</p>
           </div>
@@ -3832,21 +3570,21 @@ const RankingPageNew: React.FC = () => {
     return (
       <div>
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
             <LineChart className="w-5 h-5 mr-2" />
             Análisis de Equipos
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-slate-600 mb-6">
             Selecciona equipos para comparar su evolución de puntos y posiciones a lo largo del tiempo.
           </p>
           
           {/* Selector de equipos múltiple */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-slate-700">
                 Seleccionar equipos para análisis:
               </label>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-slate-500">
                 {selectedTeamsForAnalysis.length} equipos seleccionados
               </span>
             </div>
@@ -3858,7 +3596,7 @@ const RankingPageNew: React.FC = () => {
                 placeholder="Buscar equipos..."
                 value={teamSearchTerm}
                 onChange={(e) => setTeamSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="input-field text-sm"
               />
             </div>
             
@@ -3868,19 +3606,19 @@ const RankingPageNew: React.FC = () => {
                 onClick={() => setShowAllTeams(!showAllTeams)}
                 className={`px-3 py-1 rounded-lg text-sm font-medium ${
                   showAllTeams
-                    ? 'bg-blue-100 text-blue-700 border border-gray-200'
-                    : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                    ? 'bg-primary-100 text-primary-700 border border-slate-200'
+                    : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
                 }`}
               >
                 {showAllTeams ? 'Mostrar solo top 20' : 'Mostrar todos los equipos'}
               </button>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-slate-500">
                 {rankingData?.length || 0} equipos disponibles
               </span>
             </div>
             
             {/* Lista de equipos */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto border border-slate-200 rounded-lg p-3">
               {rankingData
                 ?.filter(team => 
                   team.team_name.toLowerCase().includes(teamSearchTerm.toLowerCase()) ||
@@ -3888,12 +3626,12 @@ const RankingPageNew: React.FC = () => {
                 )
                 ?.slice(0, showAllTeams ? undefined : 20)
                 ?.map((team) => (
-                <label key={team.team_id} className="flex items-center space-x-2 text-sm hover:bg-gray-50 p-1 rounded">
+                <label key={team.team_id} className="flex items-center space-x-2 text-sm hover:bg-secondary-50 p-1 rounded">
                   <input
                     type="checkbox"
                     checked={selectedTeamsForAnalysis.includes(team.team_id)}
                     onChange={(e) => handleTeamSelection(team.team_id, e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                   />
                   <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
                   <span className="truncate">{team.team_name}</span>
@@ -3906,7 +3644,7 @@ const RankingPageNew: React.FC = () => {
               team.team_name.toLowerCase().includes(teamSearchTerm.toLowerCase()) ||
               team.region_name?.toLowerCase().includes(teamSearchTerm.toLowerCase())
             )?.length === 0 && teamSearchTerm && (
-              <div className="text-center py-4 text-gray-500">
+              <div className="text-center py-4 text-slate-500">
                 No se encontraron equipos que coincidan con "{teamSearchTerm}"
               </div>
             )}
@@ -3915,12 +3653,12 @@ const RankingPageNew: React.FC = () => {
                 {selectedTeamsForAnalysis.map(teamId => {
                   const team = rankingData?.find(t => t.team_id === teamId)
                   return team ? (
-                    <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                    <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary-100 text-primary-800">
                       <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
                       <span className="ml-1">{team.team_name}</span>
                       <button
                         onClick={() => handleTeamSelection(teamId, false)}
-                        className="ml-1 text-blue-600 hover:text-blue-800"
+                        className="ml-1 text-primary-600 hover:text-primary-800"
                       >
                         ×
                       </button>
@@ -3939,8 +3677,8 @@ const RankingPageNew: React.FC = () => {
                   onClick={() => setAnalysisView('points')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'points'
-                      ? 'bg-blue-100 text-blue-700 border border-gray-200'
-                      : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                      ? 'bg-primary-100 text-primary-700 border border-slate-200'
+                      : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
                   }`}
                 >
                   Evolución de Puntos
@@ -3949,8 +3687,8 @@ const RankingPageNew: React.FC = () => {
                   onClick={() => setAnalysisView('positions')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'positions'
-                      ? 'bg-blue-100 text-blue-700 border border-gray-200'
-                      : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                      ? 'bg-primary-100 text-primary-700 border border-slate-200'
+                      : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
                   }`}
                 >
                   Evolución de Posiciones
@@ -3961,16 +3699,16 @@ const RankingPageNew: React.FC = () => {
 
           {/* Gráfica */}
           {selectedTeamsForAnalysis.length === 0 ? (
-            <div className="bg-gray-50 rounded-lg p-8 text-center">
-              <LineChart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Selecciona equipos para ver su comparación</p>
-              <p className="text-sm text-gray-400 mt-2">Puedes seleccionar hasta 6 equipos para comparar</p>
+            <div className="bg-secondary-50 rounded-lg p-8 text-center">
+              <LineChart className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+              <p className="text-slate-500">Selecciona equipos para ver su comparación</p>
+              <p className="text-sm text-slate-400 mt-2">Puedes seleccionar hasta 6 equipos para comparar</p>
             </div>
           ) : (
             <div className="space-y-6">
               {/* Gráfica */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="text-md font-medium text-gray-900 mb-4">
+              <div className="bg-secondary-50 rounded-lg p-4">
+                <h4 className="text-md font-medium text-slate-900 mb-4">
                   {analysisView === 'points' ? 'Evolución de Puntos por Temporada' : 'Evolución de Posiciones por Temporada'}
                 </h4>
                 <SimpleChart 
@@ -3982,8 +3720,8 @@ const RankingPageNew: React.FC = () => {
               </div>
 
               {/* Leyenda */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h5 className="text-sm font-medium text-gray-900 mb-3">Equipos seleccionados:</h5>
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <h5 className="text-sm font-medium text-slate-900 mb-3">Equipos seleccionados:</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {analysisData.map((team, index) => {
                     const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
@@ -3994,8 +3732,8 @@ const RankingPageNew: React.FC = () => {
                           style={{ backgroundColor: colors[index % colors.length] }}
                         />
                         <TeamLogo name={team.team_name} logo={rankingData?.find(t => t.team_id === team.team_id)?.logo} size="sm" />
-                        <span className="text-sm text-gray-900">{team.team_name}</span>
-                        <span className="text-xs text-gray-500">({team.region_name})</span>
+                        <span className="text-sm text-slate-900">{team.team_name}</span>
+                        <span className="text-xs text-slate-500">({team.region_name})</span>
                       </div>
                     )
                   })}
@@ -4003,8 +3741,8 @@ const RankingPageNew: React.FC = () => {
               </div>
 
               {/* Resumen estadístico */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h5 className="text-sm font-medium text-gray-900 mb-3">Resumen estadístico:</h5>
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <h5 className="text-sm font-medium text-slate-900 mb-3">Resumen estadístico:</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {analysisData.map(team => {
                     const totalPoints = team.data.reduce((sum, d) => sum + d.points, 0)
@@ -4013,12 +3751,12 @@ const RankingPageNew: React.FC = () => {
                     const minPoints = Math.min(...team.data.map(d => d.points))
                     
                     return (
-                      <div key={team.team_id} className="bg-gray-50 rounded-lg p-3">
+                      <div key={team.team_id} className="bg-secondary-50 rounded-lg p-3">
                         <div className="flex items-center mb-2">
                           <TeamLogo name={team.team_name} logo={rankingData?.find(t => t.team_id === team.team_id)?.logo} size="sm" />
-                          <span className="ml-2 font-medium text-gray-900">{team.team_name}</span>
+                          <span className="ml-2 font-medium text-slate-900">{team.team_name}</span>
                         </div>
-                        <div className="text-sm text-gray-600 space-y-1">
+                        <div className="text-sm text-slate-600 space-y-1">
                           <div>Total: {totalPoints.toFixed(1)} pts</div>
                           <div>Promedio: {avgPoints.toFixed(1)} pts</div>
                           <div>Máximo: {maxPoints.toFixed(1)} pts</div>
@@ -4040,10 +3778,10 @@ const RankingPageNew: React.FC = () => {
   const renderAdvancedTab = () => {
     if (isLoading) {
       return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-500">Cargando datos...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-2 text-slate-500">Cargando datos...</p>
           </div>
         </div>
       )
@@ -4051,7 +3789,7 @@ const RankingPageNew: React.FC = () => {
 
     if (error || !rankingData) {
       return (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
           <div className="text-center text-red-500">
             <p>Error al cargar los datos del ranking</p>
           </div>
@@ -4062,17 +3800,17 @@ const RankingPageNew: React.FC = () => {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
             <MapPin className="w-5 h-5 mr-2" />
             Estadísticas Avanzadas
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-slate-600 mb-6">
             Análisis detallado de la distribución geográfica y competitividad del ranking.
           </p>
           
           {/* Estadísticas por región */}
           <div className="mb-6">
-            <h4 className="text-md font-medium text-gray-900 mb-3">Distribución por Región</h4>
+            <h4 className="text-md font-medium text-slate-900 mb-3">Distribución por Región</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {rankingData?.reduce((acc: { [key: string]: number }, team) => {
                 const region = team.region_name || 'Sin región'
@@ -4085,10 +3823,10 @@ const RankingPageNew: React.FC = () => {
                   return acc
                 }, {}) || {}
               ).map(([region, count]) => (
-                <div key={region} className="bg-gray-50 rounded-lg p-4">
+                <div key={region} className="bg-secondary-50 rounded-lg p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-900">{region}</span>
-                    <span className="text-lg font-semibold text-blue-600">{count as number}</span>
+                    <span className="text-sm font-medium text-slate-900">{region}</span>
+                    <span className="text-lg font-semibold text-primary-600">{count as number}</span>
                   </div>
                 </div>
               ))}
@@ -4097,26 +3835,26 @@ const RankingPageNew: React.FC = () => {
 
           {/* Competitividad */}
           <div className="mb-6">
-            <h4 className="text-md font-medium text-gray-900 mb-3">Análisis de Competitividad</h4>
+            <h4 className="text-md font-medium text-slate-900 mb-3">Análisis de Competitividad</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-sm text-gray-600">Diferencia 1º-2º</div>
-                <div className="text-xl font-semibold text-gray-900">
+              <div className="bg-secondary-50 rounded-lg p-4">
+                <div className="text-sm text-slate-600">Diferencia 1º-2º</div>
+                <div className="text-xl font-semibold text-slate-900">
                   {rankingData && rankingData.length > 1 
                     ? (rankingData[0].total_points - rankingData[1].total_points).toFixed(1)
                     : '0.0'
                   }
                 </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-sm text-gray-600">Equipos en Top 10</div>
-                <div className="text-xl font-semibold text-gray-900">
+              <div className="bg-secondary-50 rounded-lg p-4">
+                <div className="text-sm text-slate-600">Equipos en Top 10</div>
+                <div className="text-xl font-semibold text-slate-900">
                   {Math.min(10, rankingData?.length || 0)}
                 </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-sm text-gray-600">Densidad Competitiva</div>
-                <div className="text-xl font-semibold text-gray-900">
+              <div className="bg-secondary-50 rounded-lg p-4">
+                <div className="text-sm text-slate-600">Densidad Competitiva</div>
+                <div className="text-xl font-semibold text-slate-900">
                   {rankingData && rankingData.length > 0
                     ? ((rankingData.slice(0, 10).reduce((sum, team) => sum + team.total_points, 0) / 10) / 
                        (rankingData[0].total_points || 1) * 100).toFixed(1) + '%'
@@ -4132,72 +3870,67 @@ const RankingPageNew: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-secondary-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header principal */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-blue-900 mb-2">Rankings FEDV</h1>
-          <p className="text-gray-600">
-            Clasificación oficial de equipos por superficie y temporada
-          </p>
-        </div>
+        <RankingPageHeader season={referenceSeason} isLoadingSeason={isLoadingSeason} />
 
-        {/* Submenú horizontal */}
-        <div className="mb-0">
-          <nav className="flex space-x-8 border-b-2 border-gray-300 bg-white rounded-t-lg px-6 pt-2">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => handleTabClick(tab.id)}
-                className={`py-4 px-2 border-b-3 font-semibold text-base transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? 'border-blue-600 text-blue-700 bg-blue-50/50'
-                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-                style={activeTab === tab.id ? { borderBottomWidth: '3px' } : {}}
-              >
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </nav>
-          
-          {/* Sub-pestañas (solo para general y categorías) */}
-          {activeTab !== 'summary' && (
-            <div className="bg-gray-50 border-b border-gray-200 px-6 py-2">
-              <div className="flex items-center space-x-1">
-                {(() => {
-                  const subTabs = [
-                    { id: 'ranking', label: 'Ranking', icon: BarChart3 },
-                    { id: 'historical', label: 'Ranking histórico', icon: Star },
-                    { id: 'clubs', label: 'Ranking de clubes', icon: Users },
-                    { id: 'analysis', label: 'Gráficas de análisis', icon: LineChart },
-                    { id: 'advanced', label: 'Estadísticas avanzadas', icon: MapPin }
-                  ]
-                  return subTabs.map((subTab) => (
-                    <button
-                      key={subTab.id}
-                      onClick={() => setDetailedViewMode(subTab.id as 'ranking' | 'historical' | 'clubs' | 'analysis' | 'advanced')}
-                      className={`px-4 py-2 text-sm font-medium flex items-center space-x-1.5 transition-colors rounded-md ${
-                        detailedViewMode === subTab.id
-                          ? 'text-blue-600 bg-blue-50'
-                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      <subTab.icon className={`w-3.5 h-3.5 ${detailedViewMode === subTab.id ? 'text-blue-600' : 'text-gray-400'}`} />
-                      <span>{subTab.label}</span>
-                    </button>
-                  ))
-                })()}
-              </div>
+        <RankingTabNav tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
+
+        {activeTab !== 'summary' && (
+          <div className="bg-white border-b border-slate-200 px-2 py-2 mb-6 rounded-b-xl shadow-sm">
+            <div className="flex items-center gap-1 overflow-x-auto">
+              {[
+                { id: 'ranking', label: 'Ranking', icon: BarChart3 },
+                { id: 'historical', label: 'Ranking histórico', icon: Star },
+                { id: 'clubs', label: 'Ranking de clubes', icon: Users },
+                { id: 'analysis', label: 'Gráficas de análisis', icon: LineChart },
+                { id: 'advanced', label: 'Estadísticas avanzadas', icon: MapPin },
+              ].map((subTab) => (
+                <button
+                  key={subTab.id}
+                  onClick={() =>
+                    setDetailedViewMode(
+                      subTab.id as 'ranking' | 'historical' | 'clubs' | 'analysis' | 'advanced'
+                    )
+                  }
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl text-sm font-medium whitespace-nowrap transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                    detailedViewMode === subTab.id
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                  }`}
+                >
+                  <subTab.icon className="w-4 h-4" />
+                  <span>{subTab.label}</span>
+                </button>
+              ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Contenido principal */}
-        <div className="mt-6">
-          {activeTab === 'summary' ? renderSummaryView() : 
-           activeTab === 'general' ? renderGeneralView() : 
-           renderDetailedView()}
+        <div
+          role="tabpanel"
+          id={`ranking-panel-${activeTab}`}
+          aria-labelledby={`ranking-tab-${activeTab}`}
+        >
+          {activeTab === 'summary' ? (
+            <RankingSummaryView
+              highlightStats={highlightStats}
+              beachMixedData={beachMixedData || []}
+              beachWomenData={beachWomenData || []}
+              beachOpenData={beachOpenData || []}
+              grassMixedData={grassMixedData || []}
+              grassWomenData={grassWomenData || []}
+              grassOpenData={grassOpenData || []}
+              onViewFullCategory={handleTabClick}
+              getRankIcon={getRankIcon}
+              getChangeIcon={getChangeIcon}
+              getChangeText={getChangeText}
+            />
+          ) : activeTab === 'general' ? (
+            <RankingGeneralView renderView={renderGeneralView} />
+          ) : (
+            <RankingCategoryView renderView={renderDetailedView} />
+          )}
         </div>
       </div>
     </div>
