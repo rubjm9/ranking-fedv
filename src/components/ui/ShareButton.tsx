@@ -6,13 +6,15 @@ interface ShareButtonProps {
   title?: string
   description?: string
   className?: string
+  variant?: 'light' | 'dark'
 }
 
 const ShareButton: React.FC<ShareButtonProps> = ({
   url,
   title,
   description,
-  className = ''
+  className = '',
+  variant = 'light',
 }) => {
   const [copied, setCopied] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -35,7 +37,6 @@ const ShareButton: React.FC<ShareButtonProps> = ({
   const handleShare = (platform: 'twitter' | 'facebook' | 'linkedin') => {
     const encodedUrl = encodeURIComponent(fullUrl)
     const encodedTitle = encodeURIComponent(title || '')
-    const encodedDescription = encodeURIComponent(description || '')
 
     let shareUrl = ''
     switch (platform) {
@@ -56,11 +57,16 @@ const ShareButton: React.FC<ShareButtonProps> = ({
     }
   }
 
+  const triggerClass =
+    variant === 'dark'
+      ? 'flex items-center gap-2 px-4 py-2 text-sm font-medium text-white border border-white/20 rounded-xl hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500'
+      : 'btn-outline flex items-center gap-2 text-sm'
+
   return (
     <div className={`relative ${className}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className={triggerClass}
         aria-label="Compartir"
         aria-expanded={isOpen}
       >
@@ -70,23 +76,17 @@ const ShareButton: React.FC<ShareButtonProps> = ({
 
       {isOpen && (
         <>
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setIsOpen(false)}
-          />
-          
-          {/* Dropdown */}
-          <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
+          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} aria-hidden="true" />
+          <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 z-20">
             <div className="py-1">
               <button
                 onClick={handleCopy}
-                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 {copied ? (
                   <>
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span className="text-green-600">¡Copiado!</span>
+                    <Check className="h-4 w-4 text-emerald-600" />
+                    <span className="text-emerald-600">¡Copiado!</span>
                   </>
                 ) : (
                   <>
@@ -95,30 +95,26 @@ const ShareButton: React.FC<ShareButtonProps> = ({
                   </>
                 )}
               </button>
-              
-              <div className="border-t border-gray-200 my-1" />
-              
+              <div className="border-t border-slate-200 my-1" />
               <button
                 onClick={() => handleShare('twitter')}
-                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
               >
-                <Twitter className="h-4 w-4 text-blue-400" />
+                <Twitter className="h-4 w-4 text-slate-600" />
                 <span>Twitter</span>
               </button>
-              
               <button
                 onClick={() => handleShare('facebook')}
-                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
               >
-                <Facebook className="h-4 w-4 text-blue-600" />
+                <Facebook className="h-4 w-4 text-slate-600" />
                 <span>Facebook</span>
               </button>
-              
               <button
                 onClick={() => handleShare('linkedin')}
-                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
               >
-                <Linkedin className="h-4 w-4 text-blue-700" />
+                <Linkedin className="h-4 w-4 text-slate-600" />
                 <span>LinkedIn</span>
               </button>
             </div>
@@ -130,9 +126,3 @@ const ShareButton: React.FC<ShareButtonProps> = ({
 }
 
 export default ShareButton
-
-
-
-
-
-

@@ -105,11 +105,11 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
 
   const getSortIcon = (field: keyof TournamentResult) => {
     if (sortField !== field) {
-      return <ArrowUpDown className="h-4 w-4 text-gray-400" />
+      return <ArrowUpDown className="h-4 w-4 text-slate-400" />
     }
     return sortDirection === 'asc' 
-      ? <ChevronUp className="h-4 w-4 text-blue-600" />
-      : <ChevronDown className="h-4 w-4 text-blue-600" />
+      ? <ChevronUp className="h-4 w-4 text-primary-600" />
+      : <ChevronDown className="h-4 w-4 text-primary-600" />
   }
 
   const hasActiveFilters = searchTerm !== '' || selectedSeason !== '' || selectedCategory !== '' || selectedType !== ''
@@ -135,12 +135,12 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
   return (
     <div className="space-y-4">
       {/* Filtros y controles */}
-      <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+      <div className="bg-slate-50 rounded-lg p-4 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Búsqueda */}
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Buscar torneo..."
@@ -149,7 +149,7 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                   setSearchTerm(e.target.value)
                   setCurrentPage(1)
                 }}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -161,7 +161,7 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
               setSelectedSeason(e.target.value)
               setCurrentPage(1)
             }}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="">Todas las temporadas</option>
             {seasons.map(season => (
@@ -175,7 +175,7 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
               setSelectedCategory(e.target.value)
               setCurrentPage(1)
             }}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="">Todas las categorías</option>
             {categories.map(cat => (
@@ -189,7 +189,7 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
               setSelectedType(e.target.value)
               setCurrentPage(1)
             }}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="">Todos los tipos</option>
             {types.map(type => (
@@ -200,12 +200,12 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
 
         {/* Controles adicionales */}
         <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-slate-600">
             {filteredAndSortedResults.length} {filteredAndSortedResults.length === 1 ? 'resultado' : 'resultados'}
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="ml-2 text-blue-600 hover:text-blue-700 underline"
+                className="ml-2 text-primary-600 hover:text-primary-700 underline"
               >
                 Limpiar filtros
               </button>
@@ -218,11 +218,11 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
       {viewMode === 'table' ? (
         <>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-slate-200">
+              <thead className="bg-slate-50">
                 <tr>
                   <th
-                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100"
                     onClick={() => handleSort('name')}
                   >
                     <div className="flex items-center gap-1">
@@ -231,7 +231,7 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                     </div>
                   </th>
                   <th
-                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100"
                     onClick={() => handleSort('season')}
                   >
                     <div className="flex items-center gap-1">
@@ -239,14 +239,14 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                       {getSortIcon('season')}
                     </div>
                   </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Categoría
                   </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                     Tipo
                   </th>
                   <th
-                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100"
                     onClick={() => handleSort('position')}
                   >
                     <div className="flex items-center gap-1">
@@ -255,7 +255,7 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                     </div>
                   </th>
                   <th
-                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100"
                     onClick={() => handleSort('points')}
                   >
                     <div className="flex items-center gap-1">
@@ -264,7 +264,7 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                     </div>
                   </th>
                   <th
-                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100"
                     onClick={() => handleSort('date')}
                   >
                     <div className="flex items-center gap-1">
@@ -274,32 +274,32 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-slate-200">
                 {paginatedResults.map((result) => (
-                  <tr key={result.id} className="hover:bg-gray-50 transition-colors duration-150">
+                  <tr key={result.id} className="hover:bg-slate-50 transition-colors duration-150">
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <Link
                         to={`/tournaments/${result.tournamentId}`}
-                        className="flex items-center gap-2 text-sm font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                        className="flex items-center gap-2 text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
                       >
                         <span>{result.name}</span>
                         <ExternalLink className="h-3 w-3 opacity-50" />
                       </Link>
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{result.season}</div>
+                      <div className="text-sm text-slate-500">{result.season}</div>
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <span className="mr-1">{getSurfaceIcon(result.surface)}</span>
                         <span className="mr-1">{getModalityIcon(result.category)}</span>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-slate-500">
                           {getCategoryLabel(`${result.surface.toLowerCase()}_${result.category.toLowerCase()}`)}
                         </span>
                       </div>
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{getTournamentTypeLabel(result.type)}</div>
+                      <div className="text-sm text-slate-500">{getTournamentTypeLabel(result.type)}</div>
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPositionColor(result.position)}`}>
@@ -307,10 +307,10 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                       </span>
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{result.points}</div>
+                      <div className="text-sm font-medium text-slate-900">{result.points}</div>
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-slate-500">
                         {result.date ? new Date(result.date).toLocaleDateString('es-ES') : 'N/A'}
                       </div>
                     </td>
@@ -341,25 +341,25 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
             <Link
               key={result.id}
               to={`/tournaments/${result.tournamentId}`}
-              className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow border border-gray-200"
+              className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow border border-slate-200"
             >
               <div className="flex items-start justify-between mb-2">
-                <h4 className="text-sm font-semibold text-gray-900 flex-1">{result.name}</h4>
-                <ExternalLink className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
+                <h4 className="text-sm font-semibold text-slate-900 flex-1">{result.name}</h4>
+                <ExternalLink className="h-4 w-4 text-slate-400 flex-shrink-0 ml-2" />
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <span>{getSurfaceIcon(result.surface)}</span>
                   <span>{getModalityIcon(result.category)}</span>
-                  <span className="text-gray-600">{getCategoryLabel(`${result.surface.toLowerCase()}_${result.category.toLowerCase()}`)}</span>
+                  <span className="text-slate-600">{getCategoryLabel(`${result.surface.toLowerCase()}_${result.category.toLowerCase()}`)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPositionColor(result.position)}`}>
                     {result.position}º
                   </span>
-                  <span className="text-gray-600">{result.points} puntos</span>
+                  <span className="text-slate-600">{result.points} puntos</span>
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-slate-500">
                   {result.season} • {result.date ? new Date(result.date).toLocaleDateString('es-ES') : 'N/A'}
                 </div>
               </div>

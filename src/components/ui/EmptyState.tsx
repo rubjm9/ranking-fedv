@@ -9,6 +9,10 @@ interface EmptyStateProps {
     label: string
     onClick: () => void
   }
+  actionLink?: {
+    label: string
+    href: string
+  }
   className?: string
 }
 
@@ -17,35 +21,32 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   title,
   description,
   action,
-  className = ''
+  actionLink,
+  className = '',
 }) => {
   return (
     <div className={`flex flex-col items-center justify-center py-12 px-4 ${className}`}>
       {Icon && (
-        <div className="mb-4 p-4 bg-gray-100 rounded-full">
-          <Icon className="h-8 w-8 text-gray-400" />
+        <div className="mb-4 p-4 bg-primary-50 rounded-2xl">
+          <Icon className="h-8 w-8 text-primary-400" />
         </div>
       )}
-      <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
+      <h3 className="text-lg font-medium text-slate-900 mb-2">{title}</h3>
       {description && (
-        <p className="text-sm text-gray-500 text-center max-w-md mb-6">{description}</p>
+        <p className="text-sm text-slate-600 text-center max-w-md mb-6">{description}</p>
       )}
       {action && (
-        <button
-          onClick={action.onClick}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
+        <button onClick={action.onClick} className="btn-primary">
           {action.label}
         </button>
+      )}
+      {actionLink && (
+        <a href={actionLink.href} className="btn-primary">
+          {actionLink.label}
+        </a>
       )}
     </div>
   )
 }
 
 export default EmptyState
-
-
-
-
-
-

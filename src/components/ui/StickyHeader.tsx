@@ -21,15 +21,12 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
   activeTab,
   onTabChange,
   tabs = [],
-  actions
+  actions,
 }) => {
   const [isSticky, setIsSticky] = React.useState(false)
 
   React.useEffect(() => {
-    const handleScroll = () => {
-      setIsSticky(window.scrollY > 200)
-    }
-
+    const handleScroll = () => setIsSticky(window.scrollY > 200)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
@@ -37,51 +34,49 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
   if (!isSticky) return null
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-md transition-all duration-300">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-md transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Team Info */}
           <div className="flex items-center gap-4 flex-1 min-w-0">
-            <TeamLogo
-              logo={teamLogo}
-              name={teamName}
-              size="sm"
-              className="flex-shrink-0"
-            />
+            <TeamLogo logo={teamLogo} name={teamName} size="sm" className="flex-shrink-0" />
             <div className="min-w-0 flex-1">
-              <h2 className="text-lg font-bold text-gray-900 truncate">{teamName}</h2>
-              <div className="flex items-center gap-4 text-xs text-gray-600">
+              <h2 className="font-display text-lg font-bold text-slate-900 truncate">{teamName}</h2>
+              <div className="flex items-center gap-4 text-xs text-slate-600">
                 {globalPosition && (
-                  <span>Ranking Global: <strong className="text-gray-900">#{globalPosition}</strong></span>
+                  <span>
+                    Ranking global: <strong className="text-slate-900">#{globalPosition}</strong>
+                  </span>
                 )}
-                <span>Puntos: <strong className="text-gray-900">{totalPoints.toFixed(1)}</strong></span>
+                <span>
+                  Puntos: <strong className="text-slate-900">{totalPoints.toFixed(1)}</strong>
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Tabs Navigation */}
           {tabs.length > 0 && (
-            <nav className="hidden md:flex items-center gap-1 mx-4">
+            <nav className="hidden md:flex items-center gap-1 mx-4" aria-label="Tabs del equipo">
               {tabs.map((tab) => {
                 const Icon = tab.icon
                 const isActive = activeTab === tab.id
-                
                 return (
                   <button
                     key={tab.id}
                     onClick={() => onTabChange?.(tab.id)}
-                    className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                    className={`flex items-center gap-1 px-3 py-1.5 min-h-[44px] text-sm font-medium rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                       isActive
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        ? 'bg-primary-50 text-primary-700'
+                        : 'text-slate-600 hover:bg-slate-100'
                     }`}
                   >
                     {Icon && <Icon className="h-4 w-4" />}
                     <span>{tab.label}</span>
                     {tab.badge !== undefined && (
-                      <span className={`ml-1 px-1.5 py-0.5 text-xs rounded-full ${
-                        isActive ? 'bg-blue-200 text-blue-800' : 'bg-gray-200 text-gray-600'
-                      }`}>
+                      <span
+                        className={`ml-1 px-1.5 py-0.5 text-xs rounded-full ${
+                          isActive ? 'bg-primary-100 text-primary-800' : 'bg-slate-200 text-slate-600'
+                        }`}
+                      >
                         {tab.badge}
                       </span>
                     )}
@@ -91,12 +86,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
             </nav>
           )}
 
-          {/* Actions */}
-          {actions && (
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {actions}
-            </div>
-          )}
+          {actions && <div className="flex items-center gap-2 flex-shrink-0">{actions}</div>}
         </div>
       </div>
     </div>
@@ -104,9 +94,3 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
 }
 
 export default StickyHeader
-
-
-
-
-
-

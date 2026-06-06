@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/SimpleAuthContext'
-import { Menu, X, Trophy, Users, MapPin, Calendar, Settings, Home, ChevronDown } from 'lucide-react'
+import { Menu, X, Trophy, Users, MapPin, Calendar, Settings, Home, ChevronDown, Info } from 'lucide-react'
 import RankingMegaMenu from './RankingMegaMenu'
 
 const megamenuItems = [
@@ -32,9 +32,13 @@ const Navbar: React.FC = () => {
     { name: 'Equipos', href: '/teams', icon: Users },
     { name: 'Regiones', href: '/regions', icon: MapPin },
     { name: 'Torneos', href: '/tournaments', icon: Calendar },
+    { name: 'Acerca de', href: '/about', icon: Info },
   ]
 
-  const isActive = (href: string) => location.pathname === href
+  const isActive = (href: string) => {
+    if (href === '/') return location.pathname === '/'
+    return location.pathname === href || location.pathname.startsWith(`${href}/`)
+  }
   const isRankingActive = location.pathname.startsWith('/ranking')
 
   useEffect(() => {
@@ -47,7 +51,6 @@ const Navbar: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Close megamenu on route change
   useEffect(() => {
     setRankingMenuOpen(false)
     setIsMenuOpen(false)
@@ -118,7 +121,7 @@ const Navbar: React.FC = () => {
                         : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
+                    {Icon && <Icon className="w-4 h-4" />}
                     {item.name}
                   </Link>
                 )
@@ -149,6 +152,8 @@ const Navbar: React.FC = () => {
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="inline-flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+                aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+                aria-expanded={isMenuOpen}
               >
                 {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -227,7 +232,7 @@ const Navbar: React.FC = () => {
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <Icon className="w-4 h-4" />
+                  {Icon && <Icon className="w-4 h-4" />}
                   {item.name}
                 </Link>
               )

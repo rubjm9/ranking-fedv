@@ -63,9 +63,9 @@ const LoginPage: React.FC = () => {
             <Lock className="h-8 w-8 text-white" />
           </div>
           
-          <h2 className="text-3xl font-bold text-white mb-2">
-            Panel de Administración
-          </h2>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Panel de administración
+          </h1>
           
           <p className="text-primary-100">
             Accede al sistema de gestión FEDV
@@ -73,17 +73,17 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-lg shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-lg p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
                 Email
               </label>
               
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+                  <Mail className="h-5 w-5 text-slate-400" />
                 </div>
                 
                 <input
@@ -94,10 +94,8 @@ const LoginPage: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                    errors.email 
-                      ? 'border-red-300 bg-red-50' 
-                      : 'border-gray-300 focus:border-primary-500'
+                  className={`input-field pl-10 pr-3 py-3 ${
+                    errors.email ? 'border-red-300 bg-red-50' : ''
                   }`}
                   placeholder="admin@fedv.es"
                 />
@@ -113,13 +111,13 @@ const LoginPage: React.FC = () => {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
                 Contraseña
               </label>
               
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+                  <Lock className="h-5 w-5 text-slate-400" />
                 </div>
                 
                 <input
@@ -130,10 +128,8 @@ const LoginPage: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`block w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                    errors.password 
-                      ? 'border-red-300 bg-red-50' 
-                      : 'border-gray-300 focus:border-primary-500'
+                  className={`input-field pl-10 pr-12 py-3 ${
+                    errors.password ? 'border-red-300 bg-red-50' : ''
                   }`}
                   placeholder="••••••••"
                 />
@@ -144,9 +140,9 @@ const LoginPage: React.FC = () => {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <EyeOff className="h-5 w-5 text-slate-400 hover:text-slate-600" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    <Eye className="h-5 w-5 text-slate-400 hover:text-slate-600" />
                   )}
                 </button>
               </div>
