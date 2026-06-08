@@ -177,6 +177,25 @@
   }
 }
 
+/* Footer — patrón sutil sobre fondo oscuro */
+.footer-pattern {
+  position: relative;
+  overflow: hidden;
+  background-color: #020617;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 100% 0%, rgba(249, 115, 22, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 0% 100%, rgba(249, 115, 22, 0.04) 0%, transparent 50%),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 22px,
+      rgba(255, 255, 255, 0.025) 22px,
+      rgba(255, 255, 255, 0.025) 23px
+    ),
+    radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: auto, auto, auto, 28px 28px;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
