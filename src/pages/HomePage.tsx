@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Trophy, Users, MapPin, Calendar, BarChart3, TrendingUp, TrendingDown, Eye, Sun, Leaf, Medal, Award } from 'lucide-react'
 import { homePageService, HomePageTeam, HomePageRegion, HomePageTournament, HomePageStats, RankingHistory } from '@/services/homePageService'
-import TeamLogo from '@/components/ui/TeamLogo'
+import SummaryCard from '@/components/ranking/SummaryCard'
+
+const mapTeamsToSummaryData = (teams: HomePageTeam[]) =>
+  teams.map((team) => ({
+    team_id: team.id,
+    team_name: team.name,
+    logo: team.logo,
+    region_name: team.region,
+    total_points: team.points,
+    position_change: team.change,
+  }))
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRegion, setSelectedRegion] = useState('all')
   const [selectedYear, setSelectedYear] = useState('all')
@@ -86,6 +97,13 @@ const HomePage: React.FC = () => {
     return matchesSearch && matchesRegion
   })
 
+  const getRankIcon = (position: number) => {
+    if (position === 1) return <Trophy className="w-6 h-6 text-yellow-500" />
+    if (position === 2) return <Medal className="w-6 h-6 text-slate-400" />
+    if (position === 3) return <Medal className="w-6 h-6 text-orange-500" />
+    return <span className="text-sm font-semibold text-slate-500">#{position}</span>
+  }
+
   const getChangeIcon = (change: number) => {
     if (change > 0) return <TrendingUp className="h-4 w-4 text-green-500" />
     if (change < 0) return <TrendingDown className="h-4 w-4 text-red-500" />
@@ -95,7 +113,7 @@ const HomePage: React.FC = () => {
   const getChangeText = (change: number) => {
     if (change > 0) return `+${change}`
     if (change < 0) return `${change}`
-    return '-'
+    return '='
   }
 
   const getTournamentTypeLabel = (type: string) => {
@@ -195,313 +213,61 @@ const HomePage: React.FC = () => {
               </Link>
           </div>
 
-          {/* 6 Small Ranking Tables */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Playa Mixto */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
-              <div className="px-4 py-3 bg-slate-900 flex items-center justify-between">
-                <h3 className="text-white font-semibold text-sm">Playa Mixto</h3>
-                <span className="text-xs font-medium text-primary-300 bg-primary-900/40 px-2 py-0.5 rounded-full">BEACH</span>
-              </div>
-              <div className="data-table-wrapper">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-secondary-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Pos</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Equipo</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
-                    {teamsByCategory['beach_mixed']?.slice(0, 5).map((team, index) => (
-                      <tr key={team.id} className="hover:bg-secondary-50">
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-slate-900">{index + 1}</span>
-                            {getChangeIcon(team.change)}
-              </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                            <div className="ml-2">
-                              <div className="text-sm font-medium text-slate-900">{team.name}</div>
-                              <div className="text-xs text-slate-500">{team.region}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span className="text-sm font-medium text-slate-900">{team.points.toFixed(1)}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
-                <Link
-                  to="/ranking?category=beach_mixed"
-                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  Ver ranking completo →
-              </Link>
-            </div>
-          </div>
-
-            {/* Playa Women */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
-              <div className="px-4 py-3 bg-slate-900 flex items-center justify-between">
-                <h3 className="text-white font-semibold text-sm">Playa Women</h3>
-                <span className="text-xs font-medium text-primary-300 bg-primary-900/40 px-2 py-0.5 rounded-full">BEACH</span>
-              </div>
-          <div className="data-table-wrapper">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-secondary-50">
-                <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Pos</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Equipo</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Pts</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-slate-200">
-                    {teamsByCategory['beach_women']?.slice(0, 5).map((team, index) => (
-                  <tr key={team.id} className="hover:bg-secondary-50">
-                        <td className="px-3 py-2 whitespace-nowrap">
-                      <div className="flex items-center">
-                            <span className="text-sm font-medium text-slate-900">{index + 1}</span>
-                            {getChangeIcon(team.change)}
-              </div>
-                    </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                            <div className="ml-2">
-                              <div className="text-sm font-medium text-slate-900">{team.name}</div>
-                              <div className="text-xs text-slate-500">{team.region}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span className="text-sm font-medium text-slate-900">{team.points.toFixed(1)}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
-                      <Link
-                  to="/ranking?category=beach_women"
-                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  Ver ranking completo →
-                </Link>
-                        </div>
-            </div>
-
-            {/* Playa Open */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
-              <div className="px-4 py-3 bg-slate-900 flex items-center justify-between">
-                <h3 className="text-white font-semibold text-sm">Playa Open</h3>
-                <span className="text-xs font-medium text-primary-300 bg-primary-900/40 px-2 py-0.5 rounded-full">BEACH</span>
-              </div>
-              <div className="data-table-wrapper">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-secondary-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Pos</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Equipo</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
-                    {teamsByCategory['beach_open']?.slice(0, 5).map((team, index) => (
-                      <tr key={team.id} className="hover:bg-secondary-50">
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-slate-900">{index + 1}</span>
-                            {getChangeIcon(team.change)}
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                            <div className="ml-2">
-                              <div className="text-sm font-medium text-slate-900">{team.name}</div>
-                              <div className="text-xs text-slate-500">{team.region}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span className="text-sm font-medium text-slate-900">{team.points.toFixed(1)}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
-                <Link
-                  to="/ranking?category=beach_open"
-                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  Ver ranking completo →
-                      </Link>
-              </div>
-            </div>
-
-            {/* Césped Mixto */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
-              <div className="px-4 py-3 bg-slate-900 flex items-center justify-between">
-                <h3 className="text-white font-semibold text-sm">Césped Mixto</h3>
-                <span className="text-xs font-medium text-emerald-300 bg-emerald-900/40 px-2 py-0.5 rounded-full">GRASS</span>
-              </div>
-              <div className="data-table-wrapper">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-secondary-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Pos</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Equipo</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
-                    {teamsByCategory['grass_mixed']?.slice(0, 5).map((team, index) => (
-                      <tr key={team.id} className="hover:bg-secondary-50">
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-slate-900">{index + 1}</span>
-                            {getChangeIcon(team.change)}
-                          </div>
-                    </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                            <div className="ml-2">
-                              <div className="text-sm font-medium text-slate-900">{team.name}</div>
-                              <div className="text-xs text-slate-500">{team.region}</div>
-                            </div>
-                      </div>
-                    </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span className="text-sm font-medium text-slate-900">{team.points.toFixed(1)}</span>
-                    </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
-                <Link
-                  to="/ranking?category=grass_mixed"
-                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  Ver ranking completo →
-                </Link>
-            </div>
-          </div>
-
-            {/* Césped Women */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
-              <div className="px-4 py-3 bg-slate-900 flex items-center justify-between">
-                <h3 className="text-white font-semibold text-sm">Césped Women</h3>
-                <span className="text-xs font-medium text-emerald-300 bg-emerald-900/40 px-2 py-0.5 rounded-full">GRASS</span>
-              </div>
-          <div className="data-table-wrapper">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-secondary-50">
-                <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Pos</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Equipo</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Pts</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-slate-200">
-                    {teamsByCategory['grass_women']?.slice(0, 5).map((team, index) => (
-                  <tr key={team.id} className="hover:bg-secondary-50">
-                        <td className="px-3 py-2 whitespace-nowrap">
-                      <div className="flex items-center">
-                            <span className="text-sm font-medium text-slate-900">{index + 1}</span>
-                            {getChangeIcon(team.change)}
-                      </div>
-                    </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                            <div className="ml-2">
-                              <div className="text-sm font-medium text-slate-900">{team.name}</div>
-                              <div className="text-xs text-slate-500">{team.region}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span className="text-sm font-medium text-slate-900">{team.points.toFixed(1)}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
-                      <Link
-                  to="/ranking?category=grass_women"
-                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  Ver ranking completo →
-                </Link>
-              </div>
-            </div>
-
-            {/* Césped Open */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
-              <div className="px-4 py-3 bg-slate-900 flex items-center justify-between">
-                <h3 className="text-white font-semibold text-sm">Césped Open</h3>
-                <span className="text-xs font-medium text-emerald-300 bg-emerald-900/40 px-2 py-0.5 rounded-full">GRASS</span>
-              </div>
-              <div className="data-table-wrapper">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-secondary-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Pos</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Equipo</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
-                    {teamsByCategory['grass_open']?.slice(0, 5).map((team, index) => (
-                      <tr key={team.id} className="hover:bg-secondary-50">
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-slate-900">{index + 1}</span>
-                            {getChangeIcon(team.change)}
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                            <div className="ml-2">
-                              <div className="text-sm font-medium text-slate-900">{team.name}</div>
-                              <div className="text-xs text-slate-500">{team.region}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span className="text-sm font-medium text-slate-900">{team.points.toFixed(1)}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
-                <Link
-                  to="/ranking?category=grass_open"
-                  className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  Ver ranking completo →
-                </Link>
-              </div>
-            </div>
+            <SummaryCard
+              title="Playa Mixto"
+              data={mapTeamsToSummaryData(teamsByCategory['beach_mixed'] || [])}
+              category="beach_mixed"
+              onViewFull={(category) => navigate(`/ranking?category=${category}`)}
+              getRankIcon={getRankIcon}
+              getChangeIcon={getChangeIcon}
+              getChangeText={getChangeText}
+            />
+            <SummaryCard
+              title="Playa Women"
+              data={mapTeamsToSummaryData(teamsByCategory['beach_women'] || [])}
+              category="beach_women"
+              onViewFull={(category) => navigate(`/ranking?category=${category}`)}
+              getRankIcon={getRankIcon}
+              getChangeIcon={getChangeIcon}
+              getChangeText={getChangeText}
+            />
+            <SummaryCard
+              title="Playa Open"
+              data={mapTeamsToSummaryData(teamsByCategory['beach_open'] || [])}
+              category="beach_open"
+              onViewFull={(category) => navigate(`/ranking?category=${category}`)}
+              getRankIcon={getRankIcon}
+              getChangeIcon={getChangeIcon}
+              getChangeText={getChangeText}
+            />
+            <SummaryCard
+              title="Césped Mixto"
+              data={mapTeamsToSummaryData(teamsByCategory['grass_mixed'] || [])}
+              category="grass_mixed"
+              onViewFull={(category) => navigate(`/ranking?category=${category}`)}
+              getRankIcon={getRankIcon}
+              getChangeIcon={getChangeIcon}
+              getChangeText={getChangeText}
+            />
+            <SummaryCard
+              title="Césped Women"
+              data={mapTeamsToSummaryData(teamsByCategory['grass_women'] || [])}
+              category="grass_women"
+              onViewFull={(category) => navigate(`/ranking?category=${category}`)}
+              getRankIcon={getRankIcon}
+              getChangeIcon={getChangeIcon}
+              getChangeText={getChangeText}
+            />
+            <SummaryCard
+              title="Césped Open"
+              data={mapTeamsToSummaryData(teamsByCategory['grass_open'] || [])}
+              category="grass_open"
+              onViewFull={(category) => navigate(`/ranking?category=${category}`)}
+              getRankIcon={getRankIcon}
+              getChangeIcon={getChangeIcon}
+              getChangeText={getChangeText}
+            />
           </div>
         </div>
 

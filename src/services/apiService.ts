@@ -340,6 +340,39 @@ export const teamsService = {
   }
 }
 
+export class DuplicateTournamentError extends Error {
+  code = 'DUPLICATE_TOURNAMENT' as const
+
+  constructor(public existing: Pick<Tournament, 'id' | 'name' | 'type' | 'year' | 'surface' | 'category' | 'regionId'>) {
+    super('DUPLICATE_TOURNAMENT')
+    this.name = 'DuplicateTournamentError'
+  }
+}
+
+const findTournamentByCombination = async (data: {
+  type: string
+  year: number
+  surface: string
+  category: string
+  regionId?: string | null
+}) => {
+  let query = supabase
+    .from('tournaments')
+    .select('id, name, year, type, surface, category, regionId')
+    .eq('type', data.type)
+    .eq('year', data.year)
+    .eq('surface', data.surface)
+    .eq('category', data.category)
+
+  query = data.regionId
+    ? query.eq('regionId', data.regionId)
+    : query.is('regionId', null)
+
+  const { data: existing, error } = await query.maybeSingle()
+  if (error) throw error
+  return existing
+}
+
 // Servicios de torneos usando Supabase con fallback a mock
 export const tournamentsService = {
   // Obtener todos los torneos
@@ -430,15 +463,42 @@ export const tournamentsService = {
     }
   },
 
+  // Buscar torneo existente con la misma combinación
+  findByCombination: findTournamentByCombination,
+
   // Crear un nuevo torneo
   create: async (tournamentData: Omit<Tournament, 'id' | 'createdAt' | 'updatedAt'>) => {
+    const existing = await findTournamentByCombination({
+      type: tournamentData.type,
+      year: tournamentData.year,
+      surface: tournamentData.surface,
+      category: tournamentData.category,
+      regionId: tournamentData.regionId ?? null,
+    })
+
+    if (existing) {
+      throw new DuplicateTournamentError(existing)
+    }
+
     const { data, error } = await supabase
       .from('tournaments')
       .insert(tournamentData)
       .select()
       .single()
-    
-    if (error) throw error
+
+    if (error) {
+      if (error.code === '23505') {
+        const fallback = await findTournamentByCombination({
+          type: tournamentData.type,
+          year: tournamentData.year,
+          surface: tournamentData.surface,
+          category: tournamentData.category,
+          regionId: tournamentData.regionId ?? null,
+        })
+        if (fallback) throw new DuplicateTournamentError(fallback)
+      }
+      throw error
+    }
 
     // Recalcular ranking automáticamente si el torneo se crea con posiciones
     // Nota: Funcionalidad de auto-ranking removida

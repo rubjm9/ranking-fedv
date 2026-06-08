@@ -687,11 +687,10 @@ const TeamDetailPage: React.FC = () => {
         }
       />
 
-      <div className="bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="sports-header-pattern border-b border-secondary-200">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-4">
             <Breadcrumbs
-              variant="dark"
               items={[
                 { label: 'Equipos', href: '/teams' },
                 { label: team.name },
@@ -699,18 +698,20 @@ const TeamDetailPage: React.FC = () => {
             />
           </div>
           <div className="flex flex-col sm:flex-row items-center sm:items-center gap-6">
-            <TeamLogo
-              logo={team.logo}
-              name={team.name}
-              size="xl"
-              className="h-24 w-24 sm:h-28 sm:w-28 ring-4 ring-white/20"
-            />
+            <div className="team-logo-arcs h-24 w-24 sm:h-28 sm:w-28">
+              <TeamLogo
+                logo={team.logo}
+                name={team.name}
+                size="xl"
+                className="relative z-10 h-24 w-24 sm:h-28 sm:w-28 ring-4 ring-white shadow-sm"
+              />
+            </div>
             <div className="text-center sm:text-left flex-1">
-              <h1 className="font-display text-3xl sm:text-4xl font-bold mb-2">{team.name}</h1>
-              <p className="text-slate-400 mb-1">
+              <h1 className="font-display text-3xl sm:text-4xl font-bold text-slate-900 mb-2">{team.name}</h1>
+              <p className="text-slate-600 mb-1">
                 {team.isFilial && team.parentTeam ? (
                   <>Equipo filial de{' '}
-                    <Link to={`/teams/${team.parentTeamId}`} className="text-accent-400 hover:text-accent-300">
+                    <Link to={`/teams/${team.parentTeamId}`} className="text-primary-600 hover:text-primary-700 font-medium">
                       {team.parentTeam.name}
                     </Link>
                   </>

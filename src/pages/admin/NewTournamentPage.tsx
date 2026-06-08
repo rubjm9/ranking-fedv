@@ -32,10 +32,11 @@ import {
   generateDefaultPositions,
   validateTournamentDates,
   getYearFromSeason,
+  formatTournamentCombinationLabel,
   type TournamentFormData,
   type PositionRow
 } from '@/utils/tournamentUtils'
-import { tournamentsService, teamsService, regionsService } from '@/services/apiService'
+import { tournamentsService, teamsService, regionsService, DuplicateTournamentError } from '@/services/apiService'
 
 interface Region {
   id: string
@@ -85,9 +86,6 @@ const NewTournamentPage: React.FC = () => {
     setFormData(duplicateData)
     if (!duplicateToastShownRef.current) {
       duplicateToastShownRef.current = true
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/23e69a74-9e17-4b71-b357-55aeb2900bbd',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d1831b'},body:JSON.stringify({sessionId:'d1831b',location:'NewTournamentPage.tsx:useEffect-duplicate',message:'Toast desde useEffect duplicate',data:{isDuplicate:true},hypothesisId:'B',timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       toast.success('Datos del torneo cargados. Puedes editarlos antes de guardar.')
     }
   }, [searchParams])
@@ -145,6 +143,39 @@ const NewTournamentPage: React.FC = () => {
     }
   }, [formData.type])
 
+  const showDuplicateTournamentAlert = (existingId: string) => {
+    const selectedRegion = regions.find((r: Region) => r.id === formData.regionId)
+    const combinationLabel = formatTournamentCombinationLabel({
+      type: formData.type,
+      surface: formData.surface,
+      category: formData.category,
+      season: formData.season,
+      regionName: selectedRegion?.name,
+    })
+
+    toast(
+      (t) => (
+        <div className="text-sm">
+          <p className="font-medium">Torneo ya existente</p>
+          <p className="mt-1">
+            Ya hay un torneo con esta combinación ({combinationLabel}). Puedes añadir los resultados editándolo.
+          </p>
+          <button
+            type="button"
+            className="mt-2 text-blue-600 underline font-medium"
+            onClick={() => {
+              toast.dismiss(t.id)
+              navigate(`/admin/tournaments/${existingId}/edit`)
+            }}
+          >
+            Ir al torneo existente
+          </button>
+        </div>
+      ),
+      { duration: 10000, icon: '⚠️' }
+    )
+  }
+
   // Mutación para crear torneo
   const createTournamentMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -152,10 +183,6 @@ const NewTournamentPage: React.FC = () => {
     },
     onSuccess: async (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
-      // Toast solo en handleSubmit para evitar duplicado (onSuccess + handleSubmit)
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/23e69a74-9e17-4b71-b357-55aeb2900bbd',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d1831b'},body:JSON.stringify({sessionId:'d1831b',location:'NewTournamentPage.tsx:onSuccess',message:'Toast desde mutation onSuccess',data:{source:'createTournamentMutation.onSuccess'},hypothesisId:'A',timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       // Verificar si hay subtemporadas/temporadas completadas (semiautomático)
       if (variables.season) {
         try {
@@ -168,9 +195,9 @@ const NewTournamentPage: React.FC = () => {
       
       navigate('/admin/tournaments')
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
+      if (error instanceof DuplicateTournamentError) return
       console.error('Error al crear torneo:', error)
-      toast.error('Error al crear el torneo')
     }
   })
 
@@ -311,6 +338,10 @@ const NewTournamentPage: React.FC = () => {
       }
       toast.success('Torneo creado exitosamente')
     } catch (error) {
+      if (error instanceof DuplicateTournamentError) {
+        showDuplicateTournamentAlert(error.existing.id)
+        return
+      }
       console.error('Error al crear torneo:', error)
       toast.error('Error al crear el torneo')
     } finally {

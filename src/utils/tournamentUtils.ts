@@ -151,3 +151,37 @@ export const validateTournamentDates = (startDate: string, endDate: string): str
 export const getYearFromSeason = (season: string): number => {
   return parseInt(season.split('-')[0])
 }
+
+/** Etiqueta legible de la combinación tipo + superficie + categoría (+ región/temporada) */
+export const formatTournamentCombinationLabel = (params: {
+  type: string
+  surface: string
+  category: string
+  season?: string
+  regionName?: string
+}): string => {
+  const typeShort: Record<string, string> = {
+    CE1: '1ª división',
+    CE2: '2ª división',
+    REGIONAL: 'regional',
+  }
+  const surfaceShort: Record<string, string> = {
+    GRASS: 'césped',
+    BEACH: 'playa',
+    INDOOR: 'indoor',
+  }
+  const categoryShort: Record<string, string> = {
+    OPEN: 'open',
+    WOMEN: 'femenino',
+    MIXED: 'mixto',
+  }
+
+  const parts = [
+    categoryShort[params.category] ?? params.category.toLowerCase(),
+    typeShort[params.type] ?? params.type.toLowerCase(),
+    surfaceShort[params.surface] ?? params.surface.toLowerCase(),
+  ]
+  if (params.regionName) parts.push(params.regionName)
+  if (params.season) parts.push(params.season)
+  return parts.join(', ')
+}
