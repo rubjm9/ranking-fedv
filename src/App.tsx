@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/contexts/SimpleAuthContext'
 import PublicLayout from '@/components/layout/PublicLayout'
@@ -72,7 +72,10 @@ function App() {
             {/* Rutas públicas */}
             <Route path="/" element={<PublicLayout />}>
               <Route index element={<HomePage />} />
-              <Route path="ranking" element={<RankingPageNew />} />
+              <Route path="ranking">
+                <Route index element={<Navigate to="/ranking/general" replace />} />
+                <Route path=":surface" element={<RankingPageNew />} />
+              </Route>
               <Route path="ranking-old" element={<RankingPageHybrid />} />
               <Route path="teams" element={<TeamsPage />} />
               <Route path="teams/:id" element={<TeamDetailPage />} />

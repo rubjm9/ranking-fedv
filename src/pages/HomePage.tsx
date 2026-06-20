@@ -243,7 +243,7 @@ const HomePage: React.FC = () => {
               </div>
               <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
                 <Link
-                  to="/ranking?category=beach_mixed"
+                  to="/ranking/beach-mixed"
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
                 >
                   Ver ranking completo →
@@ -294,7 +294,7 @@ const HomePage: React.FC = () => {
               </div>
               <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
                       <Link
-                  to="/ranking?category=beach_women"
+                  to="/ranking/beach-women"
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
                 >
                   Ver ranking completo →
@@ -345,7 +345,7 @@ const HomePage: React.FC = () => {
               </div>
               <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
                 <Link
-                  to="/ranking?category=beach_open"
+                  to="/ranking/beach-open"
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
                 >
                   Ver ranking completo →
@@ -396,7 +396,7 @@ const HomePage: React.FC = () => {
               </div>
               <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
                 <Link
-                  to="/ranking?category=grass_mixed"
+                  to="/ranking/grass-mixed"
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
                 >
                   Ver ranking completo →
@@ -447,7 +447,7 @@ const HomePage: React.FC = () => {
               </div>
               <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
                       <Link
-                  to="/ranking?category=grass_women"
+                  to="/ranking/grass-women"
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
                 >
                   Ver ranking completo →
@@ -498,7 +498,7 @@ const HomePage: React.FC = () => {
               </div>
               <div className="px-4 py-2 bg-slate-50 border-t border-slate-100">
                 <Link
-                  to="/ranking?category=grass_open"
+                  to="/ranking/grass-open"
                   className="text-xs text-primary-600 hover:text-primary-700 font-medium"
                 >
                   Ver ranking completo →
