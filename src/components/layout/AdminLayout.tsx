@@ -16,8 +16,6 @@ import {
   Shield,
   Clock,
   Lock,
-  GitCompare,
-  Database,
   RefreshCw,
   History
 } from 'lucide-react'
@@ -38,12 +36,8 @@ const AdminLayout: React.FC = () => {
     { name: 'Histórico', href: '/admin/historico', icon: History },
       { name: 'Ranking', href: '/admin/ranking', icon: TrendingUp },
       { name: 'Actualizar Rankings', href: '/admin/ranking-update', icon: RefreshCw },
-      { name: 'Simular Subtemporadas', href: '/admin/simulate-rankings', icon: Shield },
-      { name: 'Migrar Sistema Rankings', href: '/admin/migrate-rankings', icon: Database },
       { name: 'Temporadas', href: '/admin/seasons', icon: Clock },
     { name: 'Subtemporadas', href: '/admin/subseasons', icon: Lock },
-    { name: 'Comparar Sistemas', href: '/admin/ranking-comparison', icon: GitCompare },
-    { name: 'Diagnóstico DB', href: '/admin/database-diagnostic', icon: Database },
     { name: 'Importar/Exportar', href: '/admin/import-export', icon: Upload },
     { name: 'Configuración', href: '/admin/configuration', icon: Settings },
   ]
@@ -135,13 +129,6 @@ const AdminLayout: React.FC = () => {
               </div>
             </div>
             
-            <button
-              onClick={() => console.log('Debug auth:', user)}
-              className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200"
-              title="Debug Auth"
-            >
-              <Shield className="h-5 w-5" />
-            </button>
             <button
               onClick={handleLogout}
               className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
