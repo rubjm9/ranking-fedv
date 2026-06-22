@@ -1,25 +1,47 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { MapPin, Users, TrendingUp, Trophy, ChevronRight, BarChart3, Loader2 } from 'lucide-react'
+import { MapPin, Users, TrendingUp, Trophy, ChevronRight, BarChart3, Loader2, ChevronDown, ChevronUp, Info } from 'lucide-react'
 import { regionsService } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
+import seasonService from '@/services/seasonService'
 import { supabase } from '@/services/supabaseService'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
 import StatsCard from '@/components/ui/StatsCard'
 
+const MODALITY_LABELS: Record<string, string> = {
+  beach_mixed: 'Playa Mixto',
+  beach_open: 'Playa Open',
+  beach_women: 'Playa Femenino',
+  grass_mixed: 'Césped Mixto',
+  grass_open: 'Césped Open',
+  grass_women: 'Césped Femenino',
+}
+
+const MODALITY_SHORT: Record<string, string> = {
+  beach_mixed: 'PM',
+  beach_open: 'PO',
+  beach_women: 'PF',
+  grass_mixed: 'CM',
+  grass_open: 'CO',
+  grass_women: 'CF',
+}
+
+const getCoefficientColor = (coef: number) => {
+  if (coef >= 1.15) return 'bg-emerald-100 text-emerald-800'
+  if (coef >= 1.0) return 'bg-primary-100 text-primary-800'
+  if (coef >= 0.9) return 'bg-amber-100 text-amber-800'
+  return 'bg-red-100 text-red-700'
+}
+
 const RegionsPage = () => {
-  const [sortBy, setSortBy] = useState<'name' | 'coefficient' | 'teams' | 'points'>('coefficient')
+  const [sortBy, setSortBy] = useState<'name' | 'coefficient' | 'teams'>('coefficient')
+  const [showFormula, setShowFormula] = useState(false)
   const [regionStats, setRegionStats] = useState<{
     mostActive: { name: string; count: number } | null
-    mostCompetitive: { name: string; avgPoints: number } | null
     bestRegion: { name: string; totalPoints: number } | null
-  }>({
-    mostActive: null,
-    mostCompetitive: null,
-    bestRegion: null,
-  })
+  }>({ mostActive: null, bestRegion: null })
 
   const { data: regionsData, isLoading, error } = useQuery({
     queryKey: ['regions'],
@@ -28,117 +50,110 @@ const RegionsPage = () => {
 
   const regions = regionsData?.data || []
 
+  // Obtener la temporada base para los coeficientes (T-1 respecto a la actual)
+  const { data: referenceSeason } = useQuery({
+    queryKey: ['most-recent-season-for-coeff'],
+    queryFn: async () => {
+      const most = await hybridRankingService.getMostRecentSeason()
+      const prevYear = parseInt(most.split('-')[0]) - 1
+      const nextYear = (prevYear + 1).toString().slice(-2)
+      return `${prevYear}-${nextYear}`
+    },
+  })
+
+  // Cargar coeficientes regionales de la temporada base
+  const { data: regionalCoefficients } = useQuery({
+    queryKey: ['regional-coefficients', referenceSeason],
+    queryFn: () => seasonService.getRegionalCoefficients(referenceSeason!),
+    enabled: !!referenceSeason,
+  })
+
+  // Construir mapa: regionId → { modality: coefficient }
+  const coeffMap = new Map<string, Record<string, number>>()
+  ;(regionalCoefficients || []).forEach(c => {
+    if (!coeffMap.has(c.regionId)) coeffMap.set(c.regionId, {})
+    coeffMap.get(c.regionId)![c.modality] = c.coefficient
+  })
+
   useEffect(() => {
     const calculateRegionStats = async () => {
       try {
         const referenceSeason = await hybridRankingService.getMostRecentSeason()
-        const categories = [
-          'beach_mixed',
-          'beach_open',
-          'beach_women',
-          'grass_mixed',
-          'grass_open',
-          'grass_women',
-        ]
+        const categories = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women']
         const allCategoryData = await Promise.all(
-          categories.map((cat) =>
-            hybridRankingService.getRankingFromSeasonPoints(cat as any, referenceSeason)
-          )
+          categories.map(cat => hybridRankingService.getRankingFromSeasonPoints(cat as any, referenceSeason))
         )
 
         const teamGlobalPoints: { [key: string]: { team: any; totalPoints: number } } = {}
-
-        allCategoryData.forEach((categoryData) => {
-          categoryData.forEach((team) => {
+        allCategoryData.forEach(categoryData => {
+          categoryData.forEach(team => {
             const teamId = team.team_id
-            if (!teamGlobalPoints[teamId]) {
-              teamGlobalPoints[teamId] = { team, totalPoints: 0 }
-            }
+            if (!teamGlobalPoints[teamId]) teamGlobalPoints[teamId] = { team, totalPoints: 0 }
             teamGlobalPoints[teamId].totalPoints += team.total_points || 0
           })
         })
 
-        const globalRanking = Object.values(teamGlobalPoints).map((item) => ({
+        const globalRanking = Object.values(teamGlobalPoints).map(item => ({
           ...item.team,
           global_points: item.totalPoints,
         }))
 
-        const teamIds = globalRanking.map((team) => team.team_id)
+        const teamIds = globalRanking.map(team => team.team_id)
         const { data: teamsData } = await supabase
           .from('teams')
           .select('id, regionId, regions:regionId(id, name)')
           .in('id', teamIds)
 
         const teamRegionMap = new Map(
-          teamsData?.map((team) => [team.id, team.regions?.name || 'Sin región']) || []
+          teamsData?.map(team => [team.id, team.regions?.name || 'Sin región']) || []
         )
 
-        const regionStatsMap: {
-          [regionName: string]: { count: number; totalPoints: number; teams: any[] }
-        } = {}
-
-        globalRanking.forEach((team) => {
+        const regionStatsMap: { [regionName: string]: { count: number; totalPoints: number } } = {}
+        globalRanking.forEach(team => {
           const regionName = teamRegionMap.get(team.team_id) || 'Sin región'
-          if (!regionStatsMap[regionName]) {
-            regionStatsMap[regionName] = { count: 0, totalPoints: 0, teams: [] }
-          }
+          if (!regionStatsMap[regionName]) regionStatsMap[regionName] = { count: 0, totalPoints: 0 }
           regionStatsMap[regionName].count++
           regionStatsMap[regionName].totalPoints += team.global_points || 0
-          regionStatsMap[regionName].teams.push(team)
         })
 
         const mostActive = Object.entries(regionStatsMap)
           .map(([name, data]) => ({ name, count: data.count }))
           .sort((a, b) => b.count - a.count)[0]
 
-        const mostCompetitive = Object.entries(regionStatsMap)
-          .map(([name, data]) => ({
-            name,
-            avgPoints: data.count > 0 ? data.totalPoints / data.count : 0,
-          }))
-          .sort((a, b) => b.avgPoints - a.avgPoints)[0]
-
         const bestRegion = Object.entries(regionStatsMap)
           .map(([name, data]) => ({ name, totalPoints: data.totalPoints }))
           .sort((a, b) => b.totalPoints - a.totalPoints)[0]
 
-        setRegionStats({
-          mostActive: mostActive || null,
-          mostCompetitive: mostCompetitive || null,
-          bestRegion: bestRegion || null,
-        })
+        setRegionStats({ mostActive: mostActive || null, bestRegion: bestRegion || null })
       } catch (err) {
         console.error('Error calculando estadísticas de regiones:', err)
       }
     }
 
-    if (regions.length > 0) {
-      calculateRegionStats()
-    }
+    if (regions.length > 0) calculateRegionStats()
   }, [regions])
 
   const sortedRegions = [...regions].sort((a, b) => {
     switch (sortBy) {
-      case 'name':
-        return a.name.localeCompare(b.name)
-      case 'coefficient':
-        return b.coefficient - a.coefficient
-      case 'teams':
-        return (b._count?.teams || b.teams?.length || 0) - (a._count?.teams || a.teams?.length || 0)
-      default:
-        return 0
+      case 'name': return a.name.localeCompare(b.name)
+      case 'coefficient': return (b.coefficient || 0) - (a.coefficient || 0)
+      case 'teams': return (b._count?.teams || b.teams?.length || 0) - (a._count?.teams || a.teams?.length || 0)
+      default: return 0
     }
   })
 
   const totalRegions = regions.length
-  const totalTeams = regions.reduce(
-    (sum, region) => sum + (region._count?.teams || region.teams?.length || 0),
-    0
-  )
-  const averageCoefficient =
-    regions.length > 0
-      ? (regions.reduce((sum, region) => sum + region.coefficient, 0) / regions.length).toFixed(2)
-      : '0.00'
+  const totalTeams = regions.reduce((sum, r) => sum + (r._count?.teams || r.teams?.length || 0), 0)
+
+  // Coeficiente más alto y más bajo de la temporada (promediado por todas las modalidades)
+  const regionAvgCoefs = regions.map(r => {
+    const modCoefs = coeffMap.get(r.id)
+    if (!modCoefs) return { name: r.name, avg: 1.0 }
+    const vals = Object.values(modCoefs)
+    return { name: r.name, avg: vals.length > 0 ? vals.reduce((s, v) => s + v, 0) / vals.length : 1.0 }
+  })
+  const highestCoef = regionAvgCoefs.sort((a, b) => b.avg - a.avg)[0]
+  const lowestCoef = regionAvgCoefs[regionAvgCoefs.length - 1]
 
   const sortOptions = [
     { id: 'name' as const, label: 'Nombre' },
@@ -152,9 +167,7 @@ const RegionsPage = () => {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="text-red-500 mb-4">Error al cargar las regiones</div>
-            <button onClick={() => window.location.reload()} className="btn-primary">
-              Reintentar
-            </button>
+            <button onClick={() => window.location.reload()} className="btn-primary">Reintentar</button>
           </div>
         </div>
       </PageContainer>
@@ -179,8 +192,8 @@ const RegionsPage = () => {
         />
         <StatsCard
           icon={TrendingUp}
-          label="Coef. promedio"
-          value={averageCoefficient}
+          label="Mayor coef. activo"
+          value={highestCoef?.avg.toFixed(2) || '—'}
           iconBgColor="bg-accent-100"
           iconColor="text-accent-600"
         />
@@ -188,33 +201,19 @@ const RegionsPage = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="card border-l-4 border-l-primary-500">
-          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wide mb-1">
-            Región activa
-          </h3>
+          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wide mb-1">Región más activa</h3>
           <p className="text-lg font-bold text-slate-900">{regionStats.mostActive?.name || 'N/A'}</p>
-          <p className="text-xs text-slate-600 mt-1">
-            {regionStats.mostActive?.count || 0} equipos
-          </p>
+          <p className="text-xs text-slate-600 mt-1">{regionStats.mostActive?.count || 0} equipos</p>
         </div>
         <div className="card border-l-4 border-l-emerald-500">
-          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wide mb-1">
-            Región competitiva
-          </h3>
-          <p className="text-lg font-bold text-slate-900">
-            {regionStats.mostCompetitive?.name || 'N/A'}
-          </p>
-          <p className="text-xs text-slate-600 mt-1">
-            {regionStats.mostCompetitive?.avgPoints?.toFixed(1) || '0'} pts
-          </p>
+          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wide mb-1">Coef. más alto</h3>
+          <p className="text-lg font-bold text-slate-900">{highestCoef?.name || 'N/A'}</p>
+          <p className="text-xs text-slate-600 mt-1">promedio {highestCoef?.avg.toFixed(2) || '—'}</p>
         </div>
         <div className="card border-l-4 border-l-accent-500">
-          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wide mb-1">
-            Mejor región
-          </h3>
+          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wide mb-1">Mejor región</h3>
           <p className="text-lg font-bold text-slate-900">{regionStats.bestRegion?.name || 'N/A'}</p>
-          <p className="text-xs text-slate-600 mt-1">
-            {regionStats.bestRegion?.totalPoints?.toFixed(1) || '0'} pts
-          </p>
+          <p className="text-xs text-slate-600 mt-1">{regionStats.bestRegion?.totalPoints?.toFixed(1) || '0'} pts</p>
         </div>
       </div>
 
@@ -222,7 +221,7 @@ const RegionsPage = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h3 className="text-lg font-medium text-slate-900">Ordenar por</h3>
           <div className="flex flex-wrap gap-2">
-            {sortOptions.map((option) => (
+            {sortOptions.map(option => (
               <button
                 key={option.id}
                 onClick={() => setSortBy(option.id)}
@@ -244,47 +243,167 @@ const RegionsPage = () => {
           <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedRegions.map((region) => (
-            <Link key={region.id} to={`/regions/${region.id}`} className="card-hover group">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
-                    <MapPin className="h-6 w-6 text-primary-600" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+          {sortedRegions.map(region => {
+            const modCoefs = coeffMap.get(region.id)
+            return (
+              <Link key={region.id} to={`/regions/${region.id}`} className="card-hover group">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
+                      <MapPin className="h-6 w-6 text-primary-600" />
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-lg font-semibold text-slate-900 group-hover:text-primary-600 transition-colors">
+                        {region.name}
+                      </h3>
+                    </div>
                   </div>
-                  <div className="ml-3">
-                    <h3 className="text-lg font-semibold text-slate-900 group-hover:text-primary-600 transition-colors">
-                      {region.name}
-                    </h3>
-                  </div>
+                  <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-primary-600 transition-colors" />
                 </div>
-                <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-primary-600 transition-colors" />
-              </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Coeficiente:</span>
-                  <span className="text-sm font-medium text-accent-600">
-                    {region.coefficient.toFixed(2)}x
-                  </span>
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-600">Equipos:</span>
+                    <span className="text-sm font-medium text-slate-900">
+                      {region._count?.teams || region.teams?.length || 0}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-600">Torneos:</span>
+                    <span className="text-sm font-medium text-slate-900">
+                      {region._count?.tournaments || region.tournaments?.length || 0}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Equipos:</span>
-                  <span className="text-sm font-medium text-slate-900">
-                    {region._count?.teams || region.teams?.length || 0}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Torneos:</span>
-                  <span className="text-sm font-medium text-slate-900">
-                    {region._count?.tournaments || region.tournaments?.length || 0}
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
+
+                {modCoefs ? (
+                  <div>
+                    <p className="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">Coef. por modalidad</p>
+                    <div className="grid grid-cols-3 gap-1">
+                      {Object.entries(MODALITY_SHORT).map(([mod, short]) => {
+                        const coef = modCoefs[mod] ?? 1.0
+                        return (
+                          <div
+                            key={mod}
+                            className={`rounded px-1.5 py-1 text-center ${getCoefficientColor(coef)}`}
+                            title={MODALITY_LABELS[mod]}
+                          >
+                            <div className="text-xs font-bold">{coef.toFixed(2)}</div>
+                            <div className="text-[10px] opacity-75">{short}</div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-xs text-slate-400 italic">Coeficientes pendientes de cálculo</div>
+                )}
+              </Link>
+            )
+          })}
         </div>
       )}
+
+      {/* Sección: Cómo se calcula el coeficiente */}
+      <div className="card mb-8">
+        <button
+          onClick={() => setShowFormula(v => !v)}
+          className="w-full flex items-center justify-between text-left"
+        >
+          <div className="flex items-center gap-2">
+            <Info className="h-5 w-5 text-primary-600" />
+            <h3 className="text-lg font-semibold text-slate-900">Cómo se calcula el coeficiente regional</h3>
+          </div>
+          {showFormula ? (
+            <ChevronUp className="h-5 w-5 text-slate-400" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-slate-400" />
+          )}
+        </button>
+
+        {showFormula && (
+          <div className="mt-6 space-y-4 text-sm text-slate-700">
+            <div className="bg-primary-50 rounded-xl p-4">
+              <p className="font-mono text-primary-900 text-center text-base">
+                coef = clamp(1.0 + (pts_región − media_nacional) / media_nacional × <strong>0.20</strong>, 0.80, 1.20)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <p>
+                <strong>Paso 1:</strong> Al final de cada temporada, sumamos los puntos que tienen los equipos
+                de cada región en el ranking (incluye CE1 y CE2 de las últimas 4 temporadas con coeficiente de
+                antigüedad 1.0 / 0.8 / 0.5 / 0.2).
+              </p>
+              <p>
+                <strong>Paso 2:</strong> Calculamos la media nacional: total de puntos de todas las regiones
+                dividido entre el número de regiones.
+              </p>
+              <p>
+                <strong>Paso 3:</strong> La desviación de cada región respecto a la media determina el coeficiente.
+                Una región con el doble de la media obtiene +20% (máximo). Una región en cero obtiene −20% (mínimo).
+              </p>
+              <p>
+                <strong>El 0.20 no es arbitrario</strong>: es exactamente el tope que se ha fijado (±20%).
+                No hay parámetros ocultos.
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-100">
+                    <th className="text-left p-2 font-medium">Puntos región</th>
+                    <th className="text-left p-2 font-medium">Relación con media</th>
+                    <th className="text-left p-2 font-medium">Coeficiente</th>
+                    <th className="text-left p-2 font-medium">Efecto</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  <tr>
+                    <td className="p-2">≥ doble de la media</td>
+                    <td className="p-2">+100% o más</td>
+                    <td className="p-2 font-bold text-emerald-700">1.20</td>
+                    <td className="p-2">+20% en puntos regionales</td>
+                  </tr>
+                  <tr className="bg-slate-50">
+                    <td className="p-2">50% por encima de la media</td>
+                    <td className="p-2">+50%</td>
+                    <td className="p-2 font-bold text-primary-700">1.10</td>
+                    <td className="p-2">+10% en puntos regionales</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2">Igual a la media</td>
+                    <td className="p-2">0%</td>
+                    <td className="p-2 font-bold text-slate-700">1.00</td>
+                    <td className="p-2">Sin cambio</td>
+                  </tr>
+                  <tr className="bg-slate-50">
+                    <td className="p-2">50% por debajo de la media</td>
+                    <td className="p-2">−50%</td>
+                    <td className="p-2 font-bold text-amber-700">0.90</td>
+                    <td className="p-2">−10% en puntos regionales</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2">Sin puntos</td>
+                    <td className="p-2">−100%</td>
+                    <td className="p-2 font-bold text-red-700">0.80</td>
+                    <td className="p-2">−20% en puntos regionales</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+              <strong>Nota:</strong> El coeficiente se calcula por separado para las 6 modalidades
+              (playa mixto, playa open, playa femenino, césped mixto, césped open, césped femenino),
+              aunque actualmente solo se aplica a las modalidades que tienen torneos regionales.
+              El sistema está preparado para incorporar nuevas modalidades automáticamente.
+            </div>
+          </div>
+        )}
+      </div>
     </PageContainer>
   )
 }
