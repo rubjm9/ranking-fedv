@@ -7,6 +7,7 @@ import seasonPointsService from '../../services/seasonPointsService'
 import seasonService from '../../services/seasonService'
 import hybridRankingService from '../../services/hybridRankingService'
 import teamSeasonRankingsService from '../../services/teamSeasonRankingsService'
+import rankingUpdateService from '../../services/rankingUpdateService'
 import subseasonDetectionService from '../../services/subseasonDetectionService'
 import { verifyAllOptimizations } from '../../utils/verifyOptimizations'
 
@@ -34,13 +35,19 @@ const SeasonManagementPage: React.FC = () => {
   }, [])
 
   const handleRegenerateAll = async () => {
+    if (!confirm('¿Reconstruir todo el sistema de rankings? Recalcula puntos de posiciones, coeficientes regionales, puntos por temporada, rankings históricos y rankings actuales. Puede tardar varios minutos.')) {
+      return
+    }
+
     setIsLoading(true)
     try {
-      const result = await seasonPointsService.regenerateAllSeasons()
-      
+      const result = await rankingUpdateService.rebuildFullRankingSystem()
+
       if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ['ranking-optimized'] })
+        queryClient.invalidateQueries({ queryKey: ['season-status'] })
         toast.success(result.message)
-        console.log('✅ Temporadas regeneradas:', result.seasons)
+        console.log('✅ Reconstrucción completa:', result.steps)
       } else {
         toast.error(result.message)
       }
@@ -314,12 +321,15 @@ const SeasonManagementPage: React.FC = () => {
         </ul>
       </div>
 
-      {/* Regenerar todas las temporadas */}
+      {/* Reconstruir todo el sistema */}
       <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Regenerar todas las temporadas</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Reconstruir todo el sistema</h2>
         <p className="text-sm text-gray-600 mb-4">
-          Recalcula todos los puntos de todas las temporadas desde los datos brutos (tabla positions).
-          Útil cuando cambias fórmulas de cálculo o necesitas reconstruir completamente la cache.
+          Reconstrucción completa de extremo a extremo: recalcula los puntos de cada posición con la
+          curva vigente, los coeficientes regionales por temporada (ventana de 4 años de CE1/CE2),
+          los puntos por equipo y temporada (aplicando el coeficiente regional a los campeonatos
+          regionales), los rankings históricos y combinados, y finalmente los rankings actuales.
+          Úsalo tras cambiar la fórmula de puntos o importar nuevos torneos.
         </p>
         <button
           onClick={handleRegenerateAll}
@@ -327,7 +337,7 @@ const SeasonManagementPage: React.FC = () => {
           className="flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
           <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
-          <span>Regenerar todas las temporadas</span>
+          <span>Reconstruir todo el sistema</span>
         </button>
       </div>
 

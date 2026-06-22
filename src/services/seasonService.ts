@@ -160,7 +160,11 @@ const seasonService = {
   /**
    * Calcula coeficientes regionales para una temporada (6 modalidades × todas las regiones).
    *
-   * Fuente de datos: team_season_rankings de la temporada `season`.
+   * Fuente de datos: posiciones de torneos NACIONALES (CE1 y CE2) de las 4 últimas
+   * temporadas (la propia `season` y las 3 anteriores), ponderadas por antigüedad
+   * con los pesos [1.0, 0.8, 0.5, 0.2]. Los campeonatos regionales se excluyen para
+   * medir la fortaleza "pura" de cada región en el ámbito nacional.
+   *
    * Convención: los coeficientes calculados aquí se almacenan con season=season
    * y se aplican a los torneos REGIONAL de la temporada siguiente (season+1).
    */
@@ -179,26 +183,34 @@ const seasonService = {
       if (regionsError) throw regionsError
       if (!regions || regions.length === 0) return []
 
-      // Obtener rankings de la temporada base con datos del equipo (región)
-      const { data: rankings, error: rankingsError } = await supabase
-        .from('team_season_rankings')
-        .select(`
-          team_id,
-          beach_mixed_points,
-          beach_open_points,
-          beach_women_points,
-          grass_mixed_points,
-          grass_open_points,
-          grass_women_points,
-          teams:team_id(id, regionId)
-        `)
-        .eq('season', season)
+      // Ventana de 4 temporadas con pesos de antigüedad. La temporada base usa el
+      // año de inicio (ej: "2024-25" -> 2024) y se retrocede 3 años.
+      const baseYear = parseInt(season.split('-')[0])
+      const temporalWeightByYear: Record<number, number> = {
+        [baseYear]: DEFAULT_TEMPORAL_WEIGHTS.current,
+        [baseYear - 1]: DEFAULT_TEMPORAL_WEIGHTS.previous,
+        [baseYear - 2]: DEFAULT_TEMPORAL_WEIGHTS.twoAgo,
+        [baseYear - 3]: DEFAULT_TEMPORAL_WEIGHTS.threeAgo,
+      }
+      const windowYears = [baseYear, baseYear - 1, baseYear - 2, baseYear - 3]
 
-      if (rankingsError) {
-        console.warn(`⚠️ Sin datos de team_season_rankings para temporada ${season}, usando coef=1.0`)
+      // Posiciones de torneos nacionales (CE1/CE2) dentro de la ventana, con
+      // año/superficie/categoría del torneo y región del equipo.
+      const { data: positions, error: positionsError } = await supabase
+        .from('positions')
+        .select(`
+          points,
+          tournaments:tournamentId!inner(year, type, surface, category),
+          teams:teamId!inner(id, regionId)
+        `)
+        .in('tournaments.type', ['CE1', 'CE2'])
+        .in('tournaments.year', windowYears)
+
+      if (positionsError) {
+        console.warn(`⚠️ Sin datos de posiciones nacionales para coeficientes de ${season}, usando coef=1.0:`, positionsError.message)
       }
 
-      // Inicializar acumuladores por región y modalidad
+      // Inicializar acumuladores por región y modalidad (puntos ya ponderados).
       const regionPts: Record<string, Record<string, number>> = {}
       regions.forEach(r => {
         regionPts[r.id] = {
@@ -207,16 +219,18 @@ const seasonService = {
         }
       })
 
-      ;(rankings || []).forEach(row => {
-        const regionId = (row.teams as any)?.regionId
-        if (!regionId || !regionPts[regionId]) return
-        const acc = regionPts[regionId]
-        acc.beach_mixed += (row.beach_mixed_points as number) || 0
-        acc.beach_open  += (row.beach_open_points as number)  || 0
-        acc.beach_women += (row.beach_women_points as number) || 0
-        acc.grass_mixed += (row.grass_mixed_points as number) || 0
-        acc.grass_open  += (row.grass_open_points as number)  || 0
-        acc.grass_women += (row.grass_women_points as number) || 0
+      ;(positions || []).forEach(row => {
+        const tournament = (row as any).tournaments
+        const regionId = (row as any).teams?.regionId
+        if (!tournament || !regionId || !regionPts[regionId]) return
+
+        const weight = temporalWeightByYear[tournament.year as number]
+        if (!weight) return
+
+        const modality = `${String(tournament.surface).toLowerCase()}_${String(tournament.category).toLowerCase()}`
+        if (!(modality in regionPts[regionId])) return
+
+        regionPts[regionId][modality] += ((row as any).points || 0) * weight
       })
 
       const modalities = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women']
@@ -569,43 +583,25 @@ const seasonService = {
     try {
       if (!supabase) throw new Error('Supabase no está configurado')
 
-      // Obtener temporadas disponibles en team_season_rankings
+      // Enumerar temporadas a partir de los años de torneos (independiente de
+      // team_season_rankings, ya que los coeficientes se calculan desde positions).
       const { data: rows, error } = await supabase
-        .from('team_season_rankings')
-        .select('season')
-        .order('season', { ascending: true })
+        .from('tournaments')
+        .select('year')
+        .not('year', 'is', null)
+        .order('year', { ascending: true })
 
       if (error) throw error
 
-      const seasons = [...new Set((rows || []).map((r: any) => r.season as string))]
+      const years = [...new Set((rows || []).map((r: any) => r.year as number))]
+      const seasons = years.map(y => `${y}-${String(y + 1).slice(-2)}`)
       console.log(`🔄 Backfill coeficientes para temporadas: ${seasons.join(', ')}`)
 
       const results: { season: string; count: number }[] = []
 
       for (const season of seasons) {
-        const coefficients = await seasonService.calculateRegionalCoefficients(season)
-
-        for (const c of coefficients) {
-          const { error: upsertError } = await supabase
-            .from('regional_coefficients')
-            .upsert({
-              id: c.id,
-              regionId: c.regionId,
-              season: c.season,
-              modality: c.modality,
-              coefficient: c.coefficient,
-              isManualOverride: false,
-              calculatedValue: c.calculatedValue,
-              appliedAt: c.appliedAt,
-            })
-
-          if (upsertError) {
-            console.error(`Error upsert coef ${c.id}:`, upsertError)
-          }
-        }
-
-        results.push({ season, count: coefficients.length })
-        console.log(`✅ Temporada ${season}: ${coefficients.length} coeficientes guardados`)
+        const count = await seasonService.calculateAndSaveRegionalCoefficients(season)
+        results.push({ season, count })
       }
 
       return results
@@ -613,6 +609,38 @@ const seasonService = {
       console.error('Error en backfill de coeficientes:', error)
       return []
     }
+  },
+
+  /**
+   * Calcula y persiste los coeficientes regionales de una temporada.
+   * Devuelve el número de coeficientes guardados.
+   */
+  calculateAndSaveRegionalCoefficients: async (season: string): Promise<number> => {
+    if (!supabase) throw new Error('Supabase no está configurado')
+
+    const coefficients = await seasonService.calculateRegionalCoefficients(season)
+
+    for (const c of coefficients) {
+      const { error: upsertError } = await supabase
+        .from('regional_coefficients')
+        .upsert({
+          id: c.id,
+          regionId: c.regionId,
+          season: c.season,
+          modality: c.modality,
+          coefficient: c.coefficient,
+          isManualOverride: false,
+          calculatedValue: c.calculatedValue,
+          appliedAt: c.appliedAt,
+        })
+
+      if (upsertError) {
+        console.error(`Error upsert coef ${c.id}:`, upsertError)
+      }
+    }
+
+    console.log(`✅ Temporada ${season}: ${coefficients.length} coeficientes guardados`)
+    return coefficients.length
   },
 }
 

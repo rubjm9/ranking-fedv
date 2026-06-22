@@ -12,8 +12,8 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/services/supabaseService'
-import seasonPointsService from '@/services/seasonPointsService'
 import hybridRankingService from '@/services/hybridRankingService'
+import rankingUpdateService from '@/services/rankingUpdateService'
 
 const DatabaseDiagnosticPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -128,19 +128,19 @@ const DatabaseDiagnosticPage: React.FC = () => {
   const handleRegenerateData = async () => {
     setIsLoading(true)
     try {
-      console.log('🔄 Iniciando regeneración de datos...')
-      const result = await seasonPointsService.regenerateAllSeasons()
-      console.log('📊 Resultado de regeneración:', result)
+      console.log('🔄 Iniciando reconstrucción completa del sistema...')
+      const result = await rankingUpdateService.rebuildFullRankingSystem()
+      console.log('📊 Resultado de la reconstrucción:', result.steps)
       
       if (result.success) {
-        toast.success(`${result.message}. Temporadas: ${result.seasons.join(', ')}`)
+        toast.success(result.message)
         // Esperar un poco antes de refrescar para que se complete la transacción
         setTimeout(() => {
           refetchTable()
         }, 1000)
       } else {
         toast.error(`Error: ${result.message}`)
-        console.error('❌ Error en regeneración:', result.message)
+        console.error('❌ Error en reconstrucción:', result.message)
       }
     } catch (error: any) {
       toast.error(`Error: ${error.message}`)

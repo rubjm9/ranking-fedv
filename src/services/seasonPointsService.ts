@@ -5,6 +5,7 @@
 
 import { supabase } from './supabaseService'
 import teamSeasonRankingsService from './teamSeasonRankingsService'
+import seasonService from './seasonService'
 import { getPointsForPosition, getOffsetForTournament } from '@/utils/tournamentUtils'
 
 export interface SeasonPoints {
@@ -68,6 +69,16 @@ const seasonPointsService = {
       // Obtener el año de la temporada (ej: "2024-25" -> 2024)
       const seasonYear = parseInt(season.split('-')[0])
 
+      // Cargar coeficientes regionales de la temporada anterior. Convención:
+      // el coeficiente calculado con season=T se aplica a los regionales de T+1.
+      const prevSeason = `${seasonYear - 1}-${String(seasonYear).slice(-2)}`
+      const regionalCoeffs = await seasonService.getRegionalCoefficients(prevSeason)
+      const regionalCoeffMap = new Map<string, number>()
+      regionalCoeffs.forEach(c => {
+        regionalCoeffMap.set(`${c.regionId}-${c.modality}`, c.coefficient)
+      })
+      console.log(`📊 Coeficientes regionales (base ${prevSeason}): ${regionalCoeffMap.size} entradas`)
+
       // Construir query de posiciones
       let query = supabase
         .from('positions')
@@ -81,12 +92,14 @@ const seasonPointsService = {
             id,
             name,
             year,
+            type,
             surface,
             category
           ),
           teams:teamId(
             id,
-            name
+            name,
+            regionId
           )
         `)
         .eq('tournaments.year', seasonYear)
@@ -128,11 +141,18 @@ const seasonPointsService = {
           }
         }
 
+        // Coeficiente regional: solo afecta a torneos REGIONAL. Los campeonatos
+        // de España (CE1/CE2) suman sus puntos base sin modificar.
+        const isRegional = tournament.type === 'REGIONAL'
+        const regionalCoef = isRegional
+          ? (regionalCoeffMap.get(`${team.regionId}-${surface}`) ?? 1.0)
+          : 1.0
+
         // Sumar puntos
         if (!teamPointsMap[tid][surface]) {
           teamPointsMap[tid][surface] = 0
         }
-        teamPointsMap[tid][surface]! += position.points || 0
+        teamPointsMap[tid][surface]! += (position.points || 0) * regionalCoef
 
         // Contar torneos
         if (!teamPointsMap[tid].tournaments_played[surface]) {

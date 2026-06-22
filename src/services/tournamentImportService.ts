@@ -378,12 +378,32 @@ export const tournamentImportService = {
         try {
           // Convertir temporada a año
           const year = parseInt(row.temporada.split('-')[0])
-          
-          // Tamaño de división nacional: CE1/CE2 usan el estándar (16) salvo override.
-          // Para CE2 esto fija el offset (la 2ª continúa la curva tras la 1ª).
-          const divisionSize = (row.tipo === 'CE1' || row.tipo === 'CE2')
-            ? DEFAULT_DIVISION_SIZE
-            : undefined
+
+          // Tamaño de división nacional y enlace de la 2ª con su 1ª:
+          // - CE1: tamaño estándar (16).
+          // - CE2: hereda el tamaño de su CE1 asociado (mismo año/superficie/categoría),
+          //   que define el offset con el que continúa la curva nacional. Si la 1ª aún
+          //   no existe se usa el estándar y se enlazará después (migración / recálculo).
+          let divisionSize: number | undefined
+          let parentTournamentId: string | undefined
+
+          if (row.tipo === 'CE1') {
+            divisionSize = DEFAULT_DIVISION_SIZE
+          } else if (row.tipo === 'CE2') {
+            try {
+              const ce1Response = await tournamentsService.getCE1ByModality(year, row.superficie, row.categoria)
+              const parentCE1 = ce1Response.data?.[0]
+              if (parentCE1) {
+                parentTournamentId = parentCE1.id
+                divisionSize = parentCE1.divisionSize ?? DEFAULT_DIVISION_SIZE
+              } else {
+                divisionSize = DEFAULT_DIVISION_SIZE
+              }
+            } catch {
+              divisionSize = DEFAULT_DIVISION_SIZE
+            }
+          }
+
           const offset = getOffsetForTournament(row.tipo, divisionSize)
 
           // Crear torneo
@@ -396,6 +416,7 @@ export const tournamentImportService = {
             regionId: row.tipo === 'REGIONAL' && row.region ?
               regionNameToId.get(row.region.toLowerCase()) || null : null,
             divisionSize,
+            parentTournamentId,
             startDate: row.fecha_inicio ? new Date(row.fecha_inicio).toISOString() : null,
             endDate: row.fecha_fin ? new Date(row.fecha_fin).toISOString() : null,
             location: row.ubicacion
