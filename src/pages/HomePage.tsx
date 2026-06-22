@@ -8,6 +8,7 @@ import {
   nationalCurvePoints,
   regionalCurvePoints,
   getPointsForPosition,
+  getCurrentSeasonValue,
   DEFAULT_DIVISION_SIZE,
 } from '@/utils/tournamentUtils'
 
@@ -54,7 +55,7 @@ const HomePage: React.FC = () => {
     averagePoints: 0
   })
   const [isLoading, setIsLoading] = useState(true)
-  const [currentSeason, setCurrentSeason] = useState('2025-26')
+  const [currentSeason, setCurrentSeason] = useState(getCurrentSeasonValue)
   const [showFullPointsTable, setShowFullPointsTable] = useState(false)
 
   useEffect(() => {
@@ -189,7 +190,7 @@ const HomePage: React.FC = () => {
               Ranking <span className="text-accent-400">FEDV</span>
             </h1>
             <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto">
-              El ranking oficial de Ultimate Frisbee en España
+              Propuesta de sistema de ranking de equipos, pendiente de aprobación en su formato definitivo
             </p>
             <p className="mt-3 mb-10">
               <span className="inline-block bg-primary-600/20 text-primary-300 text-sm font-semibold px-3 py-1 rounded-full border border-primary-600/30">
