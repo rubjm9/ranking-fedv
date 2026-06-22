@@ -322,7 +322,7 @@ const EditTournamentPage: React.FC = () => {
         break
         
       case 'startDate':
-      case 'endDate':
+      case 'endDate': {
         const dateError = validateTournamentDates(
           field === 'startDate' ? value : formData.startDate,
           field === 'endDate' ? value : formData.endDate
@@ -333,6 +333,7 @@ const EditTournamentPage: React.FC = () => {
           delete newErrors.startDate
         }
         break
+      }
         
       case 'location':
         if (!value.trim()) {

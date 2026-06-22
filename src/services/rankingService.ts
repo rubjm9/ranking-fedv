@@ -1,4 +1,5 @@
 import { supabase } from './supabaseService'
+import seasonService from './seasonService'
 
 export interface RankingEntry {
   team_id: string
@@ -483,13 +484,25 @@ const rankingService = {
         return { message: 'No hay posiciones para recalcular' }
       }
 
+      // Cargar coeficientes regionales de la temporada anterior
+      // Convención: coef calculado de T-1 → se aplica a regionales de T
+      const refSeason = await getCurrentSeason()
+      const prevSeasonYear = parseInt(refSeason.split('-')[0]) - 1
+      const prevSeason = formatSeason(prevSeasonYear)
+      const regionalCoeffs = await seasonService.getRegionalCoefficients(prevSeason)
+      const regionalCoeffMap = new Map<string, number>()
+      regionalCoeffs.forEach(c => {
+        regionalCoeffMap.set(`${c.regionId}-${c.modality}`, c.coefficient)
+      })
+      console.log(`📊 Coeficientes regionales cargados para temporada base ${prevSeason}: ${regionalCoeffMap.size} entradas`)
+
       // Agrupar puntos por equipo, categoría y temporada
       const teamPoints: { [key: string]: { [key: string]: { [key: string]: number } } } = {}
 
       positions.forEach(position => {
         const tournament = position.tournaments
         const team = position.teams
-        
+
         console.log('🏆 Procesando posición:', {
           position: position.position,
           points: position.points,
@@ -520,7 +533,13 @@ const rankingService = {
           teamPoints[teamKey][surface][season] = 0
         }
 
-        teamPoints[teamKey][surface][season] += position.points || 0
+        // Aplicar coeficiente regional solo a torneos REGIONAL
+        const isRegional = tournament.type === 'REGIONAL'
+        const regionalCoef = isRegional
+          ? (regionalCoeffMap.get(`${team.regionId}-${surface}`) ?? 1.0)
+          : 1.0
+
+        teamPoints[teamKey][surface][season] += (position.points || 0) * regionalCoef
       })
 
       console.log('📈 Puntos agrupados:', teamPoints)

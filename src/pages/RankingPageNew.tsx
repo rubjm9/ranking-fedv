@@ -1076,7 +1076,7 @@ const RankingPageNew: React.FC = () => {
     return Object.entries(clubGroups).map(([clubName, teams]) => {
       let totalClubPoints = 0
       let totalTournaments = 0
-      let allSeasons: { [key: string]: number } = {}
+      const allSeasons: { [key: string]: number } = {}
       
       const sortedTeams = teams.sort((a, b) => {
         const aIsFilial = a.team_name.match(/\s+[B-E]$/)
@@ -1217,7 +1217,7 @@ const RankingPageNew: React.FC = () => {
     return Object.entries(clubGroups).map(([clubName, teams]) => {
       let totalClubPoints = 0
       let totalTournaments = 0
-      let allSeasons: { [key: string]: number } = {}
+      const allSeasons: { [key: string]: number } = {}
       
       const sortedTeams = teams.sort((a, b) => {
         const aIsFilial = a.team_name.match(/\s+[B-E]$/)

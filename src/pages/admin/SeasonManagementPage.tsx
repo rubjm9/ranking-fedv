@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { RefreshCw, Lock, Unlock, TrendingUp, BarChart3, CheckCircle, AlertTriangle } from 'lucide-react'
+import { RefreshCw, Lock, Unlock, TrendingUp, BarChart3, CheckCircle, AlertTriangle, MapPin } from 'lucide-react'
 import toast from 'react-hot-toast'
 import seasonPointsService from '../../services/seasonPointsService'
+import seasonService from '../../services/seasonService'
 import hybridRankingService from '../../services/hybridRankingService'
 import teamSeasonRankingsService from '../../services/teamSeasonRankingsService'
 import subseasonDetectionService from '../../services/subseasonDetectionService'
@@ -235,6 +236,25 @@ const SeasonManagementPage: React.FC = () => {
     }
   }
 
+  // Backfill de coeficientes regionales para todas las temporadas
+  const handleBackfillCoefficients = async () => {
+    if (!confirm('¿Calcular coeficientes regionales para TODAS las temporadas históricas? Esto puede tardar unos minutos.')) {
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const results = await seasonService.backfillRegionalCoefficients()
+      const total = results.reduce((s, r) => s + r.count, 0)
+      toast.success(`Coeficientes regionales calculados: ${total} entradas en ${results.length} temporadas`)
+      console.log('Backfill completado:', results)
+    } catch (error: any) {
+      toast.error(`Error: ${error.message}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   // Recalcular todas las temporadas históricas
   const handleRecalculateAllRankings = async () => {
     if (!confirm('¿Recalcular rankings históricos de TODAS las temporadas? Esto puede tardar varios minutos.')) {
@@ -453,7 +473,7 @@ const SeasonManagementPage: React.FC = () => {
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Rankings históricos (team_season_rankings)</h2>
         <p className="text-sm text-gray-600 mb-4">
-          La tabla <code className="bg-gray-100 px-1 rounded">team_season_rankings</code> almacena rankings pre-calculados 
+          La tabla <code className="bg-gray-100 px-1 rounded">team_season_rankings</code> almacena rankings pre-calculados
           con cambios de posición incluidos. Esto optimiza las consultas de la web pública.
         </p>
         <button
@@ -463,6 +483,29 @@ const SeasonManagementPage: React.FC = () => {
         >
           <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
           <span>Recalcular todos los rankings históricos</span>
+        </button>
+      </div>
+
+      {/* Coeficientes regionales */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Coeficientes regionales</h2>
+        <p className="text-sm text-gray-600 mb-2">
+          Calcula y almacena los coeficientes regionales para todas las temporadas históricas.
+          Se genera un coeficiente por región y por modalidad (30 entradas por temporada).
+        </p>
+        <p className="text-sm text-gray-600 mb-4">
+          <strong>Convención:</strong> el coeficiente de la temporada T se calcula usando los rankings de T
+          y se aplica a los torneos <em>regionales</em> de la temporada T+1.
+          <br />
+          <strong>Ejecuta primero "Recalcular todos los rankings históricos"</strong> si acabas de implementar el sistema.
+        </p>
+        <button
+          onClick={handleBackfillCoefficients}
+          disabled={isLoading}
+          className="flex items-center justify-center space-x-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+        >
+          <MapPin className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+          <span>Calcular coeficientes regionales históricos</span>
         </button>
       </div>
 

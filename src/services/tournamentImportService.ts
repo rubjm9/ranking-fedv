@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 import { tournamentsService, teamsService, regionsService } from './apiService'
 import { getPointsForPosition } from '@/utils/tournamentUtils'
 
@@ -59,7 +59,7 @@ export interface ImportResult {
 
 export const tournamentImportService = {
   // Generar plantilla de importación
-  generateTemplate: () => {
+  generateTemplate: async () => {
     // Headers para información de torneos + posiciones
     const headers = [
       'nombre',
@@ -195,62 +195,58 @@ export const tournamentImportService = {
       ]
     ]
 
-    // Crear worksheet con headers como primera fila
-    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...exampleData])
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Torneos')
+    // Crear workbook con headers como primera fila
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Torneos')
+    worksheet.addRow(headers)
+    exampleData.forEach(row => worksheet.addRow(row))
 
-    // Generar archivo
-    XLSX.writeFile(workbook, 'plantilla-importacion-torneos.xlsx')
+    // Generar y descargar archivo
+    const buffer = await workbook.xlsx.writeBuffer()
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'plantilla-importacion-torneos.xlsx'
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
   },
 
   // Parsear archivo Excel
   parseImportFile: async (file: File): Promise<TournamentImportRow[]> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      
-      reader.onload = (e) => {
-        try {
-          const data = new Uint8Array(e.target?.result as ArrayBuffer)
-          const workbook = XLSX.read(data, { type: 'array' })
-          
-          // Leer la primera hoja
-          const sheetName = workbook.SheetNames[0]
-          const worksheet = workbook.Sheets[sheetName]
-          
-          // Convertir a JSON
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
-          
-          // Saltar la primera fila (headers) y convertir a objetos
-          const headers = jsonData[0] as string[]
-          const rows = jsonData.slice(1) as any[][]
-          
-          console.log('Headers encontrados:', headers)
-          console.log('Primera fila de datos:', rows[0])
-          
-          const tournaments: TournamentImportRow[] = rows
-            .filter(row => row && row.length > 0) // Filtrar filas vacías
-            .map(row => {
-              const tournament: any = {}
-              headers.forEach((header, index) => {
-                const value = row[index]
-                // Convertir valores vacíos a string vacío
-                tournament[header] = value === undefined || value === null ? '' : String(value).trim()
-              })
-              return tournament as TournamentImportRow
-            })
-          
-          console.log('Torneos parseados:', tournaments)
-          resolve(tournaments)
-        } catch (error) {
-          console.error('Error al parsear archivo:', error)
-          reject(error)
-        }
-      }
-      
-      reader.onerror = () => reject(new Error('Error al leer el archivo'))
-      reader.readAsArrayBuffer(file)
+    const arrayBuffer = await file.arrayBuffer()
+    const workbook = new ExcelJS.Workbook()
+    await workbook.xlsx.load(arrayBuffer)
+
+    const worksheet = workbook.worksheets[0]
+
+    // Convertir a array de arrays (row.values es 1-indexed, índice 0 = undefined)
+    const jsonData: any[][] = []
+    worksheet.eachRow(row => {
+      jsonData.push((row.values as any[]).slice(1))
     })
+
+    const headers = jsonData[0] as string[]
+    const rows = jsonData.slice(1) as any[][]
+
+    console.log('Headers encontrados:', headers)
+    console.log('Primera fila de datos:', rows[0])
+
+    const tournaments: TournamentImportRow[] = rows
+      .filter(row => row && row.length > 0)
+      .map(row => {
+        const tournament: any = {}
+        headers.forEach((header, index) => {
+          const value = row[index]
+          tournament[header] = value === undefined || value === null ? '' : String(value).trim()
+        })
+        return tournament as TournamentImportRow
+      })
+
+    console.log('Torneos parseados:', tournaments)
+    return tournaments
   },
 
   // Validar datos de importación
