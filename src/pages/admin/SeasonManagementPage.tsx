@@ -46,10 +46,14 @@ const SeasonManagementPage: React.FC = () => {
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ['ranking-optimized'] })
         queryClient.invalidateQueries({ queryKey: ['season-status'] })
+        queryClient.invalidateQueries({ queryKey: ['regional-coefficients'] })
+        queryClient.invalidateQueries({ queryKey: ['regional-coeff-season-info'] })
+        queryClient.invalidateQueries({ queryKey: ['region-coefficients'] })
         toast.success(result.message)
         console.log('✅ Reconstrucción completa:', result.steps)
       } else {
-        toast.error(result.message)
+        const coeffMsg = result.steps.regionalCoefficients?.message
+        toast.error(coeffMsg ? `${result.message} | ${coeffMsg}` : result.message)
       }
     } catch (error: any) {
       toast.error(`Error: ${error.message}`)
@@ -253,7 +257,14 @@ const SeasonManagementPage: React.FC = () => {
     try {
       const results = await seasonService.backfillRegionalCoefficients()
       const total = results.reduce((s, r) => s + r.count, 0)
-      toast.success(`Coeficientes regionales calculados: ${total} entradas en ${results.length} temporadas`)
+      queryClient.invalidateQueries({ queryKey: ['regional-coefficients'] })
+      queryClient.invalidateQueries({ queryKey: ['regional-coeff-season-info'] })
+      queryClient.invalidateQueries({ queryKey: ['region-coefficients'] })
+      if (total === 0) {
+        toast.error('No se guardó ningún coeficiente. Inicia sesión en admin o usa npm run backfill-regional-coefficients con service role.')
+      } else {
+        toast.success(`Coeficientes regionales guardados: ${total} entradas en ${results.length} temporadas`)
+      }
       console.log('Backfill completado:', results)
     } catch (error: any) {
       toast.error(`Error: ${error.message}`)

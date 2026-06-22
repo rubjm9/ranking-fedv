@@ -11,7 +11,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "backfill-slugs": "node --env-file=.env.local --import tsx src/scripts/backfill-team-slugs.ts"
+    "backfill-slugs": "node --env-file=.env.local --import tsx src/scripts/backfill-team-slugs.ts",
+    "backfill-regional-coefficients": "node --env-file=.env.local --import tsx src/scripts/backfill-regional-coefficients.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

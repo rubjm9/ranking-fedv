@@ -14,7 +14,7 @@ export interface UpdateResult {
   message: string
   steps: {
     recomputePositions?: { success: boolean; message: string; updated: number }
-    regionalCoefficients?: { success: boolean; message: string; seasons: string[] }
+    regionalCoefficients?: { success: boolean; message: string; seasons: string[]; errors?: string[] }
     regenerateSeasons: { success: boolean; message: string; seasons: string[] }
     historicalRankings?: { success: boolean; message: string; totalUpdated: number }
     syncRankings: { success: boolean; message: string; categories: string[] }
@@ -104,6 +104,9 @@ const rankingUpdateService = {
       const processedSeasons: string[] = []
       const coefficientSeasons: string[] = []
       let totalRankingsUpdated = 0
+      let totalCoeffsSaved = 0
+      let totalCoeffsFailed = 0
+      const coeffErrors: string[] = []
 
       // PASO 1: bucle cronológico (coeficientes -> puntos -> rankings históricos).
       for (const season of seasons) {
@@ -111,10 +114,17 @@ const rankingUpdateService = {
 
         // 1a. Coeficientes regionales de esta temporada (se aplican a los regionales de T+1).
         try {
-          const count = await seasonService.calculateAndSaveRegionalCoefficients(season)
-          if (count > 0) coefficientSeasons.push(season)
+          const coeffResult = await seasonService.calculateAndSaveRegionalCoefficients(season)
+          totalCoeffsSaved += coeffResult.saved
+          totalCoeffsFailed += coeffResult.failed
+          coeffErrors.push(...coeffResult.errors)
+          if (coeffResult.saved > 0) coefficientSeasons.push(season)
+          if (coeffResult.failed > 0) {
+            console.error(`❌ ${coeffResult.failed} coeficientes no guardados en ${season}`)
+          }
         } catch (error: any) {
           console.error(`❌ Error calculando coeficientes de ${season}:`, error)
+          coeffErrors.push(error.message || 'Error desconocido')
         }
 
         // 1b. Agregar puntos por equipo (aplica coef. regional de T-1 a REGIONAL).
@@ -135,9 +145,12 @@ const rankingUpdateService = {
       }
 
       result.steps.regionalCoefficients = {
-        success: true,
-        message: `Coeficientes calculados para ${coefficientSeasons.length} temporadas`,
-        seasons: coefficientSeasons
+        success: totalCoeffsFailed === 0 && totalCoeffsSaved > 0,
+        message: totalCoeffsSaved > 0
+          ? `${totalCoeffsSaved} coeficientes guardados en ${coefficientSeasons.length} temporadas`
+          : 'No se guardaron coeficientes. Inicia sesión en el panel admin y vuelve a ejecutar la reconstrucción, o usa npm run backfill-regional-coefficients con service role.',
+        seasons: coefficientSeasons,
+        ...(coeffErrors.length > 0 ? { errors: coeffErrors } : {}),
       }
       result.steps.regenerateSeasons = {
         success: processedSeasons.length === seasons.length,
@@ -178,6 +191,7 @@ const rankingUpdateService = {
       result.success =
         result.steps.recomputePositions.success &&
         result.steps.regenerateSeasons.success &&
+        result.steps.regionalCoefficients?.success !== false &&
         result.steps.syncRankings.success
 
       result.message = result.success

@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { regionsService, getTeamPublicUrl } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
 import seasonService from '@/services/seasonService'
+import { getRegionalCoefficientBaseSeason } from '@/utils/rankingCalculations'
 import { supabase } from '@/services/supabaseService'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
@@ -64,15 +65,18 @@ const RegionDetailPage: React.FC = () => {
   const region = regionResponse?.data
 
   // Temporada base para coeficientes (T-1 respecto a la actual)
-  const { data: referenceSeason } = useQuery({
-    queryKey: ['most-recent-season-for-coeff'],
+  const { data: coeffSeasonInfo } = useQuery({
+    queryKey: ['regional-coeff-season-info'],
     queryFn: async () => {
-      const most = await hybridRankingService.getMostRecentSeason()
-      const prevYear = parseInt(most.split('-')[0]) - 1
-      const nextYear = (prevYear + 1).toString().slice(-2)
-      return `${prevYear}-${nextYear}`
+      const currentSeason = await hybridRankingService.getMostRecentSeason()
+      return {
+        currentSeason,
+        coefficientSeason: getRegionalCoefficientBaseSeason(currentSeason),
+      }
     },
   })
+
+  const referenceSeason = coeffSeasonInfo?.coefficientSeason
 
   // Coeficientes de esta región por modalidad
   const { data: modalityCoefficients } = useQuery({

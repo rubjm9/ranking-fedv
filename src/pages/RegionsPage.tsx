@@ -5,6 +5,7 @@ import { MapPin, Users, TrendingUp, Trophy, ChevronRight, BarChart3, Loader2, Ch
 import { regionsService } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
 import seasonService from '@/services/seasonService'
+import { getRegionalCoefficientBaseSeason } from '@/utils/rankingCalculations'
 import { supabase } from '@/services/supabaseService'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
@@ -50,19 +51,22 @@ const RegionsPage = () => {
 
   const regions = regionsData?.data || []
 
-  // Obtener la temporada base para los coeficientes (T-1 respecto a la actual)
-  const { data: referenceSeason } = useQuery({
-    queryKey: ['most-recent-season-for-coeff'],
+  // Coeficientes de la temporada base (T-1): se aplican a los regionales de la temporada actual.
+  const { data: coeffSeasonInfo } = useQuery({
+    queryKey: ['regional-coeff-season-info'],
     queryFn: async () => {
-      const most = await hybridRankingService.getMostRecentSeason()
-      const prevYear = parseInt(most.split('-')[0]) - 1
-      const nextYear = (prevYear + 1).toString().slice(-2)
-      return `${prevYear}-${nextYear}`
+      const currentSeason = await hybridRankingService.getMostRecentSeason()
+      return {
+        currentSeason,
+        coefficientSeason: getRegionalCoefficientBaseSeason(currentSeason),
+      }
     },
   })
 
+  const referenceSeason = coeffSeasonInfo?.coefficientSeason
+
   // Cargar coeficientes regionales de la temporada base
-  const { data: regionalCoefficients } = useQuery({
+  const { data: regionalCoefficients, isLoading: isLoadingCoeffs } = useQuery({
     queryKey: ['regional-coefficients', referenceSeason],
     queryFn: () => seasonService.getRegionalCoefficients(referenceSeason!),
     enabled: !!referenceSeason,
@@ -178,8 +182,20 @@ const RegionsPage = () => {
     <PageContainer>
       <PageHeader
         title="Regiones"
-        subtitle="Explora las regiones participantes en el ranking FEDV"
+        subtitle={
+          referenceSeason
+            ? `Coeficientes activos calculados con datos hasta ${referenceSeason} (aplican a regionales ${coeffSeasonInfo?.currentSeason || ''})`
+            : 'Explora las regiones participantes en el ranking FEDV'
+        }
       />
+
+      {!isLoadingCoeffs && referenceSeason && (regionalCoefficients?.length ?? 0) === 0 && (
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          No hay coeficientes guardados para la temporada {referenceSeason}. Ejecuta{' '}
+          <strong>Reconstruir todo el sistema</strong> en Admin → Temporadas (con sesión iniciada)
+          o <code className="bg-amber-100 px-1 rounded">npm run backfill-regional-coefficients</code>.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <StatsCard icon={MapPin} label="Total regiones" value={totalRegions} />

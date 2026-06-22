@@ -24,6 +24,19 @@ export const DEFAULT_TEMPORAL_WEIGHTS = {
   threeAgo: 0.2,
 }
 
+/** Temporada inmediatamente anterior (ej: 2025-26 → 2024-25). */
+export const getPreviousSeasonLabel = (season: string): string => {
+  const year = parseInt(season.split('-')[0])
+  return `${year - 1}-${String(year).slice(-2)}`
+}
+
+/**
+ * Temporada cuyos coeficientes regionales se muestran para la temporada actual.
+ * Convención: coeficientes calculados con datos de T-1 se aplican a regionales de T.
+ */
+export const getRegionalCoefficientBaseSeason = (currentSeason: string): string =>
+  getPreviousSeasonLabel(currentSeason)
+
 /**
  * Calcula el coeficiente regional para una región dada su puntuación y la media nacional.
  *

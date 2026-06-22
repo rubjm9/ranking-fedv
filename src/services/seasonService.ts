@@ -53,6 +53,14 @@ export interface SeasonCloseResult {
   errors: string[]
 }
 
+export interface RegionalCoefficientSaveResult {
+  season: string
+  calculated: number
+  saved: number
+  failed: number
+  errors: string[]
+}
+
 const seasonService = {
   /**
    * Obtiene la temporada actual
@@ -600,8 +608,8 @@ const seasonService = {
       const results: { season: string; count: number }[] = []
 
       for (const season of seasons) {
-        const count = await seasonService.calculateAndSaveRegionalCoefficients(season)
-        results.push({ season, count })
+        const result = await seasonService.calculateAndSaveRegionalCoefficients(season)
+        results.push({ season, count: result.saved })
       }
 
       return results
@@ -613,34 +621,53 @@ const seasonService = {
 
   /**
    * Calcula y persiste los coeficientes regionales de una temporada.
-   * Devuelve el número de coeficientes guardados.
+   * Devuelve cuántos se calcularon y cuántos se guardaron realmente en BD.
    */
-  calculateAndSaveRegionalCoefficients: async (season: string): Promise<number> => {
+  calculateAndSaveRegionalCoefficients: async (season: string): Promise<RegionalCoefficientSaveResult> => {
     if (!supabase) throw new Error('Supabase no está configurado')
 
     const coefficients = await seasonService.calculateRegionalCoefficients(season)
+    const errors: string[] = []
 
-    for (const c of coefficients) {
-      const { error: upsertError } = await supabase
-        .from('regional_coefficients')
-        .upsert({
-          id: c.id,
-          regionId: c.regionId,
-          season: c.season,
-          modality: c.modality,
-          coefficient: c.coefficient,
-          isManualOverride: false,
-          calculatedValue: c.calculatedValue,
-          appliedAt: c.appliedAt,
-        })
+    if (coefficients.length === 0) {
+      return { season, calculated: 0, saved: 0, failed: 0, errors }
+    }
 
-      if (upsertError) {
-        console.error(`Error upsert coef ${c.id}:`, upsertError)
+    const rows = coefficients.map(c => ({
+      id: c.id,
+      regionId: c.regionId,
+      season: c.season,
+      modality: c.modality,
+      coefficient: c.coefficient,
+      isManualOverride: false,
+      calculatedValue: c.calculatedValue,
+      appliedAt: c.appliedAt,
+    }))
+
+    const { error: upsertError } = await supabase
+      .from('regional_coefficients')
+      .upsert(rows)
+
+    if (upsertError) {
+      errors.push(upsertError.message)
+      console.error(`❌ Error guardando coeficientes de ${season}:`, upsertError)
+      return {
+        season,
+        calculated: coefficients.length,
+        saved: 0,
+        failed: coefficients.length,
+        errors,
       }
     }
 
     console.log(`✅ Temporada ${season}: ${coefficients.length} coeficientes guardados`)
-    return coefficients.length
+    return {
+      season,
+      calculated: coefficients.length,
+      saved: coefficients.length,
+      failed: 0,
+      errors,
+    }
   },
 }
 
