@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Trophy, Medal, TrendingUp, TrendingDown, Users, Calendar, RefreshCw, BarChart3, LineChart, Star, MapPin, ChevronRight, Info } from 'lucide-react'
 import hybridRankingService from '@/services/hybridRankingService'
 import { supabase } from '@/services/supabaseService'
@@ -202,9 +202,37 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
 
 const VALID_CATEGORY_TABS = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'] as const
 
+type CombinedType = 'all' | 'beach' | 'grass' | 'mixed' | 'open' | 'women'
+
+const SLUG_TO_TAB: Record<string, string> = {
+  'beach-mixed': 'beach_mixed',
+  'beach-women': 'beach_women',
+  'beach-open': 'beach_open',
+  'grass-mixed': 'grass_mixed',
+  'grass-women': 'grass_women',
+  'grass-open': 'grass_open',
+  'general': 'general',
+  'playa': 'general',
+  'cesped': 'general',
+  'mixto': 'general',
+  'open': 'general',
+  'women': 'general',
+}
+
+const SLUG_TO_COMBINED: Record<string, CombinedType> = {
+  'general': 'all',
+  'playa': 'beach',
+  'cesped': 'grass',
+  'mixto': 'mixed',
+  'open': 'open',
+  'women': 'women',
+}
+
 const RankingPageNew: React.FC = () => {
-  const [searchParams] = useSearchParams()
-  const [activeTab, setActiveTab] = useState<'summary' | 'general' | 'beach_mixed' | 'beach_open' | 'beach_women' | 'grass_mixed' | 'grass_open' | 'grass_women'>('summary')
+  const { surface } = useParams<{ surface: string }>()
+  const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState<'summary' | 'general' | 'beach_mixed' | 'beach_open' | 'beach_women' | 'grass_mixed' | 'grass_open' | 'grass_women'>('general')
+  const [selectedCombinedType, setSelectedCombinedType] = useState<CombinedType>('all')
   // Nota: selectedSurface almacena superficies (beach_mixed, etc.)
   const [selectedSurface, setSelectedSurface] = useState<string>('beach_mixed')
   // highlightStats ahora viene de una query cacheada más abajo
@@ -221,15 +249,24 @@ const RankingPageNew: React.FC = () => {
   const [selectedSeasonForDetailedView, setSelectedSeasonForDetailedView] = useState<string | null>(null)
   // categoryHighlightStats ahora viene de una query cacheada más abajo
 
-  // Al cargar o al cambiar la URL, si viene ?category=... desde la homepage, abrir esa pestaña
+  // Sync URL param :surface → component state
   useEffect(() => {
-    const category = searchParams.get('category')
-    if (category && VALID_CATEGORY_TABS.includes(category as typeof VALID_CATEGORY_TABS[number])) {
-      setActiveTab(category as typeof activeTab)
-      setSelectedSurface(category)
+    if (!surface) return
+    const tab = SLUG_TO_TAB[surface]
+    if (tab) {
+      setActiveTab(tab as typeof activeTab)
+      if (VALID_CATEGORY_TABS.includes(tab as typeof VALID_CATEGORY_TABS[number])) {
+        setSelectedSurface(tab)
+      }
       setDetailedViewMode('ranking')
     }
-  }, [searchParams])
+    const combined = SLUG_TO_COMBINED[surface]
+    if (combined) {
+      setSelectedCombinedType(combined)
+    } else if (tab && tab !== 'general') {
+      setSelectedCombinedType('all')
+    }
+  }, [surface])
 
   // Obtener la temporada más reciente dinámicamente (para ranking general)
   const { data: referenceSeason, isLoading: isLoadingSeason } = useQuery({
@@ -398,7 +435,27 @@ const RankingPageNew: React.FC = () => {
       return await enrichRankingDataWithLogos(withChanges)
     },
     staleTime: 10 * 60 * 1000, // 10 minutos - datos pre-calculados
-    enabled: activeTab === 'general' && !!referenceSeason && !isLoadingSeason
+    enabled: activeTab === 'general' && selectedCombinedType === 'all' && !!referenceSeason && !isLoadingSeason
+  })
+
+  // Query for combined subset rankings (playa, cesped, mixto, open, women)
+  const COMBINED_SURFACES: Record<Exclude<CombinedType, 'all'>, string[]> = {
+    beach: ['beach_mixed', 'beach_open', 'beach_women'],
+    grass: ['grass_mixed', 'grass_open', 'grass_women'],
+    mixed: ['beach_mixed', 'grass_mixed'],
+    open: ['beach_open', 'grass_open'],
+    women: ['beach_women', 'grass_women'],
+  }
+
+  const { data: combinedSubsetData, isLoading: isLoadingCombinedSubset } = useQuery({
+    queryKey: ['combined-subset-ranking', selectedCombinedType, referenceSeason],
+    queryFn: async () => {
+      if (!referenceSeason || selectedCombinedType === 'all') return null
+      const surfaces = COMBINED_SURFACES[selectedCombinedType]
+      return hybridRankingService.getCombinedRanking(surfaces as any, referenceSeason)
+    },
+    staleTime: 10 * 60 * 1000,
+    enabled: activeTab === 'general' && selectedCombinedType !== 'all' && !!referenceSeason && !isLoadingSeason
   })
 
   // Obtener temporada más reciente para la categoría seleccionada (usa el hook consolidado)
@@ -647,13 +704,17 @@ const RankingPageNew: React.FC = () => {
   })
 
   const handleTabClick = (tabId: string) => {
-    setActiveTab(tabId as any)
-    if (tabId !== 'summary') {
-      if (tabId !== 'general') {
-      setSelectedSurface(tabId)
-      }
-      setDetailedViewMode('ranking') // Resetear a vista de ranking al cambiar de pestaña
+    const slugMap: Record<string, string> = {
+      'summary': 'general',
+      'general': 'general',
+      'beach_mixed': 'beach-mixed',
+      'beach_women': 'beach-women',
+      'beach_open': 'beach-open',
+      'grass_mixed': 'grass-mixed',
+      'grass_women': 'grass-women',
+      'grass_open': 'grass-open',
     }
+    navigate(`/ranking/${slugMap[tabId] || tabId}`)
   }
 
   // Query cacheada para estadísticas destacadas del resumen
@@ -2477,27 +2538,69 @@ const RankingPageNew: React.FC = () => {
 
 
   // Renderizar vista de ranking general
+  const combinedTypeLabels: Record<CombinedType, string> = {
+    all: 'General',
+    beach: 'Playa',
+    grass: 'Césped',
+    mixed: 'Mixto',
+    open: 'Open',
+    women: 'Women',
+  }
+
+  const renderCombinedSubSelector = () => (
+    <div className="flex flex-wrap gap-2 mb-6">
+      {(Object.keys(combinedTypeLabels) as CombinedType[]).map((type) => (
+        <button
+          key={type}
+          onClick={() => {
+            setSelectedCombinedType(type)
+            const slugMap: Record<CombinedType, string> = {
+              all: 'general', beach: 'playa', grass: 'cesped',
+              mixed: 'mixto', open: 'open', women: 'women',
+            }
+            navigate(`/ranking/${slugMap[type]}`)
+          }}
+          className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            selectedCombinedType === type
+              ? 'bg-primary-600 text-white'
+              : 'bg-white border border-slate-200 text-slate-600 hover:border-primary-300 hover:text-primary-600'
+          }`}
+        >
+          {combinedTypeLabels[type]}
+        </button>
+      ))}
+    </div>
+  )
+
   const renderGeneralView = () => {
-    if (isLoadingGeneral) {
-      return <RankingTableSkeleton />
+    const isLoadingAny = selectedCombinedType === 'all' ? isLoadingGeneral : isLoadingCombinedSubset
+    const activeGeneralData = selectedCombinedType === 'all' ? generalRankingData : (combinedSubsetData || [])
+
+    if (isLoadingAny) {
+      return (
+        <div className="space-y-4">
+          {renderCombinedSubSelector()}
+          <RankingTableSkeleton />
+        </div>
+      )
     }
 
     // Determinar qué tipo de ranking mostrar según detailedViewMode
-    const rankingTypeToUse = detailedViewMode === 'historical' ? 'historical' : 
+    const rankingTypeToUse = detailedViewMode === 'historical' ? 'historical' :
                              detailedViewMode === 'clubs' ? 'clubs' : 'current'
-    
-    const baseRankingData = getRankingByType(generalRankingData || [], rankingTypeToUse)
+
+    const baseRankingData = getRankingByType(activeGeneralData || [], rankingTypeToUse)
     
     // Usar datos con position_change calculado si están disponibles, sino usar baseRankingData
-    const finalRankingData = (rankingTypeToUse !== 'current' && generalRankingWithChanges) 
-      ? generalRankingWithChanges 
+    const finalRankingData = (rankingTypeToUse !== 'current' && generalRankingWithChanges && selectedCombinedType === 'all')
+      ? generalRankingWithChanges
       : baseRankingData
     // Si es ranking histórico, mostrar TODAS las temporadas disponibles
     // Si no, mostrar solo las últimas 4
-    const allGeneralSeasons = getAllAvailableSeasons(generalRankingData || [])
-    const seasons = rankingTypeToUse === 'historical' 
-      ? allGeneralSeasons 
-      : getLastFourSeasons(generalRankingData || [])
+    const allGeneralSeasons = getAllAvailableSeasons(activeGeneralData || [])
+    const seasons = rankingTypeToUse === 'historical'
+      ? allGeneralSeasons
+      : getLastFourSeasons(activeGeneralData || [])
 
     if (!finalRankingData || finalRankingData.length === 0) {
       return (
@@ -2529,8 +2632,11 @@ const RankingPageNew: React.FC = () => {
 
     return (
       <div className="space-y-6">
-        {/* Estadísticas destacadas del ranking general */}
-        {generalHighlightStats && (
+        {/* Sub-selector de tipo de ranking combinado */}
+        {renderCombinedSubSelector()}
+
+        {/* Estadísticas destacadas del ranking general (solo para ranking 'all') */}
+        {selectedCombinedType === 'all' && generalHighlightStats && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-4 items-stretch">
             <StatsBlock
               title="Líder Actual"
@@ -2600,8 +2706,8 @@ const RankingPageNew: React.FC = () => {
         </div>
         )}
 
-        {/* Estadísticas destacadas con tooltips */}
-        {generalStats && (
+        {/* Estadísticas destacadas con tooltips (solo para ranking 'all') */}
+        {selectedCombinedType === 'all' && generalStats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4">
             <div className="bg-white rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
@@ -2672,7 +2778,7 @@ const RankingPageNew: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <LineChart className="w-6 h-6 text-primary-600" />
                 <h2 className="text-xl font-semibold text-slate-900">
-                  Ranking General - Temporada {referenceSeason}
+                  Ranking {combinedTypeLabels[selectedCombinedType]} - Temporada {referenceSeason}
                 </h2>
               </div>
               <div className="flex items-center space-x-4 text-sm text-slate-600">

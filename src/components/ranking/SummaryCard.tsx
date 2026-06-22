@@ -1,22 +1,23 @@
 import React from 'react'
+import { Sun, Leaf, Trophy } from 'lucide-react'
 import TeamLogo from '@/components/ui/TeamLogo'
 
-const getCategoryBadge = (category: string) => {
-  if (category.includes('beach')) {
-    return (
-      <span className="text-xs font-medium text-accent-300 bg-accent-900/40 px-2 py-0.5 rounded-full">
-        BEACH
-      </span>
-    )
+export const getCategoryHeaderColor = (category: string) => {
+  const colors: Record<string, string> = {
+    beach_mixed: 'from-yellow-500 to-yellow-600',
+    beach_women: 'from-amber-500 to-amber-600',
+    beach_open: 'from-orange-500 to-orange-600',
+    grass_mixed: 'from-green-500 to-green-600',
+    grass_women: 'from-emerald-500 to-emerald-600',
+    grass_open: 'from-teal-500 to-teal-600',
   }
-  if (category.includes('grass')) {
-    return (
-      <span className="text-xs font-medium text-emerald-300 bg-emerald-900/40 px-2 py-0.5 rounded-full">
-        GRASS
-      </span>
-    )
-  }
-  return null
+  return colors[category] || 'from-slate-500 to-slate-600'
+}
+
+export const getCategoryIcon = (category: string) => {
+  if (category.includes('beach')) return <Sun className="w-4 h-4 inline text-white" />
+  if (category.includes('grass')) return <Leaf className="w-4 h-4 inline text-white" />
+  return <Trophy className="w-4 h-4 inline text-white" />
 }
 
 export const getCategoryShortName = (category: string) => {
@@ -64,10 +65,11 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
   })
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-      <div className="px-4 py-3 bg-slate-900 flex items-center justify-between">
-        <h3 className="text-white font-semibold text-sm">{title}</h3>
-        {getCategoryBadge(category)}
+    <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+      <div className={`px-4 py-3 bg-gradient-to-r ${getCategoryHeaderColor(category)}`}>
+        <h3 className="text-white font-semibold text-sm flex items-center gap-1.5">
+          {getCategoryIcon(category)} {getCategoryShortName(category)}
+        </h3>
       </div>
       <div className="data-table-wrapper">
         <table className="min-w-full divide-y divide-slate-200">

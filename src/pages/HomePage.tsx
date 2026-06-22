@@ -14,6 +14,15 @@ const mapTeamsToSummaryData = (teams: HomePageTeam[]) =>
     position_change: team.change,
   }))
 
+const CATEGORY_PATHS: Record<string, string> = {
+  beach_mixed: '/ranking/beach-mixed',
+  beach_women: '/ranking/beach-women',
+  beach_open: '/ranking/beach-open',
+  grass_mixed: '/ranking/grass-mixed',
+  grass_women: '/ranking/grass-women',
+  grass_open: '/ranking/grass-open',
+}
+
 const HomePage: React.FC = () => {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
@@ -218,7 +227,7 @@ const HomePage: React.FC = () => {
               title="Playa Mixto"
               data={mapTeamsToSummaryData(teamsByCategory['beach_mixed'] || [])}
               category="beach_mixed"
-              onViewFull={(category) => navigate(`/ranking?category=${category}`)}
+              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking')}
               getRankIcon={getRankIcon}
               getChangeIcon={getChangeIcon}
               getChangeText={getChangeText}
@@ -227,7 +236,7 @@ const HomePage: React.FC = () => {
               title="Playa Women"
               data={mapTeamsToSummaryData(teamsByCategory['beach_women'] || [])}
               category="beach_women"
-              onViewFull={(category) => navigate(`/ranking?category=${category}`)}
+              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking')}
               getRankIcon={getRankIcon}
               getChangeIcon={getChangeIcon}
               getChangeText={getChangeText}
@@ -236,7 +245,7 @@ const HomePage: React.FC = () => {
               title="Playa Open"
               data={mapTeamsToSummaryData(teamsByCategory['beach_open'] || [])}
               category="beach_open"
-              onViewFull={(category) => navigate(`/ranking?category=${category}`)}
+              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking')}
               getRankIcon={getRankIcon}
               getChangeIcon={getChangeIcon}
               getChangeText={getChangeText}
@@ -245,7 +254,7 @@ const HomePage: React.FC = () => {
               title="Césped Mixto"
               data={mapTeamsToSummaryData(teamsByCategory['grass_mixed'] || [])}
               category="grass_mixed"
-              onViewFull={(category) => navigate(`/ranking?category=${category}`)}
+              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking')}
               getRankIcon={getRankIcon}
               getChangeIcon={getChangeIcon}
               getChangeText={getChangeText}
@@ -254,7 +263,7 @@ const HomePage: React.FC = () => {
               title="Césped Women"
               data={mapTeamsToSummaryData(teamsByCategory['grass_women'] || [])}
               category="grass_women"
-              onViewFull={(category) => navigate(`/ranking?category=${category}`)}
+              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking')}
               getRankIcon={getRankIcon}
               getChangeIcon={getChangeIcon}
               getChangeText={getChangeText}
@@ -263,7 +272,7 @@ const HomePage: React.FC = () => {
               title="Césped Open"
               data={mapTeamsToSummaryData(teamsByCategory['grass_open'] || [])}
               category="grass_open"
-              onViewFull={(category) => navigate(`/ranking?category=${category}`)}
+              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking')}
               getRankIcon={getRankIcon}
               getChangeIcon={getChangeIcon}
               getChangeText={getChangeText}
