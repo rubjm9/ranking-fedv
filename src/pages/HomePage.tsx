@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Trophy, Users, MapPin, Calendar, BarChart3, TrendingUp, TrendingDown, Eye, Sun, Leaf, Medal, Award } from 'lucide-react'
+import { Trophy, Users, MapPin, Calendar, BarChart3, TrendingUp, TrendingDown, Eye, Sun, Leaf, Medal, Award, ChevronDown } from 'lucide-react'
 import { homePageService, HomePageTeam, HomePageRegion, HomePageTournament, HomePageStats, RankingHistory } from '@/services/homePageService'
+import hybridRankingService from '@/services/hybridRankingService'
 import SummaryCard from '@/components/ranking/SummaryCard'
 import {
-  generateSeasons,
   nationalCurvePoints,
   regionalCurvePoints,
   getPointsForPosition,
@@ -12,6 +12,8 @@ import {
 } from '@/utils/tournamentUtils'
 
 const TOP_FIVE_POSITIONS = [1, 2, 3, 4, 5] as const
+const FULL_TABLE_POSITIONS = Array.from({ length: 16 }, (_, index) => index + 1)
+const REMAINING_TABLE_POSITIONS = FULL_TABLE_POSITIONS.slice(5)
 const POSITION_ROW_BG = ['bg-accent-50', 'bg-secondary-50', 'bg-slate-100', 'bg-secondary-50', 'bg-secondary-50'] as const
 const POSITION_LABELS = ['1º lugar', '2º lugar', '3º lugar', '4º lugar', '5º lugar'] as const
 
@@ -52,6 +54,8 @@ const HomePage: React.FC = () => {
     averagePoints: 0
   })
   const [isLoading, setIsLoading] = useState(true)
+  const [currentSeason, setCurrentSeason] = useState('2025-26')
+  const [showFullPointsTable, setShowFullPointsTable] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -66,6 +70,7 @@ const HomePage: React.FC = () => {
         regionsData,
         completedTournamentsData,
         upcomingTournamentsData,
+        currentSeasonData,
         statsData,
         historyData,
         beachMixedData,
@@ -79,6 +84,7 @@ const HomePage: React.FC = () => {
         homePageService.getRegions(),
         homePageService.getCompletedTournaments(4),
         homePageService.getUpcomingTournaments(4),
+        hybridRankingService.getMostRecentSeason(),
         homePageService.getMainStats(),
         homePageService.getRankingHistory(),
         homePageService.getTopTeamsByCategory('beach_mixed'),
@@ -101,6 +107,7 @@ const HomePage: React.FC = () => {
       setRegions(regionsData)
       setCompletedTournaments(completedTournamentsData)
       setUpcomingTournaments(upcomingTournamentsData)
+      setCurrentSeason(currentSeasonData)
       setMainStats(statsData)
       setRankingHistory(historyData)
     } catch (error) {
@@ -163,9 +170,6 @@ const HomePage: React.FC = () => {
       default: return status
     }
   }
-
-  const seasons = generateSeasons()
-  const currentSeason = seasons[seasons.length - 1]?.value ?? '2024-25'
 
   return (
     <div className="min-h-screen bg-secondary-50">
@@ -732,6 +736,20 @@ const HomePage: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
                       <div className="p-3 bg-secondary-50 rounded-lg border border-slate-200">
+                        <div className="font-medium text-slate-900">Global</div>
+                        <div className="text-sm text-slate-600">Todas las superficies</div>
+                      </div>
+                      <div className="p-3 bg-secondary-50 rounded-lg border border-slate-200">
+                        <div className="font-medium text-slate-900">Playa</div>
+                        <div className="text-sm text-slate-600">Mixto + Open + Women (Playa)</div>
+                      </div>
+                      <div className="p-3 bg-secondary-50 rounded-lg border border-slate-200">
+                        <div className="font-medium text-slate-900">Césped</div>
+                        <div className="text-sm text-slate-600">Mixto + Open + Women (Césped)</div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="p-3 bg-secondary-50 rounded-lg border border-slate-200">
                         <div className="font-medium text-slate-900">Mixto</div>
                         <div className="text-sm text-slate-600">Playa Mixto + Césped Mixto</div>
                       </div>
@@ -742,20 +760,6 @@ const HomePage: React.FC = () => {
                       <div className="p-3 bg-secondary-50 rounded-lg border border-slate-200">
                         <div className="font-medium text-slate-900">Open</div>
                         <div className="text-sm text-slate-600">Playa Open + Césped Open</div>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="p-3 bg-secondary-50 rounded-lg border border-slate-200">
-                        <div className="font-medium text-slate-900">Playa</div>
-                        <div className="text-sm text-slate-600">Mixto + Open + Women (Playa)</div>
-                      </div>
-                      <div className="p-3 bg-secondary-50 rounded-lg border border-slate-200">
-                        <div className="font-medium text-slate-900">Césped</div>
-                        <div className="text-sm text-slate-600">Mixto + Open + Women (Césped)</div>
-                      </div>
-                      <div className="p-3 bg-secondary-50 rounded-lg border border-slate-200">
-                        <div className="font-medium text-slate-900">Global</div>
-                        <div className="text-sm text-slate-600">Todas las superficies</div>
                       </div>
                     </div>
                   </div>
