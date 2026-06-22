@@ -3,7 +3,8 @@ import {
   nationalCurvePoints,
   regionalCurvePoints,
   getPointsForPosition,
-  generateDefaultPositions
+  generateDefaultPositions,
+  isTournamentFinished,
 } from '../tournamentUtils'
 
 describe('nationalCurvePoints (85% puestos 1-8, 90% resto, ancla 1000)', () => {
@@ -69,5 +70,20 @@ describe('generateDefaultPositions', () => {
     const ce2 = generateDefaultPositions('CE2', 16)
     expect(ce2).toHaveLength(3)
     expect(ce2[0]).toEqual({ position: 1, teamId: '', points: 124 })
+  })
+})
+
+describe('isTournamentFinished', () => {
+  it('usa is_finished cuando está marcado en BD', () => {
+    expect(isTournamentFinished({ is_finished: true })).toBe(true)
+    expect(isTournamentFinished({ is_finished: false, endDate: '2099-01-01' })).toBe(false)
+  })
+
+  it('infiere finalizado por fecha de fin pasada', () => {
+    expect(isTournamentFinished({ endDate: '2020-06-01' })).toBe(true)
+  })
+
+  it('considera en curso si no hay fecha de fin ni flag', () => {
+    expect(isTournamentFinished({})).toBe(false)
   })
 })

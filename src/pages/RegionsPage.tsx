@@ -19,8 +19,8 @@ const RegionsPage = () => {
   const [showFormula, setShowFormula] = useState(false)
   const [regionStats, setRegionStats] = useState<{
     mostActive: { name: string; count: number } | null
-    bestRegion: { name: string; totalPoints: number } | null
-  }>({ mostActive: null, bestRegion: null })
+    pointsByName: Record<string, number>
+  }>({ mostActive: null, pointsByName: {} })
 
   const { data: regionsData, isLoading, error } = useQuery({
     queryKey: ['regions'],
@@ -121,11 +121,11 @@ const RegionsPage = () => {
           .map(([name, data]) => ({ name, count: data.count }))
           .sort((a, b) => b.count - a.count)[0]
 
-        const bestRegion = Object.entries(regionStatsMap)
-          .map(([name, data]) => ({ name, totalPoints: data.totalPoints }))
-          .sort((a, b) => b.totalPoints - a.totalPoints)[0]
+        const pointsByName = Object.fromEntries(
+          Object.entries(regionStatsMap).map(([name, data]) => [name, data.totalPoints])
+        )
 
-        setRegionStats({ mostActive: mostActive || null, bestRegion: bestRegion || null })
+        setRegionStats({ mostActive: mostActive || null, pointsByName })
       } catch (err) {
         console.error('Error calculando estadísticas de regiones:', err)
       }
@@ -144,6 +144,7 @@ const RegionsPage = () => {
     return { name: r.name, avg: vals.length > 0 ? vals.reduce((s, v) => s + v, 0) / vals.length : 1.0 }
   })
   const highestCoef = [...regionAvgCoefs].sort((a, b) => b.avg - a.avg)[0]
+  const highestCoefPoints = highestCoef?.name ? regionStats.pointsByName[highestCoef.name] : undefined
 
   if (error) {
     return (
@@ -177,7 +178,7 @@ const RegionsPage = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard icon={MapPin} label="Total regiones" value={totalRegions} />
         <StatsCard
           icon={Users}
@@ -187,30 +188,25 @@ const RegionsPage = () => {
           iconColor="text-emerald-600"
         />
         <StatsCard
+          icon={Users}
+          label="Región más activa"
+          value={regionStats.mostActive?.name || 'N/A'}
+          subtitle={`${regionStats.mostActive?.count || 0} equipos`}
+          iconBgColor="bg-primary-100"
+          iconColor="text-primary-600"
+        />
+        <StatsCard
           icon={TrendingUp}
           label="Mayor coef. activo"
-          value={highestCoef?.avg.toFixed(2) || '—'}
-          iconBgColor="bg-accent-100"
-          iconColor="text-accent-600"
+          value={highestCoef?.name || 'N/A'}
+          subtitle={
+            highestCoef
+              ? `promedio ${highestCoef.avg.toFixed(2)}${highestCoefPoints != null ? ` · ${highestCoefPoints.toFixed(1)} pts` : ''}`
+              : undefined
+          }
+          iconBgColor="bg-emerald-100"
+          iconColor="text-emerald-600"
         />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="card border-l-4 border-l-primary-500">
-          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wide mb-1">Región más activa</h3>
-          <p className="text-lg font-bold text-slate-900">{regionStats.mostActive?.name || 'N/A'}</p>
-          <p className="text-xs text-slate-600 mt-1">{regionStats.mostActive?.count || 0} equipos</p>
-        </div>
-        <div className="card border-l-4 border-l-emerald-500">
-          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wide mb-1">Coef. más alto</h3>
-          <p className="text-lg font-bold text-slate-900">{highestCoef?.name || 'N/A'}</p>
-          <p className="text-xs text-slate-600 mt-1">promedio {highestCoef?.avg.toFixed(2) || '—'}</p>
-        </div>
-        <div className="card border-l-4 border-l-accent-500">
-          <h3 className="text-xs font-medium text-slate-600 uppercase tracking-wide mb-1">Mejor región</h3>
-          <p className="text-lg font-bold text-slate-900">{regionStats.bestRegion?.name || 'N/A'}</p>
-          <p className="text-xs text-slate-600 mt-1">{regionStats.bestRegion?.totalPoints?.toFixed(1) || '0'} pts</p>
-        </div>
       </div>
 
       <div className="card mb-8">

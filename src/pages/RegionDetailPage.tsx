@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Users, Trophy, BarChart3, TrendingUp, Loader2 } from 'lucide-react'
+import { Users, Trophy, BarChart3, TrendingUp, Loader2, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { regionsService, getTeamPublicUrl } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
@@ -27,8 +27,18 @@ import RegionalCoefficientBreakdown from '@/components/regions/RegionalCoefficie
 import { MODALITIES, MODALITY_LABELS, getCoefficientStyle } from '@/components/regions/constants'
 
 const CHART_COLORS = ['#4F46E5', '#F97316', '#10B981', '#6366F1', '#EA580C', '#0EA5E9']
+const formatChartValue = (value: number) => Number(value).toFixed(2)
 
 type ModalityKey = typeof MODALITIES[number]
+type RankingView = 'global' | ModalityKey
+
+type RegionTeamSortField =
+  | 'name'
+  | 'currentPoints'
+  | 'historicalPoints'
+  | 'tournaments'
+  | 'nationalPosition'
+  | 'modalityPoints'
 
 interface RegionRedirectState {
   resolvedRegionId?: string
@@ -49,7 +59,9 @@ const RegionDetailPage: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
-  const [activeModality, setActiveModality] = useState<ModalityKey>('beach_mixed')
+  const [activeRankingView, setActiveRankingView] = useState<RankingView>('global')
+  const [teamSortField, setTeamSortField] = useState<RegionTeamSortField>('currentPoints')
+  const [teamSortDirection, setTeamSortDirection] = useState<'asc' | 'desc'>('desc')
   const [regionId, setRegionId] = useState<string | null>(null)
   const [notFound, setNotFound] = useState(false)
   const loadIdRef = useRef(0)
@@ -148,30 +160,57 @@ const RegionDetailPage: React.FC = () => {
     enabled: !!regionId && !!selectedSeason,
   })
 
-  const { data: teamPointsMap } = useQuery({
+  const { data: teamRankingPoints } = useQuery({
     queryKey: ['region-team-points', regionId],
     queryFn: async () => {
       const refSeason = await hybridRankingService.getMostRecentSeason()
       const categories = MODALITIES.map(m => m)
+
       const allCategoryData = await Promise.all(
         categories.map(cat => hybridRankingService.getRankingFromSeasonPoints(cat as never, refSeason))
       )
-      const pointsByTeam: Record<string, number> = {}
+      const currentByTeam: Record<string, number> = {}
       allCategoryData.forEach(categoryData => {
         categoryData.forEach(team => {
-          pointsByTeam[team.team_id] = (pointsByTeam[team.team_id] || 0) + (team.total_points || 0)
+          currentByTeam[team.team_id] = (currentByTeam[team.team_id] || 0) + (team.total_points || 0)
         })
       })
-      return pointsByTeam
+
+      const { data: regionTeams } = await supabase
+        .from('teams')
+        .select('id')
+        .eq('regionId', regionId)
+
+      const teamIds = (regionTeams || []).map(t => t.id)
+      const historicalByTeam: Record<string, number> = {}
+
+      if (teamIds.length > 0) {
+        const pointColumns = categories.map(cat => `${cat}_points`).join(', ')
+        const { data: seasonPoints } = await supabase
+          .from('team_season_points')
+          .select(`team_id, ${pointColumns}`)
+          .in('team_id', teamIds)
+
+        seasonPoints?.forEach(row => {
+          const seasonTotal = categories.reduce(
+            (sum, cat) => sum + (Number(row[`${cat}_points`]) || 0),
+            0
+          )
+          if (seasonTotal <= 0) return
+          historicalByTeam[row.team_id] = (historicalByTeam[row.team_id] || 0) + seasonTotal
+        })
+      }
+
+      return { current: currentByTeam, historical: historicalByTeam }
     },
-    enabled: !!region,
+    enabled: !!regionId,
   })
 
   const { data: modalityRankingData } = useQuery({
-    queryKey: ['region-modality-ranking', regionId, activeModality],
+    queryKey: ['region-modality-ranking', regionId, activeRankingView],
     queryFn: async () => {
       const refSeason = await hybridRankingService.getMostRecentSeason()
-      const allTeams = await hybridRankingService.getRankingFromSeasonPoints(activeModality as never, refSeason)
+      const allTeams = await hybridRankingService.getRankingFromSeasonPoints(activeRankingView as never, refSeason)
 
       const { data: regionTeams } = await supabase
         .from('teams')
@@ -184,23 +223,166 @@ const RegionDetailPage: React.FC = () => {
         .map((t, idx) => ({ ...t, national_position: idx + 1 }))
         .filter(t => regionTeamIds.has(t.team_id))
     },
-    enabled: !!regionId && !!activeModality,
+    enabled: !!regionId && activeRankingView !== 'global',
   })
 
-  const teams = useMemo(() => {
+  const handleRankingViewChange = (view: RankingView) => {
+    setActiveRankingView(view)
+    if (view === 'global') {
+      setTeamSortField('currentPoints')
+      setTeamSortDirection('desc')
+    } else {
+      setTeamSortField('nationalPosition')
+      setTeamSortDirection('asc')
+    }
+  }
+
+  const handleTeamSort = (field: RegionTeamSortField) => {
+    if (teamSortField === field) {
+      setTeamSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setTeamSortField(field)
+      const defaultAsc = field === 'name' || field === 'nationalPosition'
+      setTeamSortDirection(defaultAsc ? 'asc' : 'desc')
+    }
+  }
+
+  const getTeamSortIcon = (field: RegionTeamSortField) => {
+    if (teamSortField !== field) {
+      return <ArrowUpDown className="h-3.5 w-3.5 text-white/50" />
+    }
+    return teamSortDirection === 'asc'
+      ? <ChevronUp className="h-3.5 w-3.5" />
+      : <ChevronDown className="h-3.5 w-3.5" />
+  }
+
+  const teamLogosById = useMemo(() => {
+    const map: Record<string, string | null | undefined> = {}
+    region?.teams?.forEach((team: { id: string; logo?: string | null }) => {
+      map[team.id] = team.logo
+    })
+    return map
+  }, [region?.teams])
+
+  const teamTournamentsById = useMemo(() => {
+    const map: Record<string, number> = {}
+    region?.teams?.forEach((team: { id: string; positions?: { count: number }[] }) => {
+      map[team.id] = team.positions?.[0]?.count || 0
+    })
+    return map
+  }, [region?.teams])
+
+  const globalTeams = useMemo(() => {
     if (!region?.teams) return []
-    return [...region.teams]
+    const list = [...region.teams]
       .map((team: { id: string; slug?: string; name: string; logo?: string; positions?: { count: number }[] }) => ({
         id: team.id,
         slug: team.slug,
         name: team.name,
         logo: team.logo,
-        points: teamPointsMap?.[team.id] || 0,
+        points: teamRankingPoints?.current[team.id] || 0,
+        historicalPoints: teamRankingPoints?.historical[team.id] || 0,
         tournaments: team.positions?.[0]?.count || 0,
       }))
-      .sort((a, b) => b.points - a.points)
-      .map((team, index) => ({ ...team, currentRank: index + 1 }))
-  }, [region, teamPointsMap])
+
+    list.sort((a, b) => {
+      let aValue: string | number
+      let bValue: string | number
+
+      switch (teamSortField) {
+        case 'name':
+          aValue = a.name.toLowerCase()
+          bValue = b.name.toLowerCase()
+          return teamSortDirection === 'asc'
+            ? (aValue as string).localeCompare(bValue as string, 'es')
+            : (bValue as string).localeCompare(aValue as string, 'es')
+        case 'historicalPoints':
+          aValue = a.historicalPoints
+          bValue = b.historicalPoints
+          break
+        case 'tournaments':
+          aValue = a.tournaments
+          bValue = b.tournaments
+          break
+        case 'currentPoints':
+        default:
+          aValue = a.points
+          bValue = b.points
+          break
+      }
+
+      return teamSortDirection === 'asc'
+        ? (aValue as number) - (bValue as number)
+        : (bValue as number) - (aValue as number)
+    })
+
+    return list
+  }, [region, teamRankingPoints, teamSortField, teamSortDirection])
+
+  const modalityTeams = useMemo(() => {
+    if (!modalityRankingData) return []
+
+    const list = modalityRankingData.map(team => ({
+      id: team.team_id,
+      slug: undefined as string | undefined,
+      name: team.team_name,
+      logo: teamLogosById[team.team_id],
+      nationalPosition: team.national_position,
+      modalityPoints: team.total_points || 0,
+      historicalPoints: teamRankingPoints?.historical[team.team_id] || 0,
+      tournaments: teamTournamentsById[team.team_id] || 0,
+    }))
+
+    list.sort((a, b) => {
+      let aValue: string | number
+      let bValue: string | number
+
+      switch (teamSortField) {
+        case 'name':
+          aValue = a.name.toLowerCase()
+          bValue = b.name.toLowerCase()
+          return teamSortDirection === 'asc'
+            ? (aValue as string).localeCompare(bValue as string, 'es')
+            : (bValue as string).localeCompare(aValue as string, 'es')
+        case 'historicalPoints':
+          aValue = a.historicalPoints
+          bValue = b.historicalPoints
+          break
+        case 'tournaments':
+          aValue = a.tournaments
+          bValue = b.tournaments
+          break
+        case 'modalityPoints':
+          aValue = a.modalityPoints
+          bValue = b.modalityPoints
+          break
+        case 'nationalPosition':
+        default:
+          aValue = a.nationalPosition
+          bValue = b.nationalPosition
+          break
+      }
+
+      return teamSortDirection === 'asc'
+        ? (aValue as number) - (bValue as number)
+        : (bValue as number) - (aValue as number)
+    })
+
+    return list
+  }, [
+    modalityRankingData,
+    teamLogosById,
+    teamRankingPoints,
+    teamTournamentsById,
+    teamSortField,
+    teamSortDirection,
+  ])
+
+  const isGlobalView = activeRankingView === 'global'
+  const displayedTeams = isGlobalView ? globalTeams : modalityTeams
+  const isRankingLoading = isGlobalView ? !teamRankingPoints : modalityRankingData === undefined
+
+  const teams = globalTeams
 
   const tournaments = region?.tournaments || []
   const totalPoints = teams.reduce((sum, t) => sum + t.points, 0)
@@ -210,6 +392,14 @@ const RegionDetailPage: React.FC = () => {
     name: team.name.length > 12 ? `${team.name.slice(0, 12)}…` : team.name,
     points: team.points,
   }))
+
+  const historicalChartData = [...teams]
+    .sort((a, b) => b.historicalPoints - a.historicalPoints)
+    .slice(0, 8)
+    .map(team => ({
+      name: team.name.length > 12 ? `${team.name.slice(0, 12)}…` : team.name,
+      points: team.historicalPoints,
+    }))
 
   const coefByModality = useMemo(() => {
     const map: Record<string, number> = {}
@@ -398,123 +588,197 @@ const RegionDetailPage: React.FC = () => {
         />
       </div>
 
-      <div className="card mb-8">
-        <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Clasificación por modalidad</h2>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {MODALITIES.map(m => (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <div className="lg:col-span-2 card">
+          <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Equipos de la región</h2>
+          <div className="flex flex-wrap gap-2 mb-4">
             <button
-              key={m}
-              onClick={() => setActiveModality(m)}
+              onClick={() => handleRankingViewChange('global')}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                activeModality === m
+                isGlobalView
                   ? 'bg-primary-600 text-white'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
-              {MODALITY_LABELS[m]}
+              Ranking global
             </button>
-          ))}
-        </div>
-
-        {!modalityRankingData ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-5 h-5 animate-spin text-primary-600 mr-2" />
-            <span className="text-sm text-slate-500">Cargando clasificación...</span>
+            {MODALITIES.map(m => (
+              <button
+                key={m}
+                onClick={() => handleRankingViewChange(m)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  activeRankingView === m
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                {MODALITY_LABELS[m]}
+              </button>
+            ))}
           </div>
-        ) : modalityRankingData.length === 0 ? (
-          <EmptyState
-            title="Sin datos"
-            description={`No hay equipos de ${region.name} en el ranking de ${MODALITY_LABELS[activeModality]}.`}
-          />
-        ) : (
-          <DataTable caption={`Clasificación ${MODALITY_LABELS[activeModality]} — ${region.name}`}>
-            <DataTableHead>
-              <tr>
-                <DataTableHeaderCell>Posición nacional</DataTableHeaderCell>
-                <DataTableHeaderCell>Equipo</DataTableHeaderCell>
-                <DataTableHeaderCell>Puntos</DataTableHeaderCell>
-              </tr>
-            </DataTableHead>
-            <DataTableBody>
-              {modalityRankingData.map(team => (
-                <DataTableRow key={team.team_id}>
-                  <DataTableCell>
-                    <span className={`font-bold ${team.national_position <= 3 ? 'text-amber-600' : team.national_position <= 8 ? 'text-primary-600' : 'text-slate-700'}`}>
-                      #{team.national_position}
-                    </span>
-                  </DataTableCell>
-                  <DataTableCell>
-                    <Link
-                      to={getTeamPublicUrl({ id: team.team_id })}
-                      className="flex items-center gap-3 font-medium text-slate-900 hover:text-primary-600"
-                    >
-                      <TeamLogo name={team.team_name} size="sm" />
-                      {team.team_name}
-                    </Link>
-                  </DataTableCell>
-                  <DataTableCell>{(team.total_points || 0).toFixed(1)}</DataTableCell>
-                </DataTableRow>
-              ))}
-            </DataTableBody>
-          </DataTable>
-        )}
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        <div className="lg:col-span-2">
-          <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Equipos de la región</h2>
-          {teams.length === 0 ? (
-            <EmptyState title="Sin equipos" description="Esta región no tiene equipos registrados." />
+          {isRankingLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-5 h-5 animate-spin text-primary-600 mr-2" />
+              <span className="text-sm text-slate-500">Cargando clasificación...</span>
+            </div>
+          ) : displayedTeams.length === 0 ? (
+            <EmptyState
+              title="Sin datos"
+              description={
+                isGlobalView
+                  ? 'Esta región no tiene equipos registrados.'
+                  : `No hay equipos de ${region.name} en el ranking de ${MODALITY_LABELS[activeRankingView as ModalityKey]}.`
+              }
+            />
           ) : (
-            <DataTable caption="Equipos de la región">
+            <DataTable
+              caption={
+                isGlobalView
+                  ? `Ranking global — ${region.name}`
+                  : `Clasificación ${MODALITY_LABELS[activeRankingView as ModalityKey]} — ${region.name}`
+              }
+            >
               <DataTableHead>
                 <tr>
-                  <DataTableHeaderCell>Equipo</DataTableHeaderCell>
-                  <DataTableHeaderCell>Puntos totales</DataTableHeaderCell>
-                  <DataTableHeaderCell>Torneos</DataTableHeaderCell>
+                  {!isGlobalView && (
+                    <DataTableHeaderCell>
+                      <button
+                        type="button"
+                        onClick={() => handleTeamSort('nationalPosition')}
+                        className="inline-flex items-center gap-1.5 hover:text-white/90 transition-colors"
+                      >
+                        Posición nacional
+                        {getTeamSortIcon('nationalPosition')}
+                      </button>
+                    </DataTableHeaderCell>
+                  )}
+                  <DataTableHeaderCell>
+                    <button
+                      type="button"
+                      onClick={() => handleTeamSort('name')}
+                      className="inline-flex items-center gap-1.5 hover:text-white/90 transition-colors"
+                    >
+                      Equipo
+                      {getTeamSortIcon('name')}
+                    </button>
+                  </DataTableHeaderCell>
+                  <DataTableHeaderCell>
+                    <button
+                      type="button"
+                      onClick={() => handleTeamSort(isGlobalView ? 'currentPoints' : 'modalityPoints')}
+                      className="inline-flex items-center gap-1.5 hover:text-white/90 transition-colors"
+                    >
+                      {isGlobalView ? 'Ranking general actual' : 'Puntos'}
+                      {getTeamSortIcon(isGlobalView ? 'currentPoints' : 'modalityPoints')}
+                    </button>
+                  </DataTableHeaderCell>
+                  <DataTableHeaderCell>
+                    <button
+                      type="button"
+                      onClick={() => handleTeamSort('historicalPoints')}
+                      className="inline-flex items-center gap-1.5 hover:text-white/90 transition-colors"
+                    >
+                      Puntuación histórica
+                      {getTeamSortIcon('historicalPoints')}
+                    </button>
+                  </DataTableHeaderCell>
+                  {isGlobalView && (
+                    <DataTableHeaderCell>
+                      <button
+                        type="button"
+                        onClick={() => handleTeamSort('tournaments')}
+                        className="inline-flex items-center gap-1.5 hover:text-white/90 transition-colors"
+                      >
+                        Torneos
+                        {getTeamSortIcon('tournaments')}
+                      </button>
+                    </DataTableHeaderCell>
+                  )}
                 </tr>
               </DataTableHead>
               <DataTableBody>
-                {teams.map(team => (
-                  <DataTableRow key={team.id}>
-                    <DataTableCell>
-                      <Link
-                        to={getTeamPublicUrl(team)}
-                        className="flex items-center gap-3 font-medium text-slate-900 hover:text-primary-600"
-                      >
-                        <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                        {team.name}
-                      </Link>
-                    </DataTableCell>
-                    <DataTableCell>{team.points.toFixed(1)}</DataTableCell>
-                    <DataTableCell className="text-slate-500">{team.tournaments}</DataTableCell>
-                  </DataTableRow>
-                ))}
+                {isGlobalView
+                  ? globalTeams.map(team => (
+                      <DataTableRow key={team.id}>
+                        <DataTableCell>
+                          <Link
+                            to={getTeamPublicUrl(team)}
+                            className="flex items-center gap-3 font-medium text-slate-900 hover:text-primary-600"
+                          >
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            {team.name}
+                          </Link>
+                        </DataTableCell>
+                        <DataTableCell>{team.points.toFixed(1)}</DataTableCell>
+                        <DataTableCell>{team.historicalPoints.toFixed(1)}</DataTableCell>
+                        <DataTableCell className="text-slate-500">{team.tournaments}</DataTableCell>
+                      </DataTableRow>
+                    ))
+                  : modalityTeams.map(team => (
+                      <DataTableRow key={team.id}>
+                        <DataTableCell>
+                          <span className={`font-bold ${team.nationalPosition <= 3 ? 'text-amber-600' : team.nationalPosition <= 8 ? 'text-primary-600' : 'text-slate-700'}`}>
+                            #{team.nationalPosition}
+                          </span>
+                        </DataTableCell>
+                        <DataTableCell>
+                          <Link
+                            to={getTeamPublicUrl({ id: team.id })}
+                            className="flex items-center gap-3 font-medium text-slate-900 hover:text-primary-600"
+                          >
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            {team.name}
+                          </Link>
+                        </DataTableCell>
+                        <DataTableCell>{team.modalityPoints.toFixed(1)}</DataTableCell>
+                        <DataTableCell>{team.historicalPoints.toFixed(1)}</DataTableCell>
+                      </DataTableRow>
+                    ))}
               </DataTableBody>
             </DataTable>
           )}
         </div>
 
-        <div className="card">
-          <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Puntos por equipo</h2>
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Bar dataKey="points" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-sm text-slate-500 text-center py-8">Sin datos de puntos</p>
-          )}
+        <div className="space-y-6">
+          <div className="card">
+            <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Ranking general actual</h2>
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={formatChartValue} />
+                  <Tooltip formatter={(v: number) => formatChartValue(v)} />
+                  <Bar dataKey="points" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-sm text-slate-500 text-center py-8">Sin datos de puntos</p>
+            )}
+          </div>
+
+          <div className="card">
+            <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Puntuación histórica</h2>
+            {historicalChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={historicalChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={formatChartValue} />
+                  <Tooltip formatter={(v: number) => formatChartValue(v)} />
+                  <Bar dataKey="points" fill={CHART_COLORS[1]} radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-sm text-slate-500 text-center py-8">Sin datos históricos</p>
+            )}
+          </div>
         </div>
       </div>
 
       <div>
-        <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Torneos organizados</h2>
+        <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Campeonatos regionales</h2>
         {tournaments.length === 0 ? (
           <EmptyState
             title="Sin torneos"

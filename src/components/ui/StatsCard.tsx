@@ -5,6 +5,7 @@ interface StatsCardProps {
   icon: LucideIcon
   label: string
   value: number | string
+  subtitle?: string
   isLoading?: boolean
   iconBgColor?: string
   iconColor?: string
@@ -15,6 +16,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
   icon: Icon,
   label,
   value,
+  subtitle,
   isLoading = false,
   iconBgColor = 'bg-primary-100',
   iconColor = 'text-primary-600',
@@ -31,7 +33,12 @@ const StatsCard: React.FC<StatsCardProps> = ({
           {isLoading ? (
             <div className="h-8 w-16 bg-slate-200 rounded animate-pulse mt-1" />
           ) : (
-            <p className="text-2xl font-bold text-slate-900">{value}</p>
+            <>
+              <p className="text-2xl font-bold text-slate-900">{value}</p>
+              {subtitle && (
+                <p className="text-xs text-slate-600 mt-1">{subtitle}</p>
+              )}
+            </>
           )}
         </div>
       </div>

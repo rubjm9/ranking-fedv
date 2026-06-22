@@ -1,5 +1,6 @@
 import React from 'react'
 import TeamLogo from '@/components/ui/TeamLogo'
+import RankingTeamLink from '@/components/ranking/RankingTeamLink'
 
 const getCategoryBadge = (category: string) => {
   if (category.includes('beach')) {
@@ -105,7 +106,12 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
                   <div className="flex items-center">
                     <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
                     <div className="ml-2">
-                      <div className="text-sm font-medium text-slate-900">{team.team_name}</div>
+                      <RankingTeamLink
+                        team={team}
+                        className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                      >
+                        {team.team_name}
+                      </RankingTeamLink>
                       <div className="text-xs text-slate-500">{team.region_name || 'N/A'}</div>
                     </div>
                   </div>

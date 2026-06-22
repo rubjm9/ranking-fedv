@@ -42,18 +42,18 @@ const RegionalCoefficientBreakdown: React.FC<RegionalCoefficientBreakdownProps> 
     : modalityData?.regions || []
 
   return (
-    <div className="border border-slate-200 rounded-xl overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
       <button
         type="button"
         onClick={() => setExpanded(v => !v)}
-        className="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 text-left transition-colors"
+        className="w-full flex items-center justify-between p-4 bg-white hover:bg-slate-50 text-left transition-colors border-b border-slate-200"
       >
         <span className="font-medium text-slate-900">Desglose del cálculo</span>
         {expanded ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
       </button>
 
       {expanded && (
-        <div className="p-4 space-y-6">
+        <div className="p-4 space-y-6 bg-white">
           {hasManualOverrides && (
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
               Algunos coeficientes tienen ajuste manual y pueden diferir del cálculo automático.

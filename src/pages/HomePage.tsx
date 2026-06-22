@@ -50,6 +50,7 @@ const HomePage: React.FC = () => {
   const [rankingHistory, setRankingHistory] = useState<RankingHistory[]>([])
   const [mainStats, setMainStats] = useState<HomePageStats>({
     totalTeams: 0,
+    totalClubs: 0,
     totalTournaments: 0,
     totalRegions: 0,
     averagePoints: 0

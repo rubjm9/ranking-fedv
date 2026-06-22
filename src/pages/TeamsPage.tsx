@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Search, Filter, Users, MapPin, Trophy, ChevronUp, ChevronDown, Loader2, ArrowUpDown, X, Grid, List } from 'lucide-react'
+import { Search, Filter, Users, MapPin, Trophy, ChevronUp, ChevronDown, Loader2, ArrowUpDown, X, Grid, List, Building2 } from 'lucide-react'
 import { teamsService, regionsService, getTeamPublicUrl } from '@/services/apiService'
 import { homePageService } from '@/services/homePageService'
 import hybridRankingService from '@/services/hybridRankingService'
@@ -82,6 +82,7 @@ const TeamsPage = () => {
   }, [generalRankingPoints])
 
   const teams = teamsData?.data || []
+  const totalClubs = statsData?.totalClubs ?? teams.filter(team => !team.isFilial).length
 
   const getTeamTotalPoints = useCallback((team: { id: string }) => {
     return generalPointsByTeamId.get(team.id) ?? 0
@@ -208,14 +209,22 @@ const TeamsPage = () => {
       />
 
       {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard
           icon={Users}
-          label="Total Equipos"
+          label="Total equipos"
           value={statsData?.totalTeams || teams.length}
           isLoading={statsLoading}
           iconBgColor="bg-primary-100"
           iconColor="text-primary-600"
+        />
+        <StatsCard
+          icon={Building2}
+          label="Total clubes"
+          value={totalClubs}
+          isLoading={statsLoading}
+          iconBgColor="bg-amber-100"
+          iconColor="text-amber-600"
         />
         <StatsCard
           icon={MapPin}
@@ -227,7 +236,7 @@ const TeamsPage = () => {
         />
         <StatsCard
           icon={Trophy}
-          label="Total Torneos"
+          label="Total torneos"
           value={statsData?.totalTournaments || 0}
           isLoading={statsLoading}
           iconBgColor="bg-purple-100"

@@ -670,7 +670,7 @@ export const tournamentsService = {
         region:regions(id, name, coefficient),
         positions(
           *,
-          teams(id, name, regionId, region:regions(id, name))
+          teams(id, name, logo, regionId, region:regions(id, name))
         )
       `)
       .eq('id', id)
@@ -693,7 +693,7 @@ export const tournamentsService = {
     }
     const { data, error } = await supabase
       .from('tournaments')
-      .select('id, name, year, surface, category, divisionSize')
+      .select('id, name, year, surface, category, divisionSize, positions(count)')
       .eq('type', 'CE1')
       .eq('year', year)
       .eq('surface', surface)
@@ -701,7 +701,14 @@ export const tournamentsService = {
       .order('name', { ascending: true })
 
     if (error) throw error
-    return { success: true, data: data || [], message: 'CE1 obtenidos exitosamente' }
+    const mapped = (data || []).map((tournament) => {
+      const positionCount = Array.isArray(tournament.positions)
+        ? tournament.positions[0]?.count ?? 0
+        : 0
+      const { positions: _positions, ...rest } = tournament
+      return { ...rest, positionCount }
+    })
+    return { success: true, data: mapped, message: 'CE1 obtenidos exitosamente' }
   },
 
   // Crear un nuevo torneo

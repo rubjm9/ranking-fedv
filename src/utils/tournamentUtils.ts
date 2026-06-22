@@ -136,6 +136,28 @@ export const regionalCurvePoints = (pos: number): number =>
 
 // Tamaño de división por defecto de la 1ª (estructura real con regionales: 16 + 16).
 export const DEFAULT_DIVISION_SIZE = 16
+export const DIVISION_SIZE_MIN = 2
+export const DIVISION_SIZE_MAX = 50
+export const DIVISION_SIZE_PRESETS = [8, 12, 16] as const
+
+export const clampDivisionSize = (value: number): number =>
+  Math.min(DIVISION_SIZE_MAX, Math.max(DIVISION_SIZE_MIN, value))
+
+/** Tamaño efectivo de división de un CE1 (declarado o inferido de posiciones, mín. estándar 16). */
+export const getEffectiveDivisionSize = (
+  storedSize?: number | null,
+  positionCount?: number | null
+): number => {
+  const hasStored =
+    storedSize != null && storedSize >= DIVISION_SIZE_MIN && storedSize <= DIVISION_SIZE_MAX
+
+  if (hasStored) return storedSize!
+
+  if (positionCount != null && positionCount >= DIVISION_SIZE_MIN) {
+    return Math.max(DEFAULT_DIVISION_SIZE, positionCount)
+  }
+  return DEFAULT_DIVISION_SIZE
+}
 
 // Offset = nº de equipos de 1ª que preceden a la 2ª en la curva nacional.
 // CE2: el tamaño de su 1ª asociada (almacenado en su propio divisionSize); 0 para CE1/REGIONAL.
@@ -187,6 +209,21 @@ export const validateTournamentDates = (startDate: string, endDate: string): str
   }
   
   return null
+}
+
+/** Torneo finalizado si está marcado en BD o si la fecha de fin ya pasó (incluye el mismo día). */
+export const isTournamentFinished = (tournament: {
+  is_finished?: boolean
+  endDate?: string | null
+}): boolean => {
+  if (tournament.is_finished) return true
+  if (!tournament.endDate) return false
+
+  const endDate = new Date(tournament.endDate)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  endDate.setHours(0, 0, 0, 0)
+  return endDate <= today
 }
 
 // Obtener año de la temporada para el backend

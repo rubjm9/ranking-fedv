@@ -12,6 +12,7 @@ import StatsBlock from '@/components/ranking/StatsBlock'
 import RankingSummaryView from '@/components/ranking/RankingSummaryView'
 import RankingGeneralView from '@/components/ranking/RankingGeneralView'
 import RankingCategoryView from '@/components/ranking/RankingCategoryView'
+import RankingTeamLink from '@/components/ranking/RankingTeamLink'
 import EmptyState from '@/components/ui/EmptyState'
 import RankingTableSkeleton from '@/components/ui/RankingTableSkeleton'
 import dynamicRankingService from '@/services/dynamicRankingService'
@@ -241,8 +242,10 @@ const ALL_RANKING_SURFACES = [
 
 const RANKING_COEFFICIENTS = [1.0, 0.8, 0.5, 0.2]
 
-const getPreviousSeasonLabel = (season: string) => {
-  const year = parseInt(season.split('-')[0])
+const getPreviousSeasonLabel = (season?: string | null) => {
+  if (!season) return ''
+  const year = parseInt(season.split('-')[0], 10)
+  if (Number.isNaN(year)) return ''
   return `${year - 1}-${String(year).slice(-2)}`
 }
 
@@ -274,6 +277,98 @@ const getLastFourSeasonsFromData = (data: any[], referenceSeason?: string | null
   }
 
   return sortedSeasons.slice(0, 4)
+}
+
+const buildReferenceSeasons = (referenceSeason: string) => {
+  const referenceYear = parseInt(referenceSeason.split('-')[0], 10)
+  if (Number.isNaN(referenceYear)) return [referenceSeason]
+
+  return [
+    referenceSeason,
+    `${referenceYear - 1}-${String(referenceYear).slice(-2)}`,
+    `${referenceYear - 2}-${String(referenceYear - 1).slice(-2)}`,
+    `${referenceYear - 3}-${String(referenceYear - 2).slice(-2)}`,
+  ]
+}
+
+const buildOutOfRankingTeams = (
+  rows: Array<Record<string, unknown>>,
+  surface: string,
+  referenceSeason: string,
+  rankingData?: Array<Record<string, unknown>>
+) => {
+  const referenceSeasons = buildReferenceSeasons(referenceSeason)
+  const coefficients = [1.0, 0.8, 0.5, 0.2]
+  const teamMap = new Map<string, {
+    team_id: string
+    team_name: string
+    region_name: string
+    logo?: string | null
+    season_breakdown: Record<string, { base_points: number; weighted_points: number; coefficient: number }>
+    total_points: number
+    last_active_season: string
+    historical_points: number
+  }>()
+
+  rows.forEach((row) => {
+    const teamId = row.team_id as string
+    const season = row.season as string
+    const basePoints = Number(row[`${surface}_points`] || 0)
+    if (!teamId || !season || basePoints <= 0) return
+
+    const teams = row.teams as { name?: string; logo?: string | null; region?: { name?: string } } | null
+
+    if (!teamMap.has(teamId)) {
+      teamMap.set(teamId, {
+        team_id: teamId,
+        team_name: teams?.name || 'Equipo desconocido',
+        region_name: teams?.region?.name || 'Sin región',
+        logo: teams?.logo || null,
+        season_breakdown: {},
+        total_points: 0,
+        last_active_season: season,
+        historical_points: 0,
+      })
+    }
+
+    const team = teamMap.get(teamId)!
+    const refIndex = referenceSeasons.indexOf(season)
+    const coefficient = refIndex >= 0 ? coefficients[refIndex] : 0
+    const weightedPoints = basePoints * coefficient
+
+    team.season_breakdown[season] = {
+      base_points: basePoints,
+      weighted_points: weightedPoints,
+      coefficient,
+    }
+    team.total_points += weightedPoints
+    team.historical_points += basePoints
+
+    if (
+      parseInt(season.split('-')[0], 10) >
+      parseInt(team.last_active_season.split('-')[0], 10)
+    ) {
+      team.last_active_season = season
+    }
+  })
+
+  rankingData?.forEach((team) => {
+    const teamId = team.team_id as string
+    if (!teamId || !teamMap.has(teamId)) return
+    const existing = teamMap.get(teamId)!
+    existing.logo = (team.logo as string | null | undefined) ?? existing.logo
+    existing.team_name = (team.team_name as string) || existing.team_name
+    existing.region_name = (team.region_name as string) || existing.region_name
+  })
+
+  return Array.from(teamMap.values())
+    .filter(team => team.total_points <= 0)
+    .sort((a, b) => a.team_name.localeCompare(b.team_name, 'es'))
+}
+
+const formatSeasonDisplay = (season: string) => {
+  const [year1, year2] = season.split('-')
+  return year2 ? `${year1}/${year2}` : season
 }
 
 const getSeasonPointsForRanking = (
@@ -336,7 +431,7 @@ const applyPositionChangesAfterSort = (
     return sortedCurrent.map(team => ({ ...team, position_change: 0 }))
   }
 
-  if (!previousTeams?.length) {
+  if (!previousTeams?.length || !previousReferenceSeason) {
     return sortedCurrent.map(team => ({ ...team, position_change: 0 }))
   }
 
@@ -353,13 +448,42 @@ const applyPositionChangesAfterSort = (
   }))
 }
 
+type RankingActiveTab = 'summary' | 'general' | typeof VALID_CATEGORY_TABS[number]
+
+const resolveTabFromSurface = (surfaceParam?: string): RankingActiveTab => {
+  if (!surfaceParam) return 'general'
+  const tab = SLUG_TO_TAB[surfaceParam]
+  if (!tab) return 'general'
+  if (tab === 'summary') return 'summary'
+  if (tab === 'general') return 'general'
+  if (VALID_CATEGORY_TABS.includes(tab as typeof VALID_CATEGORY_TABS[number])) {
+    return tab as typeof VALID_CATEGORY_TABS[number]
+  }
+  return 'general'
+}
+
+const resolveSurfaceFromParam = (surfaceParam?: string): string => {
+  const tab = surfaceParam ? SLUG_TO_TAB[surfaceParam] : undefined
+  if (tab && VALID_CATEGORY_TABS.includes(tab as typeof VALID_CATEGORY_TABS[number])) {
+    return tab
+  }
+  return 'beach_mixed'
+}
+
+const resolveCombinedTypeFromSurface = (surfaceParam?: string): CombinedType => {
+  if (surfaceParam && SLUG_TO_COMBINED[surfaceParam]) {
+    return SLUG_TO_COMBINED[surfaceParam]
+  }
+  return 'all'
+}
+
 const RankingPageNew: React.FC = () => {
   const { surface } = useParams<{ surface: string }>()
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<'summary' | 'general' | 'beach_mixed' | 'beach_open' | 'beach_women' | 'grass_mixed' | 'grass_open' | 'grass_women'>('general')
-  const [selectedCombinedType, setSelectedCombinedType] = useState<CombinedType>('all')
+  const [activeTab, setActiveTab] = useState<RankingActiveTab>(() => resolveTabFromSurface(surface))
+  const [selectedCombinedType, setSelectedCombinedType] = useState<CombinedType>(() => resolveCombinedTypeFromSurface(surface))
   // Nota: selectedSurface almacena superficies (beach_mixed, etc.)
-  const [selectedSurface, setSelectedSurface] = useState<string>('beach_mixed')
+  const [selectedSurface, setSelectedSurface] = useState<string>(() => resolveSurfaceFromParam(surface))
   // highlightStats ahora viene de una query cacheada más abajo
   const [selectedRankingType, setSelectedRankingType] = useState<string>('current')
   const [showAllResults, setShowAllResults] = useState<boolean>(false)
@@ -380,7 +504,7 @@ const RankingPageNew: React.FC = () => {
     if (!surface) return
     const tab = SLUG_TO_TAB[surface]
     if (tab) {
-      setActiveTab(tab as typeof activeTab)
+      setActiveTab(tab as RankingActiveTab)
       if (VALID_CATEGORY_TABS.includes(tab as typeof VALID_CATEGORY_TABS[number])) {
         setSelectedSurface(tab)
       }
@@ -753,6 +877,34 @@ const RankingPageNew: React.FC = () => {
     },
     staleTime: 10 * 60 * 1000, // 10 minutos - datos pre-calculados cambian poco
     enabled: !!selectedSurface && !!seasonToUse && activeTab !== 'summary' && activeTab !== 'general'
+  })
+
+  const showOutOfRankingSection =
+    activeTab !== 'summary' &&
+    activeTab !== 'general' &&
+    detailedViewMode === 'ranking'
+
+  const { data: allTimeCategoryPoints = [] } = useQuery({
+    queryKey: ['category-all-time-points', selectedSurface],
+    queryFn: async () => {
+      if (!supabase || !selectedSurface) return []
+
+      const { data, error } = await supabase
+        .from('team_season_points')
+        .select(`
+          team_id,
+          season,
+          ${selectedSurface}_points,
+          teams(id, name, logo, region:regions(name))
+        `)
+        .gt(`${selectedSurface}_points`, 0)
+        .order('season', { ascending: false })
+
+      if (error) throw error
+      return data || []
+    },
+    staleTime: 10 * 60 * 1000,
+    enabled: showOutOfRankingSection && !!selectedSurface,
   })
 
   // Función helper para enriquecer datos con logos
@@ -2771,6 +2923,16 @@ const RankingPageNew: React.FC = () => {
     // Si no, mostrar solo las últimas 4
     const allGeneralSeasons = getAllAvailableSeasons(activeGeneralData || [])
     const currentReferenceSeason = selectedSeasonForGeneralView || referenceSeason || allGeneralSeasons[0]
+
+    if (!currentReferenceSeason) {
+      return (
+        <div className="space-y-4">
+          {renderCombinedSubSelector()}
+          <RankingTableSkeleton />
+        </div>
+      )
+    }
+
     const seasons = rankingTypeToUse === 'historical'
       ? allGeneralSeasons
       : getLastFourSeasons(activeGeneralData || [], currentReferenceSeason)
@@ -3064,7 +3226,12 @@ const RankingPageNew: React.FC = () => {
                       <div className="flex items-center">
                         <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-slate-900">{team.team_name}</div>
+                          <RankingTeamLink
+                            team={team}
+                            className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                          >
+                            {team.team_name}
+                          </RankingTeamLink>
                           {team.region_name && (
                             <div className="text-xs text-slate-500">{team.region_name}</div>
                           )}
@@ -3193,7 +3360,9 @@ const RankingPageNew: React.FC = () => {
                     className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                   />
                   <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
-                  <span className="truncate">{team.team_name}</span>
+                  <RankingTeamLink team={team} className="truncate hover:text-primary-600 transition-colors">
+                    {team.team_name}
+                  </RankingTeamLink>
                 </label>
               ))}
             </div>
@@ -3214,7 +3383,9 @@ const RankingPageNew: React.FC = () => {
                   return team ? (
                     <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary-100 text-primary-800">
                       <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
-                      <span className="ml-1">{team.team_name}</span>
+                      <RankingTeamLink team={team} className="ml-1 hover:text-primary-600 transition-colors">
+                        {team.team_name}
+                      </RankingTeamLink>
                       <button
                         onClick={() => handleTeamSelection(teamId, false)}
                         className="ml-1 text-primary-600 hover:text-primary-800"
@@ -3291,7 +3462,9 @@ const RankingPageNew: React.FC = () => {
                           style={{ backgroundColor: colors[index % colors.length] }}
                         />
                         <TeamLogo name={team.team_name} logo={rankingDataWithChanges?.find(t => t.team_id === team.team_id)?.logo} size="sm" />
-                        <span className="text-sm text-slate-900">{team.team_name}</span>
+                        <RankingTeamLink team={team} className="text-sm text-slate-900 hover:text-primary-600 transition-colors">
+                          {team.team_name}
+                        </RankingTeamLink>
                         <span className="text-xs text-slate-500">({team.region_name})</span>
                       </div>
                     )
@@ -3313,7 +3486,9 @@ const RankingPageNew: React.FC = () => {
                       <div key={team.team_id} className="bg-secondary-50 rounded-lg p-3">
                         <div className="flex items-center mb-2">
                           <TeamLogo name={team.team_name} logo={rankingDataWithChanges?.find(t => t.team_id === team.team_id)?.logo} size="sm" />
-                          <span className="ml-2 font-medium text-slate-900">{team.team_name}</span>
+                          <RankingTeamLink team={team} className="ml-2 font-medium text-slate-900 hover:text-primary-600 transition-colors">
+                            {team.team_name}
+                          </RankingTeamLink>
                         </div>
                         <div className="text-sm text-slate-600 space-y-1">
                           <div>Total: {totalPoints.toFixed(1)} pts</div>
@@ -3416,7 +3591,7 @@ const RankingPageNew: React.FC = () => {
 
   // Renderizar vista detallada de ranking
   const renderDetailedView = () => {
-    if (isLoading) {
+    if (isLoading || isLoadingSeasons || !seasonToUse) {
       return <RankingTableSkeleton />
     }
 
@@ -3512,7 +3687,23 @@ const RankingPageNew: React.FC = () => {
       total_points: calculateTotalPoints(team)
     })).sort((a, b) => (b.total_points || 0) - (a.total_points || 0))
 
-    if (!rankingDataWithRecalculatedPoints || rankingDataWithRecalculatedPoints.length === 0) {
+    const rankedTeamsWithPoints = rankingDataWithRecalculatedPoints.filter(
+      team => (team.total_points || 0) > 0
+    )
+
+    const outOfRankingTeamsForView =
+      rankingTypeToUse === 'current' && detailedViewMode === 'ranking' && currentReferenceSeason
+        ? buildOutOfRankingTeams(
+            allTimeCategoryPoints as Array<Record<string, unknown>>,
+            selectedSurface,
+            currentReferenceSeason,
+            rankingData as Array<Record<string, unknown>> | undefined
+          )
+        : []
+
+    const showOutOfRanking = outOfRankingTeamsForView.length > 0
+
+    if (!rankedTeamsWithPoints.length && !showOutOfRanking) {
       return (
         <EmptyState
           icon={Trophy}
@@ -3675,7 +3866,7 @@ const RankingPageNew: React.FC = () => {
                 <span>
                   {rankingTypeToUse === 'clubs' 
                     ? `${finalRankingData?.length || 0} clubes` 
-                    : `${finalRankingData?.length || 0} equipos`
+                    : `${rankedTeamsWithPoints.length} equipos`
                   }
                 </span>
                 {rankingTypeToUse === 'historical' && (
@@ -3743,7 +3934,7 @@ const RankingPageNew: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
-              {rankingDataWithRecalculatedPoints?.slice(0, (showAllResults || isCollapsing) ? undefined : 10).map((team, index) => {
+              {rankedTeamsWithPoints.slice(0, (showAllResults || isCollapsing) ? undefined : 10).map((team, index) => {
                 const isEvenRow = index % 2 === 1
                 
                 return (
@@ -3768,7 +3959,12 @@ const RankingPageNew: React.FC = () => {
                       <div className="flex items-center">
                         <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-slate-900">{team.team_name}</div>
+                          <RankingTeamLink
+                            team={team}
+                            className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                          >
+                            {team.team_name}
+                          </RankingTeamLink>
                           {team.region_name && (
                             <div className="text-xs text-slate-500">{team.region_name}</div>
                           )}
@@ -3790,6 +3986,58 @@ const RankingPageNew: React.FC = () => {
                 )
               })}
             </tbody>
+            {showOutOfRanking && (
+              <tbody className="bg-white divide-y divide-slate-200">
+                <tr className="bg-slate-50">
+                  <td
+                    colSpan={3 + seasons.length + 1}
+                    className="px-4 py-3 border-t border-slate-200"
+                  >
+                    <p className="text-sm font-medium text-slate-700 italic">Fuera del ranking</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Equipos que obtuvieron puntos en esta categoría, pero ya no suman porque sus torneos quedan fuera de la ventana de 4 temporadas.
+                    </p>
+                  </td>
+                </tr>
+                {(showAllResults || isCollapsing ? outOfRankingTeamsForView : outOfRankingTeamsForView.slice(0, 10)).map((team, index) => {
+                  const isEvenRow = index % 2 === 1
+
+                  return (
+                    <tr key={team.team_id} className={`hover:bg-secondary-50 ${isEvenRow ? 'bg-secondary-50' : 'bg-white'}`}>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-400">—</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-400">—</td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
+                          <div className="ml-3">
+                            <RankingTeamLink
+                            team={team}
+                            className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                          >
+                            {team.team_name}
+                          </RankingTeamLink>
+                            {team.region_name && (
+                              <div className="text-xs text-slate-500">{team.region_name}</div>
+                            )}
+                            <div className="text-xs text-slate-400">
+                              Última temporada con puntos: {formatSeasonDisplay(team.last_active_season)}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      {seasons.map((season) => (
+                        <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-slate-400 text-right">
+                          0.00
+                        </td>
+                      ))}
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-slate-400 text-right">
+                        0.00
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            )}
           </table>
           </div>
         </div>
@@ -3907,7 +4155,9 @@ const RankingPageNew: React.FC = () => {
                     className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                   />
                   <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
-                  <span className="truncate">{team.team_name}</span>
+                  <RankingTeamLink team={team} className="truncate hover:text-primary-600 transition-colors">
+                    {team.team_name}
+                  </RankingTeamLink>
                 </label>
               ))}
             </div>
@@ -3928,7 +4178,9 @@ const RankingPageNew: React.FC = () => {
                   return team ? (
                     <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary-100 text-primary-800">
                       <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
-                      <span className="ml-1">{team.team_name}</span>
+                      <RankingTeamLink team={team} className="ml-1 hover:text-primary-600 transition-colors">
+                        {team.team_name}
+                      </RankingTeamLink>
                       <button
                         onClick={() => handleTeamSelection(teamId, false)}
                         className="ml-1 text-primary-600 hover:text-primary-800"
@@ -4005,7 +4257,9 @@ const RankingPageNew: React.FC = () => {
                           style={{ backgroundColor: colors[index % colors.length] }}
                         />
                         <TeamLogo name={team.team_name} logo={rankingData?.find(t => t.team_id === team.team_id)?.logo} size="sm" />
-                        <span className="text-sm text-slate-900">{team.team_name}</span>
+                        <RankingTeamLink team={team} className="text-sm text-slate-900 hover:text-primary-600 transition-colors">
+                          {team.team_name}
+                        </RankingTeamLink>
                         <span className="text-xs text-slate-500">({team.region_name})</span>
                       </div>
                     )
@@ -4027,7 +4281,9 @@ const RankingPageNew: React.FC = () => {
                       <div key={team.team_id} className="bg-secondary-50 rounded-lg p-3">
                         <div className="flex items-center mb-2">
                           <TeamLogo name={team.team_name} logo={rankingData?.find(t => t.team_id === team.team_id)?.logo} size="sm" />
-                          <span className="ml-2 font-medium text-slate-900">{team.team_name}</span>
+                          <RankingTeamLink team={team} className="ml-2 font-medium text-slate-900 hover:text-primary-600 transition-colors">
+                            {team.team_name}
+                          </RankingTeamLink>
                         </div>
                         <div className="text-sm text-slate-600 space-y-1">
                           <div>Total: {totalPoints.toFixed(1)} pts</div>

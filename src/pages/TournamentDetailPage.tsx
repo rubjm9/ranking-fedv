@@ -14,6 +14,7 @@ import {
   roundPoints,
 } from '@/utils/rankingCalculations'
 import { translateSurface, translateModality, translateTournamentType, getStatusLabel, getStatusColor } from '@/utils/translations'
+import { isTournamentFinished } from '@/utils/tournamentUtils'
 import TeamLogo from '@/components/ui/TeamLogo'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
@@ -41,6 +42,7 @@ interface Tournament {
   }
   startDate?: string
   endDate?: string
+  location?: string
   description?: string
   season?: string
   split?: string
@@ -72,7 +74,7 @@ interface TeamPosition {
     name: string
     region: string
     regionId?: string
-    logo: string
+    logo?: string | null
   }
   basePoints: number
   points: number
@@ -85,6 +87,24 @@ interface RegionStats {
   percentage: number
   color: string
 }
+
+const iconClass = 'h-5 w-5 text-slate-400 mr-3 flex-shrink-0'
+
+const IconFrisbee = ({ className = iconClass }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="12" cy="12" r="5" />
+    <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+  </svg>
+)
+
+const IconSpain = ({ className = iconClass }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+    <path d="M5 9.5 6.5 6.5 9.5 4.5 13 4 16.5 6 18.5 9.5 19 13 18 16.5 15.5 19.5 12 20.5 8.5 19 6 16 5 12.5Z" />
+    <circle cx="19.5" cy="12.5" r="1" fill="currentColor" stroke="none" />
+    <circle cx="20.8" cy="14.2" r="0.6" fill="currentColor" stroke="none" />
+  </svg>
+)
 
 const TournamentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -100,6 +120,7 @@ const TournamentDetailPage: React.FC = () => {
   const tournament = tournamentData?.data
 
   const isRegional = tournament?.type === 'REGIONAL'
+  const isFinished = tournament ? isTournamentFinished(tournament) : false
   const tournamentSeason = tournament?.year ? formatSeasonFromYear(tournament.year) : null
   const coefficientBaseSeason = tournamentSeason
     ? getPreviousSeasonLabel(tournamentSeason)
@@ -149,7 +170,7 @@ const TournamentDetailPage: React.FC = () => {
             name: pos.teams?.name || `Equipo Posición ${pos.position}`,
             region: pos.teams?.region?.name || tournament.region?.name || 'Sin región',
             regionId: teamRegionId,
-            logo: 'https://via.placeholder.com/40',
+            logo: pos.teams?.logo ?? null,
           },
           basePoints: weighted.basePoints,
           points: weighted.points,
@@ -272,14 +293,14 @@ const TournamentDetailPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard icon={Calendar} label="Año" value={tournament.year} />
         <StatsCard icon={Users} label="Equipos" value={totalTeams} iconBgColor="bg-emerald-100" iconColor="text-emerald-600" />
-        <StatsCard icon={BarChart3} label="Puntos totales" value={formatPoints(totalPoints)} iconBgColor="bg-accent-100" iconColor="text-accent-600" />
+        <StatsCard icon={BarChart3} label="Puntos repartidos" value={formatPoints(totalPoints)} iconBgColor="bg-accent-100" iconColor="text-accent-600" />
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <div className="flex items-center">
             <Trophy className="h-6 w-6 text-primary-600 mr-3" />
             <div>
               <p className="text-sm font-medium text-slate-600">Estado</p>
-              <span className={`inline-flex mt-1 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(tournament.is_finished)}`}>
-                {getStatusLabel(tournament.is_finished)}
+              <span className={`inline-flex mt-1 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(isFinished)}`}>
+                {getStatusLabel(isFinished)}
               </span>
             </div>
           </div>
@@ -306,7 +327,7 @@ const TournamentDetailPage: React.FC = () => {
                   </div>
                   
                   <div className="flex items-center">
-                    <MapPin className="h-5 w-5 text-slate-400 mr-3" />
+                    <IconFrisbee />
                     <span className="text-slate-600">Superficie:</span>
                     <span className="ml-2 font-medium text-slate-900">{translateSurface(tournament.surface)}</span>
                   </div>
@@ -318,7 +339,7 @@ const TournamentDetailPage: React.FC = () => {
                   </div>
                   
                   <div className="flex items-center">
-                    <MapPin className="h-5 w-5 text-slate-400 mr-3" />
+                    <IconSpain />
                     <span className="text-slate-600">Región:</span>
                     <span className="ml-2 font-medium text-slate-900">
                       {tournament.type === 'REGIONAL' ? (tournament.region?.name || 'Sin región') : 'Nacional'}
@@ -337,6 +358,12 @@ const TournamentDetailPage: React.FC = () => {
                     <Clock className="h-5 w-5 text-slate-400 mr-3" />
                     <span className="text-slate-600">Fin:</span>
                     <span className="ml-2 font-medium text-slate-900">{formatDate(tournament.endDate)}</span>
+                  </div>
+
+                  <div className="flex items-center">
+                    <MapPin className="h-5 w-5 text-slate-400 mr-3" />
+                    <span className="text-slate-600">Ubicación:</span>
+                    <span className="ml-2 font-medium text-slate-900">{tournament.location || 'Sin ubicación'}</span>
                   </div>
                 </div>
               </div>
@@ -415,9 +442,11 @@ const TournamentDetailPage: React.FC = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Región
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Coeficiente
-                    </th>
+                    {isRegional && (
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                        Coeficiente
+                      </th>
+                    )}
                     <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Puntos
                     </th>
@@ -453,11 +482,13 @@ const TournamentDetailPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-slate-900">{position.team.region}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-slate-900">
-                          {isRegional ? `${position.coefficient.toFixed(2)}x` : '—'}
-                        </div>
-                      </td>
+                      {isRegional && (
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-slate-900">
+                            {position.coefficient.toFixed(2)}x
+                          </div>
+                        </td>
+                      )}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-slate-900">{formatPoints(position.points)}</div>
                         {isRegional && position.coefficient !== 1 && (

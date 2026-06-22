@@ -32,6 +32,11 @@ import {
   generateDefaultPositions,
   getOffsetForTournament,
   DEFAULT_DIVISION_SIZE,
+  DIVISION_SIZE_MIN,
+  DIVISION_SIZE_MAX,
+  DIVISION_SIZE_PRESETS,
+  clampDivisionSize,
+  getEffectiveDivisionSize,
   validateTournamentDates,
   getYearFromSeason,
   formatTournamentCombinationLabel,
@@ -119,6 +124,9 @@ const NewTournamentPage: React.FC = () => {
   })
   const ce1Options = ce1Data?.data || []
 
+  const resolveParentDivisionSize = (parent?: { divisionSize?: number | null; positionCount?: number }) =>
+    getEffectiveDivisionSize(parent?.divisionSize, parent?.positionCount)
+
   // Offset en la curva nacional (0 para CE1/REGIONAL; tamaño de la 1ª para CE2)
   const offset = useMemo(
     () => getOffsetForTournament(formData.type, formData.divisionSize),
@@ -170,6 +178,17 @@ const NewTournamentPage: React.FC = () => {
       points: getPointsForPosition(pos.position, formData.type, offset)
     })))
   }, [offset])
+
+  // CE2: sincronizar offset con el CE1 asociado cuando carguen las opciones o cambie la selección
+  useEffect(() => {
+    if (formData.type !== 'CE2' || !formData.parentTournamentId) return
+    const parent = ce1Options.find((t: { id: string }) => t.id === formData.parentTournamentId)
+    if (!parent) return
+    const effectiveSize = resolveParentDivisionSize(parent)
+    setFormData((prev) =>
+      prev.divisionSize === effectiveSize ? prev : { ...prev, divisionSize: effectiveSize }
+    )
+  }, [formData.type, formData.parentTournamentId, ce1Options])
 
   const showDuplicateTournamentAlert = (existingId: string) => {
     const selectedRegion = regions.find((r: Region) => r.id === formData.regionId)
@@ -259,6 +278,15 @@ const NewTournamentPage: React.FC = () => {
 
     if (!formData.location.trim()) {
       newErrors.location = 'La ubicación es requerida'
+    }
+
+    if (
+      (formData.type === 'CE1' || formData.type === 'CE2') &&
+      (formData.divisionSize == null ||
+        formData.divisionSize < DIVISION_SIZE_MIN ||
+        formData.divisionSize > DIVISION_SIZE_MAX)
+    ) {
+      newErrors.divisionSize = `El tamaño de división debe estar entre ${DIVISION_SIZE_MIN} y ${DIVISION_SIZE_MAX}`
     }
 
     setErrors(newErrors)
@@ -393,13 +421,13 @@ const NewTournamentPage: React.FC = () => {
     validateField(field, value)
   }
 
-  // Asociar un CE2 a su CE1: el offset = tamaño de división de la 1ª elegida
+  // Asociar un CE2 a su CE1: el offset = tamaño efectivo de la 1ª elegida
   const handleParentChange = (parentId: string) => {
-    const parent = ce1Options.find((t: any) => t.id === parentId)
+    const parent = ce1Options.find((t: { id: string }) => t.id === parentId)
     setFormData(prev => ({
       ...prev,
       parentTournamentId: parentId || undefined,
-      divisionSize: parent?.divisionSize ?? DEFAULT_DIVISION_SIZE
+      divisionSize: parentId ? resolveParentDivisionSize(parent) : DEFAULT_DIVISION_SIZE
     }))
   }
 
@@ -831,39 +859,89 @@ const NewTournamentPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Tamaño de división (CE1 / CE2) */}
+              {/* Tamaño de división (CE1) u offset (CE2) */}
               {(formData.type === 'CE1' || formData.type === 'CE2') && (
                 <div>
                   <label htmlFor="divisionSize" className="block text-sm font-medium text-gray-700 mb-2">
-                    Tamaño de división
+                    {formData.type === 'CE2' ? 'Offset en curva (equipos en 1ª)' : 'Tamaño de división'}
                   </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Users className="h-5 w-5 text-gray-400" />
+                  {formData.type === 'CE2' && formData.parentTournamentId ? (
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Users className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        type="number"
+                        id="divisionSize"
+                        readOnly
+                        value={formData.divisionSize ?? ''}
+                        className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                      />
                     </div>
-                    <input
-                      type="number"
-                      id="divisionSize"
-                      min={1}
-                      list="divisionSizeOptions"
-                      value={formData.divisionSize ?? ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        divisionSize: e.target.value ? Number(e.target.value) : undefined
-                      }))}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                    />
-                    <datalist id="divisionSizeOptions">
-                      <option value="8" />
-                      <option value="12" />
-                      <option value="16" />
-                    </datalist>
-                  </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Users className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                          type="number"
+                          id="divisionSize"
+                          min={DIVISION_SIZE_MIN}
+                          max={DIVISION_SIZE_MAX}
+                          value={formData.divisionSize ?? ''}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            divisionSize: e.target.value ? Number(e.target.value) : undefined
+                          }))}
+                          onBlur={() => {
+                            if (formData.divisionSize != null) {
+                              setFormData(prev => ({
+                                ...prev,
+                                divisionSize: clampDivisionSize(prev.divisionSize!)
+                              }))
+                            }
+                          }}
+                          className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                        />
+                      </div>
+                      <select
+                        aria-label="Valores habituales de tamaño de división"
+                        value={
+                          formData.divisionSize != null &&
+                          DIVISION_SIZE_PRESETS.some((size) => size === formData.divisionSize)
+                            ? formData.divisionSize
+                            : ''
+                        }
+                        onChange={(e) => {
+                          const value = Number(e.target.value)
+                          if (value) {
+                            setFormData(prev => ({ ...prev, divisionSize: value }))
+                          }
+                        }}
+                        className="w-28 py-3 px-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors text-sm"
+                      >
+                        <option value="" disabled>
+                          Valores
+                        </option>
+                        {DIVISION_SIZE_PRESETS.map((size) => (
+                          <option key={size} value={size}>
+                            {size}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   <p className="mt-1 text-xs text-gray-500">
-                    {formData.type === 'CE2'
-                      ? 'Nº de equipos de la 1ª asociada (offset de la curva).'
-                      : 'Nº de equipos de la 1ª división.'}
+                    {formData.type === 'CE2' && formData.parentTournamentId
+                      ? 'Calculado automáticamente desde el CE1 asociado. La 2ª continúa la curva en el puesto siguiente.'
+                      : formData.type === 'CE2'
+                        ? `Selecciona el CE1 asociado o indica manualmente el offset (entre ${DIVISION_SIZE_MIN} y ${DIVISION_SIZE_MAX}).`
+                        : `Nº total de equipos en la 1ª división (no el nº de resultados introducidos). Entre ${DIVISION_SIZE_MIN} y ${DIVISION_SIZE_MAX}.`}
                   </p>
+                  {errors.divisionSize && (
+                    <p className="mt-1 text-sm text-red-600">{errors.divisionSize}</p>
+                  )}
                 </div>
               )}
 
@@ -884,8 +962,10 @@ const NewTournamentPage: React.FC = () => {
                       className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                     >
                       <option value="">Seleccionar 1ª división</option>
-                      {ce1Options.map((t: any) => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
+                      {ce1Options.map((t: { id: string; name: string; divisionSize?: number | null; positionCount?: number }) => (
+                        <option key={t.id} value={t.id}>
+                          {t.name} ({resolveParentDivisionSize(t)} equipos)
+                        </option>
                       ))}
                     </select>
                   </div>

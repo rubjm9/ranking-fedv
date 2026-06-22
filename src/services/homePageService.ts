@@ -215,6 +215,7 @@ export interface HomePageTournament {
 
 export interface HomePageStats {
   totalTeams: number
+  totalClubs: number
   totalTournaments: number
   totalRegions: number
   averagePoints: number
@@ -813,6 +814,14 @@ class HomePageService {
 
       if (teamError) throw teamError
 
+      // Contar clubes (equipos principales, excluyendo filiales)
+      const { count: clubCount, error: clubError } = await supabase
+        .from('teams')
+        .select('*', { count: 'exact', head: true })
+        .eq('isFilial', false)
+
+      if (clubError) throw clubError
+
       // Contar torneos
       const { count: tournamentCount, error: tournamentError } = await supabase
         .from('tournaments')
@@ -839,6 +848,7 @@ class HomePageService {
 
       return {
         totalTeams: teamCount || 0,
+        totalClubs: clubCount || 0,
         totalTournaments: tournamentCount || 0,
         totalRegions: regionCount || 0,
         averagePoints: Math.round(averagePoints)
@@ -847,6 +857,7 @@ class HomePageService {
       console.error('Error obteniendo estadísticas principales:', error)
       return {
         totalTeams: 0,
+        totalClubs: 0,
         totalTournaments: 0,
         totalRegions: 0,
         averagePoints: 0
