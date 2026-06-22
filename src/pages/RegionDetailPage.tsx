@@ -81,11 +81,11 @@ const RegionDetailPage: React.FC = () => {
         const regionRef = await regionsService.resolveRegion(slug)
         if (loadId !== loadIdRef.current) return
 
-        if (regionRef.slug && regionRef.slug !== slug) {
+        if (regionRef.publicSlug !== slug) {
           const qs = searchParams.toString()
-          navigate(`/regiones/${regionRef.slug}${qs ? `?${qs}` : ''}`, {
+          navigate(`/regiones/${regionRef.publicSlug}${qs ? `?${qs}` : ''}`, {
             replace: true,
-            state: { resolvedRegionId: regionRef.id, canonicalSlug: regionRef.slug },
+            state: { resolvedRegionId: regionRef.id, canonicalSlug: regionRef.publicSlug },
           })
           return
         }
@@ -101,12 +101,7 @@ const RegionDetailPage: React.FC = () => {
 
   const { data: regionResponse, isLoading, error } = useQuery({
     queryKey: ['region', regionId],
-    queryFn: async () => {
-      if (!regionId) throw new Error('Sin región')
-      const bySlug = slug && regionId ? await regionsService.getBySlug(slug).catch(() => null) : null
-      if (bySlug?.data) return bySlug
-      return regionsService.getById(regionId)
-    },
+    queryFn: () => regionsService.getById(regionId!),
     enabled: !!regionId,
   })
 

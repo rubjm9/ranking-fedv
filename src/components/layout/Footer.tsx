@@ -92,7 +92,7 @@ const Footer: React.FC = () => {
             </p>
             <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4 md:mt-0">
               {[
-                { label: 'Acerca de', to: '/about' },
+                { label: 'Cómo funciona', to: '/como-funciona' },
                 { label: 'Privacidad', to: '/privacy' },
                 { label: 'Términos', to: '/terms' },
                 ...(!isAuthenticated ? [{ label: 'Iniciar sesión', to: '/auth/login' }] : []),

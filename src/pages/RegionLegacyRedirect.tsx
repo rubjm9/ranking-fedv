@@ -17,11 +17,10 @@ const RegionLegacyRedirect: React.FC = () => {
 
     regionsService.resolveRegion(id)
       .then(region => {
-        const canonical = region.slug ?? region.id
-        setTarget(`/regiones/${canonical}`)
+        setTarget(`/regiones/${region.publicSlug}`)
         setRedirectState({
           resolvedRegionId: region.id,
-          canonicalSlug: region.slug ?? region.id,
+          canonicalSlug: region.publicSlug,
         })
       })
       .catch(() => setNotFound(true))

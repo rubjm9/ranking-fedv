@@ -92,7 +92,8 @@ function App() {
               <Route path="regions/:id" element={<RegionLegacyRedirect />} />
               <Route path="tournaments" element={<TournamentsPage />} />
               <Route path="tournaments/:id" element={<TournamentDetailPage />} />
-              <Route path="about" element={<AboutPage />} />
+              <Route path="como-funciona" element={<AboutPage />} />
+              <Route path="about" element={<Navigate to="/como-funciona" replace />} />
               <Route path="privacy" element={<PrivacyPage />} />
               <Route path="terms" element={<TermsPage />} />
               <Route path="*" element={<NotFoundPage />} />

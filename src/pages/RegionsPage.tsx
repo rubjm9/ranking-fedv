@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { MapPin, Users, TrendingUp, ChevronRight, Loader2, ChevronDown, ChevronUp, Info } from 'lucide-react'
-import { regionsService, getRegionPublicUrl } from '@/services/apiService'
+import { regionsService, getRegionPublicUrl, buildRegionPublicSlugById } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
 import seasonService from '@/services/seasonService'
 import { getRegionalCoefficientBaseSeason } from '@/utils/rankingCalculations'
@@ -29,6 +29,7 @@ const RegionsPage = () => {
 
   const regions = regionsData?.data || []
   const sortedRegions = [...regions].sort((a, b) => a.name.localeCompare(b.name))
+  const regionSlugById = useMemo(() => buildRegionPublicSlugById(regions), [regions])
 
   const { data: coeffSeasonInfo } = useQuery({
     queryKey: ['regional-coeff-season-info'],
@@ -226,6 +227,7 @@ const RegionsPage = () => {
             coefficients={historicalCoefficients || []}
             season={selectedSeason}
             isLoading={isLoadingHistoricalCoeffs}
+            slugById={regionSlugById}
           />
         </div>
         <div className="mt-6">
@@ -245,7 +247,7 @@ const RegionsPage = () => {
           {sortedRegions.map(region => {
             const modCoefs = coeffMap.get(region.id)
             return (
-              <Link key={region.id} to={getRegionPublicUrl(region)} className="card-hover group">
+              <Link key={region.id} to={getRegionPublicUrl(region, regionSlugById)} className="card-hover group">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">

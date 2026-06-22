@@ -32,7 +32,7 @@ const RankingPageHeader: React.FC<RankingPageHeaderProps> = ({
         <Info className="w-4 h-4 text-primary-600 flex-shrink-0 mt-0.5" />
         <p>
           Los puntos se calculan según la metodología oficial FEDV.{' '}
-          <Link to="/about" className="text-primary-600 hover:text-primary-700 font-medium">
+          <Link to="/como-funciona" className="text-primary-600 hover:text-primary-700 font-medium">
             Ver metodología
           </Link>
         </p>

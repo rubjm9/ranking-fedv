@@ -1,8 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/SimpleAuthContext'
 import { Menu, X, Trophy, Users, MapPin, Calendar, Settings, Home, ChevronDown, Info } from 'lucide-react'
 import RankingMegaMenu from './RankingMegaMenu'
+import RegionsMenu from './RegionsMenu'
+import { buildRegionPublicSlugById, getRegionPublicUrl, regionsService } from '@/services/apiService'
 
 const megamenuItems = [
   { label: 'Playa Mixto', to: '/ranking/beach-mixed' },
@@ -22,17 +25,36 @@ const megamenuItems = [
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [rankingMenuOpen, setRankingMenuOpen] = useState(false)
+  const [regionsMenuOpen, setRegionsMenuOpen] = useState(false)
   const [rankingAccordionOpen, setRankingAccordionOpen] = useState(false)
+  const [regionsAccordionOpen, setRegionsAccordionOpen] = useState(false)
   const { isAuthenticated, logout } = useAuth()
   const location = useLocation()
   const rankingMenuRef = useRef<HTMLDivElement>(null)
+  const regionsMenuRef = useRef<HTMLDivElement>(null)
 
-  const navigation = [
-    { name: 'Inicio', href: '/', icon: Home },
+  const { data: regionsData } = useQuery({
+    queryKey: ['regions'],
+    queryFn: () => regionsService.getAll(),
+  })
+
+  const regionSlugById = useMemo(
+    () => buildRegionPublicSlugById(regionsData?.data || []),
+    [regionsData?.data]
+  )
+
+  const sortedRegions = useMemo(
+    () => [...(regionsData?.data || [])].sort((a, b) => a.name.localeCompare(b.name)),
+    [regionsData?.data]
+  )
+
+  const navigationBeforeRegions = [
     { name: 'Equipos', href: '/equipos', icon: Users },
-    { name: 'Regiones', href: '/regiones', icon: MapPin },
+  ]
+
+  const navigationAfterRegions = [
     { name: 'Torneos', href: '/tournaments', icon: Calendar },
-    { name: 'Cómo funciona', href: '/about', icon: Info },
+    { name: 'Cómo funciona', href: '/como-funciona', icon: Info },
   ]
 
   const isActive = (href: string) => {
@@ -49,11 +71,15 @@ const Navbar: React.FC = () => {
   }
 
   const isRankingActive = location.pathname.startsWith('/ranking')
+  const isRegionsActive = location.pathname === '/regiones' || location.pathname.startsWith('/regiones/')
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (rankingMenuRef.current && !rankingMenuRef.current.contains(e.target as Node)) {
         setRankingMenuOpen(false)
+      }
+      if (regionsMenuRef.current && !regionsMenuRef.current.contains(e.target as Node)) {
+        setRegionsMenuOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -62,6 +88,7 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     setRankingMenuOpen(false)
+    setRegionsMenuOpen(false)
     setIsMenuOpen(false)
   }, [location.pathname])
 
@@ -77,7 +104,33 @@ const Navbar: React.FC = () => {
             </Link>
 
             <div className="hidden md:flex md:items-center md:gap-1">
-              {navigation.slice(0, 1).map((item) => {
+              <Link to="/" className={getNavLinkClass('/')}>
+                <span className="nav-link__icon">
+                  <Home className="w-4 h-4" />
+                </span>
+                Inicio
+              </Link>
+
+              <div className="relative" ref={rankingMenuRef}>
+                <button
+                  onClick={() => {
+                    setRegionsMenuOpen(false)
+                    setRankingMenuOpen((prev) => !prev)
+                  }}
+                  className={`nav-link${isRankingActive ? ' nav-link--active' : ''}`}
+                >
+                  <span className="nav-link__icon">
+                    <Trophy className="w-4 h-4" />
+                  </span>
+                  Ranking
+                  <ChevronDown className={`w-3 h-3 opacity-60 transition-transform duration-200 ${rankingMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {rankingMenuOpen && (
+                  <RankingMegaMenu onClose={() => setRankingMenuOpen(false)} />
+                )}
+              </div>
+
+              {navigationBeforeRegions.map((item) => {
                 const Icon = item.icon
                 return (
                   <Link
@@ -95,23 +148,26 @@ const Navbar: React.FC = () => {
                 )
               })}
 
-              <div className="relative" ref={rankingMenuRef}>
+              <div className="relative" ref={regionsMenuRef}>
                 <button
-                  onClick={() => setRankingMenuOpen((prev) => !prev)}
-                  className={`nav-link${isRankingActive ? ' nav-link--active' : ''}`}
+                  onClick={() => {
+                    setRankingMenuOpen(false)
+                    setRegionsMenuOpen((prev) => !prev)
+                  }}
+                  className={`nav-link${isRegionsActive ? ' nav-link--active' : ''}`}
                 >
                   <span className="nav-link__icon">
-                    <Trophy className="w-4 h-4" />
+                    <MapPin className="w-4 h-4" />
                   </span>
-                  Ranking
-                  <ChevronDown className={`w-3 h-3 opacity-60 transition-transform duration-200 ${rankingMenuOpen ? 'rotate-180' : ''}`} />
+                  Regiones
+                  <ChevronDown className={`w-3 h-3 opacity-60 transition-transform duration-200 ${regionsMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
-                {rankingMenuOpen && (
-                  <RankingMegaMenu onClose={() => setRankingMenuOpen(false)} />
+                {regionsMenuOpen && (
+                  <RegionsMenu onClose={() => setRegionsMenuOpen(false)} />
                 )}
               </div>
 
-              {navigation.slice(1).map((item) => {
+              {navigationAfterRegions.map((item) => {
                 const Icon = item.icon
                 return (
                   <Link
@@ -161,24 +217,16 @@ const Navbar: React.FC = () => {
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="nav-mobile-panel px-3 pt-2 pb-3 space-y-1">
-            {navigation.slice(0, 1).map((item) => {
-              const Icon = item.icon
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={getNavLinkClass(item.href, true)}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {Icon && (
-                    <span className="nav-link__icon">
-                      <Icon className="w-4 h-4" />
-                    </span>
-                  )}
-                  {item.name}
-                </Link>
-              )
-            })}
+            <Link
+              to="/"
+              className={getNavLinkClass('/', true)}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <span className="nav-link__icon">
+                <Home className="w-4 h-4" />
+              </span>
+              Inicio
+            </Link>
 
             <div>
               <button
@@ -211,7 +259,64 @@ const Navbar: React.FC = () => {
               )}
             </div>
 
-            {navigation.slice(1).map((item) => {
+            {navigationBeforeRegions.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={getNavLinkClass(item.href, true)}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {Icon && (
+                    <span className="nav-link__icon">
+                      <Icon className="w-4 h-4" />
+                    </span>
+                  )}
+                  {item.name}
+                </Link>
+              )
+            })}
+
+            <div>
+              <button
+                onClick={() => setRegionsAccordionOpen((prev) => !prev)}
+                className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-base font-medium transition-colors duration-200 ${
+                  isRegionsActive
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  Regiones
+                </span>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${regionsAccordionOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {regionsAccordionOpen && (
+                <div className="ml-6 mt-1 space-y-0.5">
+                  <Link
+                    to="/regiones"
+                    className="flex items-center px-3 py-1.5 rounded-lg text-sm font-medium text-primary-600 hover:bg-slate-50 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Ver todas
+                  </Link>
+                  {sortedRegions.map((region) => (
+                    <Link
+                      key={region.id}
+                      to={getRegionPublicUrl(region, regionSlugById)}
+                      className="flex items-center px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {region.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {navigationAfterRegions.map((item) => {
               const Icon = item.icon
               return (
                 <Link

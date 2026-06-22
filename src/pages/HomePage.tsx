@@ -286,7 +286,7 @@ const HomePage: React.FC = () => {
             <h2 className="section-title mb-2">¿Cómo funciona el ranking?</h2>
             <p className="text-lg text-slate-600">
               Sistema transparente y justo para clasificar equipos de Ultimate.{' '}
-              <Link to="/about" className="text-primary-600 hover:text-primary-700 font-medium">
+              <Link to="/como-funciona" className="text-primary-600 hover:text-primary-700 font-medium">
                 Más información →
               </Link>
             </p>

@@ -1,5 +1,12 @@
 import { supabase } from './supabaseService'
-import { generateUniqueSlug } from '@/utils/slug'
+import { generateSlug, generateUniqueSlug } from '@/utils/slug'
+
+export type RegionSlugSource = {
+  id: string
+  name: string
+  slug?: string | null
+  createdAt?: string
+}
 
 // Servicio principal que usa Supabase con fallback a datos mock
 // Si Supabase no está disponible, usa datos mock automáticamente
@@ -94,10 +101,66 @@ export function getTeamPublicUrl(team: { slug?: string | null; id?: string }): s
   return '/equipos'
 }
 
-export function getRegionPublicUrl(region: { slug?: string | null; id?: string }): string {
+export function buildRegionPublicSlugById(regions: RegionSlugSource[]): Map<string, string> {
+  const usedSlugs = new Set<string>()
+  const byId = new Map<string, string>()
+  const sorted = [...regions].sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''))
+
+  for (const region of sorted) {
+    const publicSlug = region.slug || assignSlugInBatch(region.name, usedSlugs)
+    byId.set(region.id, publicSlug)
+  }
+
+  return byId
+}
+
+export function getRegionPublicUrl(
+  region: { slug?: string | null; id?: string; name?: string },
+  slugById?: Map<string, string>
+): string {
+  if (region.id && slugById?.has(region.id)) {
+    return `/regiones/${slugById.get(region.id)}`
+  }
   if (region.slug) return `/regiones/${region.slug}`
+  if (region.name) {
+    const fromName = generateSlug(region.name)
+    if (fromName) return `/regiones/${fromName}`
+  }
   if (region.id) return `/regiones/${region.id}`
   return '/regiones'
+}
+
+async function fetchRegionsForSlugResolution(): Promise<RegionSlugSource[]> {
+  const { data, error } = await supabase
+    .from('regions')
+    .select('id, name, slug, createdAt')
+    .order('createdAt', { ascending: true })
+
+  if (!error && data) return data
+
+  const { data: fallback, error: fallbackError } = await supabase
+    .from('regions')
+    .select('id, name, createdAt')
+    .order('createdAt', { ascending: true })
+
+  if (fallbackError) throw fallbackError
+  return (fallback || []).map((region) => ({ ...region, slug: null }))
+}
+
+function buildRegionSlugLookup(
+  regions: RegionSlugSource[]
+): Map<string, { id: string; slug: string | null; publicSlug: string }> {
+  const usedSlugs = new Set<string>()
+  const lookup = new Map<string, { id: string; slug: string | null; publicSlug: string }>()
+
+  for (const region of regions) {
+    const publicSlug = region.slug || assignSlugInBatch(region.name, usedSlugs)
+    const entry = { id: region.id, slug: region.slug ?? null, publicSlug }
+    lookup.set(publicSlug, entry)
+    lookup.set(region.id, entry)
+  }
+
+  return lookup
 }
 
 async function resolveUniqueRegionSlug(name: string, excludeRegionId?: string): Promise<string> {
@@ -236,23 +299,11 @@ export const regionsService = {
     return { success: true, data: transformedData, message: 'Región obtenida exitosamente' }
   },
 
-  resolveRegion: async (slugOrId: string): Promise<{ id: string; slug: string | null }> => {
-    const { data: bySlug } = await supabase
-      .from('regions')
-      .select('id, slug')
-      .eq('slug', slugOrId)
-      .maybeSingle()
-
-    if (bySlug?.id) return { id: bySlug.id, slug: bySlug.slug ?? null }
-
-    const { data: byId } = await supabase
-      .from('regions')
-      .select('id, slug')
-      .eq('id', slugOrId)
-      .maybeSingle()
-
-    if (byId?.id) return { id: byId.id, slug: byId.slug ?? null }
-
+  resolveRegion: async (slugOrId: string): Promise<{ id: string; slug: string | null; publicSlug: string }> => {
+    const regions = await fetchRegionsForSlugResolution()
+    const lookup = buildRegionSlugLookup(regions)
+    const match = lookup.get(slugOrId)
+    if (match) return match
     throw new Error(`Región "${slugOrId}" no encontrada`)
   },
 

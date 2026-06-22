@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { getRegionPublicUrl } from '@/services/apiService'
+import { getRegionPublicUrl, buildRegionPublicSlugById } from '@/services/apiService'
 import { RegionalCoefficient } from '@/services/seasonService'
 import { MODALITIES, MODALITY_LABELS, MODALITY_SHORT, getCoefficientColor } from './constants'
 
@@ -15,6 +15,7 @@ interface RegionalCoefficientMatrixProps {
   coefficients: RegionalCoefficient[]
   season: string
   isLoading?: boolean
+  slugById?: Map<string, string>
 }
 
 const RegionalCoefficientMatrix: React.FC<RegionalCoefficientMatrixProps> = ({
@@ -22,6 +23,7 @@ const RegionalCoefficientMatrix: React.FC<RegionalCoefficientMatrixProps> = ({
   coefficients,
   season,
   isLoading,
+  slugById,
 }) => {
   const coeffMap = new Map<string, Record<string, number>>()
   coefficients.forEach(c => {
@@ -63,7 +65,7 @@ const RegionalCoefficientMatrix: React.FC<RegionalCoefficientMatrixProps> = ({
               <tr key={region.id} className="hover:bg-slate-50">
                 <td className="p-2 font-medium text-slate-900 sticky left-0 bg-white">
                   <Link
-                    to={`${getRegionPublicUrl(region)}?temporada=${encodeURIComponent(season)}`}
+                    to={`${getRegionPublicUrl(region, slugById)}?temporada=${encodeURIComponent(season)}`}
                     className="hover:text-primary-600 transition-colors"
                   >
                     {region.name}
