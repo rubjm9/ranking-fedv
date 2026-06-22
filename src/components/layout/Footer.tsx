@@ -19,8 +19,9 @@ const Footer: React.FC = () => {
               </span>
             </div>
             <p className="text-slate-400 mb-4 max-w-md">
-              Sistema oficial de ranking de Ultimate Frisbee en España.
-              Gestionado por la Federación Española de Disco Volador (FEDV).
+              Propuesta de sistema de ranking de Ultimate Frisbee en España,
+              desarrollada en colaboración con la Federación Española de Disco Volador (FEDV).
+              Pendiente de aprobación oficial.
             </p>
             <div className="flex space-x-4">
               <a
@@ -75,10 +76,6 @@ const Footer: React.FC = () => {
                 <a href="mailto:info@fedv.es" className="text-slate-400 text-sm hover:text-white transition-colors">
                   info@fedv.es
                 </a>
-              </div>
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4 text-slate-500" />
-                <span className="text-slate-400 text-sm">Madrid, España</span>
               </div>
             </div>
           </div>
