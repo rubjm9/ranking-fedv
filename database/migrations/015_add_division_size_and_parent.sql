@@ -11,7 +11,8 @@
 ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS "divisionSize" INTEGER;
 
 -- Enlace de un CE2 a su CE1 (misma superficie/categoría/año).
-ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS "parentTournamentId" UUID REFERENCES tournaments(id);
+-- Mismo tipo que tournaments.id (TEXT en este esquema), si no el FK falla por tipos incompatibles.
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS "parentTournamentId" TEXT REFERENCES tournaments(id);
 
 CREATE INDEX IF NOT EXISTS idx_tournaments_parent ON tournaments("parentTournamentId");
 
