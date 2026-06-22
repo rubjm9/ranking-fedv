@@ -156,7 +156,7 @@ const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-secondary-50">
       {isLoading ? (
-        <div className="flex items-center justify-center h-64">
+        <div className="flex items-center justify-center min-h-[50vh] pt-[4.75rem]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
           <span className="ml-3 text-slate-600">Cargando datos...</span>
         </div>
@@ -165,7 +165,7 @@ const HomePage: React.FC = () => {
       {/* Hero Section */}
       <div className="relative bg-slate-900 text-white overflow-hidden">
         <div className="absolute inset-0 hero-dots"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20 md:pt-32 md:pb-24">
           <div className="text-center">
             <h1 className="font-display text-5xl md:text-7xl font-bold mb-6 tracking-tight">
               Ranking <span className="text-accent-400">FEDV</span>

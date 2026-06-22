@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { Search, Filter, Users, MapPin, Trophy, ChevronUp, ChevronDown, Loader2, ArrowUpDown, X, Grid, List } from 'lucide-react'
 import { teamsService, regionsService, getTeamPublicUrl } from '@/services/apiService'
 import { homePageService } from '@/services/homePageService'
+import hybridRankingService from '@/services/hybridRankingService'
+import teamSeasonRankingsService from '@/services/teamSeasonRankingsService'
 import { useDebounce } from '@/hooks/useDebounce'
 import TeamLogo from '@/components/ui/TeamLogo'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
@@ -53,13 +55,37 @@ const TeamsPage = () => {
     queryFn: () => homePageService.getMainStats()
   })
 
+  const { data: generalRankingPoints } = useQuery({
+    queryKey: ['teams-general-ranking-points'],
+    queryFn: async () => {
+      const season = await hybridRankingService.getMostRecentSeason()
+      const rankings = await teamSeasonRankingsService.getGlobalRankingWithPositionChanges(season)
+
+      if (rankings.length > 0) {
+        return rankings
+      }
+
+      const computed = await hybridRankingService.getGeneralRanking(season)
+      return computed.map((entry) => ({
+        team_id: entry.team_id,
+        points: entry.total_points || 0,
+      }))
+    },
+  })
+
+  const generalPointsByTeamId = useMemo(() => {
+    const map = new Map<string, number>()
+    generalRankingPoints?.forEach((entry) => {
+      map.set(entry.team_id, entry.points || 0)
+    })
+    return map
+  }, [generalRankingPoints])
+
   const teams = teamsData?.data || []
 
-  // Función para calcular puntos totales de un equipo
-  const getTeamTotalPoints = (team: any) => {
-    if (!team.positions || team.positions.length === 0) return 0
-    return team.positions.reduce((total: number, position: any) => total + (position.points || 0), 0)
-  }
+  const getTeamTotalPoints = useCallback((team: { id: string }) => {
+    return generalPointsByTeamId.get(team.id) ?? 0
+  }, [generalPointsByTeamId])
 
   // Filtrar y ordenar equipos
   const filteredAndSortedTeams = useMemo(() => {
@@ -105,7 +131,7 @@ const TeamsPage = () => {
     })
 
     return filtered
-  }, [teams, debouncedSearchTerm, selectedRegion, sortField, sortDirection])
+  }, [teams, debouncedSearchTerm, selectedRegion, sortField, sortDirection, getTeamTotalPoints])
 
   // Paginación
   const totalPages = Math.ceil(filteredAndSortedTeams.length / itemsPerPage)
@@ -337,7 +363,7 @@ const TeamsPage = () => {
                         aria-label="Ordenar por puntos"
                       >
                         <div className="flex items-center space-x-1">
-                          <span>Puntos</span>
+                          <span>Puntos ranking general</span>
                           {getSortIcon('points')}
                         </div>
                       </th>
@@ -439,7 +465,7 @@ const TeamsPage = () => {
                         </div>
                       )}
                       <div className="text-sm font-medium text-slate-900 mt-2">
-                        {getTeamTotalPoints(team).toFixed(1)} puntos
+                        {(generalPointsByTeamId.get(team.id) ?? 0).toFixed(1)} puntos
                       </div>
                     </div>
                   </div>

@@ -70,6 +70,7 @@ const Navbar: React.FC = () => {
     return `nav-link${active ? ' nav-link--active' : ''}`
   }
 
+  const isHome = location.pathname === '/'
   const isRankingActive = location.pathname.startsWith('/ranking')
   const isRegionsActive = location.pathname === '/regiones' || location.pathname.startsWith('/regiones/')
 
@@ -92,13 +93,28 @@ const Navbar: React.FC = () => {
     setIsMenuOpen(false)
   }, [location.pathname])
 
+  const mobileAccordionClass = (active: boolean) =>
+    `w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-base font-medium transition-colors duration-200 ${
+      active
+        ? isHome
+          ? 'bg-white/15 text-white'
+          : 'bg-primary-50 text-primary-700'
+        : isHome
+          ? 'text-slate-300 hover:text-white hover:bg-white/10'
+          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+    }`
+
+  const mobileSubLinkClass = isHome
+    ? 'flex items-center px-3 py-1.5 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-white/10 transition-colors'
+    : 'flex items-center px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors'
+
   return (
-    <nav className="nav-bar sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center mr-10">
-              <span className="font-display text-xl font-bold text-slate-900">
+    <nav className="fixed top-0 inset-x-0 z-50 px-4 sm:px-6 pt-3 pointer-events-none">
+      <div className={`nav-bar max-w-7xl mx-auto pointer-events-auto${isHome ? ' nav-bar--over-hero' : ''}`}>
+        <div className="flex justify-between items-center h-14 px-4 sm:px-5">
+          <div className="flex items-center min-w-0">
+            <Link to="/" className="flex items-center mr-6 lg:mr-10 shrink-0">
+              <span className={`font-display text-xl font-bold ${isHome ? 'text-white' : 'text-slate-900'}`}>
                 Ranking <span className="text-accent-500">FEDV</span>
               </span>
             </Link>
@@ -203,7 +219,11 @@ const Navbar: React.FC = () => {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
+                className={`inline-flex items-center justify-center p-2 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
+                  isHome
+                    ? 'text-slate-300 hover:text-white hover:bg-white/10'
+                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                }`}
                 aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
                 aria-expanded={isMenuOpen}
               >
@@ -212,11 +232,10 @@ const Navbar: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="nav-mobile-panel px-3 pt-2 pb-3 space-y-1">
+        {isMenuOpen && (
+          <div className="md:hidden">
+            <div className={`nav-mobile-panel px-3 pt-2 pb-3 space-y-1${isHome ? ' nav-mobile-panel--over-hero' : ''}`}>
             <Link
               to="/"
               className={getNavLinkClass('/', true)}
@@ -231,11 +250,7 @@ const Navbar: React.FC = () => {
             <div>
               <button
                 onClick={() => setRankingAccordionOpen((prev) => !prev)}
-                className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-base font-medium transition-colors duration-200 ${
-                  isRankingActive
-                    ? 'bg-primary-50 text-primary-700'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                }`}
+                className={mobileAccordionClass(isRankingActive)}
               >
                 <span className="flex items-center gap-2">
                   <Trophy className="w-4 h-4" />
@@ -249,7 +264,7 @@ const Navbar: React.FC = () => {
                     <Link
                       key={to}
                       to={to}
-                      className="flex items-center px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+                      className={mobileSubLinkClass}
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {label}
@@ -281,11 +296,7 @@ const Navbar: React.FC = () => {
             <div>
               <button
                 onClick={() => setRegionsAccordionOpen((prev) => !prev)}
-                className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-base font-medium transition-colors duration-200 ${
-                  isRegionsActive
-                    ? 'bg-primary-50 text-primary-700'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                }`}
+                className={mobileAccordionClass(isRegionsActive)}
               >
                 <span className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
@@ -297,7 +308,11 @@ const Navbar: React.FC = () => {
                 <div className="ml-6 mt-1 space-y-0.5">
                   <Link
                     to="/regiones"
-                    className="flex items-center px-3 py-1.5 rounded-lg text-sm font-medium text-primary-600 hover:bg-slate-50 transition-colors"
+                    className={`flex items-center px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      isHome
+                        ? 'text-accent-400 hover:bg-white/10'
+                        : 'text-primary-600 hover:bg-slate-50'
+                    }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Ver todas
@@ -306,7 +321,7 @@ const Navbar: React.FC = () => {
                     <Link
                       key={region.id}
                       to={getRegionPublicUrl(region, regionSlugById)}
-                      className="flex items-center px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors"
+                      className={mobileSubLinkClass}
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {region.name}
@@ -357,7 +372,8 @@ const Navbar: React.FC = () => {
             )}
           </div>
         </div>
-      )}
+        )}
+      </div>
     </nav>
   )
 }

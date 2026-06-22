@@ -230,6 +230,129 @@ const SLUG_TO_COMBINED: Record<string, CombinedType> = {
   'women': 'women',
 }
 
+const ALL_RANKING_SURFACES = [
+  'beach_mixed',
+  'beach_open',
+  'beach_women',
+  'grass_mixed',
+  'grass_open',
+  'grass_women',
+] as const
+
+const RANKING_COEFFICIENTS = [1.0, 0.8, 0.5, 0.2]
+
+const getPreviousSeasonLabel = (season: string) => {
+  const year = parseInt(season.split('-')[0])
+  return `${year - 1}-${String(year).slice(-2)}`
+}
+
+const getAllAvailableSeasonsFromData = (data: any[]) => {
+  if (!data || data.length === 0) return []
+
+  const seasonsSet = new Set<string>()
+  data.forEach(team => {
+    Object.keys(team?.season_breakdown || {}).forEach(season => {
+      seasonsSet.add(season)
+    })
+  })
+
+  return Array.from(seasonsSet).sort((a, b) => {
+    const yearA = parseInt(a.split('-')[0])
+    const yearB = parseInt(b.split('-')[0])
+    return yearB - yearA
+  })
+}
+
+const getLastFourSeasonsFromData = (data: any[], referenceSeason?: string | null) => {
+  if (!data || data.length === 0) return []
+
+  const sortedSeasons = getAllAvailableSeasonsFromData(data)
+
+  if (referenceSeason && sortedSeasons.includes(referenceSeason)) {
+    const refIndex = sortedSeasons.indexOf(referenceSeason)
+    return sortedSeasons.slice(refIndex, refIndex + 4)
+  }
+
+  return sortedSeasons.slice(0, 4)
+}
+
+const getSeasonPointsForRanking = (
+  team: any,
+  season: string,
+  rankingType: 'current' | 'historical' | 'clubs'
+) => {
+  if (rankingType === 'clubs') {
+    const value = team.season_breakdown?.[season]
+    return typeof value === 'number' ? value : (value?.base_points || 0)
+  }
+  return team.season_breakdown?.[season]?.base_points || 0
+}
+
+const calculateTotalPointsForRanking = (
+  team: any,
+  seasons: string[],
+  rankingType: 'current' | 'historical' | 'clubs'
+) => {
+  if (rankingType === 'historical') {
+    return Object.values(team.season_breakdown || {}).reduce((sum: number, seasonData: any) => {
+      const points = typeof seasonData === 'number' ? seasonData : (seasonData?.base_points || 0)
+      return sum + points
+    }, 0)
+  }
+
+  return seasons.reduce((total, season, index) => {
+    const points = getSeasonPointsForRanking(team, season, rankingType)
+    const coefficient = RANKING_COEFFICIENTS[index] || 0
+    return total + (points * coefficient)
+  }, 0)
+}
+
+const recalculateRankingPoints = (
+  teams: any[],
+  referenceSeason: string,
+  rankingType: 'current' | 'historical' | 'clubs'
+) => {
+  if (!teams?.length) return []
+
+  const seasons = rankingType === 'historical'
+    ? getAllAvailableSeasonsFromData(teams)
+    : getLastFourSeasonsFromData(teams, referenceSeason)
+
+  return [...teams]
+    .map(team => ({
+      ...team,
+      total_points: calculateTotalPointsForRanking(team, seasons, rankingType),
+    }))
+    .sort((a, b) => (b.total_points || 0) - (a.total_points || 0))
+}
+
+const applyPositionChangesAfterSort = (
+  sortedCurrent: any[],
+  previousTeams: any[],
+  previousReferenceSeason: string,
+  rankingType: 'current' | 'historical' | 'clubs'
+) => {
+  if (rankingType === 'historical') {
+    return sortedCurrent.map(team => ({ ...team, position_change: 0 }))
+  }
+
+  if (!previousTeams?.length) {
+    return sortedCurrent.map(team => ({ ...team, position_change: 0 }))
+  }
+
+  const previousRecalculated = recalculateRankingPoints(previousTeams, previousReferenceSeason, rankingType)
+  const previousPositionsMap = new Map(
+    previousRecalculated.map((team, index) => [team.team_id, index + 1])
+  )
+
+  return sortedCurrent.map((team, index) => ({
+    ...team,
+    position_change: previousPositionsMap.has(team.team_id)
+      ? previousPositionsMap.get(team.team_id)! - (index + 1)
+      : 0,
+  }))
+}
+
 const RankingPageNew: React.FC = () => {
   const { surface } = useParams<{ surface: string }>()
   const navigate = useNavigate()
@@ -249,6 +372,7 @@ const RankingPageNew: React.FC = () => {
   const [showAllTeams, setShowAllTeams] = useState<boolean>(false)
   const [detailedViewMode, setDetailedViewMode] = useState<'ranking' | 'historical' | 'clubs' | 'analysis' | 'advanced'>('ranking')
   const [selectedSeasonForDetailedView, setSelectedSeasonForDetailedView] = useState<string | null>(null)
+  const [selectedSeasonForGeneralView, setSelectedSeasonForGeneralView] = useState<string | null>(null)
   // categoryHighlightStats ahora viene de una query cacheada más abajo
 
   // Sync URL param :surface → component state
@@ -277,6 +401,13 @@ const RankingPageNew: React.FC = () => {
     staleTime: 10 * 60 * 1000, // 10 minutos
     retry: 2
   })
+
+  const generalSeasonToUse = useMemo(() => {
+    if (activeTab === 'general' && selectedSeasonForGeneralView) {
+      return selectedSeasonForGeneralView
+    }
+    return referenceSeason
+  }, [activeTab, selectedSeasonForGeneralView, referenceSeason])
 
   // Obtener todas las temporadas más recientes con una sola query (optimizado)
   const { 
@@ -349,16 +480,16 @@ const RankingPageNew: React.FC = () => {
 
   // Query optimizada para ranking general (usa datos pre-calculados con position_change)
   const { data: generalRankingData, isLoading: isLoadingGeneral } = useQuery({
-    queryKey: ['general-ranking-optimized', referenceSeason],
+    queryKey: ['general-ranking-optimized', generalSeasonToUse],
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      if (!referenceSeason) {
+      if (!generalSeasonToUse) {
         throw new Error('Temporada de referencia no disponible')
       }
 
       try {
         // Usar servicio optimizado que incluye position_change pre-calculado
-        const optimizedData = await teamSeasonRankingsService.getGlobalRankingWithPositionChanges(referenceSeason)
+        const optimizedData = await teamSeasonRankingsService.getGlobalRankingWithPositionChanges(generalSeasonToUse)
         
         if (optimizedData && optimizedData.length > 0) {
           // Obtener TODAS las temporadas disponibles para estos equipos (no solo las últimas 4)
@@ -372,9 +503,9 @@ const RankingPageNew: React.FC = () => {
 
           // Construir season_breakdown para cada equipo (suma de todas las categorías)
           // Obtener temporadas de referencia para calcular coeficientes
-          const referenceYear = parseInt(referenceSeason.split('-')[0])
+          const referenceYear = parseInt(generalSeasonToUse.split('-')[0])
           const referenceSeasons = [
-            referenceSeason,
+            generalSeasonToUse,
             `${referenceYear - 1}-${String(referenceYear).slice(-2)}`,
             `${referenceYear - 2}-${String(referenceYear - 1).slice(-2)}`,
             `${referenceYear - 3}-${String(referenceYear - 2).slice(-2)}`
@@ -412,7 +543,7 @@ const RankingPageNew: React.FC = () => {
           })
           
           // Transformar al formato esperado
-          return optimizedData.map(item => ({
+          const transformedData = optimizedData.map(item => ({
             team_id: item.team_id,
             team_name: item.team_name,
             region_name: item.region_name,
@@ -423,6 +554,14 @@ const RankingPageNew: React.FC = () => {
             points_change: item.points_change,
             season_breakdown: seasonBreakdownMap[item.team_id] || {}
           }))
+
+          const previousSeason = getPreviousSeasonLabel(generalSeasonToUse)
+          const previousData = await hybridRankingService.getCombinedRanking(
+            [...ALL_RANKING_SURFACES] as any,
+            previousSeason
+          )
+          const recalculated = recalculateRankingPoints(transformedData, generalSeasonToUse, 'current')
+          return applyPositionChangesAfterSort(recalculated, previousData, previousSeason, 'current')
         }
       } catch (error) {
         console.warn('Error obteniendo datos optimizados del ranking general, usando fallback:', error)
@@ -430,14 +569,20 @@ const RankingPageNew: React.FC = () => {
       
       // Fallback: usar método anterior que incluye season_breakdown completo
       const fallbackData = await hybridRankingService.getCombinedRanking(
-        ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'],
-        referenceSeason
+        [...ALL_RANKING_SURFACES] as any,
+        generalSeasonToUse
       )
-      const withChanges = await calculatePositionChange(fallbackData, undefined, referenceSeason)
-      return await enrichRankingDataWithLogos(withChanges)
+      const enrichedFallback = await enrichRankingDataWithLogos(fallbackData)
+      const previousSeason = getPreviousSeasonLabel(generalSeasonToUse)
+      const previousData = await hybridRankingService.getCombinedRanking(
+        [...ALL_RANKING_SURFACES] as any,
+        previousSeason
+      )
+      const recalculated = recalculateRankingPoints(enrichedFallback, generalSeasonToUse, 'current')
+      return applyPositionChangesAfterSort(recalculated, previousData, previousSeason, 'current')
     },
     staleTime: 10 * 60 * 1000, // 10 minutos - datos pre-calculados
-    enabled: activeTab === 'general' && selectedCombinedType === 'all' && !!referenceSeason && !isLoadingSeason
+    enabled: activeTab === 'general' && selectedCombinedType === 'all' && !!generalSeasonToUse && !isLoadingSeason
   })
 
   // Query for combined subset rankings (playa, cesped, mixto, open, women)
@@ -450,14 +595,35 @@ const RankingPageNew: React.FC = () => {
   }
 
   const { data: combinedSubsetData, isLoading: isLoadingCombinedSubset } = useQuery({
-    queryKey: ['combined-subset-ranking', selectedCombinedType, referenceSeason],
+    queryKey: ['combined-subset-ranking', selectedCombinedType, generalSeasonToUse],
     queryFn: async () => {
-      if (!referenceSeason || selectedCombinedType === 'all') return null
+      if (!generalSeasonToUse || selectedCombinedType === 'all') return null
       const surfaces = COMBINED_SURFACES[selectedCombinedType]
-      return hybridRankingService.getCombinedRanking(surfaces as any, referenceSeason)
+      const previousSeason = getPreviousSeasonLabel(generalSeasonToUse)
+      const [currentData, previousData] = await Promise.all([
+        hybridRankingService.getCombinedRanking(surfaces as any, generalSeasonToUse),
+        hybridRankingService.getCombinedRanking(surfaces as any, previousSeason),
+      ])
+      const enriched = await enrichRankingDataWithLogos(currentData)
+      const recalculated = recalculateRankingPoints(enriched, generalSeasonToUse, 'current')
+      return applyPositionChangesAfterSort(recalculated, previousData, previousSeason, 'current')
     },
     staleTime: 10 * 60 * 1000,
-    enabled: activeTab === 'general' && selectedCombinedType !== 'all' && !!referenceSeason && !isLoadingSeason
+    enabled: activeTab === 'general' && selectedCombinedType !== 'all' && !!generalSeasonToUse && !isLoadingSeason
+  })
+
+  const { data: previousGeneralSeasonData } = useQuery({
+    queryKey: ['general-previous-season-data', selectedCombinedType, generalSeasonToUse],
+    queryFn: async () => {
+      if (!generalSeasonToUse) return []
+      const previousSeason = getPreviousSeasonLabel(generalSeasonToUse)
+      const surfaces = selectedCombinedType === 'all'
+        ? [...ALL_RANKING_SURFACES]
+        : COMBINED_SURFACES[selectedCombinedType]
+      return hybridRankingService.getCombinedRanking(surfaces as any, previousSeason)
+    },
+    staleTime: 10 * 60 * 1000,
+    enabled: activeTab === 'general' && !!generalSeasonToUse && !isLoadingSeason
   })
 
   // Obtener temporada más reciente para la categoría seleccionada (usa el hook consolidado)
@@ -764,7 +930,7 @@ const RankingPageNew: React.FC = () => {
     } else {
       setGeneralHighlightStats(null)
     }
-  }, [activeTab, generalRankingData, referenceSeason])
+  }, [activeTab, generalRankingData, generalSeasonToUse])
 
   // Calcular position_change para ranking general cuando es histórico o clubes
   useEffect(() => {
@@ -776,10 +942,10 @@ const RankingPageNew: React.FC = () => {
         setGeneralRankingWithChanges(null) // No necesario, los datos ya tienen position_change
       } else {
         const baseRankingData = getRankingByType(generalRankingData, rankingTypeToUse)
-        if (baseRankingData.length > 0 && referenceSeason) {
+        if (baseRankingData.length > 0 && generalSeasonToUse) {
           const calculateChanges = rankingTypeToUse === 'historical' 
-            ? calculateHistoricalPositionChange(baseRankingData, referenceSeason)
-            : calculateClubsPositionChange(baseRankingData, referenceSeason)
+            ? calculateHistoricalPositionChange(baseRankingData, generalSeasonToUse)
+            : calculateClubsPositionChange(baseRankingData, generalSeasonToUse)
           
           calculateChanges.then(result => {
             setGeneralRankingWithChanges(result)
@@ -793,7 +959,7 @@ const RankingPageNew: React.FC = () => {
     } else {
       setGeneralRankingWithChanges(null)
     }
-  }, [activeTab, generalRankingData, detailedViewMode, referenceSeason])
+  }, [activeTab, generalRankingData, detailedViewMode, generalSeasonToUse])
 
   // Calcular position_change para ranking de categoría cuando es histórico o clubes
   useEffect(() => {
@@ -2341,10 +2507,10 @@ const RankingPageNew: React.FC = () => {
       } : null
 
       // 2. Equipo revelación (más puntos ganados comparando con temporada anterior)
-      const generalRevelation = await calculateGeneralMostPointsGained(generalData, referenceSeason || '')
+      const generalRevelation = await calculateGeneralMostPointsGained(generalData, generalSeasonToUse || '')
 
       // 3. Subida en el ranking (mayor subida de posiciones)
-      const generalBiggestRise = await calculateGeneralBiggestRise(generalData, referenceSeason || '')
+      const generalBiggestRise = await calculateGeneralBiggestRise(generalData, generalSeasonToUse || '')
 
       // 4. Mejor filial en el ranking general
       const generalBestFilial = await calculateGeneralBestFilial(rankingDataWithChanges)
@@ -2355,7 +2521,7 @@ const RankingPageNew: React.FC = () => {
       // 6. Equipos nuevos (equipos que solo tienen puntos en la temporada actual)
       const generalNewTeamsList = rankingDataWithChanges.filter(team => {
         const seasons = Object.keys(team.season_breakdown || {})
-        return seasons.length === 1 && seasons.includes(referenceSeason || '')
+        return seasons.length === 1 && seasons.includes(generalSeasonToUse || '')
       })
       const generalNewTeams = generalNewTeamsList.length
       const generalNewTeamsNames = generalNewTeamsList.map(team => team.team_name).slice(0, 5)
@@ -2604,11 +2770,24 @@ const RankingPageNew: React.FC = () => {
     // Si es ranking histórico, mostrar TODAS las temporadas disponibles
     // Si no, mostrar solo las últimas 4
     const allGeneralSeasons = getAllAvailableSeasons(activeGeneralData || [])
+    const currentReferenceSeason = selectedSeasonForGeneralView || referenceSeason || allGeneralSeasons[0]
     const seasons = rankingTypeToUse === 'historical'
       ? allGeneralSeasons
-      : getLastFourSeasons(activeGeneralData || [])
+      : getLastFourSeasons(activeGeneralData || [], currentReferenceSeason)
 
-    if (!finalRankingData || finalRankingData.length === 0) {
+    const getSeasonPoints = (team: any, season: string) =>
+      getSeasonPointsForRanking(team, season, rankingTypeToUse)
+
+    const rankingDataWithRecalculatedPoints = rankingTypeToUse === 'current'
+      ? applyPositionChangesAfterSort(
+          recalculateRankingPoints(finalRankingData || [], currentReferenceSeason, 'current'),
+          previousGeneralSeasonData || [],
+          getPreviousSeasonLabel(currentReferenceSeason),
+          'current'
+        )
+      : recalculateRankingPoints(finalRankingData || [], currentReferenceSeason, rankingTypeToUse)
+
+    if (!rankingDataWithRecalculatedPoints || rankingDataWithRecalculatedPoints.length === 0) {
       return (
         <EmptyState
           icon={Trophy}
@@ -2784,14 +2963,14 @@ const RankingPageNew: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <LineChart className="w-6 h-6 text-primary-600" />
                 <h2 className="text-xl font-semibold text-slate-900">
-                  Ranking {combinedTypeLabels[selectedCombinedType]} - Temporada {referenceSeason}
+                  Ranking {combinedTypeLabels[selectedCombinedType]} - Temporada {currentReferenceSeason}
                 </h2>
               </div>
               <div className="flex items-center space-x-4 text-sm text-slate-600">
                 <span>
                   {rankingTypeToUse === 'clubs' 
-                    ? `${finalRankingData?.length || 0} clubes` 
-                    : `${finalRankingData?.length || 0} equipos`
+                    ? `${rankingDataWithRecalculatedPoints?.length || 0} clubes` 
+                    : `${rankingDataWithRecalculatedPoints?.length || 0} equipos`
                   }
                 </span>
                 {rankingTypeToUse === 'historical' && (
@@ -2807,8 +2986,12 @@ const RankingPageNew: React.FC = () => {
             <div className="flex items-center justify-end">
               <div className="flex items-center space-x-2">
                 <label className="text-sm font-medium text-slate-700">Temporada:</label>
-                <select className="text-sm border border-slate-300 rounded px-3 py-1 bg-white">
-                  {seasons.map((season) => {
+                <select
+                  value={selectedSeasonForGeneralView || referenceSeason || ''}
+                  onChange={(e) => setSelectedSeasonForGeneralView(e.target.value || null)}
+                  className="text-sm border border-slate-300 rounded px-3 py-1 bg-white"
+                >
+                  {allGeneralSeasons.map((season) => {
                     const year1 = season.split('-')[0]
                     const year2 = season.split('-')[1]
                     return (
@@ -2856,7 +3039,7 @@ const RankingPageNew: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-slate-200">
-              {finalRankingData?.slice(0, (showAllResults || isCollapsing) ? undefined : 10).map((team, index) => {
+              {rankingDataWithRecalculatedPoints?.slice(0, (showAllResults || isCollapsing) ? undefined : 10).map((team, index) => {
                 const isEvenRow = index % 2 === 1
                 
                 return (
@@ -2893,7 +3076,7 @@ const RankingPageNew: React.FC = () => {
                     </td>
                       {seasons.map((season) => (
                         <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-slate-900 text-right">
-                          {team.season_breakdown?.[season]?.base_points?.toFixed(2) || '0.00'}
+                          {(getSeasonPoints(team, season) || 0).toFixed(2)}
                         </td>
                       ))}
                       <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-slate-900 text-right">

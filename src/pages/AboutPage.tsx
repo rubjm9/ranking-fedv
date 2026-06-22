@@ -1,75 +1,98 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Trophy, Calculator, MapPin, Award } from 'lucide-react'
+import { Trophy, Calculator, MapPin, Award, ChevronDown } from 'lucide-react'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
+import PointsCurveTable from '@/components/about/PointsCurveTable'
 import { nationalCurvePoints, regionalCurvePoints } from '@/utils/tournamentUtils'
 import { DEFAULT_TEMPORAL_WEIGHTS } from '@/utils/rankingCalculations'
 
 const AboutPage: React.FC = () => {
   const ce2Offset = 16
+  const [pointsTablesExpanded, setPointsTablesExpanded] = useState(false)
 
   return (
     <PageContainer>
       <PageHeader
         title="Cómo funciona el ranking FEDV"
-        subtitle="Metodología oficial del sistema de ranking de Ultimate Frisbee en España: escala de puntos, torneos nacionales y regionales, coeficiente regional y ponderación temporal."
+        subtitle="Una guía sencilla para entender cómo se puntúan los torneos, cómo se suman los resultados y cómo se construye el ranking oficial."
         className="text-center [&_.page-header-title]:text-center [&_.page-header-subtitle]:mx-auto"
       />
 
       <div className="space-y-8">
         {/* Escala de puntos */}
         <div className="card">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">Escala de puntos</h2>
+          <h2 className="text-2xl font-bold text-slate-900 mb-4">Escala de puntos</h2>
 
+          <p className="text-slate-600 mb-4">
+            Cada vez que un equipo participa en un torneo oficial, suma puntos según el puesto que
+            consigue. Cuanto más arriba quede, más puntos recibe. A partir del 8º puesto, la bajada
+            de puntos es un poco más suave que entre los primeros puestos, pero la idea es siempre
+            la misma: premiar las mejores clasificaciones.
+          </p>
           <p className="text-slate-600 mb-6">
-            Todos los torneos comparten la misma forma de curva: decaimiento del <strong>85%</strong> entre
-            los puestos 1 y 8, y del <strong>90%</strong> a partir del puesto 9. Solo cambia el ancla según el
-            ámbito del torneo.
+            Los campeonatos de España reparten más puntos que los regionales, pero en ambos casos se
+            sigue la misma lógica: el campeón parte de una cifra base y el resto de puestos van
+            bajando de forma progresiva.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="border border-slate-200 rounded-2xl p-6">
-              <h3 className="text-lg font-semibold text-slate-900 mb-3">Curva nacional (ancla 1000)</h3>
-              <p className="text-slate-600 text-sm mb-4">
-                Aplica a CE1 y CE2. El campeón de 1ª división recibe 1000 puntos.
-              </p>
-              <div className="text-sm text-slate-500 space-y-1">
-                <p>1º: {nationalCurvePoints(1)} pts</p>
-                <p>2º: {nationalCurvePoints(2)} pts</p>
-                <p>8º: {nationalCurvePoints(8)} pts</p>
-                <p>9º: {nationalCurvePoints(9)} pts (inicio del tramo 90%)</p>
-                <p>16º: {nationalCurvePoints(16)} pts</p>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <PointsCurveTable
+              title="Campeonatos de España"
+              description="En 1ª división, el campeón recibe 1000 puntos. El 2º, el 3º y el resto de puestos reciben menos según la tabla."
+              getPoints={nationalCurvePoints}
+              expanded={pointsTablesExpanded}
+            />
 
-            <div className="border border-slate-200 rounded-2xl p-6">
-              <h3 className="text-lg font-semibold text-slate-900 mb-3">Curva regional (ancla 100)</h3>
-              <p className="text-slate-600 text-sm mb-4">
-                Misma forma de decaimiento, escala 10 veces menor. Los puntos base se multiplican después
-                por el coeficiente regional.
-              </p>
-              <div className="text-sm text-slate-500 space-y-1">
-                <p>1º: {regionalCurvePoints(1)} pts</p>
-                <p>2º: {regionalCurvePoints(2)} pts</p>
-                <p>8º: {regionalCurvePoints(8)} pts</p>
-                <p>9º: {regionalCurvePoints(9)} pts</p>
-              </div>
-            </div>
+            <PointsCurveTable
+              title="Campeonatos regionales"
+              description={
+                <>
+                  En un regional, el campeón parte de 100 puntos base. Esos puntos se multiplican
+                  después por el coeficiente regional de la región del equipo. Puedes leer cómo
+                  funciona{' '}
+                  <a
+                    href="#coeficiente-regional"
+                    className="text-primary-600 hover:text-primary-700 font-medium"
+                  >
+                    aquí
+                  </a>
+                  .
+                </>
+              }
+              getPoints={regionalCurvePoints}
+              expanded={pointsTablesExpanded}
+              maxExpandedPositions={20}
+            />
+          </div>
+
+          <div className="flex justify-center mb-6">
+            <button
+              type="button"
+              onClick={() => setPointsTablesExpanded((prev) => !prev)}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+              aria-expanded={pointsTablesExpanded}
+            >
+              {pointsTablesExpanded ? 'Ver menos' : 'Ver tabla completa'}
+              <ChevronDown
+                className={`h-4 w-4 transition-transform duration-300 ${pointsTablesExpanded ? 'rotate-180' : ''}`}
+                aria-hidden
+              />
+            </button>
           </div>
 
           <div className="bg-secondary-50 rounded-xl p-5">
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">CE2: continuación de la curva nacional</h3>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">¿Y la 2ª división?</h3>
             <p className="text-slate-600 text-sm">
-              El campeonato de 2ª división no tiene escala propia: continúa la curva nacional justo después
-              del último equipo de su 1ª asociada. El desplazamiento (<code className="bg-slate-100 px-1 rounded">offset</code>)
-              es el tamaño de esa 1ª división, almacenado en <code className="bg-slate-100 px-1 rounded">divisionSize</code>{' '}
-              (por defecto 16). El torneo CE2 se vincula a su CE1 mediante{' '}
-              <code className="bg-slate-100 px-1 rounded">parentTournamentId</code>.
+              La 2ª división no tiene una tabla aparte. Sigue la misma escala que la 1ª división,
+              como si fuera la continuación natural: cuando termina la 1ª, empiezan los puestos de
+              la 2ª. Si en una categoría hay 16 equipos en 1ª división, el campeón de 2ª división
+              recibe los puntos del puesto 17 de la escala nacional.
             </p>
             <p className="text-slate-600 text-sm mt-3">
-              Ejemplo con 1ª de {ce2Offset} equipos: el campeón de 2ª (puesto 1 en CE2) recibe los puntos
-              del puesto {ce2Offset + 1} de la curva nacional ({nationalCurvePoints(ce2Offset + 1)} pts).
+              Ejemplo: con {ce2Offset} equipos en 1ª división, el campeón de 2ª división recibe{' '}
+              {nationalCurvePoints(ce2Offset + 1)} puntos, los mismos que tendría un{' '}
+              {ce2Offset + 1}º puesto en la tabla nacional.
             </p>
           </div>
         </div>
@@ -119,7 +142,7 @@ const AboutPage: React.FC = () => {
         </div>
 
         {/* Coeficiente regional */}
-        <div className="card">
+        <div className="card scroll-mt-24" id="coeficiente-regional">
           <h2 className="text-2xl font-bold text-slate-900 mb-6">Coeficiente regional</h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
