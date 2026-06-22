@@ -126,7 +126,7 @@ const RegionPage = () => {
           <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Región no encontrada</h1>
           <p className="text-gray-600 mb-4">La región que buscas no existe o ha sido eliminada.</p>
-          <Link to="/regions" className="btn-primary">
+          <Link to="/regiones" className="btn-primary">
             Volver a regiones
           </Link>
         </div>
@@ -145,7 +145,7 @@ const RegionPage = () => {
       {/* Header con navegación */}
       <div className="mb-6">
         <Link
-          to="/regions"
+          to="/regiones"
           className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />

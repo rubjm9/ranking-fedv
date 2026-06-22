@@ -27,6 +27,7 @@ export interface Team {
 export interface Region {
   id: string
   name: string
+  slug?: string
   coefficient: number
   description?: string
   floor: number
@@ -91,6 +92,27 @@ export function getTeamPublicUrl(team: { slug?: string | null; id?: string }): s
   if (team.slug) return `/equipos/${team.slug}`
   if (team.id) return `/equipos/${team.id}`
   return '/equipos'
+}
+
+export function getRegionPublicUrl(region: { slug?: string | null; id?: string }): string {
+  if (region.slug) return `/regiones/${region.slug}`
+  if (region.id) return `/regiones/${region.id}`
+  return '/regiones'
+}
+
+async function resolveUniqueRegionSlug(name: string, excludeRegionId?: string): Promise<string> {
+  const { data: existingRegions } = await supabase
+    .from('regions')
+    .select('id, slug')
+    .not('slug', 'is', null)
+
+  const existingSlugs = new Set(
+    (existingRegions || [])
+      .filter((r) => r.id !== excludeRegionId && r.slug)
+      .map((r) => r.slug as string)
+  )
+
+  return generateUniqueSlug(name, existingSlugs)
 }
 
 async function resolveUniqueTeamSlug(name: string, excludeTeamId?: string): Promise<string> {
@@ -182,6 +204,7 @@ export const regionsService = {
         teams(
           id,
           name,
+          slug,
           email,
           logo,
           isFilial,
@@ -213,11 +236,76 @@ export const regionsService = {
     return { success: true, data: transformedData, message: 'Región obtenida exitosamente' }
   },
 
-  // Crear una nueva región
-  create: async (regionData: Omit<Region, 'id' | 'createdAt' | 'updatedAt'>) => {
+  resolveRegion: async (slugOrId: string): Promise<{ id: string; slug: string | null }> => {
+    const { data: bySlug } = await supabase
+      .from('regions')
+      .select('id, slug')
+      .eq('slug', slugOrId)
+      .maybeSingle()
+
+    if (bySlug?.id) return { id: bySlug.id, slug: bySlug.slug ?? null }
+
+    const { data: byId } = await supabase
+      .from('regions')
+      .select('id, slug')
+      .eq('id', slugOrId)
+      .maybeSingle()
+
+    if (byId?.id) return { id: byId.id, slug: byId.slug ?? null }
+
+    throw new Error(`Región "${slugOrId}" no encontrada`)
+  },
+
+  resolveId: async (slugOrId: string) => {
+    const region = await regionsService.resolveRegion(slugOrId)
+    return region.id
+  },
+
+  getBySlug: async (slug: string) => {
     const { data, error } = await supabase
       .from('regions')
-      .insert(regionData)
+      .select(`
+        *,
+        teams(
+          id,
+          name,
+          slug,
+          email,
+          logo,
+          isFilial,
+          positions(count)
+        ),
+        tournaments(
+          id,
+          name,
+          type,
+          year,
+          surface,
+          category
+        )
+      `)
+      .eq('slug', slug)
+      .single()
+
+    if (error) throw error
+
+    const transformedData = {
+      ...data,
+      _count: {
+        teams: data.teams?.length || 0,
+        tournaments: data.tournaments?.length || 0,
+      },
+    }
+
+    return { success: true, data: transformedData, message: 'Región obtenida exitosamente' }
+  },
+
+  // Crear una nueva región
+  create: async (regionData: Omit<Region, 'id' | 'createdAt' | 'updatedAt'> & { description?: string }) => {
+    const slug = regionData.slug || await resolveUniqueRegionSlug(regionData.name)
+    const { data, error } = await supabase
+      .from('regions')
+      .insert({ ...regionData, slug })
       .select()
       .single()
     
@@ -226,10 +314,14 @@ export const regionsService = {
   },
 
   // Actualizar una región
-  update: async (id: string, regionData: Partial<Region>) => {
+  update: async (id: string, regionData: Partial<Region> & { description?: string }) => {
+    const payload = { ...regionData }
+    if (regionData.name && !regionData.slug) {
+      payload.slug = await resolveUniqueRegionSlug(regionData.name, id)
+    }
     const { data, error } = await supabase
       .from('regions')
-      .update(regionData)
+      .update(payload)
       .eq('id', id)
       .select()
       .single()

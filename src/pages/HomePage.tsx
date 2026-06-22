@@ -802,7 +802,7 @@ const HomePage: React.FC = () => {
             </div>
           </Link>
           <Link
-            to="/regions"
+            to="/regiones"
             className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-slate-100"
           >
             <div className="flex items-center">

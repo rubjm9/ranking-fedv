@@ -2,7 +2,9 @@ import { supabase } from './supabaseService'
 import { 
   calculateRegionalCoefficient, 
   DEFAULT_REGIONAL_CONFIG,
-  DEFAULT_TEMPORAL_WEIGHTS 
+  DEFAULT_TEMPORAL_WEIGHTS,
+  formatSeasonFromYear,
+  getNextSeasonLabel,
 } from '@/utils/rankingCalculations'
 
 export interface Season {
@@ -59,6 +61,54 @@ export interface RegionalCoefficientSaveResult {
   saved: number
   failed: number
   errors: string[]
+}
+
+export interface RegionalCoefficientYearBreakdown {
+  year: number
+  weight: number
+  rawPoints: number
+  weightedPoints: number
+}
+
+export interface RegionalCoefficientRegionBreakdown {
+  regionId: string
+  regionName: string
+  weightedPoints: number
+  coefficient: number
+  deviationFromMean: number
+  yearBreakdown: RegionalCoefficientYearBreakdown[]
+  isManualOverride?: boolean
+}
+
+export interface RegionalCoefficientModalityBreakdown {
+  modality: string
+  nationalMean: number
+  regions: RegionalCoefficientRegionBreakdown[]
+}
+
+export interface RegionalCoefficientSeasonBreakdown {
+  calculationSeason: string
+  appliesToSeason: string
+  windowYears: { year: number; seasonLabel: string; weight: number }[]
+  modalities: RegionalCoefficientModalityBreakdown[]
+}
+
+const MODALITIES = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'] as const
+
+const buildWindowYears = (season: string) => {
+  const baseYear = parseInt(season.split('-')[0])
+  const temporalWeightByYear: Record<number, number> = {
+    [baseYear]: DEFAULT_TEMPORAL_WEIGHTS.current,
+    [baseYear - 1]: DEFAULT_TEMPORAL_WEIGHTS.previous,
+    [baseYear - 2]: DEFAULT_TEMPORAL_WEIGHTS.twoAgo,
+    [baseYear - 3]: DEFAULT_TEMPORAL_WEIGHTS.threeAgo,
+  }
+  const windowYears = [baseYear, baseYear - 1, baseYear - 2, baseYear - 3].map(year => ({
+    year,
+    seasonLabel: formatSeasonFromYear(year),
+    weight: temporalWeightByYear[year],
+  }))
+  return { baseYear, temporalWeightByYear, windowYears }
 }
 
 const seasonService = {
@@ -166,6 +216,155 @@ const seasonService = {
   },
 
   /**
+   * Lista temporadas con coeficientes guardados (más reciente primero).
+   */
+  listRegionalCoefficientSeasons: async (): Promise<string[]> => {
+    try {
+      if (!supabase) return []
+
+      const { data, error } = await supabase
+        .from('regional_coefficients')
+        .select('season')
+        .order('season', { ascending: false })
+
+      if (error || !data?.length) {
+        const { data: tournamentRows } = await supabase
+          .from('tournaments')
+          .select('year')
+          .not('year', 'is', null)
+          .order('year', { ascending: false })
+
+        const years = [...new Set((tournamentRows || []).map((r: { year: number }) => r.year))]
+        return years.map(y => `${y}-${String(y + 1).slice(-2)}`)
+      }
+
+      return [...new Set(data.map(r => r.season as string))].sort((a, b) => b.localeCompare(a))
+    } catch (error) {
+      console.error('Error listando temporadas de coeficientes:', error)
+      return []
+    }
+  },
+
+  /**
+   * Desglose completo del cálculo de coeficientes para una temporada.
+   */
+  getRegionalCoefficientBreakdown: async (
+    season: string,
+    regionId?: string,
+    applySavedOverrides = true
+  ): Promise<RegionalCoefficientSeasonBreakdown | null> => {
+    try {
+      if (!supabase) throw new Error('Supabase no está configurado')
+
+      const { data: regions, error: regionsError } = await supabase
+        .from('regions')
+        .select('id, name')
+        .order('name')
+
+      if (regionsError) throw regionsError
+      if (!regions?.length) return null
+
+      const filteredRegions = regionId
+        ? regions.filter(r => r.id === regionId)
+        : regions
+
+      const { temporalWeightByYear, windowYears } = buildWindowYears(season)
+      const windowYearList = windowYears.map(w => w.year)
+
+      const { data: positions, error: positionsError } = await supabase
+        .from('positions')
+        .select(`
+          points,
+          tournaments:tournamentId!inner(year, type, surface, category),
+          teams:teamId!inner(id, regionId)
+        `)
+        .in('tournaments.type', ['CE1', 'CE2'])
+        .in('tournaments.year', windowYearList)
+
+      if (positionsError) {
+        console.warn(`⚠️ Sin datos de posiciones para desglose de ${season}:`, positionsError.message)
+      }
+
+      const regionPts: Record<string, Record<string, number>> = {}
+      const regionYearPts: Record<string, Record<string, Record<number, number>>> = {}
+
+      regions.forEach(r => {
+        regionPts[r.id] = Object.fromEntries(MODALITIES.map(m => [m, 0]))
+        regionYearPts[r.id] = Object.fromEntries(
+          MODALITIES.map(m => [m, Object.fromEntries(windowYearList.map(y => [y, 0]))])
+        )
+      })
+
+      ;(positions || []).forEach(row => {
+        const tournament = (row as { tournaments?: { year: number; surface: string; category: string } }).tournaments
+        const regionIdRow = (row as { teams?: { regionId: string } }).teams?.regionId
+        if (!tournament || !regionIdRow || !regionPts[regionIdRow]) return
+
+        const weight = temporalWeightByYear[tournament.year]
+        if (!weight) return
+
+        const modality = `${String(tournament.surface).toLowerCase()}_${String(tournament.category).toLowerCase()}`
+        if (!(modality in regionPts[regionIdRow])) return
+
+        const pts = (row as { points?: number }).points || 0
+        regionPts[regionIdRow][modality] += pts * weight
+        regionYearPts[regionIdRow][modality][tournament.year] += pts
+      })
+
+      const savedCoeffs = applySavedOverrides
+        ? await seasonService.getRegionalCoefficients(season)
+        : []
+      const savedMap = new Map(
+        savedCoeffs.map(c => [`${c.regionId}-${c.modality}`, c])
+      )
+
+      const modalities: RegionalCoefficientModalityBreakdown[] = MODALITIES.map(modality => {
+        const allPts = regions.map(r => regionPts[r.id][modality])
+        const total = allPts.reduce((s, p) => s + p, 0)
+        const mean = total > 0 ? total / regions.length : 0
+
+        const regionBreakdowns: RegionalCoefficientRegionBreakdown[] = filteredRegions.map(region => {
+          const weightedPoints = regionPts[region.id][modality]
+          const coef = calculateRegionalCoefficient(weightedPoints, mean, DEFAULT_REGIONAL_CONFIG)
+          const saved = savedMap.get(`${region.id}-${modality}`)
+          const yearBreakdown = windowYearList.map(year => {
+            const rawPoints = regionYearPts[region.id][modality][year] || 0
+            const weight = temporalWeightByYear[year]
+            return {
+              year,
+              weight,
+              rawPoints,
+              weightedPoints: rawPoints * weight,
+            }
+          })
+
+          return {
+            regionId: region.id,
+            regionName: region.name,
+            weightedPoints,
+            coefficient: applySavedOverrides && saved ? saved.coefficient : coef,
+            deviationFromMean: mean > 0 ? ((weightedPoints - mean) / mean) * 100 : 0,
+            yearBreakdown,
+            isManualOverride: saved?.isManualOverride ?? false,
+          }
+        })
+
+        return { modality, nationalMean: mean, regions: regionBreakdowns }
+      })
+
+      return {
+        calculationSeason: season,
+        appliesToSeason: getNextSeasonLabel(season),
+        windowYears,
+        modalities,
+      }
+    } catch (error) {
+      console.error('Error obteniendo desglose de coeficientes:', error)
+      return null
+    }
+  },
+
+  /**
    * Calcula coeficientes regionales para una temporada (6 modalidades × todas las regiones).
    *
    * Fuente de datos: posiciones de torneos NACIONALES (CE1 y CE2) de las 4 últimas
@@ -177,102 +376,30 @@ const seasonService = {
    * y se aplican a los torneos REGIONAL de la temporada siguiente (season+1).
    */
   calculateRegionalCoefficients: async (season: string): Promise<RegionalCoefficient[]> => {
-    try {
-      if (!supabase) {
-        throw new Error('Supabase no está configurado')
-      }
+    const breakdown = await seasonService.getRegionalCoefficientBreakdown(season, undefined, false)
+    if (!breakdown) return []
 
-      console.log(`🔢 Calculando coeficientes regionales para temporada ${season}...`)
+    const now = new Date().toISOString()
+    const coefficients: RegionalCoefficient[] = []
 
-      const { data: regions, error: regionsError } = await supabase
-        .from('regions')
-        .select('id, name')
-
-      if (regionsError) throw regionsError
-      if (!regions || regions.length === 0) return []
-
-      // Ventana de 4 temporadas con pesos de antigüedad. La temporada base usa el
-      // año de inicio (ej: "2024-25" -> 2024) y se retrocede 3 años.
-      const baseYear = parseInt(season.split('-')[0])
-      const temporalWeightByYear: Record<number, number> = {
-        [baseYear]: DEFAULT_TEMPORAL_WEIGHTS.current,
-        [baseYear - 1]: DEFAULT_TEMPORAL_WEIGHTS.previous,
-        [baseYear - 2]: DEFAULT_TEMPORAL_WEIGHTS.twoAgo,
-        [baseYear - 3]: DEFAULT_TEMPORAL_WEIGHTS.threeAgo,
-      }
-      const windowYears = [baseYear, baseYear - 1, baseYear - 2, baseYear - 3]
-
-      // Posiciones de torneos nacionales (CE1/CE2) dentro de la ventana, con
-      // año/superficie/categoría del torneo y región del equipo.
-      const { data: positions, error: positionsError } = await supabase
-        .from('positions')
-        .select(`
-          points,
-          tournaments:tournamentId!inner(year, type, surface, category),
-          teams:teamId!inner(id, regionId)
-        `)
-        .in('tournaments.type', ['CE1', 'CE2'])
-        .in('tournaments.year', windowYears)
-
-      if (positionsError) {
-        console.warn(`⚠️ Sin datos de posiciones nacionales para coeficientes de ${season}, usando coef=1.0:`, positionsError.message)
-      }
-
-      // Inicializar acumuladores por región y modalidad (puntos ya ponderados).
-      const regionPts: Record<string, Record<string, number>> = {}
-      regions.forEach(r => {
-        regionPts[r.id] = {
-          beach_mixed: 0, beach_open: 0, beach_women: 0,
-          grass_mixed: 0, grass_open: 0, grass_women: 0,
-        }
-      })
-
-      ;(positions || []).forEach(row => {
-        const tournament = (row as any).tournaments
-        const regionId = (row as any).teams?.regionId
-        if (!tournament || !regionId || !regionPts[regionId]) return
-
-        const weight = temporalWeightByYear[tournament.year as number]
-        if (!weight) return
-
-        const modality = `${String(tournament.surface).toLowerCase()}_${String(tournament.category).toLowerCase()}`
-        if (!(modality in regionPts[regionId])) return
-
-        regionPts[regionId][modality] += ((row as any).points || 0) * weight
-      })
-
-      const modalities = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women']
-      const coefficients: RegionalCoefficient[] = []
-      const now = new Date().toISOString()
-
-      modalities.forEach(modality => {
-        const allPts = regions.map(r => regionPts[r.id][modality])
-        const total = allPts.reduce((s, p) => s + p, 0)
-        const mean = total > 0 ? total / regions.length : 0
-
-        regions.forEach(region => {
-          const pts = regionPts[region.id][modality]
-          const coef = calculateRegionalCoefficient(pts, mean, DEFAULT_REGIONAL_CONFIG)
-          coefficients.push({
-            id: `${region.id}-${season}-${modality}`,
-            regionId: region.id,
-            regionName: region.name,
-            season,
-            modality,
-            coefficient: coef,
-            isManualOverride: false,
-            calculatedValue: coef,
-            appliedAt: now,
-          })
+    breakdown.modalities.forEach(({ modality, regions }) => {
+      regions.forEach(region => {
+        coefficients.push({
+          id: `${region.regionId}-${season}-${modality}`,
+          regionId: region.regionId,
+          regionName: region.regionName,
+          season,
+          modality,
+          coefficient: region.coefficient,
+          isManualOverride: region.isManualOverride ?? false,
+          calculatedValue: region.coefficient,
+          appliedAt: now,
         })
       })
+    })
 
-      console.log(`✅ Coeficientes calculados: ${coefficients.length} entradas (${regions.length} regiones × ${modalities.length} modalidades)`)
-      return coefficients
-    } catch (error) {
-      console.error('Error al calcular coeficientes regionales:', error)
-      return []
-    }
+    console.log(`✅ Coeficientes calculados: ${coefficients.length} entradas`)
+    return coefficients
   },
 
   /**

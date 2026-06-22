@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
+import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Users, Trophy, BarChart3, TrendingUp, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { Users, Trophy, BarChart3, TrendingUp, Loader2 } from 'lucide-react'
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { regionsService, getTeamPublicUrl } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
 import seasonService from '@/services/seasonService'
@@ -14,6 +14,7 @@ import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import StatsCard from '@/components/ui/StatsCard'
 import EmptyState from '@/components/ui/EmptyState'
 import TeamLogo from '@/components/ui/TeamLogo'
+import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
 import DataTable, {
   DataTableHead,
   DataTableHeaderCell,
@@ -21,25 +22,17 @@ import DataTable, {
   DataTableRow,
   DataTableCell,
 } from '@/components/ui/DataTable'
+import SeasonNavigator, { useSelectedSeason } from '@/components/regions/SeasonNavigator'
+import RegionalCoefficientBreakdown from '@/components/regions/RegionalCoefficientBreakdown'
+import { MODALITIES, MODALITY_LABELS, getCoefficientStyle } from '@/components/regions/constants'
 
-const CHART_COLORS = ['#4F46E5', '#F97316', '#10B981', '#6366F1', '#EA580C']
+const CHART_COLORS = ['#4F46E5', '#F97316', '#10B981', '#6366F1', '#EA580C', '#0EA5E9']
 
-const MODALITIES = [
-  { key: 'beach_mixed',  label: 'Playa Mixto',     surface: 'BEACH' },
-  { key: 'beach_open',   label: 'Playa Open',       surface: 'BEACH' },
-  { key: 'beach_women',  label: 'Playa Femenino',   surface: 'BEACH' },
-  { key: 'grass_mixed',  label: 'Césped Mixto',     surface: 'GRASS' },
-  { key: 'grass_open',   label: 'Césped Open',      surface: 'GRASS' },
-  { key: 'grass_women',  label: 'Césped Femenino',  surface: 'GRASS' },
-] as const
+type ModalityKey = typeof MODALITIES[number]
 
-type ModalityKey = typeof MODALITIES[number]['key']
-
-const getCoefficientStyle = (coef: number) => {
-  if (coef >= 1.15) return { label: 'Alta competitividad', badge: 'badge-success', bar: 'bg-emerald-500' }
-  if (coef >= 1.0)  return { label: 'Competitividad media', badge: 'badge-primary', bar: 'bg-primary-500' }
-  if (coef >= 0.9)  return { label: 'Competitividad baja', badge: 'badge-warning', bar: 'bg-amber-500' }
-  return { label: 'Competitividad muy baja', badge: 'badge-error', bar: 'bg-red-500' }
+interface RegionRedirectState {
+  resolvedRegionId?: string
+  canonicalSlug?: string
 }
 
 const getTournamentTypeLabel = (type: string) => {
@@ -52,19 +45,73 @@ const getTournamentTypeLabel = (type: string) => {
 }
 
 const RegionDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>()
+  const { slug } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
   const [activeModality, setActiveModality] = useState<ModalityKey>('beach_mixed')
-  const [showHistory, setShowHistory] = useState(false)
+  const [regionId, setRegionId] = useState<string | null>(null)
+  const [notFound, setNotFound] = useState(false)
+  const loadIdRef = useRef(0)
+
+  useEffect(() => {
+    if (!slug) {
+      setNotFound(true)
+      return
+    }
+
+    const loadId = ++loadIdRef.current
+    setNotFound(false)
+    setRegionId(null)
+
+    const resolve = async () => {
+      try {
+        const redirectState = location.state as RegionRedirectState | null
+
+        if (
+          redirectState?.resolvedRegionId &&
+          redirectState.canonicalSlug === slug
+        ) {
+          setRegionId(redirectState.resolvedRegionId)
+          const qs = searchParams.toString()
+          navigate(`${location.pathname}${qs ? `?${qs}` : ''}`, { replace: true, state: null })
+          return
+        }
+
+        const regionRef = await regionsService.resolveRegion(slug)
+        if (loadId !== loadIdRef.current) return
+
+        if (regionRef.slug && regionRef.slug !== slug) {
+          const qs = searchParams.toString()
+          navigate(`/regiones/${regionRef.slug}${qs ? `?${qs}` : ''}`, {
+            replace: true,
+            state: { resolvedRegionId: regionRef.id, canonicalSlug: regionRef.slug },
+          })
+          return
+        }
+
+        setRegionId(regionRef.id)
+      } catch {
+        if (loadId === loadIdRef.current) setNotFound(true)
+      }
+    }
+
+    resolve()
+  }, [slug, location.state, location.pathname, navigate, searchParams])
 
   const { data: regionResponse, isLoading, error } = useQuery({
-    queryKey: ['region', id],
-    queryFn: () => regionsService.getById(id!),
-    enabled: !!id,
+    queryKey: ['region', regionId],
+    queryFn: async () => {
+      if (!regionId) throw new Error('Sin región')
+      const bySlug = slug && regionId ? await regionsService.getBySlug(slug).catch(() => null) : null
+      if (bySlug?.data) return bySlug
+      return regionsService.getById(regionId)
+    },
+    enabled: !!regionId,
   })
 
   const region = regionResponse?.data
 
-  // Temporada base para coeficientes (T-1 respecto a la actual)
   const { data: coeffSeasonInfo } = useQuery({
     queryKey: ['regional-coeff-season-info'],
     queryFn: async () => {
@@ -78,31 +125,41 @@ const RegionDetailPage: React.FC = () => {
 
   const referenceSeason = coeffSeasonInfo?.coefficientSeason
 
-  // Coeficientes de esta región por modalidad
+  const { data: availableSeasons = [] } = useQuery({
+    queryKey: ['regional-coefficient-seasons'],
+    queryFn: () => seasonService.listRegionalCoefficientSeasons(),
+  })
+
+  const selectedSeason = useSelectedSeason(availableSeasons, referenceSeason)
+
   const { data: modalityCoefficients } = useQuery({
-    queryKey: ['region-coefficients', id, referenceSeason],
+    queryKey: ['region-coefficients', regionId, selectedSeason],
     queryFn: async () => {
-      const all = await seasonService.getRegionalCoefficients(referenceSeason!)
-      return all.filter(c => c.regionId === id)
+      const all = await seasonService.getRegionalCoefficients(selectedSeason)
+      return all.filter(c => c.regionId === regionId)
     },
-    enabled: !!id && !!referenceSeason,
+    enabled: !!regionId && !!selectedSeason,
   })
 
-  // Historial de coeficientes (todas las temporadas)
   const { data: coefficientHistory } = useQuery({
-    queryKey: ['region-coefficient-history', id],
-    queryFn: () => seasonService.getRegionCoefficientHistory(id!),
-    enabled: !!id,
+    queryKey: ['region-coefficient-history', regionId],
+    queryFn: () => seasonService.getRegionCoefficientHistory(regionId!),
+    enabled: !!regionId,
   })
 
-  // Puntos globales por equipo (suma de 6 modalidades)
+  const { data: breakdown, isLoading: isLoadingBreakdown } = useQuery({
+    queryKey: ['regional-coefficient-breakdown', selectedSeason, regionId],
+    queryFn: () => seasonService.getRegionalCoefficientBreakdown(selectedSeason, regionId!),
+    enabled: !!regionId && !!selectedSeason,
+  })
+
   const { data: teamPointsMap } = useQuery({
-    queryKey: ['region-team-points', id],
+    queryKey: ['region-team-points', regionId],
     queryFn: async () => {
       const refSeason = await hybridRankingService.getMostRecentSeason()
-      const categories = MODALITIES.map(m => m.key)
+      const categories = MODALITIES.map(m => m)
       const allCategoryData = await Promise.all(
-        categories.map(cat => hybridRankingService.getRankingFromSeasonPoints(cat as any, refSeason))
+        categories.map(cat => hybridRankingService.getRankingFromSeasonPoints(cat as never, refSeason))
       )
       const pointsByTeam: Record<string, number> = {}
       allCategoryData.forEach(categoryData => {
@@ -115,18 +172,16 @@ const RegionDetailPage: React.FC = () => {
     enabled: !!region,
   })
 
-  // Ranking por modalidad (equipos de la región + posición nacional)
   const { data: modalityRankingData } = useQuery({
-    queryKey: ['region-modality-ranking', id, activeModality],
+    queryKey: ['region-modality-ranking', regionId, activeModality],
     queryFn: async () => {
       const refSeason = await hybridRankingService.getMostRecentSeason()
-      const allTeams = await hybridRankingService.getRankingFromSeasonPoints(activeModality as any, refSeason)
+      const allTeams = await hybridRankingService.getRankingFromSeasonPoints(activeModality as never, refSeason)
 
-      // Obtener qué equipos pertenecen a esta región
       const { data: regionTeams } = await supabase
         .from('teams')
         .select('id')
-        .eq('regionId', id)
+        .eq('regionId', regionId)
 
       const regionTeamIds = new Set((regionTeams || []).map(t => t.id))
 
@@ -134,13 +189,13 @@ const RegionDetailPage: React.FC = () => {
         .map((t, idx) => ({ ...t, national_position: idx + 1 }))
         .filter(t => regionTeamIds.has(t.team_id))
     },
-    enabled: !!id && !!activeModality,
+    enabled: !!regionId && !!activeModality,
   })
 
   const teams = useMemo(() => {
     if (!region?.teams) return []
     return [...region.teams]
-      .map((team: any) => ({
+      .map((team: { id: string; slug?: string; name: string; logo?: string; positions?: { count: number }[] }) => ({
         id: team.id,
         slug: team.slug,
         name: team.name,
@@ -161,27 +216,56 @@ const RegionDetailPage: React.FC = () => {
     points: team.points,
   }))
 
-  // Mapa de coeficientes por modalidad para esta región
   const coefByModality = useMemo(() => {
     const map: Record<string, number> = {}
     ;(modalityCoefficients || []).forEach(c => { map[c.modality] = c.coefficient })
     return map
   }, [modalityCoefficients])
 
-  // Agrupar historial por temporada
-  const historyBySeasonAndModality = useMemo(() => {
-    if (!coefficientHistory) return []
+  const avgActiveCoef = useMemo(() => {
+    const vals = Object.values(coefByModality)
+    if (!vals.length) return null
+    return vals.reduce((s, v) => s + v, 0) / vals.length
+  }, [coefByModality])
+
+  const evolutionChartData = useMemo(() => {
+    if (!coefficientHistory?.length) return []
+
     const seasonMap: Record<string, Record<string, number>> = {}
     coefficientHistory.forEach(c => {
       if (!seasonMap[c.season]) seasonMap[c.season] = {}
       if (c.modality) seasonMap[c.season][c.modality] = c.coefficient
     })
+
     return Object.entries(seasonMap)
-      .sort(([a], [b]) => b.localeCompare(a))
-      .map(([season, coefs]) => ({ season, coefs }))
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([season, coefs]) => ({
+        season,
+        ...coefs,
+      }))
   }, [coefficientHistory])
 
-  if (isLoading) {
+  if (!regionId && !notFound) {
+    return (
+      <PageContainer>
+        <DetailHeaderSkeleton />
+      </PageContainer>
+    )
+  }
+
+  if (notFound || error) {
+    return (
+      <PageContainer>
+        <EmptyState
+          title="Región no encontrada"
+          description="La región que buscas no existe o ha sido eliminada."
+          actionLink={{ label: 'Ver regiones', href: '/regiones' }}
+        />
+      </PageContainer>
+    )
+  }
+
+  if (isLoading || !region) {
     return (
       <PageContainer className="flex items-center justify-center min-h-[50vh]">
         <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
@@ -190,34 +274,25 @@ const RegionDetailPage: React.FC = () => {
     )
   }
 
-  if (error || !region) {
-    return (
-      <PageContainer>
-        <EmptyState
-          title="Región no encontrada"
-          description="La región que buscas no existe o ha sido eliminada."
-          actionLink={{ label: 'Ver regiones', href: '/regions' }}
-        />
-      </PageContainer>
-    )
-  }
-
   return (
     <PageContainer>
       <PageHeader
         title={region.name}
-        subtitle="Región participante en el ranking FEDV"
+        subtitle={
+          avgActiveCoef !== null
+            ? `Coeficiente medio activo: ${avgActiveCoef.toFixed(2)}×`
+            : 'Región participante en el ranking FEDV'
+        }
         breadcrumbs={
           <Breadcrumbs
             items={[
-              { label: 'Regiones', href: '/regions' },
+              { label: 'Regiones', href: '/regiones' },
               { label: region.name },
             ]}
           />
         }
       />
 
-      {/* Stats principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard icon={Users} label="Equipos" value={region._count?.teams ?? teams.length} />
         <StatsCard
@@ -243,16 +318,21 @@ const RegionDetailPage: React.FC = () => {
         />
       </div>
 
-      {/* Coeficientes por modalidad */}
       <div className="card mb-8">
-        <h2 className="font-display text-lg font-semibold text-slate-900 mb-2">Coeficientes por modalidad</h2>
-        <p className="text-sm text-slate-500 mb-4">
-          Calculados de los rankings de la temporada {referenceSeason || '—'}. Se aplican a los torneos regionales de la temporada actual.
-        </p>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {MODALITIES.map(({ key, label, surface }) => {
+        <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Coeficientes por temporada</h2>
+        <SeasonNavigator
+          seasons={availableSeasons}
+          defaultSeason={referenceSeason}
+          calculationSeason={breakdown?.calculationSeason || selectedSeason}
+          appliesToSeason={breakdown?.appliesToSeason}
+        />
+
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
+          {MODALITIES.map(key => {
+            const label = MODALITY_LABELS[key]
             const coef = coefByModality[key] ?? null
             const style = coef !== null ? getCoefficientStyle(coef) : null
+            const surface = key.startsWith('grass') ? 'GRASS' : 'BEACH'
             const pct = coef !== null ? ((coef - 0.80) / (1.20 - 0.80)) * 100 : 50
             return (
               <div key={key} className="bg-slate-50 rounded-xl p-4">
@@ -264,7 +344,7 @@ const RegionDetailPage: React.FC = () => {
                 </div>
                 {coef !== null ? (
                   <>
-                    <p className="text-2xl font-bold text-slate-900 mb-2">{coef.toFixed(2)}x</p>
+                    <p className="text-2xl font-bold text-slate-900 mb-2">{coef.toFixed(2)}×</p>
                     <div className="h-2 bg-slate-200 rounded-full overflow-hidden mb-1">
                       <div
                         className={`h-full rounded-full transition-all ${style!.bar}`}
@@ -287,69 +367,56 @@ const RegionDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Historial de coeficientes — acordeón */}
-      {historyBySeasonAndModality.length > 0 && (
+      {evolutionChartData.length > 1 && (
         <div className="card mb-8">
-          <button
-            onClick={() => setShowHistory(v => !v)}
-            className="w-full flex items-center justify-between text-left"
-          >
-            <h2 className="font-display text-lg font-semibold text-slate-900">Historial de coeficientes</h2>
-            {showHistory ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
-          </button>
-          {showHistory && (
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className="bg-slate-50">
-                    <th className="text-left p-2 font-medium text-slate-700">Temporada</th>
-                    {MODALITIES.map(m => (
-                      <th key={m.key} className="text-center p-2 font-medium text-slate-700 text-xs">{m.label.replace(' ', '\n')}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {historyBySeasonAndModality.map(({ season, coefs }) => (
-                    <tr key={season} className="hover:bg-slate-50">
-                      <td className="p-2 font-medium text-slate-900">{season}</td>
-                      {MODALITIES.map(m => {
-                        const v = coefs[m.key]
-                        return (
-                          <td key={m.key} className="text-center p-2">
-                            {v !== undefined ? (
-                              <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${getCoefficientStyle(v).badge}`}>
-                                {v.toFixed(2)}
-                              </span>
-                            ) : (
-                              <span className="text-slate-300">—</span>
-                            )}
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Evolución histórica</h2>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={evolutionChartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="season" tick={{ fontSize: 11 }} />
+              <YAxis domain={[0.75, 1.25]} tick={{ fontSize: 11 }} />
+              <Tooltip formatter={(v: number) => v.toFixed(2)} />
+              <Legend />
+              {MODALITIES.map((mod, i) => (
+                <Line
+                  key={mod}
+                  type="monotone"
+                  dataKey={mod}
+                  name={MODALITY_LABELS[mod]}
+                  stroke={CHART_COLORS[i % CHART_COLORS.length]}
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  connectNulls
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       )}
 
-      {/* Rankings por modalidad */}
+      <div className="mb-8">
+        <RegionalCoefficientBreakdown
+          breakdown={breakdown}
+          regionId={regionId!}
+          isLoading={isLoadingBreakdown}
+          defaultExpanded
+        />
+      </div>
+
       <div className="card mb-8">
         <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Clasificación por modalidad</h2>
         <div className="flex flex-wrap gap-2 mb-4">
           {MODALITIES.map(m => (
             <button
-              key={m.key}
-              onClick={() => setActiveModality(m.key)}
+              key={m}
+              onClick={() => setActiveModality(m)}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                activeModality === m.key
+                activeModality === m
                   ? 'bg-primary-600 text-white'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
-              {m.label}
+              {MODALITY_LABELS[m]}
             </button>
           ))}
         </div>
@@ -362,13 +429,13 @@ const RegionDetailPage: React.FC = () => {
         ) : modalityRankingData.length === 0 ? (
           <EmptyState
             title="Sin datos"
-            description={`No hay equipos de ${region.name} en el ranking de ${MODALITIES.find(m => m.key === activeModality)?.label}.`}
+            description={`No hay equipos de ${region.name} en el ranking de ${MODALITY_LABELS[activeModality]}.`}
           />
         ) : (
-          <DataTable caption={`Clasificación ${MODALITIES.find(m => m.key === activeModality)?.label} — ${region.name}`}>
+          <DataTable caption={`Clasificación ${MODALITY_LABELS[activeModality]} — ${region.name}`}>
             <DataTableHead>
               <tr>
-                <DataTableHeaderCell>Posición Nacional</DataTableHeaderCell>
+                <DataTableHeaderCell>Posición nacional</DataTableHeaderCell>
                 <DataTableHeaderCell>Equipo</DataTableHeaderCell>
                 <DataTableHeaderCell>Puntos</DataTableHeaderCell>
               </tr>
@@ -398,7 +465,6 @@ const RegionDetailPage: React.FC = () => {
         )}
       </div>
 
-      {/* Equipos de la región (resumen global) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         <div className="lg:col-span-2">
           <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Equipos de la región</h2>
@@ -452,7 +518,6 @@ const RegionDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Torneos organizados */}
       <div>
         <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Torneos organizados</h2>
         {tournaments.length === 0 ? (
@@ -471,7 +536,7 @@ const RegionDetailPage: React.FC = () => {
               </tr>
             </DataTableHead>
             <DataTableBody>
-              {tournaments.map((tournament: any) => (
+              {tournaments.map((tournament: { id: string; name: string; year: number; type: string; surface: string }) => (
                 <DataTableRow key={tournament.id}>
                   <DataTableCell>
                     <Link

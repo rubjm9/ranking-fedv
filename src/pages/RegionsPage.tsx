@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { MapPin, Users, TrendingUp, Trophy, ChevronRight, BarChart3, Loader2, ChevronDown, ChevronUp, Info } from 'lucide-react'
-import { regionsService } from '@/services/apiService'
+import { MapPin, Users, TrendingUp, ChevronRight, Loader2, ChevronDown, ChevronUp, Info } from 'lucide-react'
+import { regionsService, getRegionPublicUrl } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
 import seasonService from '@/services/seasonService'
 import { getRegionalCoefficientBaseSeason } from '@/utils/rankingCalculations'
@@ -10,34 +10,12 @@ import { supabase } from '@/services/supabaseService'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
 import StatsCard from '@/components/ui/StatsCard'
-
-const MODALITY_LABELS: Record<string, string> = {
-  beach_mixed: 'Playa Mixto',
-  beach_open: 'Playa Open',
-  beach_women: 'Playa Femenino',
-  grass_mixed: 'Césped Mixto',
-  grass_open: 'Césped Open',
-  grass_women: 'Césped Femenino',
-}
-
-const MODALITY_SHORT: Record<string, string> = {
-  beach_mixed: 'PM',
-  beach_open: 'PO',
-  beach_women: 'PF',
-  grass_mixed: 'CM',
-  grass_open: 'CO',
-  grass_women: 'CF',
-}
-
-const getCoefficientColor = (coef: number) => {
-  if (coef >= 1.15) return 'bg-emerald-100 text-emerald-800'
-  if (coef >= 1.0) return 'bg-primary-100 text-primary-800'
-  if (coef >= 0.9) return 'bg-amber-100 text-amber-800'
-  return 'bg-red-100 text-red-700'
-}
+import SeasonNavigator, { useSelectedSeason } from '@/components/regions/SeasonNavigator'
+import RegionalCoefficientMatrix from '@/components/regions/RegionalCoefficientMatrix'
+import RegionalCoefficientBreakdown from '@/components/regions/RegionalCoefficientBreakdown'
+import { MODALITY_SHORT, MODALITY_LABELS, getCoefficientColor } from '@/components/regions/constants'
 
 const RegionsPage = () => {
-  const [sortBy, setSortBy] = useState<'name' | 'coefficient' | 'teams'>('coefficient')
   const [showFormula, setShowFormula] = useState(false)
   const [regionStats, setRegionStats] = useState<{
     mostActive: { name: string; count: number } | null
@@ -50,8 +28,8 @@ const RegionsPage = () => {
   })
 
   const regions = regionsData?.data || []
+  const sortedRegions = [...regions].sort((a, b) => a.name.localeCompare(b.name))
 
-  // Coeficientes de la temporada base (T-1): se aplican a los regionales de la temporada actual.
   const { data: coeffSeasonInfo } = useQuery({
     queryKey: ['regional-coeff-season-info'],
     queryFn: async () => {
@@ -65,14 +43,31 @@ const RegionsPage = () => {
 
   const referenceSeason = coeffSeasonInfo?.coefficientSeason
 
-  // Cargar coeficientes regionales de la temporada base
+  const { data: availableSeasons = [] } = useQuery({
+    queryKey: ['regional-coefficient-seasons'],
+    queryFn: () => seasonService.listRegionalCoefficientSeasons(),
+  })
+
+  const selectedSeason = useSelectedSeason(availableSeasons, referenceSeason)
+
   const { data: regionalCoefficients, isLoading: isLoadingCoeffs } = useQuery({
     queryKey: ['regional-coefficients', referenceSeason],
     queryFn: () => seasonService.getRegionalCoefficients(referenceSeason!),
     enabled: !!referenceSeason,
   })
 
-  // Construir mapa: regionId → { modality: coefficient }
+  const { data: historicalCoefficients, isLoading: isLoadingHistoricalCoeffs } = useQuery({
+    queryKey: ['regional-coefficients', selectedSeason],
+    queryFn: () => seasonService.getRegionalCoefficients(selectedSeason),
+    enabled: !!selectedSeason,
+  })
+
+  const { data: breakdown, isLoading: isLoadingBreakdown } = useQuery({
+    queryKey: ['regional-coefficient-breakdown', selectedSeason],
+    queryFn: () => seasonService.getRegionalCoefficientBreakdown(selectedSeason),
+    enabled: !!selectedSeason,
+  })
+
   const coeffMap = new Map<string, Record<string, number>>()
   ;(regionalCoefficients || []).forEach(c => {
     if (!coeffMap.has(c.regionId)) coeffMap.set(c.regionId, {})
@@ -82,13 +77,13 @@ const RegionsPage = () => {
   useEffect(() => {
     const calculateRegionStats = async () => {
       try {
-        const referenceSeason = await hybridRankingService.getMostRecentSeason()
+        const refSeason = await hybridRankingService.getMostRecentSeason()
         const categories = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women']
         const allCategoryData = await Promise.all(
-          categories.map(cat => hybridRankingService.getRankingFromSeasonPoints(cat as any, referenceSeason))
+          categories.map(cat => hybridRankingService.getRankingFromSeasonPoints(cat as never, refSeason))
         )
 
-        const teamGlobalPoints: { [key: string]: { team: any; totalPoints: number } } = {}
+        const teamGlobalPoints: Record<string, { team: { team_id: string }; totalPoints: number }> = {}
         allCategoryData.forEach(categoryData => {
           categoryData.forEach(team => {
             const teamId = team.team_id
@@ -103,16 +98,17 @@ const RegionsPage = () => {
         }))
 
         const teamIds = globalRanking.map(team => team.team_id)
+        if (!supabase) return
         const { data: teamsData } = await supabase
           .from('teams')
           .select('id, regionId, regions:regionId(id, name)')
           .in('id', teamIds)
 
         const teamRegionMap = new Map(
-          teamsData?.map(team => [team.id, team.regions?.name || 'Sin región']) || []
+          teamsData?.map(team => [team.id, (team.regions as { name?: string } | null)?.name || 'Sin región']) || []
         )
 
-        const regionStatsMap: { [regionName: string]: { count: number; totalPoints: number } } = {}
+        const regionStatsMap: Record<string, { count: number; totalPoints: number }> = {}
         globalRanking.forEach(team => {
           const regionName = teamRegionMap.get(team.team_id) || 'Sin región'
           if (!regionStatsMap[regionName]) regionStatsMap[regionName] = { count: 0, totalPoints: 0 }
@@ -137,33 +133,16 @@ const RegionsPage = () => {
     if (regions.length > 0) calculateRegionStats()
   }, [regions])
 
-  const sortedRegions = [...regions].sort((a, b) => {
-    switch (sortBy) {
-      case 'name': return a.name.localeCompare(b.name)
-      case 'coefficient': return (b.coefficient || 0) - (a.coefficient || 0)
-      case 'teams': return (b._count?.teams || b.teams?.length || 0) - (a._count?.teams || a.teams?.length || 0)
-      default: return 0
-    }
-  })
-
   const totalRegions = regions.length
   const totalTeams = regions.reduce((sum, r) => sum + (r._count?.teams || r.teams?.length || 0), 0)
 
-  // Coeficiente más alto y más bajo de la temporada (promediado por todas las modalidades)
   const regionAvgCoefs = regions.map(r => {
     const modCoefs = coeffMap.get(r.id)
     if (!modCoefs) return { name: r.name, avg: 1.0 }
     const vals = Object.values(modCoefs)
     return { name: r.name, avg: vals.length > 0 ? vals.reduce((s, v) => s + v, 0) / vals.length : 1.0 }
   })
-  const highestCoef = regionAvgCoefs.sort((a, b) => b.avg - a.avg)[0]
-  const lowestCoef = regionAvgCoefs[regionAvgCoefs.length - 1]
-
-  const sortOptions = [
-    { id: 'name' as const, label: 'Nombre' },
-    { id: 'coefficient' as const, label: 'Coeficiente' },
-    { id: 'teams' as const, label: 'Equipos' },
-  ]
+  const highestCoef = [...regionAvgCoefs].sort((a, b) => b.avg - a.avg)[0]
 
   if (error) {
     return (
@@ -234,23 +213,26 @@ const RegionsPage = () => {
       </div>
 
       <div className="card mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h3 className="text-lg font-medium text-slate-900">Ordenar por</h3>
-          <div className="flex flex-wrap gap-2">
-            {sortOptions.map(option => (
-              <button
-                key={option.id}
-                onClick={() => setSortBy(option.id)}
-                className={`px-4 py-2 min-h-[44px] rounded-xl text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                  sortBy === option.id
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">Histórico de coeficientes</h2>
+        <SeasonNavigator
+          seasons={availableSeasons}
+          defaultSeason={referenceSeason}
+          calculationSeason={breakdown?.calculationSeason || selectedSeason}
+          appliesToSeason={breakdown?.appliesToSeason}
+        />
+        <div className="mt-6">
+          <RegionalCoefficientMatrix
+            regions={sortedRegions}
+            coefficients={historicalCoefficients || []}
+            season={selectedSeason}
+            isLoading={isLoadingHistoricalCoeffs}
+          />
+        </div>
+        <div className="mt-6">
+          <RegionalCoefficientBreakdown
+            breakdown={breakdown}
+            isLoading={isLoadingBreakdown}
+          />
         </div>
       </div>
 
@@ -263,7 +245,7 @@ const RegionsPage = () => {
           {sortedRegions.map(region => {
             const modCoefs = coeffMap.get(region.id)
             return (
-              <Link key={region.id} to={`/regions/${region.id}`} className="card-hover group">
+              <Link key={region.id} to={getRegionPublicUrl(region)} className="card-hover group">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
@@ -321,7 +303,6 @@ const RegionsPage = () => {
         </div>
       )}
 
-      {/* Sección: Cómo se calcula el coeficiente */}
       <div className="card mb-8">
         <button
           onClick={() => setShowFormula(v => !v)}

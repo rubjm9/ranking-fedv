@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Search, ChevronUp, ChevronDown, ArrowUpDown, ExternalLink, Trophy } from 'lucide-react'
 import Pagination from './Pagination'
 import EmptyState from './EmptyState'
+import { formatPoints } from '@/utils/rankingCalculations'
 
 interface TournamentResult {
   id: string
@@ -14,6 +15,8 @@ interface TournamentResult {
   category: string
   position: number
   points: number
+  basePoints?: number
+  coefficient?: number
   date: string
 }
 
@@ -307,7 +310,12 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                       </span>
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-slate-900">{result.points}</div>
+                      <div className="text-sm font-medium text-slate-900">{formatPoints(result.points)}</div>
+                      {result.type === 'REGIONAL' && result.coefficient !== undefined && result.coefficient !== 1 && (
+                        <div className="text-xs text-slate-500">
+                          base {result.basePoints}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-slate-500">
@@ -357,7 +365,12 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPositionColor(result.position)}`}>
                     {result.position}º
                   </span>
-                  <span className="text-slate-600">{result.points} puntos</span>
+                  <div className="text-right">
+                    <span className="text-slate-600">{formatPoints(result.points)} puntos</span>
+                    {result.type === 'REGIONAL' && result.coefficient !== undefined && result.coefficient !== 1 && (
+                      <div className="text-xs text-slate-400">base {result.basePoints}</div>
+                    )}
+                  </div>
                 </div>
                 <div className="text-xs text-slate-500">
                   {result.season} • {result.date ? new Date(result.date).toLocaleDateString('es-ES') : 'N/A'}

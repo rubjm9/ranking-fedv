@@ -6,9 +6,12 @@ import { useQuery } from '@tanstack/react-query'
 import { tournamentsService } from '@/services/apiService'
 import seasonService from '@/services/seasonService'
 import {
+  buildRegionalCoefficientLookup,
+  formatPoints,
   formatSeasonFromYear,
   getPreviousSeasonLabel,
-  getRegionalCoefficientForTournament,
+  getWeightedRegionalPoints,
+  roundPoints,
 } from '@/utils/rankingCalculations'
 import { translateSurface, translateModality, translateTournamentType, getStatusLabel, getStatusColor } from '@/utils/translations'
 import TeamLogo from '@/components/ui/TeamLogo'
@@ -109,8 +112,15 @@ const TournamentDetailPage: React.FC = () => {
   })
 
   // Procesar posiciones: en torneos REGIONAL los puntos mostrados incluyen el coeficiente.
+  const coefficientLookup = React.useMemo(() => {
+    if (!coefficientBaseSeason || !regionalCoefficients?.length) return new Map<string, number>()
+    return buildRegionalCoefficientLookup(
+      regionalCoefficients.map(c => ({ ...c, season: coefficientBaseSeason }))
+    )
+  }, [coefficientBaseSeason, regionalCoefficients])
+
   const positions: TeamPosition[] = React.useMemo(() => {
-    if (!tournament?.positions) return []
+    if (!tournament?.positions || !tournamentSeason) return []
 
     return tournament.positions
       .map(pos => {
@@ -121,18 +131,15 @@ const TournamentDetailPage: React.FC = () => {
           tournament.region?.id
 
         const basePoints = pos.points || 0
-        const coefficient = isRegional && teamRegionId && tournament.surface && tournament.category
-          ? getRegionalCoefficientForTournament(
-              regionalCoefficients || [],
-              teamRegionId,
-              tournament.surface,
-              tournament.category
-            )
-          : 1.0
-
-        const weightedPoints = isRegional
-          ? Math.round(basePoints * coefficient)
-          : basePoints
+        const weighted = getWeightedRegionalPoints(
+          basePoints,
+          tournament.type,
+          tournament.surface,
+          tournament.category,
+          teamRegionId,
+          tournamentSeason,
+          coefficientLookup
+        )
 
         return {
           id: pos.id,
@@ -144,13 +151,13 @@ const TournamentDetailPage: React.FC = () => {
             regionId: teamRegionId,
             logo: 'https://via.placeholder.com/40',
           },
-          basePoints,
-          points: weightedPoints,
-          coefficient,
+          basePoints: weighted.basePoints,
+          points: weighted.points,
+          coefficient: weighted.coefficient,
         }
       })
       .sort((a, b) => a.position - b.position)
-  }, [tournament, isRegional, regionalCoefficients])
+  }, [tournament, tournamentSeason, coefficientLookup])
 
 
   // Calcular estadísticas de región basadas en datos reales
@@ -171,7 +178,7 @@ const TournamentDetailPage: React.FC = () => {
   }, [positions])
 
   // Calcular estadísticas del torneo
-  const totalPoints = positions.reduce((sum, pos) => sum + pos.points, 0)
+  const totalPoints = roundPoints(positions.reduce((sum, pos) => sum + pos.points, 0))
   const totalTeams = positions.length
 
   // Función para obtener el icono de posición
@@ -265,7 +272,7 @@ const TournamentDetailPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard icon={Calendar} label="Año" value={tournament.year} />
         <StatsCard icon={Users} label="Equipos" value={totalTeams} iconBgColor="bg-emerald-100" iconColor="text-emerald-600" />
-        <StatsCard icon={BarChart3} label="Puntos totales" value={totalPoints.toLocaleString()} iconBgColor="bg-accent-100" iconColor="text-accent-600" />
+        <StatsCard icon={BarChart3} label="Puntos totales" value={formatPoints(totalPoints)} iconBgColor="bg-accent-100" iconColor="text-accent-600" />
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <div className="flex items-center">
             <Trophy className="h-6 w-6 text-primary-600 mr-3" />
@@ -452,7 +459,7 @@ const TournamentDetailPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-slate-900">{position.points}</div>
+                        <div className="text-sm font-medium text-slate-900">{formatPoints(position.points)}</div>
                         {isRegional && position.coefficient !== 1 && (
                           <div className="text-xs text-slate-500">
                             base {position.basePoints}

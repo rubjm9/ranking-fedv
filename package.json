@@ -12,6 +12,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "backfill-slugs": "node --env-file=.env.local --import tsx src/scripts/backfill-team-slugs.ts",
+    "backfill-region-slugs": "node --env-file=.env.local --import tsx src/scripts/backfill-region-slugs.ts",
     "backfill-regional-coefficients": "node --env-file=.env.local --import tsx src/scripts/backfill-regional-coefficients.ts"
   },
   "dependencies": {

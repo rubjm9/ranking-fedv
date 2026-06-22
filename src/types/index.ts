@@ -53,6 +53,7 @@ export interface UpdateTeamRequest extends Partial<CreateTeamRequest> {}
 export interface Region {
   id: string;
   name: string;
+  slug?: string;
   coefficient: number;
   floor: number;
   ceiling: number;

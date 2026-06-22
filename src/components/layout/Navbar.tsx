@@ -30,7 +30,7 @@ const Navbar: React.FC = () => {
   const navigation = [
     { name: 'Inicio', href: '/', icon: Home },
     { name: 'Equipos', href: '/equipos', icon: Users },
-    { name: 'Regiones', href: '/regions', icon: MapPin },
+    { name: 'Regiones', href: '/regiones', icon: MapPin },
     { name: 'Torneos', href: '/tournaments', icon: Calendar },
     { name: 'Cómo funciona', href: '/about', icon: Info },
   ]

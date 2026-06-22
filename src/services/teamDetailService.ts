@@ -4,6 +4,12 @@
 
 import { supabase } from './supabaseService'
 import hybridRankingService from './hybridRankingService'
+import seasonService from './seasonService'
+import {
+  buildRegionalCoefficientLookup,
+  getRegionalCoefficientBaseSeason,
+  getWeightedRegionalPoints,
+} from '@/utils/rankingCalculations'
 
 export interface TeamDetailData {
   team: {
@@ -55,6 +61,8 @@ export interface TournamentResult {
   category: string
   position: number
   points: number
+  basePoints?: number
+  coefficient?: number
   date: string
   region?: string
 }
@@ -103,7 +111,7 @@ class TeamDetailService {
       const teamData = await this.getTeamBasicInfo(teamId)
       
       // 2. Obtener resultados de torneos (más simple, sin ordenamiento complejo)
-      const tournamentResults = await this.getTournamentResults(teamId)
+      const tournamentResults = await this.getTournamentResults(teamId, teamData.regionId)
       
       // 3. Obtener rankings actuales (con manejo de errores)
       const currentRankings = await this.getCurrentRankings(teamId)
@@ -316,7 +324,7 @@ class TeamDetailService {
   /**
    * Obtener resultados de torneos del equipo
    */
-  private async getTournamentResults(teamId: string): Promise<TournamentResult[]> {
+  private async getTournamentResults(teamId: string, teamRegionId?: string): Promise<TournamentResult[]> {
     const { data, error } = await supabase
       .from('positions')
       .select(`
@@ -338,7 +346,7 @@ class TeamDetailService {
 
     if (error) throw error
 
-    const results = (data || []).map(position => ({
+    const rawResults = (data || []).map(position => ({
       id: position.id,
       tournamentId: position.tournamentId,
       name: position.tournaments.name,
@@ -348,10 +356,44 @@ class TeamDetailService {
       surface: position.tournaments.surface,
       category: position.tournaments.category,
       position: position.position,
-      points: position.points,
+      basePoints: position.points,
       date: position.tournaments.startDate || position.tournaments.endDate || '',
       region: position.tournaments.region?.name
     }))
+
+    const regionalBaseSeasons = [
+      ...new Set(
+        rawResults
+          .filter(r => r.type === 'REGIONAL')
+          .map(r => getRegionalCoefficientBaseSeason(r.season))
+      ),
+    ]
+
+    let coefficientLookup = new Map<string, number>()
+    if (teamRegionId && regionalBaseSeasons.length > 0) {
+      const coefficientSets = await Promise.all(
+        regionalBaseSeasons.map(season => seasonService.getRegionalCoefficients(season))
+      )
+      coefficientLookup = buildRegionalCoefficientLookup(coefficientSets.flat())
+    }
+
+    const results = rawResults.map(result => {
+      const weighted = getWeightedRegionalPoints(
+        result.basePoints,
+        result.type,
+        result.surface,
+        result.category,
+        teamRegionId,
+        result.season,
+        coefficientLookup
+      )
+      return {
+        ...result,
+        points: weighted.points,
+        basePoints: weighted.basePoints,
+        coefficient: weighted.coefficient,
+      }
+    })
 
     // Ordenar por año y fecha en JavaScript
     return results.sort((a, b) => {

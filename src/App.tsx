@@ -50,6 +50,7 @@ import TeamDetailPage from '@/pages/TeamDetailPage'
 import TeamLegacyRedirect from '@/pages/TeamLegacyRedirect'
 import TournamentDetailPage from '@/pages/TournamentDetailPage'
 import RegionDetailPage from '@/pages/RegionDetailPage'
+import RegionLegacyRedirect from '@/pages/RegionLegacyRedirect'
 
 // Componentes
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
@@ -85,8 +86,10 @@ function App() {
               <Route path="equipos/:slug" element={<TeamDetailPage />} />
               <Route path="teams" element={<Navigate to="/equipos" replace />} />
               <Route path="teams/:id" element={<TeamLegacyRedirect />} />
-              <Route path="regions" element={<RegionsPage />} />
-              <Route path="regions/:id" element={<RegionDetailPage />} />
+              <Route path="regiones" element={<RegionsPage />} />
+              <Route path="regiones/:slug" element={<RegionDetailPage />} />
+              <Route path="regions" element={<Navigate to="/regiones" replace />} />
+              <Route path="regions/:id" element={<RegionLegacyRedirect />} />
               <Route path="tournaments" element={<TournamentsPage />} />
               <Route path="tournaments/:id" element={<TournamentDetailPage />} />
               <Route path="about" element={<AboutPage />} />
