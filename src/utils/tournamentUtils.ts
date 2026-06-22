@@ -16,6 +16,8 @@ export interface TournamentFormData {
   startDate: string
   endDate: string
   location: string
+  divisionSize?: number
+  parentTournamentId?: string
 }
 
 export interface PositionRow {
@@ -98,36 +100,66 @@ export const generateTournamentName = (
   return name
 }
 
-// Obtener puntos según la posición y tipo de torneo
-export const getPointsForPosition = (position: number, tournamentType: string): number => {
-  const pointsTables = {
-    CE1: {
-      1: 1000, 2: 850, 3: 725, 4: 625, 5: 520, 6: 450, 7: 380, 8: 320,
-      9: 270, 10: 230, 11: 195, 12: 165, 13: 140, 14: 120, 15: 105, 16: 90,
-      17: 75, 18: 65, 19: 55, 20: 46, 21: 39, 22: 34, 23: 30, 24: 27
-    },
-    CE2: {
-      1: 230, 2: 195, 3: 165, 4: 140, 5: 120, 6: 103, 7: 86, 8: 74,
-      9: 63, 10: 54, 11: 46, 12: 39, 13: 34, 14: 29, 15: 25, 16: 21,
-      17: 18, 18: 15, 19: 13, 20: 11, 21: 9, 22: 8, 23: 7, 24: 6
-    },
-    REGIONAL: {
-      1: 140, 2: 120, 3: 100, 4: 85, 5: 72, 6: 60, 7: 50, 8: 42,
-      9: 35, 10: 30, 11: 25, 12: 21, 13: 18, 14: 15, 15: 13, 16: 11,
-      17: 9, 18: 8, 19: 7, 20: 6, 21: 5, 22: 4, 23: 3, 24: 2
-    }
+// Curva de puntos unificada: decaimiento por tramos (85% para los puestos 1-8,
+// 90% a partir del 9). Misma forma para la curva nacional (ancla 1000) y la
+// regional (ancla 100).
+const NATIONAL_ANCHOR = 1000
+const REGIONAL_ANCHOR = 100
+const TOP_DECAY = 0.85
+const TAIL_DECAY = 0.9
+const TOP_POSITIONS = 8
+
+const curvePoints = (anchor: number, curvePos: number): number => {
+  if (curvePos < 1) return 0
+  if (curvePos <= TOP_POSITIONS) {
+    return Math.round(anchor * TOP_DECAY ** (curvePos - 1))
   }
-  
-  const table = pointsTables[tournamentType as keyof typeof pointsTables]
-  return table?.[position] || 0
+  const base = anchor * TOP_DECAY ** (TOP_POSITIONS - 1) // valor en el puesto 8
+  return Math.round(base * TAIL_DECAY ** (curvePos - TOP_POSITIONS))
+}
+
+export const nationalCurvePoints = (curvePos: number): number =>
+  curvePoints(NATIONAL_ANCHOR, curvePos)
+
+export const regionalCurvePoints = (pos: number): number =>
+  curvePoints(REGIONAL_ANCHOR, pos)
+
+// Tamaño de división por defecto de la 1ª (estructura real con regionales: 16 + 16).
+export const DEFAULT_DIVISION_SIZE = 16
+
+// Offset = nº de equipos de 1ª que preceden a la 2ª en la curva nacional.
+// CE2: el tamaño de su 1ª asociada (almacenado en su propio divisionSize); 0 para CE1/REGIONAL.
+export const getOffsetForTournament = (
+  tournamentType: string,
+  divisionSize?: number | null
+): number => {
+  if (tournamentType === 'CE2') return divisionSize ?? DEFAULT_DIVISION_SIZE
+  return 0
+}
+
+// Obtener puntos según la posición y tipo de torneo.
+// `offset` = nº de equipos de 1ª que preceden a la 2ª en la curva (0 para CE1/REGIONAL).
+// Un CE2 continúa la curva nacional justo después del último equipo de su CE1.
+export const getPointsForPosition = (
+  position: number,
+  tournamentType: string,
+  offset = 0
+): number => {
+  if (tournamentType === 'REGIONAL') return regionalCurvePoints(position)
+  if (tournamentType === 'CE1') return nationalCurvePoints(position)
+  if (tournamentType === 'CE2') return nationalCurvePoints(position + offset)
+  return 0
 }
 
 // Generar filas de posiciones por defecto
-export const generateDefaultPositions = (tournamentType: string): PositionRow[] => {
+export const generateDefaultPositions = (
+  tournamentType: string,
+  offset = 0
+): PositionRow[] => {
   return Array.from({ length: 3 }, (_, i) => ({
     position: i + 1,
     teamId: '',
-    points: getPointsForPosition(i + 1, tournamentType)
+    points: getPointsForPosition(i + 1, tournamentType, offset)
   }))
 }
 

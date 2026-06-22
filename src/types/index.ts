@@ -100,6 +100,8 @@ export interface Tournament {
   regionId?: string;
   region?: Region;
   positions?: Position[];
+  divisionSize?: number;
+  parentTournamentId?: string;
 }
 
 export interface CreateTournamentRequest {
@@ -109,6 +111,8 @@ export interface CreateTournamentRequest {
   surface: Surface;
   category: Category;
   regionId?: string;
+  divisionSize?: number;
+  parentTournamentId?: string;
 }
 
 export interface UpdateTournamentRequest extends Partial<CreateTournamentRequest> {}

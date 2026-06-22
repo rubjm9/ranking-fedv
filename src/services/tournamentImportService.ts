@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx'
 import { tournamentsService, teamsService, regionsService } from './apiService'
-import { getPointsForPosition } from '@/utils/tournamentUtils'
+import { getPointsForPosition, getOffsetForTournament, DEFAULT_DIVISION_SIZE } from '@/utils/tournamentUtils'
 
 export interface TournamentImportRow {
   // Información del torneo
@@ -383,6 +383,13 @@ export const tournamentImportService = {
           // Convertir temporada a año
           const year = parseInt(row.temporada.split('-')[0])
           
+          // Tamaño de división nacional: CE1/CE2 usan el estándar (16) salvo override.
+          // Para CE2 esto fija el offset (la 2ª continúa la curva tras la 1ª).
+          const divisionSize = (row.tipo === 'CE1' || row.tipo === 'CE2')
+            ? DEFAULT_DIVISION_SIZE
+            : undefined
+          const offset = getOffsetForTournament(row.tipo, divisionSize)
+
           // Crear torneo
           const tournamentData = {
             name: row.nombre,
@@ -390,8 +397,9 @@ export const tournamentImportService = {
             year: year,
             surface: row.superficie,
             category: row.categoria,
-            regionId: row.tipo === 'REGIONAL' && row.region ? 
+            regionId: row.tipo === 'REGIONAL' && row.region ?
               regionNameToId.get(row.region.toLowerCase()) || null : null,
+            divisionSize,
             startDate: row.fecha_inicio ? new Date(row.fecha_inicio).toISOString() : null,
             endDate: row.fecha_fin ? new Date(row.fecha_fin).toISOString() : null,
             location: row.ubicacion
@@ -404,7 +412,7 @@ export const tournamentImportService = {
           // Crear posiciones (hasta 30 para torneos regionales)
           const positions = []
           const missingTeams: string[] = []
-          
+
           for (let i = 1; i <= 30; i++) {
             const teamName = row[`posicion_${i}` as keyof TournamentImportRow] as string
             if (teamName && teamName.trim() !== '') {
@@ -414,7 +422,7 @@ export const tournamentImportService = {
                   tournamentId: tournamentId,
                   teamId: teamId,
                   position: i,
-                  points: getPointsForPosition(i, row.tipo)
+                  points: getPointsForPosition(i, row.tipo, offset)
                 })
               } else {
                 missingTeams.push(`Posición ${i}: '${teamName}'`)

@@ -5,6 +5,7 @@
 
 import { supabase } from './supabaseService'
 import teamSeasonRankingsService from './teamSeasonRankingsService'
+import { getPointsForPosition, getOffsetForTournament } from '@/utils/tournamentUtils'
 
 export interface SeasonPoints {
   id: string
@@ -343,6 +344,82 @@ const seasonPointsService = {
     } catch (error: any) {
       console.error('❌ Error obteniendo ranking de temporada:', error)
       return []
+    }
+  },
+
+  /**
+   * Recalcular `positions.points` de TODOS los torneos con la curva vigente.
+   * `regenerateAllSeasons` solo suma los puntos ya guardados, así que este paso
+   * debe ejecutarse ANTES para que un cambio de curva se refleje en los rankings.
+   */
+  recomputeAllPositionPoints: async (): Promise<{ success: boolean; message: string; updated: number }> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      console.log('🧮 Recalculando puntos de todas las posiciones con la curva vigente...')
+
+      // Traer todos los torneos con el dato necesario para el offset
+      const { data: tournaments, error: tournamentsError } = await supabase
+        .from('tournaments')
+        .select('id, type, divisionSize')
+
+      if (tournamentsError) {
+        throw tournamentsError
+      }
+
+      let updated = 0
+
+      for (const tournament of tournaments || []) {
+        const offset = getOffsetForTournament(tournament.type, tournament.divisionSize)
+
+        const { data: positions, error: positionsError } = await supabase
+          .from('positions')
+          .select('id, position, teamId, tournamentId')
+          .eq('tournamentId', tournament.id)
+
+        if (positionsError) {
+          console.error(`❌ Error obteniendo posiciones del torneo ${tournament.id}:`, positionsError)
+          throw positionsError
+        }
+
+        if (!positions || positions.length === 0) continue
+
+        const recomputed = positions.map(p => ({
+          id: p.id,
+          tournamentId: p.tournamentId,
+          teamId: p.teamId,
+          position: p.position,
+          points: getPointsForPosition(p.position, tournament.type, offset)
+        }))
+
+        const { error: upsertError } = await supabase
+          .from('positions')
+          .upsert(recomputed, { onConflict: 'id' })
+
+        if (upsertError) {
+          console.error(`❌ Error actualizando posiciones del torneo ${tournament.id}:`, upsertError)
+          throw upsertError
+        }
+
+        updated += recomputed.length
+      }
+
+      console.log(`✅ ${updated} posiciones recalculadas`)
+
+      return {
+        success: true,
+        message: `${updated} posiciones recalculadas con la curva vigente`,
+        updated
+      }
+    } catch (error: any) {
+      console.error('❌ Error recalculando puntos de posiciones:', error)
+      return {
+        success: false,
+        message: error.message || 'Error desconocido',
+        updated: 0
+      }
     }
   },
 
