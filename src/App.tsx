@@ -26,12 +26,8 @@ import TournamentsAdminPage from '@/pages/TournamentsAdminPage'
 import ConfigurationPage from '@/pages/admin/ConfigurationPage'
 import ImportExportPage from '@/pages/admin/ImportExportPage'
 import SeasonManagementPage from '@/pages/admin/SeasonManagementPage'
-import RankingComparisonPage from '@/pages/admin/RankingComparisonPage'
-import DatabaseDiagnosticPage from '@/pages/admin/DatabaseDiagnosticPage'
 import RankingAdminPageHybrid from '@/pages/admin/RankingAdminPageHybrid'
 import RankingUpdatePage from '@/pages/admin/RankingUpdatePage'
-import SimulateRankingsPage from '@/pages/admin/SimulateRankingsPage'
-import MigrateRankingsPage from '@/pages/admin/MigrateRankingsPage'
 import NewTeamPage from '@/pages/admin/NewTeamPage'
 import NewTournamentPage from '@/pages/admin/NewTournamentPage'
 import NewRegionPage from '@/pages/admin/NewRegionPage'
@@ -118,14 +114,10 @@ function App() {
               <Route path="results/:id/edit" element={<EditResultPage />} />
               <Route path="ranking" element={<RankingAdminPageHybrid />} />
                   <Route path="ranking-update" element={<RankingUpdatePage />} />
-                  <Route path="simulate-rankings" element={<SimulateRankingsPage />} />
-                  <Route path="migrate-rankings" element={<MigrateRankingsPage />} />
                   <Route path="configuration" element={<ConfigurationPage />} />
               <Route path="import-export" element={<ImportExportPage />} />
               <Route path="seasons" element={<SeasonManagementPage />} />
               <Route path="subseasons" element={<SubseasonsManagementPage />} />
-              <Route path="ranking-comparison" element={<RankingComparisonPage />} />
-              <Route path="database-diagnostic" element={<DatabaseDiagnosticPage />} />
             </Route>
           </Routes>
         </AuthProvider>
