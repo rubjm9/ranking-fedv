@@ -527,7 +527,7 @@ export const tournamentsService = {
         region:regions(id, name, coefficient),
         positions(
           *,
-          teams(id, name, region:regions(name))
+          teams(id, name, regionId, region:regions(id, name))
         )
       `)
       .eq('id', id)

@@ -37,6 +37,29 @@ export const getPreviousSeasonLabel = (season: string): string => {
 export const getRegionalCoefficientBaseSeason = (currentSeason: string): string =>
   getPreviousSeasonLabel(currentSeason)
 
+/** Etiqueta de temporada a partir del año de inicio (ej: 2024 → 2024-25). */
+export const formatSeasonFromYear = (year: number): string =>
+  `${year}-${String(year + 1).slice(-2)}`
+
+/** Clave de modalidad usada en regional_coefficients (ej: BEACH + MIXED → beach_mixed). */
+export const getModalityKey = (surface: string, category: string): string =>
+  `${surface.toLowerCase()}_${category.toLowerCase()}`
+
+/**
+ * Coeficiente regional aplicable a un torneo REGIONAL.
+ * Convención: coeficientes de prevSeason se aplican a regionales de season.
+ */
+export const getRegionalCoefficientForTournament = (
+  coefficients: Array<{ regionId: string; modality: string; coefficient: number }>,
+  regionId: string,
+  surface: string,
+  category: string
+): number => {
+  const modality = getModalityKey(surface, category)
+  const match = coefficients.find(c => c.regionId === regionId && c.modality === modality)
+  return match?.coefficient ?? 1.0
+}
+
 /**
  * Calcula el coeficiente regional para una región dada su puntuación y la media nacional.
  *

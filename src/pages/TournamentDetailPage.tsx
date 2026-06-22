@@ -4,6 +4,12 @@ import { ArrowLeft, Calendar, MapPin, Trophy, Users, BarChart3, Award, Clock } f
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { useQuery } from '@tanstack/react-query'
 import { tournamentsService } from '@/services/apiService'
+import seasonService from '@/services/seasonService'
+import {
+  formatSeasonFromYear,
+  getPreviousSeasonLabel,
+  getRegionalCoefficientForTournament,
+} from '@/utils/rankingCalculations'
 import { translateSurface, translateModality, translateTournamentType, getStatusLabel, getStatusColor } from '@/utils/translations'
 import TeamLogo from '@/components/ui/TeamLogo'
 import PageContainer from '@/components/layout/PageContainer'
@@ -62,8 +68,10 @@ interface TeamPosition {
     id: string
     name: string
     region: string
+    regionId?: string
     logo: string
   }
+  basePoints: number
   points: number
   coefficient: number
 }
@@ -88,19 +96,61 @@ const TournamentDetailPage: React.FC = () => {
 
   const tournament = tournamentData?.data
 
-  // Procesar posiciones reales del torneo
-  const positions: TeamPosition[] = tournament?.positions?.map(pos => ({
-    id: pos.id,
-    position: pos.position,
-    team: {
-      id: pos.teams?.id || `unknown-${pos.position}`,
-      name: pos.teams?.name || `Equipo Posición ${pos.position}`,
-      region: pos.teams?.region?.name || 'Sin región',
-      logo: 'https://via.placeholder.com/40'
-    },
-    points: pos.points || 0,
-    coefficient: tournament.regional_coefficient || 1.0
-  })).sort((a, b) => a.position - b.position) || []
+  const isRegional = tournament?.type === 'REGIONAL'
+  const tournamentSeason = tournament?.year ? formatSeasonFromYear(tournament.year) : null
+  const coefficientBaseSeason = tournamentSeason
+    ? getPreviousSeasonLabel(tournamentSeason)
+    : null
+
+  const { data: regionalCoefficients } = useQuery({
+    queryKey: ['tournament-regional-coefficients', coefficientBaseSeason],
+    queryFn: () => seasonService.getRegionalCoefficients(coefficientBaseSeason!),
+    enabled: isRegional && !!coefficientBaseSeason,
+  })
+
+  // Procesar posiciones: en torneos REGIONAL los puntos mostrados incluyen el coeficiente.
+  const positions: TeamPosition[] = React.useMemo(() => {
+    if (!tournament?.positions) return []
+
+    return tournament.positions
+      .map(pos => {
+        const teamRegionId =
+          (pos.teams as any)?.regionId ||
+          (pos.teams as any)?.region?.id ||
+          tournament.regionId ||
+          tournament.region?.id
+
+        const basePoints = pos.points || 0
+        const coefficient = isRegional && teamRegionId && tournament.surface && tournament.category
+          ? getRegionalCoefficientForTournament(
+              regionalCoefficients || [],
+              teamRegionId,
+              tournament.surface,
+              tournament.category
+            )
+          : 1.0
+
+        const weightedPoints = isRegional
+          ? Math.round(basePoints * coefficient)
+          : basePoints
+
+        return {
+          id: pos.id,
+          position: pos.position,
+          team: {
+            id: pos.teams?.id || `unknown-${pos.position}`,
+            name: pos.teams?.name || `Equipo Posición ${pos.position}`,
+            region: pos.teams?.region?.name || tournament.region?.name || 'Sin región',
+            regionId: teamRegionId,
+            logo: 'https://via.placeholder.com/40',
+          },
+          basePoints,
+          points: weightedPoints,
+          coefficient,
+        }
+      })
+      .sort((a, b) => a.position - b.position)
+  }, [tournament, isRegional, regionalCoefficients])
 
 
   // Calcular estadísticas de región basadas en datos reales
@@ -332,9 +382,13 @@ const TournamentDetailPage: React.FC = () => {
 
         {/* Resultados finales */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-          <h2 className="text-2xl font-bold text-slate-900 mb-6">Resultados finales</h2>
-          
-          
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Resultados finales</h2>
+          {isRegional && coefficientBaseSeason && (
+            <p className="text-sm text-slate-600 mb-6">
+              Coeficiente regional de la temporada {coefficientBaseSeason} aplicado a los puntos base del campeonato.
+            </p>
+          )}
+          {!isRegional && <div className="mb-4" />}
           {positions.length === 0 ? (
             <EmptyState
               icon={Trophy}
@@ -393,10 +447,17 @@ const TournamentDetailPage: React.FC = () => {
                         <div className="text-sm text-slate-900">{position.team.region}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-slate-900">{position.coefficient}x</div>
+                        <div className="text-sm text-slate-900">
+                          {isRegional ? `${position.coefficient.toFixed(2)}x` : '—'}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-slate-900">{position.points}</div>
+                        {isRegional && position.coefficient !== 1 && (
+                          <div className="text-xs text-slate-500">
+                            base {position.basePoints}
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}
