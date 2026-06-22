@@ -3,6 +3,17 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Trophy, Users, MapPin, Calendar, BarChart3, TrendingUp, TrendingDown, Eye, Sun, Leaf, Medal, Award } from 'lucide-react'
 import { homePageService, HomePageTeam, HomePageRegion, HomePageTournament, HomePageStats, RankingHistory } from '@/services/homePageService'
 import SummaryCard from '@/components/ranking/SummaryCard'
+import {
+  generateSeasons,
+  nationalCurvePoints,
+  regionalCurvePoints,
+  getPointsForPosition,
+  DEFAULT_DIVISION_SIZE,
+} from '@/utils/tournamentUtils'
+
+const TOP_FIVE_POSITIONS = [1, 2, 3, 4, 5] as const
+const POSITION_ROW_BG = ['bg-accent-50', 'bg-secondary-50', 'bg-slate-100', 'bg-secondary-50', 'bg-secondary-50'] as const
+const POSITION_LABELS = ['1º lugar', '2º lugar', '3º lugar', '4º lugar', '5º lugar'] as const
 
 const mapTeamsToSummaryData = (teams: HomePageTeam[]) =>
   teams.map((team) => ({
@@ -153,6 +164,9 @@ const HomePage: React.FC = () => {
     }
   }
 
+  const seasons = generateSeasons()
+  const currentSeason = seasons[seasons.length - 1]?.value ?? '2024-25'
+
   return (
     <div className="min-h-screen bg-secondary-50">
       {isLoading ? (
@@ -170,8 +184,13 @@ const HomePage: React.FC = () => {
             <h1 className="font-display text-5xl md:text-7xl font-bold mb-6 tracking-tight">
               Ranking <span className="text-accent-400">FEDV</span>
             </h1>
-            <p className="text-lg md:text-xl mb-10 text-slate-400 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto">
               El ranking oficial de Ultimate Frisbee en España
+            </p>
+            <p className="mt-3 mb-10">
+              <span className="inline-block bg-primary-600/20 text-primary-300 text-sm font-semibold px-3 py-1 rounded-full border border-primary-600/30">
+                Temporada {currentSeason}
+              </span>
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/ranking/resumen" className="btn-primary px-8 py-3 text-base font-semibold">
@@ -209,10 +228,38 @@ const HomePage: React.FC = () => {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
+        {/* Banner próximo torneo */}
+        {upcomingTournaments[0] && (
+          <div className="mb-8 bg-primary-50 border border-primary-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
+                <Calendar className="h-5 w-5 text-primary-600" />
+              </div>
+              <div>
+                <span className="text-xs font-semibold text-primary-600 uppercase tracking-wide">Próximo torneo</span>
+                <p className="font-semibold text-slate-900">{upcomingTournaments[0].name}</p>
+                <p className="text-sm text-slate-500">
+                  {getTournamentTypeLabel(upcomingTournaments[0].type)}
+                  {' · '}
+                  {new Date(upcomingTournaments[0].startDate).toLocaleDateString('es-ES', {
+                    day: '2-digit', month: 'long', year: 'numeric'
+                  })}
+                </p>
+              </div>
+            </div>
+            <Link
+              to={`/tournaments/${upcomingTournaments[0].id}`}
+              className="btn-primary text-sm px-4 py-2 shrink-0"
+            >
+              Ver detalles
+            </Link>
+          </div>
+        )}
+
         {/* Ranking Section - 6 Small Tables */}
         <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-              <h2 className="section-title mb-2">Ranking actual</h2>
+          <div className="flex items-center justify-between mb-1">
+              <h2 className="section-title mb-0">Ranking actual</h2>
               <Link
                 to="/ranking/resumen"
                 className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
@@ -221,6 +268,7 @@ const HomePage: React.FC = () => {
                 <Eye className="h-4 w-4 ml-1" />
               </Link>
           </div>
+          <p className="text-sm text-slate-500 mb-6">Temporada {currentSeason}</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <SummaryCard
@@ -277,6 +325,109 @@ const HomePage: React.FC = () => {
               getChangeIcon={getChangeIcon}
               getChangeText={getChangeText}
             />
+          </div>
+        </div>
+
+        {/* Torneos */}
+        <div className="text-center mb-12">
+          <h2 className="section-title mb-2">Torneos</h2>
+          <p className="text-lg text-slate-600">Consulta los torneos próximos y pasados</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          {/* Próximos torneos */}
+          <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Próximos torneos</h3>
+            <div className="space-y-4">
+              {upcomingTournaments.length === 0 && (
+                <p className="text-slate-500 text-sm">No hay torneos próximos programados.</p>
+              )}
+              {upcomingTournaments.map((tournament) => (
+                <Link
+                  key={tournament.id}
+                  to={`/tournaments/${tournament.id}`}
+                  className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-secondary-50 transition-colors"
+                >
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mr-4">
+                      <Calendar className="h-5 w-5 text-primary-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-slate-900">{tournament.name}</h4>
+                      <p className="text-sm text-slate-500">
+                        {getTournamentTypeLabel(tournament.type)} • {tournament.teams} equipos
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-primary-100 text-primary-700">
+                      Próximo
+                    </span>
+                    <p className="text-sm text-slate-500 mt-1">
+                      {new Date(tournament.startDate).toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-4 text-center">
+              <Link
+                to="/tournaments"
+                className="text-primary-600 hover:text-primary-700 font-medium"
+              >
+                Ver todos los torneos
+              </Link>
+            </div>
+          </div>
+
+          {/* Torneos pasados */}
+          <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Torneos pasados</h3>
+            <div className="space-y-4">
+              {completedTournaments.map((tournament) => (
+                <Link
+                  key={tournament.id}
+                  to={`/tournaments/${tournament.id}`}
+                  className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-secondary-50 transition-colors"
+                >
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mr-4">
+                      <Trophy className="h-5 w-5 text-primary-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-slate-900">{tournament.name}</h4>
+                      <p className="text-sm text-slate-500">
+                        {getTournamentTypeLabel(tournament.type)} • {tournament.teams} equipos
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-600">
+                      Finalizado
+                    </span>
+                    <p className="text-sm text-slate-500 mt-1">
+                      {new Date(tournament.startDate).toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-4 text-center">
+              <Link
+                to="/tournaments"
+                className="text-primary-600 hover:text-primary-700 font-medium"
+              >
+                Ver todos los torneos
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -438,31 +589,17 @@ const HomePage: React.FC = () => {
                 <div className="bg-white rounded-lg p-6 shadow-sm mb-4">
                   <h4 className="font-semibold text-slate-900 mb-4">Tabla de Puntos por Posición</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
+                    <div>
                       <h5 className="font-medium text-slate-900 mb-2 text-center flex items-center justify-center gap-1">
                         <Trophy className="w-4 h-4 text-accent-500" /> 1ª división
                       </h5>
                       <div className="space-y-1 text-sm">
-                        <div className="flex justify-between p-2 bg-accent-50 rounded">
-                          <span>1º lugar</span>
-                          <span className="font-mono font-semibold">1000 pts</span>
-                        </div>
-                        <div className="flex justify-between p-2 bg-secondary-50 rounded">
-                          <span>2º lugar</span>
-                          <span className="font-mono font-semibold">850 pts</span>
-                        </div>
-                        <div className="flex justify-between p-2 bg-slate-100 rounded">
-                          <span>3º lugar</span>
-                          <span className="font-mono font-semibold">725 pts</span>
-                        </div>
-                        <div className="flex justify-between p-2 bg-secondary-50 rounded">
-                          <span>4º lugar</span>
-                          <span className="font-mono font-semibold">625 pts</span>
-                        </div>
-                        <div className="flex justify-between p-2 bg-secondary-50 rounded">
-                          <span>5º lugar</span>
-                          <span className="font-mono font-semibold">520 pts</span>
-                        </div>
+                        {TOP_FIVE_POSITIONS.map((position, index) => (
+                          <div key={position} className={`flex justify-between p-2 ${POSITION_ROW_BG[index]} rounded`}>
+                            <span>{POSITION_LABELS[index]}</span>
+                            <span className="font-mono font-semibold">{nationalCurvePoints(position)} pts</span>
+                          </div>
+                        ))}
                         <div className="text-center text-slate-500 text-xs py-1">
                           ⋯
                         </div>
@@ -473,71 +610,34 @@ const HomePage: React.FC = () => {
                         <Medal className="w-4 h-4 text-slate-500" /> 2ª división
                       </h5>
                       <div className="space-y-1 text-sm">
-                        <div className="flex justify-between p-2 bg-accent-50 rounded">
-                          <span>1º lugar</span>
-                          <span className="font-mono font-semibold">230 pts</span>
-                        </div>
-                        <div className="flex justify-between p-2 bg-secondary-50 rounded">
-                          <span>2º lugar</span>
-                          <span className="font-mono font-semibold">195 pts</span>
-                        </div>
-                        <div className="flex justify-between p-2 bg-slate-100 rounded">
-                          <span>3º lugar</span>
-                          <span className="font-mono font-semibold">165 pts</span>
-                        </div>
-                        <div className="flex justify-between p-2 bg-secondary-50 rounded">
-                          <span>4º lugar</span>
-                          <span className="font-mono font-semibold">140 pts</span>
-                        </div>
-                        <div className="flex justify-between p-2 bg-secondary-50 rounded">
-                          <span>5º lugar</span>
-                          <span className="font-mono font-semibold">120 pts</span>
-                        </div>
+                        {TOP_FIVE_POSITIONS.map((position, index) => (
+                          <div key={position} className={`flex justify-between p-2 ${POSITION_ROW_BG[index]} rounded`}>
+                            <span>{POSITION_LABELS[index]}</span>
+                            <span className="font-mono font-semibold">
+                              {getPointsForPosition(position, 'CE2', DEFAULT_DIVISION_SIZE)} pts
+                            </span>
+                          </div>
+                        ))}
                         <div className="text-center text-slate-500 text-xs py-1">
                           ⋯
                         </div>
                       </div>
+                      <p className="text-xs text-slate-500 mt-2 text-center">Continúa la curva de 1ª (pos. 17+)</p>
                     </div>
                     <div>
                       <h5 className="font-medium text-slate-900 mb-2 text-center flex items-center justify-center gap-1">
                         <Award className="w-4 h-4 text-primary-500" /> Regionales
                       </h5>
                       <div className="space-y-1 text-sm">
-                        <div className="flex justify-between p-2 bg-accent-50 rounded">
-                          <span>1º lugar</span>
-                          <div className="text-right">
-                            <span className="font-mono font-semibold">140 pts</span>
-                            <span className="text-xs text-slate-500 ml-1">x coef. regional</span>
+                        {TOP_FIVE_POSITIONS.map((position, index) => (
+                          <div key={position} className={`flex justify-between p-2 ${POSITION_ROW_BG[index]} rounded`}>
+                            <span>{POSITION_LABELS[index]}</span>
+                            <div className="text-right">
+                              <span className="font-mono font-semibold">{regionalCurvePoints(position)} pts</span>
+                              <span className="text-xs text-slate-500 ml-1">× coef. regional</span>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex justify-between p-2 bg-secondary-50 rounded">
-                          <span>2º lugar</span>
-                          <div className="text-right">
-                            <span className="font-mono font-semibold">120 pts</span>
-                            <span className="text-xs text-slate-500 ml-1">x coef. regional</span>
-                          </div>
-                        </div>
-                        <div className="flex justify-between p-2 bg-slate-100 rounded">
-                          <span>3º lugar</span>
-                          <div className="text-right">
-                            <span className="font-mono font-semibold">100 pts</span>
-                            <span className="text-xs text-slate-500 ml-1">x coef. regional</span>
-                          </div>
-                        </div>
-                        <div className="flex justify-between p-2 bg-secondary-50 rounded">
-                          <span>4º lugar</span>
-                          <div className="text-right">
-                            <span className="font-mono font-semibold">85 pts</span>
-                            <span className="text-xs text-slate-500 ml-1">x coef. regional</span>
-                          </div>
-                        </div>
-                        <div className="flex justify-between p-2 bg-secondary-50 rounded">
-                          <span>5º lugar</span>
-                          <div className="text-right">
-                            <span className="font-mono font-semibold">72 pts</span>
-                            <span className="text-xs text-slate-500 ml-1">x coef. regional</span>
-                          </div>
-                        </div>
+                        ))}
                         <div className="text-center text-slate-500 text-xs py-1">
                           ⋯
                         </div>
@@ -667,106 +767,6 @@ const HomePage: React.FC = () => {
                   </p>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Torneos Pasados y Próximos Torneos */}
-        <div className="text-center mb-12">
-          <h2 className="section-title mb-2">Torneos</h2>
-          <p className="text-lg text-slate-600">Consulta los torneos pasados y próximos</p>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Torneos Pasados */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">Torneos pasados</h3>
-            <div className="space-y-4">
-              {completedTournaments.map((tournament) => (
-                <Link
-                  key={tournament.id}
-                  to={`/tournaments/${tournament.id}`}
-                  className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-secondary-50 transition-colors"
-                >
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mr-4">
-                      <Trophy className="h-5 w-5 text-primary-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-slate-900">{tournament.name}</h4>
-                      <p className="text-sm text-slate-500">
-                        {getTournamentTypeLabel(tournament.type)} • {tournament.teams} equipos
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-600">
-                      Finalizado
-                    </span>
-                    <p className="text-sm text-slate-500 mt-1">
-                      {new Date(tournament.startDate).toLocaleDateString('es-ES', { 
-                        day: '2-digit', 
-                        month: '2-digit', 
-                        year: 'numeric' 
-                      })}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-            <div className="mt-4 text-center">
-              <Link
-                to="/tournaments"
-                className="text-primary-600 hover:text-primary-700 font-medium"
-              >
-                Ver todos los torneos
-              </Link>
-            </div>
-          </div>
-
-          {/* Próximos Torneos */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">Próximos torneos</h3>
-            <div className="space-y-4">
-              {upcomingTournaments.map((tournament) => (
-                <Link
-                  key={tournament.id}
-                  to={`/tournaments/${tournament.id}`}
-                  className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-secondary-50 transition-colors"
-                >
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mr-4">
-                      <Calendar className="h-5 w-5 text-primary-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-slate-900">{tournament.name}</h4>
-                      <p className="text-sm text-slate-500">
-                        {getTournamentTypeLabel(tournament.type)} • {tournament.teams} equipos
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-primary-100 text-primary-700">
-                      Próximo
-                    </span>
-                    <p className="text-sm text-slate-500 mt-1">
-                      {new Date(tournament.startDate).toLocaleDateString('es-ES', { 
-                        day: '2-digit', 
-                        month: '2-digit', 
-                        year: 'numeric' 
-                      })}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-            <div className="mt-4 text-center">
-              <Link
-                to="/tournaments"
-                className="text-primary-600 hover:text-primary-700 font-medium"
-              >
-                Ver todos los torneos
-              </Link>
             </div>
           </div>
         </div>
