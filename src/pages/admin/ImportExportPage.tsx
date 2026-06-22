@@ -3,7 +3,7 @@ import { Upload, Download, FileText, AlertCircle, X, Trash2, Eye, Save, RefreshC
 import toast from 'react-hot-toast'
 import { importExportService } from '@/services/apiService'
 import TournamentImportPage from '@/components/import/TournamentImportPage'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 
 interface ExportOptions {
@@ -58,16 +58,17 @@ const ImportExportPage: React.FC = () => {
         
         toast.success(`Datos exportados en formato ${exportOptions.format.toUpperCase()}`)
       } else if (exportOptions.format === 'excel') {
-        // Para Excel, generar directamente en frontend usando XLSX
+        // Para Excel, generar directamente en frontend usando ExcelJS
         try {
           const excelData = await generateExcelDataFromOptions(options)
-          const ws = XLSX.utils.json_to_sheet(excelData)
-          const wb = XLSX.utils.book_new()
-          XLSX.utils.book_append_sheet(wb, ws, 'Datos')
-          
-          // Generar el archivo Excel
-          const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
-          const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+          const workbook = new ExcelJS.Workbook()
+          const worksheet = workbook.addWorksheet('Datos')
+          if (excelData.length > 0) {
+            worksheet.columns = Object.keys(excelData[0]).map(k => ({ header: k, key: k }))
+            worksheet.addRows(excelData)
+          }
+          const buffer = await workbook.xlsx.writeBuffer()
+          const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
           
           // Crear y descargar el archivo
           const url = window.URL.createObjectURL(blob)

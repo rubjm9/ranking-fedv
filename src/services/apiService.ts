@@ -439,28 +439,24 @@ export const tournamentsService = {
       throw new Error('Supabase client not initialized')
     }
     
-    try {
-      const { data, error } = await supabase
-        .from('tournaments')
-        .select(`
+    const { data, error } = await supabase
+      .from('tournaments')
+      .select(`
+        *,
+        region:regions(id, name, coefficient),
+        positions(
           *,
-          region:regions(id, name, coefficient),
-          positions(
-            *,
-            teams(id, name, region:regions(name))
-          )
-        `)
-        .eq('id', id)
-        .single()
-      
-      if (error) {
-        throw error
-      }
-      
-      return { success: true, data, message: 'Torneo obtenido exitosamente' }
-    } catch (error) {
+          teams(id, name, region:regions(name))
+        )
+      `)
+      .eq('id', id)
+      .single()
+
+    if (error) {
       throw error
     }
+
+    return { success: true, data, message: 'Torneo obtenido exitosamente' }
   },
 
   // Buscar torneo existente con la misma combinación

@@ -142,8 +142,7 @@ class TeamDetailService {
    * Obtener información básica del equipo
    */
   private async getTeamBasicInfo(teamId: string) {
-    try {
-      // Validar que el ID no esté vacío
+    // Validar que el ID no esté vacío
       if (!teamId || teamId.trim() === '') {
         const notFoundError = new Error(`ID de equipo inválido: "${teamId}"`)
         ;(notFoundError as any).code = 'NOT_FOUND'
@@ -154,7 +153,7 @@ class TeamDetailService {
 
       // Primero intentar obtener el equipo sin la relación de región
       // para evitar problemas si la región no existe
-      let { data, error } = await supabase
+      const { data, error } = await supabase
         .from('teams')
         .select('*')
         .eq('id', teamId)
@@ -239,10 +238,6 @@ class TeamDetailService {
       }
 
       return data
-    } catch (error: any) {
-      // Re-lanzar el error para que se maneje en el nivel superior
-      throw error
-    }
   }
 
   /**

@@ -53,7 +53,7 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
 
   // Filtrar y ordenar resultados
   const filteredAndSortedResults = useMemo(() => {
-    let filtered = results.filter(result => {
+    const filtered = results.filter(result => {
       const matchesSearch = result.name.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesSeason = !selectedSeason || result.season === selectedSeason
       const matchesCategory = !selectedCategory || `${result.surface}_${result.category}` === selectedCategory

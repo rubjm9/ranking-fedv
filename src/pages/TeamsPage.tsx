@@ -63,7 +63,7 @@ const TeamsPage = () => {
 
   // Filtrar y ordenar equipos
   const filteredAndSortedTeams = useMemo(() => {
-    let filtered = teams.filter(team => {
+    const filtered = teams.filter(team => {
       const matchesSearch = team.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
                            team.location?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
       const matchesRegion = !selectedRegion || team.region?.id === selectedRegion
