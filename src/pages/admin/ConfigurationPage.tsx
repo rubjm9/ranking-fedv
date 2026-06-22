@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Save, RefreshCw, Download, Settings, BarChart3, Target, TrendingUp } from 'lucide-react'
 import toast from 'react-hot-toast'
+import StatsGridSkeleton from '@/components/ui/StatsGridSkeleton'
+import FormSkeleton from '@/components/ui/FormSkeleton'
 
 interface Configuration {
   ce1Points: Record<number, number>
@@ -171,9 +173,13 @@ const ConfigurationPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-        <span className="ml-3 text-gray-600">Cargando configuración...</span>
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="animate-pulse mb-8">
+          <div className="h-8 bg-slate-200 rounded w-64 mb-2" />
+          <div className="h-4 bg-slate-200 rounded w-96" />
+        </div>
+        <StatsGridSkeleton count={3} />
+        <FormSkeleton fields={5} />
       </div>
     )
   }

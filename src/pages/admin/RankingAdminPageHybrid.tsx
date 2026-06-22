@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import hybridRankingService from '@/services/hybridRankingService'
+import RankingTableSkeleton from '@/components/ui/RankingTableSkeleton'
 import seasonPointsService from '@/services/seasonPointsService'
 import TeamLogo from '@/components/ui/TeamLogo'
 
@@ -199,10 +200,7 @@ const RankingAdminPageHybrid: React.FC = () => {
         </div>
 
         {isLoadingRanking ? (
-          <div className="p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-500">Cargando ranking...</p>
-          </div>
+          <RankingTableSkeleton rows={10} />
         ) : error ? (
           <div className="p-8 text-center text-red-500">
             <AlertTriangle className="w-8 h-8 mx-auto mb-2" />

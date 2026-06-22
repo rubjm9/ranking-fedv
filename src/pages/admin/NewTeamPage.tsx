@@ -5,6 +5,7 @@ import { ArrowLeft, Save, Users, MapPin, Mail, Image, CheckSquare, Square } from
 import toast from 'react-hot-toast'
 import { regionsService, teamsService, Region, Team } from '@/services/apiService'
 import TeamLogo from '@/components/ui/TeamLogo'
+import FormSkeleton from '@/components/ui/FormSkeleton'
 
 interface TeamFormData {
   name: string
@@ -176,9 +177,8 @@ const NewTeamPage: React.FC = () => {
 
   if (loadingRegions || loadingTeams) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-        <span className="ml-3 text-gray-600">Cargando datos...</span>
+      <div className="max-w-3xl mx-auto p-6">
+        <FormSkeleton fields={8} />
       </div>
     )
   }

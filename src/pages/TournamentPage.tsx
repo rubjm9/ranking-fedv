@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { Tournament, Position, TournamentType, Surface, Category } from '@/types'
+import { getTeamPublicUrl } from '@/services/apiService'
 
 // Mock data - reemplazar con llamadas a la API real
 const mockTournamentData: Tournament = {
@@ -412,7 +413,7 @@ const TournamentPage = () => {
                       </div>
                       <div>
                         <Link
-                          to={`/teams/${position.team?.id}`}
+                          to={getTeamPublicUrl(position.team ?? {})}
                           className="font-semibold text-gray-900 hover:text-primary-600 transition-colors"
                         >
                           {position.team?.name}
@@ -488,7 +489,7 @@ const TournamentPage = () => {
               {positions?.map(position => (
                 <Link
                   key={position.team?.id}
-                  to={`/teams/${position.team?.id}`}
+                  to={getTeamPublicUrl(position.team ?? {})}
                   className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
                 >
                   <div className="flex items-center space-x-4">

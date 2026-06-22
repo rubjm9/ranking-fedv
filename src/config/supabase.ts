@@ -6,8 +6,10 @@ export const SUPABASE_CONFIG = {
 
 // Función para verificar si las variables de entorno están configuradas
 export const getSupabaseConfig = () => {
-  const envUrl = import.meta.env.VITE_SUPABASE_URL
-  const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+  const envUrl =
+    import.meta.env?.VITE_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL
+  const envKey =
+    import.meta.env?.VITE_SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY
 
   if (envUrl && envKey) {
     return {

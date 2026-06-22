@@ -4,6 +4,7 @@ import { ArrowLeft, Save, MapPin, Calculator, Users, Trash2 } from 'lucide-react
 import toast from 'react-hot-toast'
 import { regionsService } from '@/services/apiService'
 import { Region } from '@/types'
+import FormSkeleton from '@/components/ui/FormSkeleton'
 
 // Interfaz extendida para el admin con propiedades adicionales
 interface RegionWithDetails extends Region {
@@ -152,9 +153,8 @@ const EditRegionPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-        <span className="ml-3 text-gray-600">Cargando región...</span>
+      <div className="max-w-3xl mx-auto p-6">
+        <FormSkeleton fields={6} />
       </div>
     )
   }

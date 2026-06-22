@@ -23,6 +23,7 @@ import {
 import toast from 'react-hot-toast'
 import { tournamentsService, supabase } from '../services/apiService'
 import ActionButtonGroup from '../components/ui/ActionButtonGroup'
+import TableSkeleton from '@/components/ui/TableSkeleton'
 import { generateSeasons } from '../utils/tournamentUtils'
 
 interface Tournament {
@@ -269,14 +270,7 @@ const TournamentsAdminPage: React.FC = () => {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Cargando torneos...</p>
-        </div>
-      </div>
-    )
+    return <TableSkeleton rows={8} columns={7} showLeadingAvatar />
   }
 
   return (

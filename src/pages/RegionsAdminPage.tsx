@@ -16,6 +16,7 @@ import {
   Loader2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import TableSkeleton from '@/components/ui/TableSkeleton'
 import { regionsService, Region } from '@/services/apiService'
 import ActionButtonGroup from '@/components/ui/ActionButtonGroup'
 
@@ -162,9 +163,7 @@ const RegionsAdminPage: React.FC = () => {
 
       {/* Tabla */}
       {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        </div>
+        <TableSkeleton rows={8} columns={5} />
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">

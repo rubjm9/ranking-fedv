@@ -34,7 +34,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
   if (!isSticky) return null
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-md transition-all duration-300">
+    <div className="nav-bar fixed top-0 left-0 right-0 z-50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -63,18 +63,18 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
                   <button
                     key={tab.id}
                     onClick={() => onTabChange?.(tab.id)}
-                    className={`flex items-center gap-1 px-3 py-1.5 min-h-[44px] text-sm font-medium rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                      isActive
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-slate-600 hover:bg-slate-100'
-                    }`}
+                    className={`nav-link min-h-[44px]${isActive ? ' nav-link--active' : ''}`}
                   >
-                    {Icon && <Icon className="h-4 w-4" />}
+                    {Icon && (
+                      <span className="nav-link__icon">
+                        <Icon className="h-4 w-4" />
+                      </span>
+                    )}
                     <span>{tab.label}</span>
                     {tab.badge !== undefined && (
                       <span
                         className={`ml-1 px-1.5 py-0.5 text-xs rounded-full ${
-                          isActive ? 'bg-primary-100 text-primary-800' : 'bg-slate-200 text-slate-600'
+                          isActive ? 'bg-accent-100 text-accent-800' : 'bg-slate-200 text-slate-600'
                         }`}
                       >
                         {tab.badge}

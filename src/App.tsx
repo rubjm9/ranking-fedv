@@ -46,6 +46,7 @@ import RegionDetailAdminPage from '@/pages/admin/RegionDetailAdminPage'
 import HistoricoPage from '@/pages/admin/HistoricoPage'
 import SubseasonsManagementPage from '@/pages/admin/SubseasonsManagementPage'
 import TeamDetailPage from '@/pages/TeamDetailPage'
+import TeamLegacyRedirect from '@/pages/TeamLegacyRedirect'
 import TournamentDetailPage from '@/pages/TournamentDetailPage'
 import RegionDetailPage from '@/pages/RegionDetailPage'
 
@@ -76,8 +77,10 @@ function App() {
               <Route index element={<HomePage />} />
               <Route path="ranking" element={<RankingPageNew />} />
               <Route path="ranking-old" element={<Navigate to="/ranking" replace />} />
-              <Route path="teams" element={<TeamsPage />} />
-              <Route path="teams/:id" element={<TeamDetailPage />} />
+              <Route path="equipos" element={<TeamsPage />} />
+              <Route path="equipos/:slug" element={<TeamDetailPage />} />
+              <Route path="teams" element={<Navigate to="/equipos" replace />} />
+              <Route path="teams/:id" element={<TeamLegacyRedirect />} />
               <Route path="regions" element={<RegionsPage />} />
               <Route path="regions/:id" element={<RegionDetailPage />} />
               <Route path="tournaments" element={<TournamentsPage />} />

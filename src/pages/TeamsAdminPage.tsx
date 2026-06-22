@@ -17,7 +17,8 @@ import {
   Loader2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { teamsService, regionsService, Team } from '@/services/apiService'
+import TableSkeleton from '@/components/ui/TableSkeleton'
+import { teamsService, regionsService, Team, getTeamPublicUrl } from '@/services/apiService'
 import TeamLogo from '@/components/ui/TeamLogo'
 import ActionButtonGroup from '@/components/ui/ActionButtonGroup'
 
@@ -141,9 +142,7 @@ const TeamsAdminPage: React.FC = () => {
 
       {/* Tabla */}
       {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        </div>
+        <TableSkeleton rows={8} columns={6} showLeadingAvatar />
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
@@ -202,7 +201,7 @@ const TeamsAdminPage: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end">
                       <ActionButtonGroup
-                        onView={() => navigate(`/teams/${team.id}`)}
+                        onView={() => navigate(getTeamPublicUrl(team))}
                         onEdit={() => navigate(`/admin/teams/${team.id}/edit`)}
                         onDelete={() => handleDelete(team)}
                         viewTooltip="Ver detalles"

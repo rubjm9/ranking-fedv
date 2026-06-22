@@ -60,7 +60,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
   const triggerClass =
     variant === 'dark'
       ? 'flex items-center gap-2 px-4 py-2 text-sm font-medium text-white border border-white/20 rounded-xl hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500'
-      : 'btn-outline flex items-center gap-2 text-sm'
+      : 'btn-outline bg-white shadow-sm flex items-center gap-2 text-sm'
 
   return (
     <div className={`relative ${className}`}>

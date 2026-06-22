@@ -4,6 +4,7 @@ import { ArrowLeft, Save, Users, MapPin, Mail, Image, Trash2 } from 'lucide-reac
 import toast from 'react-hot-toast'
 import { teamsService, regionsService } from '@/services/apiService'
 import TeamLogo from '@/components/ui/TeamLogo'
+import FormSkeleton from '@/components/ui/FormSkeleton'
 
 interface Region {
   id: string
@@ -207,9 +208,8 @@ const EditTeamPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-        <span className="ml-3 text-gray-600">Cargando equipo...</span>
+      <div className="max-w-3xl mx-auto p-6">
+        <FormSkeleton fields={8} />
       </div>
     )
   }

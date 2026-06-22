@@ -13,6 +13,7 @@ import {
 import toast from 'react-hot-toast'
 import rankingService from '@/services/rankingService'
 import hybridRankingService from '@/services/hybridRankingService'
+import RankingTableSkeleton from '@/components/ui/RankingTableSkeleton'
 import TeamLogo from '@/components/ui/TeamLogo'
 
 const RankingComparisonPage: React.FC = () => {
@@ -475,18 +476,9 @@ const RankingComparisonPage: React.FC = () => {
 
       {/* Estados de carga */}
       {(isLoadingOriginal || isLoadingHybrid) && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="flex items-center justify-center space-x-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="text-gray-500">
-              {isLoadingOriginal && isLoadingHybrid 
-                ? 'Cargando ambos sistemas...'
-                : isLoadingOriginal 
-                ? 'Cargando sistema original...'
-                : 'Cargando sistema híbrido...'
-              }
-            </p>
-          </div>
+        <div className="space-y-6">
+          {isLoadingOriginal && <RankingTableSkeleton rows={8} />}
+          {isLoadingHybrid && <RankingTableSkeleton rows={8} />}
         </div>
       )}
 

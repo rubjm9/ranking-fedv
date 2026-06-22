@@ -9,6 +9,7 @@ export interface TeamDetailData {
   team: {
     id: string
     name: string
+    slug?: string
     regionId: string
     location?: string
     email?: string
@@ -27,6 +28,7 @@ export interface TeamDetailData {
     }
     parentTeam?: {
       name: string
+      slug?: string
     }
   }
   currentRankings: {
@@ -225,7 +227,7 @@ class TeamDetailService {
         try {
           const { data: parentTeam, error: parentError } = await supabase
             .from('teams')
-            .select('name')
+            .select('name, slug')
             .eq('id', data.parentTeamId)
             .single()
 
@@ -733,6 +735,17 @@ class TeamDetailService {
       return []
     }
   }
+}
+
+const teamDetailCache = new Map<string, Promise<TeamDetailData>>()
+
+export function prefetchTeamDetail(teamId: string) {
+  const existing = teamDetailCache.get(teamId)
+  if (existing) return existing
+  const promise = teamDetailService.getTeamDetailData(teamId)
+  teamDetailCache.set(teamId, promise)
+  promise.finally(() => teamDetailCache.delete(teamId))
+  return promise
 }
 
 export const teamDetailService = new TeamDetailService()

@@ -2,6 +2,7 @@ import React from 'react'
 import { Trophy, BarChart3, TrendingUp, Users, Star } from 'lucide-react'
 import StatsBlock from '@/components/ranking/StatsBlock'
 import SummaryCard from '@/components/ranking/SummaryCard'
+import RankingSummarySkeleton from '@/components/ui/RankingSummarySkeleton'
 
 interface HighlightStats {
   bestGlobalTeam?: { team_name?: string; global_points?: number; logo?: string | null }
@@ -13,6 +14,7 @@ interface HighlightStats {
 }
 
 interface RankingSummaryViewProps {
+  isLoading?: boolean
   highlightStats: HighlightStats | null
   beachMixedData: any[]
   beachWomenData: any[]
@@ -27,6 +29,7 @@ interface RankingSummaryViewProps {
 }
 
 const RankingSummaryView: React.FC<RankingSummaryViewProps> = ({
+  isLoading = false,
   highlightStats,
   beachMixedData,
   beachWomenData,
@@ -39,6 +42,10 @@ const RankingSummaryView: React.FC<RankingSummaryViewProps> = ({
   getChangeIcon,
   getChangeText,
 }) => {
+  if (isLoading) {
+    return <RankingSummarySkeleton />
+  }
+
   return (
     <div className="space-y-8">
       {highlightStats && (

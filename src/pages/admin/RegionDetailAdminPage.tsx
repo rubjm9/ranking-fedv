@@ -11,6 +11,9 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { regionsService, Region } from '@/services/apiService'
+import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
+import StatsGridSkeleton from '@/components/ui/StatsGridSkeleton'
+import TableSkeleton from '@/components/ui/TableSkeleton'
 
 const RegionDetailAdminPage: React.FC = () => {
   const navigate = useNavigate()
@@ -26,9 +29,10 @@ const RegionDetailAdminPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-        <span className="ml-3 text-gray-600">Cargando región...</span>
+      <div className="space-y-6 p-6">
+        <DetailHeaderSkeleton variant="default" />
+        <StatsGridSkeleton count={3} />
+        <TableSkeleton rows={6} columns={4} showLeadingAvatar />
       </div>
     )
   }

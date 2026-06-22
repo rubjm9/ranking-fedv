@@ -12,6 +12,10 @@ import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import StatsCard from '@/components/ui/StatsCard'
 import EmptyState from '@/components/ui/EmptyState'
 import DataTable from '@/components/ui/DataTable'
+import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
+import StatsGridSkeleton from '@/components/ui/StatsGridSkeleton'
+import ContentGridSkeleton from '@/components/ui/ContentGridSkeleton'
+import TableSkeleton from '@/components/ui/TableSkeleton'
 
 interface Tournament {
   id: string
@@ -151,10 +155,10 @@ const TournamentDetailPage: React.FC = () => {
   if (tournamentLoading) {
     return (
       <PageContainer>
-        <div className="flex flex-col items-center justify-center py-24">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
-          <p className="mt-4 text-slate-600">Cargando torneo...</p>
-        </div>
+        <DetailHeaderSkeleton variant="default" />
+        <StatsGridSkeleton />
+        <ContentGridSkeleton />
+        <TableSkeleton rows={10} columns={5} showLeadingAvatar />
       </PageContainer>
     )
   }

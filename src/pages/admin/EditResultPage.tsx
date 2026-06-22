@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import { positionsService, UpdatePositionData } from '@/services/apiService'
+import FormSkeleton from '@/components/ui/FormSkeleton'
+import TableSkeleton from '@/components/ui/TableSkeleton'
 
 const EditResultPage: React.FC = () => {
   const navigate = useNavigate()
@@ -88,11 +90,9 @@ const EditResultPage: React.FC = () => {
 
   if (positionLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando resultado...</p>
-        </div>
+      <div className="min-h-screen bg-gray-50 p-6 space-y-6 max-w-3xl mx-auto">
+        <FormSkeleton fields={4} />
+        <TableSkeleton rows={5} columns={4} showLeadingAvatar />
       </div>
     )
   }

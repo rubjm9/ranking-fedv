@@ -169,7 +169,7 @@ const HomePage: React.FC = () => {
                 Ver ranking completo
               </Link>
               <Link
-                to="/teams"
+                to="/equipos"
                 className="border border-slate-600 text-slate-300 px-8 py-3 rounded-xl font-semibold hover:border-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 Explorar equipos
@@ -765,7 +765,7 @@ const HomePage: React.FC = () => {
         {/* Quick Links */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link
-            to="/teams"
+            to="/equipos"
             className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-slate-100"
           >
             <div className="flex items-center">

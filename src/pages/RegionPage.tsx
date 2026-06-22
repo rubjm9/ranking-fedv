@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { Region, Team } from '@/types'
+import { getTeamPublicUrl } from '@/services/apiService'
 
 // Mock data - reemplazar con llamadas a la API real
 const mockRegionData: Region = {
@@ -368,7 +369,7 @@ const RegionPage = () => {
               {teams?.map(team => (
                 <Link
                   key={team.id}
-                  to={`/teams/${team.id}`}
+                  to={getTeamPublicUrl(team)}
                   className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
                 >
                   <div className="flex items-center space-x-4">

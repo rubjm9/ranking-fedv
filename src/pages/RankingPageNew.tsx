@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Trophy, Medal, TrendingUp, TrendingDown, Users, Calendar, RefreshCw, BarChart3, LineChart, Star, MapPin, ChevronRight, Info } from 'lucide-react'
 import hybridRankingService from '@/services/hybridRankingService'
@@ -13,6 +13,7 @@ import RankingSummaryView from '@/components/ranking/RankingSummaryView'
 import RankingGeneralView from '@/components/ranking/RankingGeneralView'
 import RankingCategoryView from '@/components/ranking/RankingCategoryView'
 import EmptyState from '@/components/ui/EmptyState'
+import RankingTableSkeleton from '@/components/ui/RankingTableSkeleton'
 import dynamicRankingService from '@/services/dynamicRankingService'
 import teamSeasonRankingsService from '@/services/teamSeasonRankingsService'
 import { useMostRecentSeasons } from '@/hooks/useMostRecentSeasons'
@@ -310,6 +311,7 @@ const RankingPageNew: React.FC = () => {
   // Query optimizada para ranking general (usa datos pre-calculados con position_change)
   const { data: generalRankingData, isLoading: isLoadingGeneral } = useQuery({
     queryKey: ['general-ranking-optimized', referenceSeason],
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       if (!referenceSeason) {
         throw new Error('Temporada de referencia no disponible')
@@ -422,6 +424,7 @@ const RankingPageNew: React.FC = () => {
   // Query optimizada: usa datos pre-calculados con position_change incluido
   const { data: rankingData, isLoading, error } = useQuery({
     queryKey: ['ranking-optimized', selectedSurface, seasonToUse],
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       if (!seasonToUse || !selectedSurface) {
         throw new Error('Temporada o categoría no disponible')
@@ -560,7 +563,7 @@ const RankingPageNew: React.FC = () => {
   }))
 
   // Queries optimizadas para el resumen (datos pre-calculados)
-  const { data: beachMixedData } = useQuery({
+  const { data: beachMixedData, isLoading: isLoadingBeachMixed } = useQuery({
     queryKey: ['ranking-optimized-summary', 'beach_mixed', beachMixedSeason],
     queryFn: async () => {
       if (!beachMixedSeason) throw new Error('Temporada no disponible')
@@ -571,7 +574,7 @@ const RankingPageNew: React.FC = () => {
     enabled: activeTab === 'summary' && !!beachMixedSeason
   })
 
-  const { data: beachOpenData } = useQuery({
+  const { data: beachOpenData, isLoading: isLoadingBeachOpen } = useQuery({
     queryKey: ['ranking-optimized-summary', 'beach_open', beachOpenSeason],
     queryFn: async () => {
       if (!beachOpenSeason) throw new Error('Temporada no disponible')
@@ -582,7 +585,7 @@ const RankingPageNew: React.FC = () => {
     enabled: activeTab === 'summary' && !!beachOpenSeason
   })
 
-  const { data: beachWomenData } = useQuery({
+  const { data: beachWomenData, isLoading: isLoadingBeachWomen } = useQuery({
     queryKey: ['ranking-optimized-summary', 'beach_women', beachWomenSeason],
     queryFn: async () => {
       if (!beachWomenSeason) throw new Error('Temporada no disponible')
@@ -593,7 +596,7 @@ const RankingPageNew: React.FC = () => {
     enabled: activeTab === 'summary' && !!beachWomenSeason
   })
 
-  const { data: grassMixedData } = useQuery({
+  const { data: grassMixedData, isLoading: isLoadingGrassMixed } = useQuery({
     queryKey: ['ranking-optimized-summary', 'grass_mixed', grassMixedSeason],
     queryFn: async () => {
       if (!grassMixedSeason) throw new Error('Temporada no disponible')
@@ -604,7 +607,7 @@ const RankingPageNew: React.FC = () => {
     enabled: activeTab === 'summary' && !!grassMixedSeason
   })
 
-  const { data: grassOpenData } = useQuery({
+  const { data: grassOpenData, isLoading: isLoadingGrassOpen } = useQuery({
     queryKey: ['ranking-optimized-summary', 'grass_open', grassOpenSeason],
     queryFn: async () => {
       if (!grassOpenSeason) throw new Error('Temporada no disponible')
@@ -615,7 +618,7 @@ const RankingPageNew: React.FC = () => {
     enabled: activeTab === 'summary' && !!grassOpenSeason
   })
 
-  const { data: grassWomenData } = useQuery({
+  const { data: grassWomenData, isLoading: isLoadingGrassWomen } = useQuery({
     queryKey: ['ranking-optimized-summary', 'grass_women', grassWomenSeason],
     queryFn: async () => {
       if (!grassWomenSeason) throw new Error('Temporada no disponible')
@@ -627,7 +630,7 @@ const RankingPageNew: React.FC = () => {
   })
 
   // Query para estadísticas generales (usa temporadas más recientes por categoría)
-  const { data: allRankingsData } = useQuery({
+  const { data: allRankingsData, isLoading: isLoadingAllRankings } = useQuery({
     queryKey: ['all-rankings-stats', beachMixedSeason, beachOpenSeason, beachWomenSeason, grassMixedSeason, grassOpenSeason, grassWomenSeason],
     queryFn: async () => {
       if (!beachMixedSeason || !beachOpenSeason || !beachWomenSeason || !grassMixedSeason || !grassOpenSeason || !grassWomenSeason) {
@@ -654,7 +657,7 @@ const RankingPageNew: React.FC = () => {
   }
 
   // Query cacheada para estadísticas destacadas del resumen
-  const { data: highlightStatsQuery } = useQuery({
+  const { data: highlightStatsQuery, isLoading: isLoadingHighlightStats } = useQuery({
     queryKey: ['highlight-stats-summary', referenceSeason, beachMixedSeason, beachOpenSeason, beachWomenSeason, grassMixedSeason, grassOpenSeason, grassWomenSeason],
     queryFn: () => getHighlightStats(),
     staleTime: 15 * 60 * 1000, // 15 minutos - estadísticas cambian poco
@@ -663,6 +666,16 @@ const RankingPageNew: React.FC = () => {
   
   // Usar datos de la query o null
   const highlightStats = highlightStatsQuery || null
+
+  const isSummaryLoading =
+    isLoadingBeachMixed ||
+    isLoadingBeachOpen ||
+    isLoadingBeachWomen ||
+    isLoadingGrassMixed ||
+    isLoadingGrassOpen ||
+    isLoadingGrassWomen ||
+    isLoadingAllRankings ||
+    isLoadingHighlightStats
 
   // Estado para estadísticas destacadas del ranking general
   const [generalHighlightStats, setGeneralHighlightStats] = useState<any>(null)
@@ -2466,14 +2479,7 @@ const RankingPageNew: React.FC = () => {
   // Renderizar vista de ranking general
   const renderGeneralView = () => {
     if (isLoadingGeneral) {
-      return (
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-2 text-slate-500">Cargando ranking general...</p>
-          </div>
-        </div>
-      )
+      return <RankingTableSkeleton />
     }
 
     // Determinar qué tipo de ranking mostrar según detailedViewMode
@@ -2815,14 +2821,7 @@ const RankingPageNew: React.FC = () => {
   // Renderizar pestaña de Análisis para ranking general
   const renderGeneralAnalysisTab = () => {
     if (isLoadingGeneral || !generalRankingData) {
-      return (
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-2 text-slate-500">Cargando datos...</p>
-          </div>
-        </div>
-      )
+      return <RankingTableSkeleton />
     }
 
     // Determinar qué tipo de ranking mostrar según detailedViewMode
@@ -3042,14 +3041,7 @@ const RankingPageNew: React.FC = () => {
   // Renderizar pestaña de Estadísticas Avanzadas para ranking general
   const renderGeneralAdvancedTab = () => {
     if (isLoadingGeneral || !generalRankingData) {
-      return (
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-2 text-slate-500">Cargando datos...</p>
-          </div>
-        </div>
-      )
+      return <RankingTableSkeleton />
     }
 
     // Determinar qué tipo de ranking mostrar según detailedViewMode
@@ -3130,14 +3122,7 @@ const RankingPageNew: React.FC = () => {
   // Renderizar vista detallada de ranking
   const renderDetailedView = () => {
     if (isLoading) {
-      return (
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-2 text-slate-500">Cargando ranking...</p>
-          </div>
-        </div>
-      )
+      return <RankingTableSkeleton />
     }
 
     if (error) {
@@ -3544,14 +3529,7 @@ const RankingPageNew: React.FC = () => {
   // Renderizar pestaña de Análisis de Equipos
   const renderAnalysisTab = () => {
     if (isLoading) {
-      return (
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-2 text-slate-500">Cargando datos...</p>
-          </div>
-        </div>
-      )
+      return <RankingTableSkeleton />
     }
 
     if (error || !rankingData) {
@@ -3777,14 +3755,7 @@ const RankingPageNew: React.FC = () => {
   // Renderizar pestaña de Estadísticas Avanzadas
   const renderAdvancedTab = () => {
     if (isLoading) {
-      return (
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-2 text-slate-500">Cargando datos...</p>
-          </div>
-        </div>
-      )
+      return <RankingTableSkeleton />
     }
 
     if (error || !rankingData) {
@@ -3914,6 +3885,7 @@ const RankingPageNew: React.FC = () => {
         >
           {activeTab === 'summary' ? (
             <RankingSummaryView
+              isLoading={isSummaryLoading}
               highlightStats={highlightStats}
               beachMixedData={beachMixedData || []}
               beachWomenData={beachWomenData || []}

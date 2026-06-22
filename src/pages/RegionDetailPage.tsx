@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Users, Trophy, BarChart3, TrendingUp, Loader2 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { regionsService } from '@/services/apiService'
+import { regionsService, getTeamPublicUrl } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
@@ -237,7 +237,7 @@ const RegionDetailPage: React.FC = () => {
                 <DataTableRow key={team.id}>
                   <DataTableCell>
                     <Link
-                      to={`/teams/${team.id}`}
+                      to={getTeamPublicUrl(team)}
                       className="flex items-center gap-3 font-medium text-slate-900 hover:text-primary-600"
                     >
                       <TeamLogo name={team.name} logo={team.logo} size="sm" />

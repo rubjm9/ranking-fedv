@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Trash2, Plus, Eye, Clipboard, Copy } from 'lucide-react'
 import subseasonDetectionService from '@/services/subseasonDetectionService'
+import FormSkeleton from '@/components/ui/FormSkeleton'
 import {
   DndContext,
   closestCenter,
@@ -608,9 +609,8 @@ const EditTournamentPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-        <span className="ml-3 text-gray-600">Cargando torneo...</span>
+      <div className="max-w-4xl mx-auto p-6">
+        <FormSkeleton fields={10} />
       </div>
     )
   }

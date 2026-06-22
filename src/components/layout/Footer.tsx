@@ -1,9 +1,11 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Mail, MapPin } from 'lucide-react'
+import { useAuth } from '@/contexts/SimpleAuthContext'
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear()
+  const { isAuthenticated } = useAuth()
 
   return (
     <footer className="footer-pattern text-white border-t-2 border-accent-500">
@@ -49,7 +51,7 @@ const Footer: React.FC = () => {
               {[
                 { label: 'Inicio', to: '/' },
                 { label: 'Ranking', to: '/ranking' },
-                { label: 'Equipos', to: '/teams' },
+                { label: 'Equipos', to: '/equipos' },
                 { label: 'Regiones', to: '/regions' },
                 { label: 'Torneos', to: '/tournaments' },
               ].map(({ label, to }) => (
@@ -88,11 +90,12 @@ const Footer: React.FC = () => {
               © {currentYear} Federación Española de Disco Volador (FEDV).
               Todos los derechos reservados.
             </p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
+            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4 md:mt-0">
               {[
                 { label: 'Acerca de', to: '/about' },
                 { label: 'Privacidad', to: '/privacy' },
                 { label: 'Términos', to: '/terms' },
+                ...(!isAuthenticated ? [{ label: 'Iniciar sesión', to: '/auth/login' }] : []),
               ].map(({ label, to }) => (
                 <Link key={to} to={to} className="text-slate-500 hover:text-white text-sm transition-colors duration-200">
                   {label}

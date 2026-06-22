@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'
-import { useParams, Link, useSearchParams } from 'react-router-dom'
+import React, { useState, useEffect, useRef } from 'react'
+import { useParams, Link, useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, Users, MapPin, Trophy, Calendar, TrendingUp, BarChart3, Mail, Award, Target, History, Sun, Leaf, UserRound } from 'lucide-react'
-import { teamDetailService, TeamDetailData } from '@/services/teamDetailService'
-import { teamsService, tournamentsService } from '@/services/apiService'
+import { teamDetailService, TeamDetailData, prefetchTeamDetail } from '@/services/teamDetailService'
+import { teamsService, tournamentsService, getTeamPublicUrl } from '@/services/apiService'
 import TeamLogo from '@/components/ui/TeamLogo'
 import GeneralRankingChart from '@/components/charts/GeneralRankingChart'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
@@ -12,16 +12,28 @@ import Tabs, { TabItem } from '@/components/ui/Tabs'
 import StickyHeader from '@/components/ui/StickyHeader'
 import ShareButton from '@/components/ui/ShareButton'
 import TournamentTable from '@/components/ui/TournamentTable'
+import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
+import StatsGridSkeleton from '@/components/ui/StatsGridSkeleton'
+import TabsSkeleton from '@/components/ui/TabsSkeleton'
+import TableSkeleton from '@/components/ui/TableSkeleton'
+
+interface TeamRedirectState {
+  resolvedTeamId?: string
+  canonicalSlug?: string
+}
 
 const TeamDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>()
+  const { slug } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [teamData, setTeamData] = useState<TeamDetailData | null>(null)
   const [relatedTeams, setRelatedTeams] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview')
   const [chartMetric, setChartMetric] = useState<'position' | 'points'>('position')
   const [compareWithTeamId, setCompareWithTeamId] = useState<string>('')
+  const loadIdRef = useRef(0)
 
   const { data: teamsResponse } = useQuery({
     queryKey: ['teams-list-all'],
@@ -40,57 +52,91 @@ const TeamDetailPage: React.FC = () => {
   const historicoTournaments = historicoTournamentsData ?? []
 
   useEffect(() => {
+    setTeamData(null)
+    setRelatedTeams([])
+    setIsLoading(true)
     loadTeamData()
-  }, [id])
+  }, [slug])
 
   const loadTeamData = async () => {
-    if (!id) {
-      console.warn('[TeamDetailPage] No se proporcionó ID de equipo')
+    if (!slug) {
+      console.warn('[TeamDetailPage] No se proporcionó slug de equipo')
+      setIsLoading(false)
       return
     }
-    
-    console.log(`[TeamDetailPage] Cargando datos del equipo con ID: "${id}"`)
+
+    const loadId = ++loadIdRef.current
+    let redirected = false
+
     setIsLoading(true)
-    
+
     try {
-      // Cargar datos detallados del equipo
-      const data = await teamDetailService.getTeamDetailData(id)
-      console.log('[TeamDetailPage] Datos del equipo cargados exitosamente:', data?.team?.name)
+      const redirectState = location.state as TeamRedirectState | null
+      let teamId: string
+
+      if (
+        redirectState?.resolvedTeamId &&
+        redirectState.canonicalSlug === slug
+      ) {
+        teamId = redirectState.resolvedTeamId
+        const qs = searchParams.toString()
+        navigate(`${location.pathname}${qs ? `?${qs}` : ''}`, { replace: true, state: null })
+      } else {
+        const teamRef = await teamsService.resolveTeam(slug)
+
+        if (loadId !== loadIdRef.current) return
+
+        if (teamRef.slug && teamRef.slug !== slug) {
+          const qs = searchParams.toString()
+          const target = `/equipos/${teamRef.slug}${qs ? `?${qs}` : ''}`
+          redirected = true
+          prefetchTeamDetail(teamRef.id)
+          navigate(target, {
+            replace: true,
+            state: { resolvedTeamId: teamRef.id, canonicalSlug: teamRef.slug },
+          })
+          return
+        }
+
+        teamId = teamRef.id
+      }
+
+      const data = await prefetchTeamDetail(teamId)
+
+      if (loadId !== loadIdRef.current) return
+
       setTeamData(data)
-      
-      // Cargar equipos relacionados
+
       try {
-        const related = await teamDetailService.getRelatedTeams(id)
+        const related = await teamDetailService.getRelatedTeams(teamId)
         setRelatedTeams(related)
       } catch (relatedError) {
-        // Si falla obtener equipos relacionados, no es crítico
         console.warn('[TeamDetailPage] Error al cargar equipos relacionados:', relatedError)
         setRelatedTeams([])
       }
     } catch (error: any) {
       console.error('[TeamDetailPage] Error al cargar datos del equipo:', {
-        id,
+        slug,
         error: error?.message,
         code: error?.code,
         stack: error?.stack
       })
-      
-      // Si el error indica que el equipo no existe, no establecer teamData
-      // para que se muestre el mensaje de "Equipo no encontrado"
-      if (error?.message?.includes('no encontrado') || 
-          error?.code === 'PGRST116' || 
+
+      if (error?.message?.includes('no encontrado') ||
+          error?.code === 'PGRST116' ||
           error?.code === 'NOT_FOUND' ||
           error?.message?.includes('NOT_FOUND') ||
           error?.message?.includes('No rows returned')) {
-        console.warn(`[TeamDetailPage] Equipo con ID "${id}" no encontrado`)
+        console.warn(`[TeamDetailPage] Equipo con slug "${slug}" no encontrado`)
         setTeamData(null)
       } else {
-        // Para otros errores, también mostrar el mensaje de no encontrado
         console.error('[TeamDetailPage] Error desconocido al cargar equipo:', error)
         setTeamData(null)
       }
     } finally {
-      setIsLoading(false)
+      if (loadId === loadIdRef.current && !redirected) {
+        setIsLoading(false)
+      }
     }
   }
 
@@ -151,22 +197,21 @@ const TeamDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Breadcrumbs items={[{ label: 'Equipos', href: '/teams' }, { label: 'Cargando...' }]} />
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-            <span className="text-slate-600">Cargando información del equipo...</span>
-          </div>
+      <>
+        <DetailHeaderSkeleton variant="team" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+          <StatsGridSkeleton />
+          <TabsSkeleton count={5} />
+          <TableSkeleton rows={6} columns={5} showLeadingAvatar />
         </div>
-      </div>
+      </>
     )
   }
 
   if (!teamData) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Breadcrumbs items={[{ label: 'Equipos', href: '/teams' }, { label: 'No encontrado' }]} />
+        <Breadcrumbs items={[{ label: 'Equipos', href: '/equipos' }, { label: 'No encontrado' }]} />
         <div className="mt-8">
           <EmptyState
             icon={Users}
@@ -174,7 +219,7 @@ const TeamDetailPage: React.FC = () => {
             description="El equipo que buscas no existe o ha sido eliminado."
             action={{
               label: "Volver a equipos",
-              onClick: () => window.location.href = '/teams'
+              onClick: () => window.location.href = '/equipos'
             }}
           />
         </div>
@@ -325,7 +370,7 @@ const TeamDetailPage: React.FC = () => {
                 {relatedTeams.map((relatedTeam) => (
                   <Link
                     key={relatedTeam.id}
-                    to={`/teams/${relatedTeam.id}`}
+                    to={getTeamPublicUrl(relatedTeam)}
                     className="flex items-center p-3 border border-slate-200 rounded-lg hover:bg-secondary-50 transition-colors"
                   >
                     <TeamLogo name={relatedTeam.name} size="sm" />
@@ -680,7 +725,7 @@ const TeamDetailPage: React.FC = () => {
         tabs={tabsForSticky}
         actions={
           <ShareButton
-            url={`/teams/${team.id}`}
+            url={getTeamPublicUrl(team)}
             title={`${team.name} - Ranking FEDV`}
             description={`Consulta las estadísticas y resultados de ${team.name} en el Ranking FEDV`}
           />
@@ -692,7 +737,7 @@ const TeamDetailPage: React.FC = () => {
           <div className="mb-4">
             <Breadcrumbs
               items={[
-                { label: 'Equipos', href: '/teams' },
+                { label: 'Equipos', href: '/equipos' },
                 { label: team.name },
               ]}
             />
@@ -711,7 +756,7 @@ const TeamDetailPage: React.FC = () => {
               <p className="text-slate-600 mb-1">
                 {team.isFilial && team.parentTeam ? (
                   <>Equipo filial de{' '}
-                    <Link to={`/teams/${team.parentTeamId}`} className="text-primary-600 hover:text-primary-700 font-medium">
+                    <Link to={getTeamPublicUrl(team.parentTeam)} className="text-primary-600 hover:text-primary-700 font-medium">
                       {team.parentTeam.name}
                     </Link>
                   </>
@@ -724,7 +769,7 @@ const TeamDetailPage: React.FC = () => {
               )}
             </div>
             <ShareButton
-              url={`/teams/${team.id}`}
+              url={getTeamPublicUrl(team)}
               title={`${team.name} - Ranking FEDV`}
               description={`Consulta las estadísticas y resultados de ${team.name} en el Ranking FEDV`}
             />

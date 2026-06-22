@@ -14,7 +14,7 @@ const Navbar: React.FC = () => {
     { name: 'Equipos', href: '/teams', icon: Users },
     { name: 'Regiones', href: '/regions', icon: MapPin },
     { name: 'Torneos', href: '/tournaments', icon: Calendar },
-    { name: 'Acerca de', href: '/about', icon: Info },
+    { name: 'Cómo funciona', href: '/about', icon: Info },
   ]
 
   const isActive = (href: string) => {
@@ -22,8 +22,16 @@ const Navbar: React.FC = () => {
     return location.pathname === href || location.pathname.startsWith(`${href}/`)
   }
 
+  const getNavLinkClass = (href: string, mobile = false) => {
+    const active = isActive(href)
+    if (mobile) {
+      return `nav-link text-base py-2 w-full${active ? ' nav-link--mobile-active' : ''}`
+    }
+    return `nav-link${active ? ' nav-link--active' : ''}`
+  }
+
   return (
-    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100 shadow-sm">
+    <nav className="nav-bar sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo */}
@@ -42,13 +50,13 @@ const Navbar: React.FC = () => {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                      isActive(item.href)
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                    }`}
+                    className={getNavLinkClass(item.href)}
                   >
-                    {Icon && <Icon className="w-4 h-4" />}
+                    {Icon && (
+                      <span className="nav-link__icon">
+                        <Icon className="w-4 h-4" />
+                      </span>
+                    )}
                     {item.name}
                   </Link>
                 )
@@ -58,7 +66,7 @@ const Navbar: React.FC = () => {
 
           {/* Action buttons */}
           <div className="flex items-center gap-3">
-            {isAuthenticated ? (
+            {isAuthenticated && (
               <div className="flex items-center gap-3">
                 <Link to="/admin" className="btn-primary text-sm inline-flex items-center gap-1.5">
                   <Settings className="w-4 h-4" />
@@ -68,17 +76,13 @@ const Navbar: React.FC = () => {
                   Cerrar sesión
                 </button>
               </div>
-            ) : (
-              <Link to="/auth/login" className="btn-primary text-sm">
-                Iniciar sesión
-              </Link>
             )}
 
             {/* Mobile menu button */}
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+                className="inline-flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
                 aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
                 aria-expanded={isMenuOpen}
               >
@@ -92,21 +96,21 @@ const Navbar: React.FC = () => {
       {/* Mobile menu */}
       {isMenuOpen && (
         <div className="md:hidden">
-          <div className="px-3 pt-2 pb-3 space-y-1 bg-white border-t border-slate-100">
+          <div className="nav-mobile-panel px-3 pt-2 pb-3 space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon
               return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base font-medium transition-colors duration-200 ${
-                    isActive(item.href)
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                  }`}
+                  className={getNavLinkClass(item.href, true)}
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  {Icon && <Icon className="w-4 h-4" />}
+                  {Icon && (
+                    <span className="nav-link__icon">
+                      <Icon className="w-4 h-4" />
+                    </span>
+                  )}
                   {item.name}
                 </Link>
               )
@@ -117,15 +121,17 @@ const Navbar: React.FC = () => {
                 <div className="border-t border-slate-100 pt-2 mt-2">
                   <Link
                     to="/admin"
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-base font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+                    className="nav-link text-base py-2 w-full"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <Settings className="w-4 h-4" />
+                    <span className="nav-link__icon">
+                      <Settings className="w-4 h-4" />
+                    </span>
                     Panel Admin
                   </Link>
                   <button
                     onClick={() => { logout(); setIsMenuOpen(false) }}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-base font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+                    className="nav-link text-base py-2 w-full"
                   >
                     Cerrar sesión
                   </button>

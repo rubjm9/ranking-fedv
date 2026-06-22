@@ -11,6 +11,9 @@ import {
 } from 'lucide-react'
 import { tournamentsService, positionsService, Position } from '@/services/apiService'
 import { translateSurface, translateModality, translateTournamentType, getStatusLabel, getStatusColor } from '@/utils/translations'
+import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
+import StatsGridSkeleton from '@/components/ui/StatsGridSkeleton'
+import TableSkeleton from '@/components/ui/TableSkeleton'
 
 const TournamentDetailAdminPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -47,11 +50,10 @@ const TournamentDetailAdminPage: React.FC = () => {
 
   if (tournamentLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando torneo...</p>
-        </div>
+      <div className="min-h-screen bg-gray-50 p-6 space-y-6">
+        <DetailHeaderSkeleton variant="default" />
+        <StatsGridSkeleton />
+        <TableSkeleton rows={10} columns={5} showLeadingAvatar />
       </div>
     )
   }
@@ -193,10 +195,7 @@ const TournamentDetailAdminPage: React.FC = () => {
           </div>
 
           {positionsLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
-              <span className="ml-3 text-gray-600">Cargando resultados...</span>
-            </div>
+            <TableSkeleton rows={8} columns={5} showLeadingAvatar />
           ) : positions.length === 0 ? (
             <div className="text-center py-12">
               <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-4" />

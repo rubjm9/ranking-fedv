@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Calendar, Trophy, MapPin, Search, Loader2, ArrowUpDown, ArrowUp, ArrowDown, Eye, Waves, Sprout } from 'lucide-react'
+import { Calendar, Trophy, MapPin, Search, ArrowUpDown, ArrowUp, ArrowDown, Eye, Waves, Sprout } from 'lucide-react'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
 import FilterBar from '@/components/ui/FilterBar'
 import EmptyState from '@/components/ui/EmptyState'
 import DataTable from '@/components/ui/DataTable'
+import TableSkeleton from '@/components/ui/TableSkeleton'
 import { tournamentsService } from '@/services/apiService'
 
 type SortField = 'name' | 'year' | 'type' | 'surface' | 'category' | 'region'
@@ -321,9 +322,7 @@ const TournamentsPage = () => {
 
       {/* Tabla de torneos */}
       {isLoading ? (
-        <div className="flex items-center justify-center h-64 bg-white rounded-lg shadow-sm border border-slate-200">
-          <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-        </div>
+        <TableSkeleton rows={8} columns={7} showLeadingAvatar />
       ) : sortedTournaments.length === 0 ? (
         <EmptyState
           icon={Trophy}

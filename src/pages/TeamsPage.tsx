@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Search, Filter, Users, MapPin, Trophy, ChevronUp, ChevronDown, Loader2, ArrowUpDown, X, Grid, List } from 'lucide-react'
-import { teamsService, regionsService } from '@/services/apiService'
+import { teamsService, regionsService, getTeamPublicUrl } from '@/services/apiService'
 import { homePageService } from '@/services/homePageService'
 import { useDebounce } from '@/hooks/useDebounce'
 import TeamLogo from '@/components/ui/TeamLogo'
@@ -348,11 +348,11 @@ const TeamsPage = () => {
                     <tr 
                       key={team.id}
                       className="hover:bg-secondary-50 cursor-pointer transition-colors duration-150 focus-within:bg-primary-50 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-inset"
-                      onClick={() => navigate(`/teams/${team.id}`)}
+                      onClick={() => navigate(getTeamPublicUrl(team))}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault()
-                          navigate(`/teams/${team.id}`)
+                          navigate(getTeamPublicUrl(team))
                         }
                       }}
                       tabIndex={0}
@@ -403,11 +403,11 @@ const TeamsPage = () => {
               {paginatedTeams.map((team) => (
                 <div
                   key={team.id}
-                  onClick={() => navigate(`/teams/${team.id}`)}
+                  onClick={() => navigate(getTeamPublicUrl(team))}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault()
-                      navigate(`/teams/${team.id}`)
+                      navigate(getTeamPublicUrl(team))
                     }
                   }}
                   tabIndex={0}

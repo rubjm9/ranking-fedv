@@ -1,4 +1,5 @@
 import { supabase } from './supabaseService'
+import { generateUniqueSlug } from '@/utils/slug'
 
 // Servicio principal que usa Supabase con fallback a datos mock
 // Si Supabase no está disponible, usa datos mock automáticamente
@@ -7,6 +8,7 @@ import { supabase } from './supabaseService'
 export interface Team {
   id: string
   name: string
+  slug?: string
   regionId: string
   location?: string
   email?: string
@@ -83,6 +85,34 @@ export interface Configuration {
   value: string
   description?: string
   updatedAt: string
+}
+
+export function getTeamPublicUrl(team: { slug?: string | null; id?: string }): string {
+  if (team.slug) return `/equipos/${team.slug}`
+  if (team.id) return `/equipos/${team.id}`
+  return '/equipos'
+}
+
+async function resolveUniqueTeamSlug(name: string, excludeTeamId?: string): Promise<string> {
+  const { data: existingTeams } = await supabase
+    .from('teams')
+    .select('id, slug')
+    .not('slug', 'is', null)
+
+  const existingSlugs = new Set(
+    (existingTeams || [])
+      .filter((t) => t.id !== excludeTeamId && t.slug)
+      .map((t) => t.slug as string)
+  )
+
+  return generateUniqueSlug(name, existingSlugs)
+}
+
+function assignSlugInBatch(name: string, usedSlugs: Set<string>, previousSlug?: string | null): string {
+  if (previousSlug) usedSlugs.delete(previousSlug)
+  const slug = generateUniqueSlug(name, usedSlugs)
+  usedSlugs.add(slug)
+  return slug
 }
 
 // Servicios de regiones usando Supabase
@@ -258,6 +288,51 @@ export const teamsService = {
     }
   },
 
+  // Resolver equipo por slug o por id (para URLs canónicas)
+  resolveTeam: async (slugOrId: string): Promise<{ id: string; slug: string | null }> => {
+    const { data: bySlug } = await supabase
+      .from('teams')
+      .select('id, slug')
+      .eq('slug', slugOrId)
+      .maybeSingle()
+
+    if (bySlug?.id) return { id: bySlug.id, slug: bySlug.slug ?? null }
+
+    const { data: byId } = await supabase
+      .from('teams')
+      .select('id, slug')
+      .eq('id', slugOrId)
+      .maybeSingle()
+
+    if (byId?.id) return { id: byId.id, slug: byId.slug ?? null }
+
+    throw new Error(`Equipo "${slugOrId}" no encontrado`)
+  },
+
+  resolveId: async (slugOrId: string) => {
+    const team = await teamsService.resolveTeam(slugOrId)
+    return team.id
+  },
+
+  // Obtener un equipo por slug
+  getBySlug: async (slug: string) => {
+    const { data, error } = await supabase
+      .from('teams')
+      .select(`
+        *,
+        region:regions(name, coefficient),
+        positions(
+          *,
+          tournaments(name, year, type)
+        )
+      `)
+      .eq('slug', slug)
+      .single()
+
+    if (error) throw error
+    return { success: true, data, message: 'Equipo obtenido exitosamente' }
+  },
+
   // Obtener un equipo por ID
   getById: async (id: string) => {
     const { data, error } = await supabase
@@ -304,10 +379,11 @@ export const teamsService = {
   },
 
   // Crear un nuevo equipo
-  create: async (teamData: Omit<Team, 'id' | 'createdAt' | 'updatedAt'>) => {
+  create: async (teamData: Omit<Team, 'id' | 'createdAt' | 'updatedAt' | 'slug'> & { slug?: string }) => {
+    const slug = teamData.slug || await resolveUniqueTeamSlug(teamData.name)
     const { data, error } = await supabase
       .from('teams')
-      .insert(teamData)
+      .insert({ ...teamData, slug })
       .select()
       .single()
     
@@ -317,9 +393,14 @@ export const teamsService = {
 
   // Actualizar un equipo
   update: async (id: string, teamData: Partial<Team>) => {
+    const payload = { ...teamData }
+    if (teamData.name) {
+      payload.slug = await resolveUniqueTeamSlug(teamData.name, id)
+    }
+
     const { data, error } = await supabase
       .from('teams')
-      .update(teamData)
+      .update(payload)
       .eq('id', id)
       .select()
       .single()
@@ -1089,6 +1170,14 @@ export const importExportService = {
       const results = []
       const createdTeams = new Map() // Para mapear nombres a IDs
 
+      const { data: existingSlugRows } = await supabase
+        .from('teams')
+        .select('slug')
+        .not('slug', 'is', null)
+      const usedSlugs = new Set(
+        (existingSlugRows || []).map((row) => row.slug).filter(Boolean) as string[]
+      )
+
       // 1. PRIMERO: Crear/actualizar equipos principales
       for (const teamData of equiposPrincipales) {
         try {
@@ -1110,7 +1199,7 @@ export const importExportService = {
           // Verificar si el equipo ya existe
           const { data: existingTeam } = await supabase
             .from('teams')
-            .select('id')
+            .select('id, slug')
             .eq('name', teamData.name)
             .single()
 
@@ -1118,6 +1207,7 @@ export const importExportService = {
           if (existingTeam) {
             // Modo "Combinar datos": actualizar equipo existente
             if (options.mode === 'merge') {
+              const slug = assignSlugInBatch(teamData.name, usedSlugs, existingTeam.slug)
               const { data, error } = await supabase
                 .from('teams')
                 .update({
@@ -1128,7 +1218,8 @@ export const importExportService = {
                   hasDifferentNames: teamData.hasDifferentNames,
                   nameOpen: teamData.nameOpen || null,
                   nameWomen: teamData.nameWomen || null,
-                  nameMixed: teamData.nameMixed || null
+                  nameMixed: teamData.nameMixed || null,
+                  slug
                 })
                 .eq('id', existingTeam.id)
                 .select()
@@ -1149,10 +1240,12 @@ export const importExportService = {
             }
           } else {
             // Crear nuevo equipo
+            const slug = assignSlugInBatch(teamData.name, usedSlugs)
             const { data, error } = await supabase
               .from('teams')
               .insert({
                 name: teamData.name,
+                slug,
                 regionId: regionId || null,
                 location: teamData.location,
                 email: teamData.email,
@@ -1243,7 +1336,7 @@ export const importExportService = {
           
           const { data: existingTeam } = await supabase
             .from('teams')
-            .select('id, parentTeamId, isFilial')
+            .select('id, parentTeamId, isFilial, slug')
             .eq('name', teamData.name)
             .single()
             
@@ -1252,6 +1345,7 @@ export const importExportService = {
           if (existingTeam) {
             // Modo "Combinar datos": actualizar equipo filial existente
             if (options.mode === 'merge') {
+              const slug = assignSlugInBatch(teamData.name, usedSlugs, existingTeam.slug)
               const updateData = {
                 regionId: regionId || null,
                 location: teamData.location || null,
@@ -1261,7 +1355,8 @@ export const importExportService = {
                 hasDifferentNames: teamData.hasDifferentNames,
                 nameOpen: teamData.nameOpen || null,
                 nameWomen: teamData.nameWomen || null,
-                nameMixed: teamData.nameMixed || null
+                nameMixed: teamData.nameMixed || null,
+                slug
               }
               
               console.log('Actualizando equipo filial con datos:', updateData)
@@ -1286,8 +1381,10 @@ export const importExportService = {
             }
           } else {
             // Crear nuevo equipo filial
+            const slug = assignSlugInBatch(teamData.name, usedSlugs)
             const insertData = {
               name: teamData.name,
+              slug,
               regionId: regionId || null,
               location: teamData.location,
               email: teamData.email,
