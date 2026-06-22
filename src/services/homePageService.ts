@@ -628,6 +628,8 @@ class HomePageService {
    */
   async getUpcomingTournaments(limit: number = 4): Promise<HomePageTournament[]> {
     try {
+      const today = new Date().toISOString().split('T')[0]
+
       const { data, error } = await supabase
         .from('tournaments')
         .select(`
@@ -642,7 +644,8 @@ class HomePageService {
           endDate,
           is_finished
         `)
-        .or('is_finished.eq.false,and(startDate.gte.' + new Date().toISOString().split('T')[0] + ')')
+        .eq('is_finished', false)
+        .gte('startDate', today)
         .order('startDate', { ascending: true })
         .limit(limit)
 
@@ -662,15 +665,19 @@ class HomePageService {
             startDate,
             endDate
           `)
-          .gte('startDate', new Date().toISOString().split('T')[0])
+          .gte('startDate', today)
           .order('startDate', { ascending: true })
           .limit(limit)
 
         if (fallbackError) throw fallbackError
-        return this.processTournamentData(fallbackData || [], 'upcoming')
+        const upcoming = (fallbackData || []).filter(
+          (tournament) => !tournament.endDate || tournament.endDate >= today
+        )
+        return this.processTournamentData(upcoming, 'upcoming')
       }
 
-      return this.processTournamentData(data || [], 'upcoming')
+      const upcoming = (data || []).filter((tournament) => tournament.startDate >= today)
+      return this.processTournamentData(upcoming, 'upcoming')
     } catch (error) {
       console.error('Error obteniendo próximos torneos:', error)
       return []

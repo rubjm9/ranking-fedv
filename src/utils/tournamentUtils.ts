@@ -55,6 +55,10 @@ export const generateSeasons = (): Season[] => {
   return seasons.reverse() // Más recientes primero
 }
 
+/** Etiqueta de la temporada actual (más reciente según generateSeasons). */
+export const getCurrentSeasonValue = (): string =>
+  generateSeasons()[0]?.value ?? '2024-25'
+
 // Generar nombre automático del torneo
 export const generateTournamentName = (
   type: string,

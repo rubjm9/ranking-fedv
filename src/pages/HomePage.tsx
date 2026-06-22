@@ -607,6 +607,16 @@ const HomePage: React.FC = () => {
                         <div className="text-center text-slate-500 text-xs py-1">
                           ⋯
                         </div>
+                        {showFullPointsTable && (
+                          <div className="space-y-1">
+                            {REMAINING_TABLE_POSITIONS.map((position) => (
+                              <div key={position} className="flex justify-between p-2 bg-slate-50 rounded text-sm">
+                                <span>{position}º lugar</span>
+                                <span className="font-mono font-semibold">{nationalCurvePoints(position)} pts</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -625,6 +635,18 @@ const HomePage: React.FC = () => {
                         <div className="text-center text-slate-500 text-xs py-1">
                           ⋯
                         </div>
+                        {showFullPointsTable && (
+                          <div className="space-y-1">
+                            {REMAINING_TABLE_POSITIONS.map((position) => (
+                              <div key={position} className="flex justify-between p-2 bg-slate-50 rounded text-sm">
+                                <span>{position}º lugar</span>
+                                <span className="font-mono font-semibold">
+                                  {getPointsForPosition(position, 'CE2', DEFAULT_DIVISION_SIZE)} pts
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <p className="text-xs text-slate-500 mt-2 text-center">Continúa la curva de 1ª (pos. 17+)</p>
                     </div>
@@ -645,8 +667,35 @@ const HomePage: React.FC = () => {
                         <div className="text-center text-slate-500 text-xs py-1">
                           ⋯
                         </div>
+                        {showFullPointsTable && (
+                          <div className="space-y-1">
+                            {REMAINING_TABLE_POSITIONS.map((position) => (
+                              <div key={position} className="flex justify-between p-2 bg-slate-50 rounded text-sm">
+                                <span>{position}º lugar</span>
+                                <div className="text-right">
+                                  <span className="font-mono font-semibold">{regionalCurvePoints(position)} pts</span>
+                                  <span className="text-xs text-slate-500 ml-1">× coef. regional</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
+                  </div>
+                  <div className="flex justify-center mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowFullPointsTable((prev) => !prev)}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                      aria-expanded={showFullPointsTable}
+                    >
+                      {showFullPointsTable ? 'Ocultar tabla completa' : 'Ver tabla completa'}
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform duration-300 ${showFullPointsTable ? 'rotate-180' : ''}`}
+                        aria-hidden
+                      />
+                    </button>
                   </div>
                 </div>
 
