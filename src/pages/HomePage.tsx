@@ -174,7 +174,7 @@ const HomePage: React.FC = () => {
               El ranking oficial de Ultimate Frisbee en España
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/ranking" className="btn-primary px-8 py-3 text-base font-semibold">
+              <Link to="/ranking/resumen" className="btn-primary px-8 py-3 text-base font-semibold">
                 Ver ranking completo
               </Link>
               <Link
@@ -214,7 +214,7 @@ const HomePage: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
               <h2 className="section-title mb-2">Ranking actual</h2>
               <Link
-                to="/ranking"
+                to="/ranking/resumen"
                 className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
               >
               Ver ranking completo
@@ -227,7 +227,7 @@ const HomePage: React.FC = () => {
               title="Playa Mixto"
               data={mapTeamsToSummaryData(teamsByCategory['beach_mixed'] || [])}
               category="beach_mixed"
-              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking')}
+              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking/resumen')}
               getRankIcon={getRankIcon}
               getChangeIcon={getChangeIcon}
               getChangeText={getChangeText}
@@ -236,7 +236,7 @@ const HomePage: React.FC = () => {
               title="Playa Women"
               data={mapTeamsToSummaryData(teamsByCategory['beach_women'] || [])}
               category="beach_women"
-              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking')}
+              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking/resumen')}
               getRankIcon={getRankIcon}
               getChangeIcon={getChangeIcon}
               getChangeText={getChangeText}
@@ -245,7 +245,7 @@ const HomePage: React.FC = () => {
               title="Playa Open"
               data={mapTeamsToSummaryData(teamsByCategory['beach_open'] || [])}
               category="beach_open"
-              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking')}
+              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking/resumen')}
               getRankIcon={getRankIcon}
               getChangeIcon={getChangeIcon}
               getChangeText={getChangeText}
@@ -254,7 +254,7 @@ const HomePage: React.FC = () => {
               title="Césped Mixto"
               data={mapTeamsToSummaryData(teamsByCategory['grass_mixed'] || [])}
               category="grass_mixed"
-              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking')}
+              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking/resumen')}
               getRankIcon={getRankIcon}
               getChangeIcon={getChangeIcon}
               getChangeText={getChangeText}
@@ -263,7 +263,7 @@ const HomePage: React.FC = () => {
               title="Césped Women"
               data={mapTeamsToSummaryData(teamsByCategory['grass_women'] || [])}
               category="grass_women"
-              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking')}
+              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking/resumen')}
               getRankIcon={getRankIcon}
               getChangeIcon={getChangeIcon}
               getChangeText={getChangeText}
@@ -272,7 +272,7 @@ const HomePage: React.FC = () => {
               title="Césped Open"
               data={mapTeamsToSummaryData(teamsByCategory['grass_open'] || [])}
               category="grass_open"
-              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking')}
+              onViewFull={(category) => navigate(CATEGORY_PATHS[category] || '/ranking/resumen')}
               getRankIcon={getRankIcon}
               getChangeIcon={getChangeIcon}
               getChangeText={getChangeText}

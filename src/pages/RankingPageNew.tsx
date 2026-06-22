@@ -205,6 +205,8 @@ const VALID_CATEGORY_TABS = ['beach_mixed', 'beach_open', 'beach_women', 'grass_
 type CombinedType = 'all' | 'beach' | 'grass' | 'mixed' | 'open' | 'women'
 
 const SLUG_TO_TAB: Record<string, string> = {
+  'resumen': 'summary',
+  'summary': 'summary',
   'beach-mixed': 'beach_mixed',
   'beach-women': 'beach_women',
   'beach-open': 'beach_open',
@@ -310,7 +312,7 @@ const RankingPageNew: React.FC = () => {
   // Configuración de las pestañas: Mixto, Women, Open (primero playa, luego césped)
   const tabs = [
     { id: 'summary', label: 'Resumen', icon: BarChart3 },
-    { id: 'general', label: 'Ranking General', icon: LineChart },
+    { id: 'general', label: 'Rankings combinados', icon: LineChart },
     { id: 'beach_mixed', label: 'Playa Mixto', icon: IconBeach },
     { id: 'beach_women', label: 'Playa Women', icon: IconBeach },
     { id: 'beach_open', label: 'Playa Open', icon: IconBeach },
@@ -705,7 +707,7 @@ const RankingPageNew: React.FC = () => {
 
   const handleTabClick = (tabId: string) => {
     const slugMap: Record<string, string> = {
-      'summary': 'general',
+      'summary': 'resumen',
       'general': 'general',
       'beach_mixed': 'beach-mixed',
       'beach_women': 'beach-women',
@@ -2548,27 +2550,31 @@ const RankingPageNew: React.FC = () => {
   }
 
   const renderCombinedSubSelector = () => (
-    <div className="flex flex-wrap gap-2 mb-6">
-      {(Object.keys(combinedTypeLabels) as CombinedType[]).map((type) => (
-        <button
-          key={type}
-          onClick={() => {
-            setSelectedCombinedType(type)
-            const slugMap: Record<CombinedType, string> = {
-              all: 'general', beach: 'playa', grass: 'cesped',
-              mixed: 'mixto', open: 'open', women: 'women',
-            }
-            navigate(`/ranking/${slugMap[type]}`)
-          }}
-          className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-            selectedCombinedType === type
-              ? 'bg-primary-600 text-white'
-              : 'bg-white border border-slate-200 text-slate-600 hover:border-primary-300 hover:text-primary-600'
-          }`}
-        >
-          {combinedTypeLabels[type]}
-        </button>
-      ))}
+    <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <p className="mb-3 text-sm font-semibold text-slate-900">Tipo de ranking combinado</p>
+      <div className="flex flex-wrap gap-2 sm:gap-3" role="group" aria-label="Tipo de ranking combinado">
+        {(Object.keys(combinedTypeLabels) as CombinedType[]).map((type) => (
+          <button
+            key={type}
+            type="button"
+            onClick={() => {
+              setSelectedCombinedType(type)
+              const slugMap: Record<CombinedType, string> = {
+                all: 'general', beach: 'playa', grass: 'cesped',
+                mixed: 'mixto', open: 'open', women: 'women',
+              }
+              navigate(`/ranking/${slugMap[type]}`)
+            }}
+            className={`min-h-[44px] rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+              selectedCombinedType === type
+                ? 'bg-primary-600 text-white shadow-md ring-2 ring-primary-600/20'
+                : 'border border-slate-200 bg-slate-50 text-slate-700 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700'
+            }`}
+          >
+            {combinedTypeLabels[type]}
+          </button>
+        ))}
+      </div>
     </div>
   )
 

@@ -77,7 +77,7 @@ function App() {
             <Route path="/" element={<PublicLayout />}>
               <Route index element={<HomePage />} />
               <Route path="ranking">
-                <Route index element={<Navigate to="/ranking/general" replace />} />
+                <Route index element={<Navigate to="/ranking/resumen" replace />} />
                 <Route path=":surface" element={<RankingPageNew />} />
               </Route>
               <Route path="ranking-old" element={<Navigate to="/ranking" replace />} />

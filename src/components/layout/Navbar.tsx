@@ -11,7 +11,7 @@ const megamenuItems = [
   { label: 'Césped Mixto', to: '/ranking/grass-mixed' },
   { label: 'Césped Women', to: '/ranking/grass-women' },
   { label: 'Césped Open', to: '/ranking/grass-open' },
-  { label: 'Ranking General', to: '/ranking/general' },
+  { label: 'Rankings combinados', to: '/ranking/general' },
   { label: 'Ranking Playa', to: '/ranking/playa' },
   { label: 'Ranking Césped', to: '/ranking/cesped' },
   { label: 'Ranking Mixto', to: '/ranking/mixto' },
