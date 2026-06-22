@@ -543,6 +543,24 @@ export const tournamentsService = {
   // Buscar torneo existente con la misma combinación
   findByCombination: findTournamentByCombination,
 
+  // Obtener los CE1 de una modalidad (año/superficie/categoría) para asociar un CE2
+  getCE1ByModality: async (year: number, surface: string, category: string) => {
+    if (!supabase) {
+      throw new Error('Supabase client not initialized')
+    }
+    const { data, error } = await supabase
+      .from('tournaments')
+      .select('id, name, year, surface, category, divisionSize')
+      .eq('type', 'CE1')
+      .eq('year', year)
+      .eq('surface', surface)
+      .eq('category', category)
+      .order('name', { ascending: true })
+
+    if (error) throw error
+    return { success: true, data: data || [], message: 'CE1 obtenidos exitosamente' }
+  },
+
   // Crear un nuevo torneo
   create: async (tournamentData: Omit<Tournament, 'id' | 'createdAt' | 'updatedAt'>) => {
     const existing = await findTournamentByCombination({

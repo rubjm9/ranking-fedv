@@ -34,6 +34,16 @@ const rankingUpdateService = {
     }
 
     try {
+      // PASO 0: Recalcular puntos de todas las posiciones con la curva vigente
+      // (regenerateAllSeasons solo suma puntos ya guardados, así que esto va primero)
+      console.log('🧮 Paso 0: Recalculando puntos de posiciones con la curva vigente...')
+      const recomputeResult = await seasonPointsService.recomputeAllPositionPoints()
+      if (!recomputeResult.success) {
+        result.message = `Error recalculando puntos de posiciones: ${recomputeResult.message}`
+        return result
+      }
+      console.log(`✅ ${recomputeResult.updated} posiciones recalculadas`)
+
       // PASO 1: Regenerar todas las temporadas
       console.log('📅 Paso 1: Regenerando todas las temporadas...')
       const regenerateResult = await seasonPointsService.regenerateAllSeasons()

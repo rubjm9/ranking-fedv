@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Trash2, Plus, Eye, Clipboard, Copy } from 'lucide-react'
@@ -31,6 +31,8 @@ import {
   generateTournamentName,
   getPointsForPosition,
   generateDefaultPositions,
+  getOffsetForTournament,
+  DEFAULT_DIVISION_SIZE,
   validateTournamentDates,
   getYearFromSeason,
   type TournamentFormData,
@@ -116,6 +118,24 @@ const EditTournamentPage: React.FC = () => {
   const teams = teamsData?.data || []
   const seasons = generateSeasons()
 
+  // CE1 de la misma modalidad para asociar un CE2 (define el offset de la curva)
+  const { data: ce1Data } = useQuery({
+    queryKey: ['ce1-by-modality', formData.season, formData.surface, formData.category],
+    queryFn: () => tournamentsService.getCE1ByModality(
+      getYearFromSeason(formData.season),
+      formData.surface,
+      formData.category
+    ),
+    enabled: formData.type === 'CE2' && !!formData.season && !!formData.surface && !!formData.category
+  })
+  const ce1Options = (ce1Data?.data || []).filter((t: any) => t.id !== id)
+
+  // Offset en la curva nacional (0 para CE1/REGIONAL; tamaño de la 1ª para CE2)
+  const offset = useMemo(
+    () => getOffsetForTournament(formData.type, formData.divisionSize),
+    [formData.type, formData.divisionSize]
+  )
+
   const tournamentTypes = [
     { value: 'CE1', label: 'Campeonato España 1ª División' },
     { value: 'CE2', label: 'Campeonato España 2ª División' },
@@ -197,7 +217,10 @@ const EditTournamentPage: React.FC = () => {
         regionId: tournament.regionId || '',
         startDate: tournament.startDate ? new Date(tournament.startDate).toISOString().split('T')[0] : '',
         endDate: tournament.endDate ? new Date(tournament.endDate).toISOString().split('T')[0] : '',
-        location: tournament.location
+        location: tournament.location,
+        divisionSize: tournament.divisionSize
+          ?? (tournament.type === 'CE1' || tournament.type === 'CE2' ? DEFAULT_DIVISION_SIZE : undefined),
+        parentTournamentId: tournament.parentTournamentId ?? undefined
       })
       
       setGeneratedName(tournament.name)
@@ -236,9 +259,17 @@ const EditTournamentPage: React.FC = () => {
   // Generar posiciones por defecto cuando cambie el tipo de torneo
   useEffect(() => {
     if (formData.type) {
-      setPositions(generateDefaultPositions(formData.type))
+      setPositions(generateDefaultPositions(formData.type, offset))
     }
   }, [formData.type])
+
+  // Recalcular puntos de las posiciones cuando cambie el offset (p. ej. al asociar la 1ª)
+  useEffect(() => {
+    setPositions(prev => prev.map(pos => ({
+      ...pos,
+      points: getPointsForPosition(pos.position, formData.type, offset)
+    })))
+  }, [offset])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -364,6 +395,8 @@ const EditTournamentPage: React.FC = () => {
         surface: formData.surface,
         category: formData.category,
         regionId: formData.regionId || null,
+        divisionSize: formData.divisionSize ?? null,
+        parentTournamentId: formData.parentTournamentId ?? null,
         startDate: formData.startDate ? new Date(formData.startDate).toISOString() : null,
         endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null,
         location: formData.location
@@ -404,8 +437,25 @@ const EditTournamentPage: React.FC = () => {
   }
 
   const handleInputChange = (field: keyof TournamentFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData(prev => {
+      const next: TournamentFormData = { ...prev, [field]: value }
+      if (field === 'type') {
+        next.divisionSize = value === 'CE1' || value === 'CE2' ? DEFAULT_DIVISION_SIZE : undefined
+        next.parentTournamentId = undefined
+      }
+      return next
+    })
     validateField(field, value)
+  }
+
+  // Asociar un CE2 a su CE1: el offset = tamaño de división de la 1ª elegida
+  const handleParentChange = (parentId: string) => {
+    const parent = ce1Options.find((t: any) => t.id === parentId)
+    setFormData(prev => ({
+      ...prev,
+      parentTournamentId: parentId || undefined,
+      divisionSize: parent?.divisionSize ?? DEFAULT_DIVISION_SIZE
+    }))
   }
 
   const updatePosition = (index: number, field: keyof PositionRow, value: string | number) => {
@@ -415,7 +465,7 @@ const EditTournamentPage: React.FC = () => {
           const updatedPos = { ...pos, [field]: value }
           // Recalcular puntos si cambió la posición o el tipo de torneo
           if (field === 'position' && formData.type) {
-            updatedPos.points = getPointsForPosition(Number(value), formData.type)
+            updatedPos.points = getPointsForPosition(Number(value), formData.type, offset)
           }
           return updatedPos
         }
@@ -428,7 +478,7 @@ const EditTournamentPage: React.FC = () => {
         updated.push({
           position: newPosition,
           teamId: '',
-          points: getPointsForPosition(newPosition, formData.type)
+          points: getPointsForPosition(newPosition, formData.type, offset)
         })
       }
       
@@ -441,7 +491,7 @@ const EditTournamentPage: React.FC = () => {
     setPositions(prev => [...prev, {
       position: newPosition,
       teamId: '',
-      points: getPointsForPosition(newPosition, formData.type)
+      points: getPointsForPosition(newPosition, formData.type, offset)
     }])
   }
 
@@ -452,7 +502,7 @@ const EditTournamentPage: React.FC = () => {
       return updated.map((pos, i) => ({
         ...pos,
         position: i + 1,
-        points: getPointsForPosition(i + 1, formData.type)
+        points: getPointsForPosition(i + 1, formData.type, offset)
       }))
     })
   }
@@ -467,7 +517,7 @@ const EditTournamentPage: React.FC = () => {
       return {
         position: index + 1,
         teamId: teamId,
-        points: getPointsForPosition(index + 1, formData.type)
+        points: getPointsForPosition(index + 1, formData.type, offset)
       }
     })
 
@@ -524,7 +574,7 @@ const EditTournamentPage: React.FC = () => {
         return newPositions.map((pos, index) => ({
           ...pos,
           position: index + 1,
-          points: getPointsForPosition(index + 1, formData.type)
+          points: getPointsForPosition(index + 1, formData.type, offset)
         }))
       })
     }
@@ -827,6 +877,72 @@ const EditTournamentPage: React.FC = () => {
                   <p className="mt-1 text-sm text-red-600">{errors.category}</p>
                 )}
               </div>
+
+              {/* Tamaño de división (CE1 / CE2) */}
+              {(formData.type === 'CE1' || formData.type === 'CE2') && (
+                <div>
+                  <label htmlFor="divisionSize" className="block text-sm font-medium text-gray-700 mb-2">
+                    Tamaño de división
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Users className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="number"
+                      id="divisionSize"
+                      min={1}
+                      list="divisionSizeOptions"
+                      value={formData.divisionSize ?? ''}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        divisionSize: e.target.value ? Number(e.target.value) : undefined
+                      }))}
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                    />
+                    <datalist id="divisionSizeOptions">
+                      <option value="8" />
+                      <option value="12" />
+                      <option value="16" />
+                    </datalist>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {formData.type === 'CE2'
+                      ? 'Nº de equipos de la 1ª asociada (offset de la curva).'
+                      : 'Nº de equipos de la 1ª división.'}
+                  </p>
+                </div>
+              )}
+
+              {/* Campeonato de 1ª asociado (solo CE2) */}
+              {formData.type === 'CE2' && (
+                <div>
+                  <label htmlFor="parentTournamentId" className="block text-sm font-medium text-gray-700 mb-2">
+                    Campeonato de 1ª asociado
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Trophy className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <select
+                      id="parentTournamentId"
+                      value={formData.parentTournamentId ?? ''}
+                      onChange={(e) => handleParentChange(e.target.value)}
+                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                    >
+                      <option value="">Seleccionar 1ª división</option>
+                      {ce1Options.map((t: any) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {ce1Options.length === 0
+                      ? 'No hay CE1 de esta modalidad/temporada; se usará el tamaño indicado arriba.'
+                      : 'Define dónde continúa la 2ª en la curva nacional.'}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
