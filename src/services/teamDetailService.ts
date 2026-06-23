@@ -295,32 +295,60 @@ class TeamDetailService {
             }
           }
         }
-        return rankings
+      } else {
+        // Fallback: Si no hay datos pre-calculados, usar método anterior
+        console.log('Fallback a método tradicional para getCurrentRankings')
+        await Promise.all(
+          categories.map(async (category) => {
+            try {
+              const ranking = await hybridRankingService.getRankingFromSeasonPoints(category, referenceSeason)
+              totalsByCategory[category] = ranking.length
+              const teamRanking = ranking.find(entry => entry.team_id === teamId)
+
+              if (teamRanking) {
+                rankings[category] = {
+                  position: teamRanking.ranking_position,
+                  points: teamRanking.total_points,
+                  change: 0
+                }
+              }
+            } catch (error) {
+              console.warn(`Error obteniendo ranking para ${category}:`, error)
+            }
+          })
+        )
       }
 
-      // Fallback: Si no hay datos pre-calculados, usar método anterior
-      console.log('Fallback a método tradicional para getCurrentRankings')
-      for (const category of categories) {
-        try {
-          const ranking = await hybridRankingService.getRankingFromSeasonPoints(category, referenceSeason)
-          const teamRanking = ranking.find(entry => entry.team_id === teamId)
-          
-          if (teamRanking) {
-            rankings[category] = {
-              position: teamRanking.ranking_position,
-              points: teamRanking.total_points,
-              change: 0
+      const categoriesNeedingTotals = Object.keys(rankings).filter(
+        (category) => totalsByCategory[category] === undefined
+      )
+
+      if (categoriesNeedingTotals.length > 0) {
+        await Promise.all(
+          categoriesNeedingTotals.map(async (category) => {
+            try {
+              const ranking = await hybridRankingService.getRankingFromSeasonPoints(
+                category as (typeof categories)[number],
+                referenceSeason
+              )
+              totalsByCategory[category] = ranking.length
+            } catch (error) {
+              console.warn(`Error obteniendo total de equipos para ${category}:`, error)
+              totalsByCategory[category] = 0
             }
-          }
-        } catch (error) {
-          console.warn(`Error obteniendo ranking para ${category}:`, error)
-        }
+          })
+        )
       }
     } catch (error) {
       console.error('Error en getCurrentRankings:', error)
     }
 
-    return rankings
+    return Object.fromEntries(
+      Object.entries(rankings).map(([category, entry]) => [
+        category,
+        { ...entry, totalTeams: totalsByCategory[category] ?? 0 },
+      ])
+    )
   }
 
   /**
