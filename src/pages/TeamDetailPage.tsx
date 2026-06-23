@@ -752,16 +752,6 @@ const TeamDetailPage: React.FC = () => {
             <PageHeroStatsBar
               items={[
                 {
-                  icon: Trophy,
-                  label: 'Torneos ganados',
-                  value: statistics.tournamentsWon,
-                },
-                {
-                  icon: Target,
-                  label: 'Ranking global',
-                  value: statistics.globalPosition ? `#${statistics.globalPosition}` : 'N/A',
-                },
-                {
                   icon: Calendar,
                   label: 'Torneos',
                   value: statistics.totalTournaments,
@@ -770,6 +760,16 @@ const TeamDetailPage: React.FC = () => {
                   icon: Award,
                   label: 'Podios',
                   value: statistics.podiums,
+                },
+                {
+                  icon: Trophy,
+                  label: 'Torneos ganados',
+                  value: statistics.tournamentsWon,
+                },
+                {
+                  icon: Target,
+                  label: 'Mejor posición',
+                  value: statistics.bestPosition > 0 ? `#${statistics.bestPosition}` : 'N/A',
                 },
               ]}
             />
