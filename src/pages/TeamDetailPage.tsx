@@ -5,6 +5,7 @@ import { ArrowLeft, UsersRound, MapPin, Trophy, Calendar, TrendingUp, BarChart3,
 import { teamDetailService, TeamDetailData, prefetchTeamDetail } from '@/services/teamDetailService'
 import { teamsService, tournamentsService, getTeamPublicUrl } from '@/services/apiService'
 import PageHeroShell from '@/components/layout/PageHeroShell'
+import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
 import TeamLogo from '@/components/ui/TeamLogo'
 import GeneralRankingChart from '@/components/charts/GeneralRankingChart'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
@@ -14,7 +15,6 @@ import StickyHeader from '@/components/ui/StickyHeader'
 import ShareButton from '@/components/ui/ShareButton'
 import TournamentTable from '@/components/ui/TournamentTable'
 import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
-import StatsGridSkeleton from '@/components/ui/StatsGridSkeleton'
 import TabsSkeleton from '@/components/ui/TabsSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 
@@ -201,7 +201,6 @@ const TeamDetailPage: React.FC = () => {
       <>
         <DetailHeaderSkeleton variant="team" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-          <StatsGridSkeleton />
           <TabsSkeleton count={5} />
           <TableSkeleton rows={6} columns={5} showLeadingAvatar />
         </div>
@@ -238,56 +237,6 @@ const TeamDetailPage: React.FC = () => {
       icon: BarChart3,
       content: (
         <div className="space-y-6">
-          {/* Team Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-200">
-              <div className="flex items-center">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center">
-                  <Trophy className="h-7 w-7 text-yellow-600" strokeWidth={1.5} />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-slate-600">Torneos Ganados</p>
-                  <p className="text-3xl font-bold text-slate-900">{statistics.tournamentsWon}</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-200">
-              <div className="flex items-center">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center">
-                  <Target className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-slate-600">Ranking global</p>
-                  <p className="text-3xl font-bold text-slate-900">
-                    {statistics.globalPosition ? `#${statistics.globalPosition}` : 'N/A'}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-200">
-              <div className="flex items-center">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center">
-                  <Calendar className="h-7 w-7 text-purple-600" strokeWidth={1.5} />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-slate-600">Torneos</p>
-                  <p className="text-3xl font-bold text-slate-900">{statistics.totalTournaments}</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-200">
-              <div className="flex items-center">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center">
-                  <Award className="h-7 w-7 text-orange-600" strokeWidth={1.5} />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-slate-600">Podios</p>
-                  <p className="text-3xl font-bold text-slate-900">{statistics.podiums}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Team Info */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -735,7 +684,7 @@ const TeamDetailPage: React.FC = () => {
         }
       />
 
-      <PageHeroShell className="mb-0 border-b border-slate-800">
+      <PageHeroShell className="mb-0 border-b border-slate-800" innerClassName="pb-6">
           <div className="mb-6">
             <Breadcrumbs
               variant="dark"
@@ -775,6 +724,36 @@ const TeamDetailPage: React.FC = () => {
               url={getTeamPublicUrl(team)}
               title={`${team.name} - Ranking FEDV`}
               description={`Consulta las estadísticas y resultados de ${team.name} en el Ranking FEDV`}
+            />
+          </div>
+          <div className="-mx-4 mt-6 border-t border-primary-600/20 pt-5 sm:-mx-6 lg:-mx-8">
+            <PageHeroStatsBar
+              items={[
+                {
+                  icon: Trophy,
+                  label: 'Torneos ganados',
+                  value: statistics.tournamentsWon,
+                  iconClassName: 'text-yellow-400',
+                },
+                {
+                  icon: Target,
+                  label: 'Ranking global',
+                  value: statistics.globalPosition ? `#${statistics.globalPosition}` : 'N/A',
+                  iconClassName: 'text-primary-400',
+                },
+                {
+                  icon: Calendar,
+                  label: 'Torneos',
+                  value: statistics.totalTournaments,
+                  iconClassName: 'text-purple-400',
+                },
+                {
+                  icon: Award,
+                  label: 'Podios',
+                  value: statistics.podiums,
+                  iconClassName: 'text-orange-400',
+                },
+              ]}
             />
           </div>
       </PageHeroShell>
