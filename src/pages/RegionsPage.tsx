@@ -9,7 +9,8 @@ import { getRegionalCoefficientBaseSeason } from '@/utils/rankingCalculations'
 import { supabase } from '@/services/supabaseService'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
-import StatsCard from '@/components/ui/StatsCard'
+import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
+import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import SeasonNavigator, { useSelectedSeason } from '@/components/regions/SeasonNavigator'
 import RegionalCoefficientMatrix from '@/components/regions/RegionalCoefficientMatrix'
 import RegionalCoefficientBreakdown from '@/components/regions/RegionalCoefficientBreakdown'
@@ -159,6 +160,16 @@ const RegionsPage = () => {
     )
   }
 
+  const highestCoefLabel = highestCoef
+    ? `Mayor coef. activo · promedio ${highestCoef.avg.toFixed(2)}${
+        highestCoefPoints != null ? ` · ${highestCoefPoints.toFixed(1)} pts` : ''
+      }`
+    : 'Mayor coef. activo'
+
+  const mostActiveLabel = regionStats.mostActive
+    ? `Región más activa · ${regionStats.mostActive.count} equipos`
+    : 'Región más activa'
+
   return (
     <PageContainer>
       <PageHeader
@@ -167,6 +178,36 @@ const RegionsPage = () => {
           referenceSeason
             ? `Coeficientes activos calculados con datos hasta ${referenceSeason} (aplican a regionales ${coeffSeasonInfo?.currentSeason || ''})`
             : 'Explora las regiones participantes en el ranking FEDV'
+        }
+        breadcrumbs={<Breadcrumbs variant="dark" items={[{ label: 'Regiones' }]} />}
+        statsBar={
+          <PageHeroStatsBar
+            isLoading={isLoading}
+            items={[
+              {
+                icon: MapPin,
+                label: 'Total regiones',
+                value: totalRegions,
+              },
+              {
+                icon: UsersRound,
+                label: 'Total equipos',
+                value: totalTeams,
+                iconClassName: 'text-emerald-400',
+              },
+              {
+                icon: UsersRound,
+                label: mostActiveLabel,
+                value: regionStats.mostActive?.name || 'N/A',
+              },
+              {
+                icon: TrendingUp,
+                label: highestCoefLabel,
+                value: highestCoef?.name || 'N/A',
+                iconClassName: 'text-emerald-400',
+              },
+            ]}
+          />
         }
       />
 
@@ -177,33 +218,6 @@ const RegionsPage = () => {
           o <code className="bg-amber-100 px-1 rounded">npm run backfill-regional-coefficients</code>.
         </div>
       )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard icon={MapPin} label="Total regiones" value={totalRegions} />
-        <StatsCard
-          icon={UsersRound}
-          label="Total equipos"
-          value={totalTeams}
-          iconColor="text-emerald-600"
-        />
-        <StatsCard
-          icon={UsersRound}
-          label="Región más activa"
-          value={regionStats.mostActive?.name || 'N/A'}
-          subtitle={`${regionStats.mostActive?.count || 0} equipos`}
-        />
-        <StatsCard
-          icon={TrendingUp}
-          label="Mayor coef. activo"
-          value={highestCoef?.name || 'N/A'}
-          subtitle={
-            highestCoef
-              ? `promedio ${highestCoef.avg.toFixed(2)}${highestCoefPoints != null ? ` · ${highestCoefPoints.toFixed(1)} pts` : ''}`
-              : undefined
-          }
-          iconColor="text-emerald-600"
-        />
-      </div>
 
       <div className="card mb-8">
         <h2 className="text-lg font-semibold text-slate-900 mb-4">Histórico de coeficientes</h2>
