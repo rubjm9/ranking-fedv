@@ -1,30 +1,25 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   Plus, 
   Calendar, 
-  Upload, 
-  Edit, 
-  Trash2, 
-  Eye, 
   Trophy, 
   MapPin, 
-  Users,
-  BarChart3,
-  TrendingUp,
-  Filter,
   Search,
   Loader2,
   Clock,
-  ChevronUp,
-  ChevronDown
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { tournamentsService, supabase } from '../services/apiService'
 import ActionButtonGroup from '../components/ui/ActionButtonGroup'
 import TableSkeleton from '@/components/ui/TableSkeleton'
+import TableColumnFilter from '@/components/ui/TableColumnFilter'
+import AdminPageHeader from '@/components/layout/AdminPageHeader'
 import { generateSeasons } from '../utils/tournamentUtils'
+
+const filterSelectClass =
+  'h-7 w-full min-w-[5.5rem] rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
 
 interface Tournament {
   id: string
@@ -172,6 +167,30 @@ const TournamentsAdminPage: React.FC = () => {
     }
   }
 
+  const getSortState = (field: SortField): 'inactive' | 'asc' | 'desc' => {
+    if (sortField !== field) return 'inactive'
+    return sortDirection
+  }
+
+  const stopPropagation = (event: React.SyntheticEvent) => {
+    event.stopPropagation()
+  }
+
+  const hasActiveFilters =
+    searchTerm.length > 0 ||
+    selectedType !== 'all' ||
+    selectedYear !== 'all' ||
+    selectedSurface !== 'all' ||
+    selectedCategory !== 'all'
+
+  const clearFilters = () => {
+    setSearchTerm('')
+    setSelectedType('all')
+    setSelectedYear('all')
+    setSelectedSurface('all')
+    setSelectedCategory('all')
+  }
+
   const formatSeason = (year: number) => {
     const nextYear = (year + 1).toString().slice(-2)
     return `${year}-${nextYear}`
@@ -224,35 +243,6 @@ const TournamentsAdminPage: React.FC = () => {
     })
   
 
-
-
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800'
-      case 'ongoing':
-        return 'bg-blue-100 text-blue-800'
-      case 'upcoming':
-        return 'bg-yellow-100 text-yellow-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'Completado'
-      case 'ongoing':
-        return 'En curso'
-      case 'upcoming':
-        return 'Próximo'
-      default:
-        return 'Desconocido'
-    }
-  }
-
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -260,7 +250,7 @@ const TournamentsAdminPage: React.FC = () => {
           <div className="text-red-500 mb-4">Error al cargar los torneos</div>
           <button 
             onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="btn-primary"
           >
             Reintentar
           </button>
@@ -275,80 +265,21 @@ const TournamentsAdminPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Torneos</h1>
-          <p className="text-gray-600">Gestiona los torneos del ranking FEDV</p>
-        </div>
-        <button
-          onClick={() => navigate('/admin/tournaments/new')}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Nuevo torneo
-        </button>
-      </div>
+      <AdminPageHeader
+        title="Torneos"
+        subtitle="Gestiona los torneos del ranking FEDV"
+        actions={
+          <button
+            onClick={() => navigate('/admin/tournaments/new')}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Nuevo torneo
+          </button>
+        }
+      />
 
-      {/* Filtros */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-        <div className="lg:col-span-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Buscar torneos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-        <select
-          value={selectedType}
-          onChange={(e) => setSelectedType(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="all">Todos los tipos</option>
-          <option value="CE1">CE1 - 1ª División</option>
-          <option value="CE2">CE2 - 2ª División</option>
-          <option value="REGIONAL">Regional</option>
-        </select>
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="all">Todas las temporadas</option>
-          {generateSeasons().map((season) => (
-            <option key={season.value} value={season.startYear}>
-              {season.label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={selectedSurface}
-          onChange={(e) => setSelectedSurface(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="all">Todas las superficies</option>
-          <option value="BEACH">Playa</option>
-          <option value="GRASS">Césped</option>
-          <option value="INDOOR">Indoor</option>
-        </select>
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="all">Todas las categorías</option>
-          <option value="OPEN">Open</option>
-          <option value="WOMEN">Women</option>
-          <option value="MIXED">Mixto</option>
-        </select>
-      </div>
 
-      {/* Tabla */}
       {filteredAndSortedTournaments.length === 0 ? (
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
@@ -361,7 +292,7 @@ const TournamentsAdminPage: React.FC = () => {
             </p>
             <button
               onClick={() => navigate('/admin/tournaments/new')}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors mx-auto"
+              className="btn-primary flex items-center gap-2 mx-auto"
             >
               <Plus className="h-4 w-4" />
               <span>Crear Primer Torneo</span>
@@ -369,65 +300,135 @@ const TournamentsAdminPage: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-xs text-slate-500">
+              {filteredAndSortedTournaments.length} torneo{filteredAndSortedTournaments.length !== 1 ? 's' : ''} encontrado{filteredAndSortedTournaments.length !== 1 ? 's' : ''}
+            </p>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-xs text-slate-500 hover:text-primary-600 transition-colors"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+
+          <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-slate-200">
+              <thead className="bg-secondary-50 border-b border-slate-200">
                 <tr>
-                  <th className="sticky left-0 bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center space-x-1" onClick={() => handleSort('name')}>
-                      <span>TORNEO</span>
-                      {sortField === 'name' && (
-                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                      )}
+                  <TableColumnFilter
+                    label="Torneo"
+                    sortIcon={getSortState('name')}
+                    onSort={() => handleSort('name')}
+                    active={!!searchTerm}
+                    className="sticky left-0 bg-secondary-50 z-10 border-r border-slate-200"
+                  >
+                    <div className="relative min-w-[10rem]">
+                      <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="Buscar..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onClick={stopPropagation}
+                        className={`${filterSelectClass} pl-7`}
+                      />
                     </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center space-x-1" onClick={() => handleSort('type')}>
-                      <span>TIPO</span>
-                      {sortField === 'type' && (
-                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                      )}
-                    </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center space-x-1" onClick={() => handleSort('year')}>
-                      <span>TEMPORADA</span>
-                      {sortField === 'year' && (
-                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                      )}
-                    </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center space-x-1" onClick={() => handleSort('surface')}>
-                      <span>SUPERFICIE</span>
-                      {sortField === 'surface' && (
-                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                      )}
-                    </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center space-x-1" onClick={() => handleSort('category')}>
-                      <span>CATEGORÍA</span>
-                      {sortField === 'category' && (
-                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                      )}
-                    </div>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center space-x-1" onClick={() => handleSort('region')}>
-                      <span>REGIÓN</span>
-                      {sortField === 'region' && (
-                        sortDirection === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                      )}
-                    </div>
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ACCIONES
-                  </th>
+                  </TableColumnFilter>
+
+                  <TableColumnFilter
+                    label="Tipo"
+                    sortIcon={getSortState('type')}
+                    onSort={() => handleSort('type')}
+                    active={selectedType !== 'all'}
+                  >
+                    <select
+                      value={selectedType}
+                      onChange={(e) => setSelectedType(e.target.value)}
+                      onClick={stopPropagation}
+                      className={filterSelectClass}
+                    >
+                      <option value="all">Todos</option>
+                      <option value="CE1">CE1 - 1ª División</option>
+                      <option value="CE2">CE2 - 2ª División</option>
+                      <option value="REGIONAL">Regional</option>
+                    </select>
+                  </TableColumnFilter>
+
+                  <TableColumnFilter
+                    label="Temporada"
+                    sortIcon={getSortState('year')}
+                    onSort={() => handleSort('year')}
+                    active={selectedYear !== 'all'}
+                  >
+                    <select
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(e.target.value)}
+                      onClick={stopPropagation}
+                      className={filterSelectClass}
+                    >
+                      <option value="all">Todas</option>
+                      {generateSeasons().map((season) => (
+                        <option key={season.value} value={season.startYear}>
+                          {season.label}
+                        </option>
+                      ))}
+                    </select>
+                  </TableColumnFilter>
+
+                  <TableColumnFilter
+                    label="Superficie"
+                    sortIcon={getSortState('surface')}
+                    onSort={() => handleSort('surface')}
+                    active={selectedSurface !== 'all'}
+                  >
+                    <select
+                      value={selectedSurface}
+                      onChange={(e) => setSelectedSurface(e.target.value)}
+                      onClick={stopPropagation}
+                      className={filterSelectClass}
+                    >
+                      <option value="all">Todas</option>
+                      <option value="BEACH">Playa</option>
+                      <option value="GRASS">Césped</option>
+                      <option value="INDOOR">Indoor</option>
+                    </select>
+                  </TableColumnFilter>
+
+                  <TableColumnFilter
+                    label="Categoría"
+                    sortIcon={getSortState('category')}
+                    onSort={() => handleSort('category')}
+                    active={selectedCategory !== 'all'}
+                  >
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      onClick={stopPropagation}
+                      className={filterSelectClass}
+                    >
+                      <option value="all">Todas</option>
+                      <option value="OPEN">Open</option>
+                      <option value="WOMEN">Women</option>
+                      <option value="MIXED">Mixto</option>
+                    </select>
+                  </TableColumnFilter>
+
+                  <TableColumnFilter
+                    label="Región"
+                    sortIcon={getSortState('region')}
+                    onSort={() => handleSort('region')}
+                  />
+
+                  <TableColumnFilter label="Acciones" sortIcon="none" className="text-right" />
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-slate-200">
                 {filteredAndSortedTournaments.map((tournament: Tournament) => (
                   <tr key={tournament.id} className="hover:bg-gray-50 group">
                     <td className="sticky left-0 bg-white group-hover:bg-gray-50 px-6 py-4 whitespace-nowrap border-r border-gray-200">
@@ -495,6 +496,7 @@ const TournamentsAdminPage: React.FC = () => {
             </table>
           </div>
         </div>
+        </>
       )}
 
       {/* Modal de confirmación de eliminación */}
@@ -511,7 +513,7 @@ const TournamentsAdminPage: React.FC = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="btn-outline"
               >
                 Cancelar
               </button>
@@ -545,7 +547,7 @@ const TournamentsAdminPage: React.FC = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeletePositionsModal(false)}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="btn-outline"
               >
                 Cancelar
               </button>

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Trash2, Plus, Eye, Clipboard, Copy } from 'lucide-react'
 import subseasonDetectionService from '@/services/subseasonDetectionService'
+import { markRankingDirtyAfterEdit } from '@/services/rankingStateService'
 import FormSkeleton from '@/components/ui/FormSkeleton'
 import {
   DndContext,
@@ -166,7 +167,11 @@ const EditTournamentPage: React.FC = () => {
   const updateTournamentMutation = useMutation({
     mutationFn: (data: any) => tournamentsService.update(id!, data),
     onSuccess: async (_, variables) => {
+      const affectsCoefficients = variables.type === 'CE1' || variables.type === 'CE2'
+      void markRankingDirtyAfterEdit('Torneo actualizado', { affectsCoefficients })
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
+      queryClient.invalidateQueries({ queryKey: ['ranking-state'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-notifications-pending'] })
       // Toast solo en handleSubmit para evitar duplicado (onSuccess + handleSubmit)
       // Verificar si hay subtemporadas/temporadas completadas (semiautomático)
       if (variables.season) {
@@ -190,7 +195,10 @@ const EditTournamentPage: React.FC = () => {
   const deleteTournamentMutation = useMutation({
     mutationFn: () => tournamentsService.delete(id!),
     onSuccess: () => {
+      void markRankingDirtyAfterEdit('Torneo eliminado', { affectsCoefficients: true })
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
+      queryClient.invalidateQueries({ queryKey: ['ranking-state'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-notifications-pending'] })
       toast.success('Torneo eliminado exitosamente')
       navigate('/admin/tournaments')
     },
@@ -707,7 +715,7 @@ const EditTournamentPage: React.FC = () => {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Editar Torneo</h1>
+              <h1 className="page-header-title">Editar Torneo</h1>
               <p className="text-gray-600">Modificar información del torneo</p>
             </div>
           </div>
@@ -1137,7 +1145,7 @@ const EditTournamentPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowPasteModal(true)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="btn-primary flex items-center gap-2"
                 >
                   <Clipboard className="h-4 w-4" />
                   <span>Pegar listado</span>
@@ -1180,14 +1188,14 @@ const EditTournamentPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/admin/tournaments')}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              className="btn-outline"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSaving || updateTournamentMutation.isPending}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              className="btn-primary flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving || updateTournamentMutation.isPending ? (
                 <>
@@ -1257,7 +1265,7 @@ const EditTournamentPage: React.FC = () => {
             <div className="flex items-center justify-center space-x-4">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-colors"
+                className="btn-outline px-6 py-3"
                 >
                   Cancelar
                 </button>

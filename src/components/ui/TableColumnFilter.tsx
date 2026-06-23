@@ -7,6 +7,9 @@ interface TableColumnFilterProps {
   onSort?: () => void
   active?: boolean
   children?: ReactNode
+  rowSpan?: number
+  colSpan?: number
+  className?: string
 }
 
 const TableColumnFilter: React.FC<TableColumnFilterProps> = ({
@@ -15,6 +18,9 @@ const TableColumnFilter: React.FC<TableColumnFilterProps> = ({
   onSort,
   active = false,
   children,
+  rowSpan,
+  colSpan,
+  className = '',
 }) => {
   const SortIcon = () => {
     if (sortIcon === 'none') return null
@@ -24,7 +30,11 @@ const TableColumnFilter: React.FC<TableColumnFilterProps> = ({
   }
 
   return (
-    <th className="px-4 py-2 text-left align-top sm:px-6">
+    <th
+      rowSpan={rowSpan}
+      colSpan={colSpan}
+      className={`px-4 py-2 text-left align-top sm:px-6 ${className}`}
+    >
       {onSort ? (
         <button
           type="button"

@@ -10,6 +10,7 @@ import {
   Award
 } from 'lucide-react'
 import { tournamentsService, positionsService, Position } from '@/services/apiService'
+import { markRankingDirtyAfterEdit } from '@/services/rankingStateService'
 import { translateSurface, translateModality, translateTournamentType, getStatusLabel, getStatusColor } from '@/utils/translations'
 import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
 import StatsGridSkeleton from '@/components/ui/StatsGridSkeleton'
@@ -39,7 +40,10 @@ const TournamentDetailAdminPage: React.FC = () => {
   const deleteTournamentMutation = useMutation({
     mutationFn: (tournamentId: string) => tournamentsService.delete(tournamentId),
     onSuccess: () => {
+      void markRankingDirtyAfterEdit('Torneo eliminado', { affectsCoefficients: true })
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
+      queryClient.invalidateQueries({ queryKey: ['ranking-state'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-notifications-pending'] })
       navigate('/admin/tournaments')
     },
     onError: (error: any) => {
@@ -106,7 +110,7 @@ const TournamentDetailAdminPage: React.FC = () => {
           
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{tournament.name}</h1>
+              <h1 className="page-header-title">{tournament.name}</h1>
               <p className="text-gray-600 mt-1">Detalles del torneo</p>
             </div>
             
@@ -121,7 +125,7 @@ const TournamentDetailAdminPage: React.FC = () => {
               
               <button
                 onClick={() => navigate(`/tournaments/${id}`)}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="btn-primary flex items-center"
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Ver público

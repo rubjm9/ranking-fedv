@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { RefreshCw, Lock, BarChart3, CheckCircle, AlertTriangle, Clock, Timer, Minus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import seasonPointsService from '../../services/seasonPointsService'
+import seasonService from '../../services/seasonService'
 import teamSeasonRankingsService from '../../services/teamSeasonRankingsService'
 import subseasonAdminService, {
   type SubseasonId
 } from '../../services/subseasonAdminService'
 import { regionsService } from '../../services/apiService'
 import { verifyAllOptimizations } from '../../utils/verifyOptimizations'
+import RankingMaintenancePanel from '@/components/admin/RankingMaintenancePanel'
+import RankingStaleBanner from '@/components/admin/RankingStaleBanner'
 
 const COLUMNS: { surface: string; category: string; subseason: SubseasonId }[] = [
   { surface: 'BEACH', category: 'MIXED', subseason: 1 },
@@ -85,47 +87,37 @@ const SeasonManagementPage: React.FC = () => {
     ...regions.map(r => ({ type: 'REGIONAL', label: `Regional – ${r.name}`, regionId: r.id }))
   ]
 
-  const handleRegenerateSeason = async () => {
-    if (!selectedSeason) {
-      toast.error('Selecciona una temporada')
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      const result = await seasonPointsService.calculateAndSaveSeasonPoints(selectedSeason)
-
-      if (result.success) {
-        toast.success(result.message)
-      } else {
-        toast.error(result.message)
-      }
-    } catch (error: any) {
-      toast.error(`Error: ${error.message}`)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const handleCloseSeason = async () => {
     if (!selectedSeason) {
       toast.error('Selecciona una temporada')
       return
     }
 
-    if (!confirm(`¿Cerrar temporada ${selectedSeason}? Esto la marcará como completa.`)) {
+    if (
+      !confirm(
+        `¿Cerrar temporada ${selectedSeason}? Se marcará como completa y se calcularán los coeficientes regionales para la siguiente temporada.`
+      )
+    ) {
       return
     }
 
     setIsLoading(true)
     try {
-      const result = await seasonPointsService.closeSeason(selectedSeason)
-
-      if (result.success) {
-        toast.success(result.message)
-      } else {
-        toast.error(result.message)
+      const closeResult = await seasonPointsService.closeSeason(selectedSeason)
+      if (!closeResult.success) {
+        toast.error(closeResult.message)
+        return
       }
+
+      const coeffResult = await seasonService.calculateAndSaveRegionalCoefficients(selectedSeason)
+      if (coeffResult.saved > 0) {
+        toast.success(
+          `${closeResult.message}. ${coeffResult.saved} coeficientes regionales guardados.`
+        )
+      } else {
+        toast.success(closeResult.message)
+      }
+      queryClient.invalidateQueries({ queryKey: ['regional-coefficients'] })
     } catch (error: any) {
       toast.error(`Error: ${error.message}`)
     } finally {
@@ -265,23 +257,14 @@ const SeasonManagementPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestión de temporadas</h1>
-          <p className="text-gray-600 mt-1">
-            Estado de subtemporadas, cierre y acciones por temporada
-          </p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <Link
-            to="/admin/ranking-update"
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-            <span>Actualizar Rankings</span>
-          </Link>
-        </div>
+      <div className="border-b border-gray-200 pb-4">
+        <h1 className="page-header-title">Temporadas y ranking</h1>
+        <p className="text-gray-600 mt-1">
+          Monitor de subtemporadas, actualización del ranking y cierre de temporada
+        </p>
       </div>
+
+      <RankingStaleBanner />
 
       {/* Selector de temporada */}
       <div className="bg-white shadow rounded-lg p-6">
@@ -386,7 +369,7 @@ const SeasonManagementPage: React.FC = () => {
                             type="button"
                             onClick={() => handleCloseOrRecalculate(subId)}
                             disabled={!!loadingSubseason}
-                            className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                            className="btn-primary inline-flex items-center gap-1.5 text-xs py-1.5 px-2.5 disabled:opacity-50"
                           >
                             {loadingSubseason === subId ? (
                               <>
@@ -418,19 +401,12 @@ const SeasonManagementPage: React.FC = () => {
         </div>
       )}
 
+      <RankingMaintenancePanel selectedSeason={selectedSeason} />
+
       {/* Acciones por temporada */}
       <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Acciones por temporada</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button
-            onClick={handleRegenerateSeason}
-            disabled={isLoading || !selectedSeason}
-            className="flex items-center justify-center space-x-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            <span>Regenerar puntos</span>
-          </button>
-
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Cierre y estadísticas</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button
             onClick={handleCloseSeason}
             disabled={isLoading || !selectedSeason}
@@ -450,9 +426,18 @@ const SeasonManagementPage: React.FC = () => {
           </button>
         </div>
         <div className="mt-4 text-sm text-gray-600 space-y-1">
-          <p><strong>Regenerar puntos:</strong> si corriges resultados de la temporada seleccionada.</p>
-          <p><strong>Cerrar temporada:</strong> cuando termina oficialmente (todos los CEs completados).</p>
-          <p><strong>Cerrar subtemporada:</strong> usa los botones del monitor cuando termine cada subtemporada.</p>
+          <p>
+            <strong>Cerrar temporada:</strong> marca la temporada como completa y calcula coeficientes
+            regionales para la siguiente.
+          </p>
+          <p>
+            <strong>Cerrar subtemporada:</strong> usa los botones del monitor cuando termine cada
+            subtemporada.
+          </p>
+          <p>
+            <strong>Regenerar puntos o ranking completo:</strong> usa la actualización inteligente
+            más arriba.
+          </p>
         </div>
       </div>
 

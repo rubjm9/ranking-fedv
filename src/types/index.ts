@@ -337,11 +337,72 @@ export interface SidebarItem {
 }
 
 // Tipos para dashboard
+export type DashboardStatChangeType = 'positive' | 'negative' | 'neutral';
+
+export interface DashboardStatItem {
+  name: string;
+  value: string | number;
+  change: string;
+  changeType: DashboardStatChangeType;
+  href: string;
+  /** Texto secundario opcional (p. ej. aviso de rankings desactualizados) */
+  footnote?: string;
+}
+
 export interface DashboardStats {
   totalTeams: number;
   totalRegions: number;
+  totalTournamentsThisYear: number;
   totalTournaments: number;
-  lastUpdated: string;
+  currentSeason: string;
+  lastRankingUpdate: string | null;
+  /** Última reconstrucción en team_season_rankings */
+  lastRankingRebuild: string | null;
+  /** Último recálculo de puntos en team_season_points */
+  lastPointsUpdate: string | null;
+  teamsChange: number;
+  tournamentsChange: number;
+  items: DashboardStatItem[];
+}
+
+export type DashboardActivityType = 'team' | 'tournament' | 'ranking' | 'notification';
+
+export interface DashboardActivityItem {
+  type: DashboardActivityType;
+  action: string;
+  details: string;
+  timestamp: string;
+  href: string;
+}
+
+export type DashboardActionPriority = 'high' | 'medium' | 'low';
+
+export interface DashboardActionItem {
+  title: string;
+  description: string;
+  href: string;
+  priority: DashboardActionPriority;
+}
+
+export interface DashboardHealth {
+  dbConnected: boolean;
+  lastRankingUpdate: string | null;
+  lastRankingRebuild: string | null;
+  lastPointsUpdate: string | null;
+  currentSeason: string;
+  teamsWithRanking: number;
+  totalTeamsInRanking: number;
+}
+
+export interface DashboardSubseasonChip {
+  id: number;
+  label: string;
+  closed: boolean;
+}
+
+export interface DashboardSubseasonStatus {
+  season: string;
+  chips: DashboardSubseasonChip[];
 }
 
 export interface DashboardChart {

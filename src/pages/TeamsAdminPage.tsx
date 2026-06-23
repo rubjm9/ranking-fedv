@@ -1,26 +1,17 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Users, 
-  MapPin, 
-  Mail,
-  Calendar,
-  TrendingUp,
-  MoreHorizontal,
-  Loader2
-} from 'lucide-react'
+import { Plus, Search, MapPin, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import TableSkeleton from '@/components/ui/TableSkeleton'
+import TableColumnFilter from '@/components/ui/TableColumnFilter'
 import { teamsService, regionsService, Team, getTeamPublicUrl } from '@/services/apiService'
 import TeamLogo from '@/components/ui/TeamLogo'
 import ActionButtonGroup from '@/components/ui/ActionButtonGroup'
+import AdminPageHeader from '@/components/layout/AdminPageHeader'
+
+const filterSelectClass =
+  'h-7 w-full min-w-[5.5rem] rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
 
 const TeamsAdminPage: React.FC = () => {
   const navigate = useNavigate()
@@ -79,6 +70,17 @@ const TeamsAdminPage: React.FC = () => {
     return matchesSearch && matchesRegion
   })
 
+  const hasActiveFilters = searchTerm.length > 0 || selectedRegion !== 'all'
+
+  const clearFilters = () => {
+    setSearchTerm('')
+    setSelectedRegion('all')
+  }
+
+  const stopPropagation = (event: React.SyntheticEvent) => {
+    event.stopPropagation()
+  }
+
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -86,7 +88,7 @@ const TeamsAdminPage: React.FC = () => {
           <div className="text-red-500 mb-4">Error al cargar los equipos</div>
           <button 
             onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="btn-primary"
           >
             Reintentar
           </button>
@@ -97,75 +99,78 @@ const TeamsAdminPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Equipos</h1>
-          <p className="text-gray-600">Gestiona los equipos del ranking FEDV</p>
-        </div>
-        <button
-          onClick={() => navigate('/admin/teams/new')}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Nuevo Equipo
-        </button>
-      </div>
+      <AdminPageHeader
+        title="Equipos"
+        subtitle="Gestiona los equipos del ranking FEDV"
+        actions={
+          <button
+            onClick={() => navigate('/admin/teams/new')}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Nuevo equipo
+          </button>
+        }
+      />
 
-      {/* Filtros */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Buscar equipos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-        <select
-          value={selectedRegion}
-          onChange={(e) => setSelectedRegion(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="all">Todas las regiones</option>
-          {regionsData?.data?.map((region) => (
-            <option key={region.id} value={region.id}>
-              {region.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Tabla */}
       {isLoading ? (
-        <TableSkeleton rows={8} columns={6} showLeadingAvatar />
+        <TableSkeleton rows={8} columns={5} showLeadingAvatar />
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-xs text-slate-500">
+              {filteredTeams.length} equipo{filteredTeams.length !== 1 ? 's' : ''} encontrado{filteredTeams.length !== 1 ? 's' : ''}
+            </p>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-xs text-slate-500 hover:text-primary-600 transition-colors"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-secondary-50 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Equipo
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Región
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contacto
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Fecha Creación
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
-                </th>
+                <TableColumnFilter label="Equipo" sortIcon="none" active={!!searchTerm}>
+                  <div className="relative min-w-[10rem]">
+                    <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Buscar..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onClick={stopPropagation}
+                      className={`${filterSelectClass} pl-7`}
+                    />
+                  </div>
+                </TableColumnFilter>
+
+                <TableColumnFilter label="Región" sortIcon="none" active={selectedRegion !== 'all'}>
+                  <select
+                    value={selectedRegion}
+                    onChange={(e) => setSelectedRegion(e.target.value)}
+                    onClick={stopPropagation}
+                    className={filterSelectClass}
+                  >
+                    <option value="all">Todas</option>
+                    {regionsData?.data?.map((region) => (
+                      <option key={region.id} value={region.id}>
+                        {region.name}
+                      </option>
+                    ))}
+                  </select>
+                </TableColumnFilter>
+
+                <TableColumnFilter label="Fecha creación" sortIcon="none" />
+                <TableColumnFilter label="Acciones" sortIcon="none" className="text-right" />
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-slate-200">
               {filteredTeams.map((team) => (
                 <tr key={team.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -178,7 +183,12 @@ const TeamsAdminPage: React.FC = () => {
                         />
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{team.name}</div>
+                        <Link
+                          to={`/admin/teams/${team.id}/edit`}
+                          className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                        >
+                          {team.name}
+                        </Link>
                         <div className="text-sm text-gray-500">{team.location || 'Sin ubicación'}</div>
                       </div>
                     </div>
@@ -187,12 +197,6 @@ const TeamsAdminPage: React.FC = () => {
                     <div className="flex items-center">
                       <MapPin className="w-4 h-4 text-gray-400 mr-2" />
                       <span className="text-sm text-gray-900">{team.region?.name || 'Sin región'}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <Mail className="w-4 h-4 text-gray-400 mr-2" />
-                      <span className="text-sm text-gray-900">{team.email}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -215,6 +219,7 @@ const TeamsAdminPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {/* Modal de confirmación de eliminación */}
@@ -231,7 +236,7 @@ const TeamsAdminPage: React.FC = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="btn-outline"
               >
                 Cancelar
               </button>

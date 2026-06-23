@@ -25,7 +25,7 @@ const ConfigurationPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Configuración del sistema</h1>
+        <h1 className="page-header-title">Configuración del sistema</h1>
         <p className="text-gray-600 mt-1">
           Referencia de los parámetros activos del motor de ranking
         </p>

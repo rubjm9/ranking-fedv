@@ -41,12 +41,31 @@ export interface SubseasonBlock {
   tournaments: TournamentMonitorItem[]
 }
 
+/** Fuentes de timestamp usadas para diagnosticar la última actividad de ranking */
+export interface RankingTimestampInfo {
+  season: string
+  rankingsCalculatedAt: string | null
+  rankingsUpdatedAt: string | null
+  pointsLastUpdated: string | null
+  pointsUpdatedAt: string | null
+  /** MAX(calculated_at, updated_at) en team_season_rankings — reconstrucción del ranking público */
+  lastRankingRebuild: string | null
+  /** MAX(last_updated, updated_at) en team_season_points — recálculo de puntos base */
+  lastPointsUpdate: string | null
+  /** La más reciente de todas las fuentes anteriores (para mostrar en KPI) */
+  lastUpdated: string | null
+}
+
 export interface SubseasonMonitorData {
   season: string
   subseasons: SubseasonBlock[]
   /** Torneos con surface/category para montar la tabla 6 columnas × tipos */
   flatTournaments: TournamentCellItem[]
   lastUpdated: string | null
+  /** Última reconstrucción en team_season_rankings (puede ser anterior a lastUpdated) */
+  lastRankingRebuild: string | null
+  /** Último recálculo de puntos en team_season_points */
+  lastPointsUpdate: string | null
   /** Si la temporada tiene ya rankings calculados (muestra "Recalcular" en vez de "Cerrar") */
   hasBeenClosed: boolean
   /** Por subtemporada: si ya se han calculado rankings (muestra "Recalcular" en ese botón) */
@@ -72,6 +91,89 @@ function getSubseasonFromTournament(surface: string, category: string): Subseaso
   if (s === 'grass' && c === 'mixed') return 3
   if (s === 'grass' && (c === 'open' || c === 'women')) return 4
   return null
+}
+
+function pickLatestTimestamp(...dates: Array<string | null | undefined>): string | null {
+  const valid = dates.filter((d): d is string => Boolean(d))
+  if (valid.length === 0) return null
+  return valid.reduce((latest, current) =>
+    new Date(current).getTime() > new Date(latest).getTime() ? current : latest
+  )
+}
+
+async function getMaxColumnTimestamp(
+  table: 'team_season_rankings' | 'team_season_points',
+  season: string,
+  column: string
+): Promise<string | null> {
+  if (!supabase) return null
+
+  const { data, error } = await supabase
+    .from(table)
+    .select(column)
+    .eq('season', season)
+    .not(column, 'is', null)
+    .order(column, { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    console.warn(`[ranking-timestamp] Error leyendo ${table}.${column} (${season}):`, error.message)
+    return null
+  }
+
+  const row = data as Record<string, string> | null
+  return row?.[column] ?? null
+}
+
+/**
+ * Obtiene la fecha más reciente de cada fuente de ranking para una temporada.
+ * Usado por el dashboard y el monitor de subtemporadas.
+ */
+async function getRankingTimestampsForSeason(season: string): Promise<RankingTimestampInfo> {
+  const [
+    rankingsCalculatedAt,
+    rankingsUpdatedAt,
+    pointsLastUpdated,
+    pointsUpdatedAt,
+  ] = await Promise.all([
+    getMaxColumnTimestamp('team_season_rankings', season, 'calculated_at'),
+    getMaxColumnTimestamp('team_season_rankings', season, 'updated_at'),
+    getMaxColumnTimestamp('team_season_points', season, 'last_updated'),
+    getMaxColumnTimestamp('team_season_points', season, 'updated_at'),
+  ])
+
+  const lastRankingRebuild = pickLatestTimestamp(rankingsCalculatedAt, rankingsUpdatedAt)
+  const lastPointsUpdate = pickLatestTimestamp(pointsLastUpdated, pointsUpdatedAt)
+  const lastUpdated = pickLatestTimestamp(lastRankingRebuild, lastPointsUpdate)
+
+  const info: RankingTimestampInfo = {
+    season,
+    rankingsCalculatedAt,
+    rankingsUpdatedAt,
+    pointsLastUpdated,
+    pointsUpdatedAt,
+    lastRankingRebuild,
+    lastPointsUpdate,
+    lastUpdated,
+  }
+
+  if (import.meta.env.DEV) {
+    const rankingsStale =
+      lastPointsUpdate &&
+      lastRankingRebuild &&
+      new Date(lastPointsUpdate).getTime() > new Date(lastRankingRebuild).getTime() + 60_000
+
+    console.debug('[ranking-timestamp]', {
+      ...info,
+      rankingsStale,
+      hint: rankingsStale
+        ? 'Puntos más recientes que rankings: ejecutar "Actualizar rankings" o reconstruir'
+        : undefined,
+    })
+  }
+
+  return info
 }
 
 const subseasonAdminService = {
@@ -161,32 +263,9 @@ const subseasonAdminService = {
       tournaments: bySubseason[id as SubseasonId] || []
     }))
 
-    let lastUpdated: string | null = null
-    let hasBeenClosed = false
-
-    const { data: pointsRow } = await supabase
-      .from('team_season_points')
-      .select('subseason_ranks_calculated_at')
-      .eq('season', season)
-      .not('subseason_ranks_calculated_at', 'is', null)
-      .limit(1)
-      .maybeSingle()
-
-    if (pointsRow?.subseason_ranks_calculated_at) {
-      hasBeenClosed = true
-      lastUpdated = pointsRow.subseason_ranks_calculated_at
-    }
-
-    if (!lastUpdated) {
-      const { data: rankRow } = await supabase
-        .from('team_season_rankings')
-        .select('calculated_at')
-        .eq('season', season)
-        .order('calculated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      if (rankRow?.calculated_at) lastUpdated = rankRow.calculated_at
-    }
+    const timestampInfo = await getRankingTimestampsForSeason(season)
+    const { lastUpdated, lastRankingRebuild, lastPointsUpdate } = timestampInfo
+    const hasBeenClosed = Boolean(lastRankingRebuild || lastPointsUpdate)
 
     const subseasonClosed: Record<SubseasonId, boolean> = { 1: false, 2: false, 3: false, 4: false }
     const { data: pointsRows } = await supabase
@@ -209,10 +288,14 @@ const subseasonAdminService = {
       subseasons,
       flatTournaments,
       lastUpdated,
+      lastRankingRebuild,
+      lastPointsUpdate,
       hasBeenClosed,
       subseasonClosed
     }
-  }
+  },
+
+  getRankingTimestampsForSeason,
 }
 
 export default subseasonAdminService

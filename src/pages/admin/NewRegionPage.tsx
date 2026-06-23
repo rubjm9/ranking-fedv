@@ -81,7 +81,7 @@ const NewRegionPage: React.FC = () => {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Nueva Región</h1>
+              <h1 className="page-header-title">Nueva Región</h1>
               <p className="text-gray-600">Registrar una nueva región en el sistema</p>
             </div>
           </div>
@@ -159,7 +159,7 @@ const NewRegionPage: React.FC = () => {
 
               <div className="flex items-center justify-center">
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="page-header-title">
                     {formData.coefficient.toFixed(2)}
                   </div>
                   <div className="text-sm text-gray-600">
@@ -195,14 +195,14 @@ const NewRegionPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/admin/regions')}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              className="btn-outline"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              className="btn-primary flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>

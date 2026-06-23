@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Upload, Download, FileText, AlertCircle, CheckCircle, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { positionsService } from '@/services/apiService'
+import { markRankingDirtyAfterEdit } from '@/services/rankingStateService'
 
 interface ImportResult {
   success: boolean
@@ -32,8 +33,11 @@ const ImportResultsPage: React.FC = () => {
       return positionsService.importResults(formData)
     },
     onSuccess: (result) => {
+      void markRankingDirtyAfterEdit('Resultados importados masivamente', { affectsCoefficients: true })
       setImportResult(result)
       queryClient.invalidateQueries({ queryKey: ['positions', 'tournament', tournamentId] })
+      queryClient.invalidateQueries({ queryKey: ['ranking-state'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-notifications-pending'] })
       toast.success(`Importación completada: ${result.imported} resultados importados`)
     },
     onError: (error: any) => {
@@ -110,7 +114,7 @@ Equipo C,3,725`
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Importar Resultados</h1>
+              <h1 className="page-header-title">Importar Resultados</h1>
               <p className="text-gray-600">Importa resultados del torneo desde un archivo CSV</p>
             </div>
           </div>
@@ -139,7 +143,7 @@ Equipo C,3,725`
           </p>
           <button
             onClick={downloadTemplate}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="btn-primary flex items-center gap-2"
           >
             <Download className="h-4 w-4" />
             <span>Descargar Plantilla CSV</span>
@@ -167,7 +171,7 @@ Equipo C,3,725`
                 </p>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="btn-primary"
                 >
                   Seleccionar Archivo
                 </button>

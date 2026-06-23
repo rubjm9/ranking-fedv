@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Plus, Trash2, Clipboard } from 'lucide-react'
 import subseasonDetectionService from '@/services/subseasonDetectionService'
+import { markRankingDirtyAfterEdit } from '@/services/rankingStateService'
 import {
   DndContext,
   closestCenter,
@@ -229,7 +230,11 @@ const NewTournamentPage: React.FC = () => {
       return tournamentsService.create(data)
     },
     onSuccess: async (_, variables) => {
+      const affectsCoefficients = variables.type === 'CE1' || variables.type === 'CE2'
+      void markRankingDirtyAfterEdit('Torneo creado', { affectsCoefficients })
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
+      queryClient.invalidateQueries({ queryKey: ['ranking-state'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-notifications-pending'] })
       // Verificar si hay subtemporadas/temporadas completadas (semiautomático)
       if (variables.season) {
         try {
@@ -666,7 +671,7 @@ const NewTournamentPage: React.FC = () => {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Nuevo torneo</h1>
+                <h1 className="page-header-title">Nuevo torneo</h1>
                 <p className="text-gray-600 mt-1">Crear un nuevo torneo en el sistema</p>
               </div>
             </div>
@@ -1060,7 +1065,7 @@ const NewTournamentPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPasteModal(true)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                    className="btn-primary flex items-center gap-2"
                   >
                     <Clipboard className="h-4 w-4" />
                     <span>Pegar listado</span>
@@ -1115,14 +1120,14 @@ const NewTournamentPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/admin/tournaments')}
-              className="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md"
+              className="btn-outline px-6 py-3 shadow-sm hover:shadow-md"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isLoading || createTournamentMutation.isPending}
-              className="px-6 py-3 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-xl hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center shadow-sm hover:shadow-md"
+              className="btn-primary px-6 py-3 flex items-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
             >
               {isLoading || createTournamentMutation.isPending ? (
                 <>

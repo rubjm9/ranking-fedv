@@ -1,40 +1,92 @@
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   Plus, 
   MapPin, 
   Calculator, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Users, 
-  BarChart3,
-  TrendingUp,
-  Search,
-  Filter,
   Loader2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import { regionsService, Region } from '@/services/apiService'
+import hybridRankingService from '@/services/hybridRankingService'
+import seasonService from '@/services/seasonService'
+import { getRegionalCoefficientBaseSeason } from '@/utils/rankingCalculations'
+import { MODALITIES, MODALITY_SHORT, MODALITY_LABELS, getCoefficientColor } from '@/components/regions/constants'
 import ActionButtonGroup from '@/components/ui/ActionButtonGroup'
+import AdminPageHeader from '@/components/layout/AdminPageHeader'
+import { generateSeasons } from '@/utils/tournamentUtils'
+
+const filterSelectClass =
+  'h-7 w-full min-w-[5.5rem] rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
 
 const RegionsAdminPage: React.FC = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [searchTerm, setSearchTerm] = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [selectedRegion, setSelectedRegion] = useState<Region | null>(null)
   const [isRecalculating, setIsRecalculating] = useState(false)
+  const [selectedSeason, setSelectedSeason] = useState('')
 
   // Obtener regiones desde la API
   const { data: regionsData, isLoading, error } = useQuery({
-    queryKey: ['regions', searchTerm],
-    queryFn: () => regionsService.getAll({
-      search: searchTerm || undefined
-    })
+    queryKey: ['regions'],
+    queryFn: () => regionsService.getAll()
   })
+
+  const { data: currentSeason } = useQuery({
+    queryKey: ['most-recent-season'],
+    queryFn: () => hybridRankingService.getMostRecentSeason(),
+  })
+
+  const defaultCoefficientSeason = currentSeason
+    ? getRegionalCoefficientBaseSeason(currentSeason)
+    : undefined
+
+  const { data: availableSeasons = [] } = useQuery({
+    queryKey: ['regional-coefficient-seasons'],
+    queryFn: () => seasonService.listRegionalCoefficientSeasons(),
+  })
+
+  useEffect(() => {
+    if (defaultCoefficientSeason && !selectedSeason) {
+      setSelectedSeason(defaultCoefficientSeason)
+    }
+  }, [defaultCoefficientSeason, selectedSeason])
+
+  const seasonOptions = useMemo(() => {
+    const generated = generateSeasons()
+    const seasons =
+      availableSeasons.length > 0
+        ? availableSeasons
+        : defaultCoefficientSeason
+          ? [defaultCoefficientSeason]
+          : []
+    const unique = [...new Set(seasons)]
+    if (defaultCoefficientSeason && !unique.includes(defaultCoefficientSeason)) {
+      unique.unshift(defaultCoefficientSeason)
+    }
+    return unique.map(value => {
+      const match = generated.find(s => s.value === value)
+      return { value, label: match?.label ?? value }
+    })
+  }, [availableSeasons, defaultCoefficientSeason])
+
+  const { data: regionalCoefficients = [], isLoading: isLoadingCoeffs } = useQuery({
+    queryKey: ['regional-coefficients', selectedSeason],
+    queryFn: () => seasonService.getRegionalCoefficients(selectedSeason),
+    enabled: !!selectedSeason,
+  })
+
+  const coeffMap = useMemo(() => {
+    const map = new Map<string, Record<string, number>>()
+    regionalCoefficients.forEach(c => {
+      if (!map.has(c.regionId)) map.set(c.regionId, {})
+      map.get(c.regionId)![c.modality] = c.coefficient
+    })
+    return map
+  }, [regionalCoefficients])
 
   // Mutación para eliminar región
   const deleteRegionMutation = useMutation({
@@ -63,10 +115,14 @@ const RegionsAdminPage: React.FC = () => {
 
   // Mutación para recalcular coeficientes
   const recalculateMutation = useMutation({
-    mutationFn: () => regionsService.recalculateCoefficients(),
-    onSuccess: () => {
+    mutationFn: async () => {
+      if (!selectedSeason) throw new Error('Selecciona una temporada')
+      return seasonService.calculateAndSaveRegionalCoefficients(selectedSeason)
+    },
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['regions'] })
-      toast.success('Coeficientes recalculados exitosamente')
+      queryClient.invalidateQueries({ queryKey: ['regional-coefficients'] })
+      toast.success(`${result.saved} coeficientes guardados para ${result.season}`)
       setIsRecalculating(false)
     },
     onError: (error: any) => {
@@ -93,11 +149,6 @@ const RegionsAdminPage: React.FC = () => {
     recalculateMutation.mutate()
   }
 
-  const filteredRegions = regions.filter(region => {
-    const matchesSearch = region.name.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesSearch
-  })
-
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -105,7 +156,7 @@ const RegionsAdminPage: React.FC = () => {
           <div className="text-red-500 mb-4">Error al cargar las regiones</div>
           <button 
             onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="btn-primary"
           >
             Reintentar
           </button>
@@ -116,77 +167,111 @@ const RegionsAdminPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Regiones</h1>
-          <p className="text-gray-600">Gestiona las regiones del ranking FEDV</p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={handleRecalculateCoefficients}
-            disabled={isRecalculating}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
-          >
-            {isRecalculating ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Calculator className="w-4 h-4" />
-            )}
-            Recalcular Coeficientes
-          </button>
-          <button
-            onClick={() => navigate('/admin/regions/new')}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Nueva Región
-          </button>
-        </div>
-      </div>
-
-      {/* Filtros */}
-      <div className="flex gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Buscar regiones..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+      <AdminPageHeader
+        title="Regiones"
+        subtitle="Gestiona las regiones del ranking FEDV"
+        actions={
+          <div className="flex gap-3">
+            <button
+              onClick={handleRecalculateCoefficients}
+              disabled={isRecalculating}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+            >
+              {isRecalculating ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Calculator className="w-4 h-4" />
+              )}
+              Recalcular coeficientes
+            </button>
+            <button
+              onClick={() => navigate('/admin/regions/new')}
+              className="btn-primary flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Nueva región
+            </button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Tabla */}
       {isLoading ? (
-        <TableSkeleton rows={8} columns={5} />
+        <TableSkeleton rows={8} columns={9} />
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-xs text-slate-500">
+              {regions.length} {regions.length === 1 ? 'región' : 'regiones'} encontrada{regions.length !== 1 ? 's' : ''}
+            </p>
+            <div className="flex items-center gap-2">
+              <label htmlFor="regions-admin-season" className="text-xs text-slate-500 whitespace-nowrap">
+                Temporada
+              </label>
+              <select
+                id="regions-admin-season"
+                value={selectedSeason}
+                onChange={(e) => setSelectedSeason(e.target.value)}
+                disabled={!seasonOptions.length}
+                className={`${filterSelectClass} w-auto min-w-[6.5rem]`}
+              >
+                {seasonOptions.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-secondary-50 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider border-r border-slate-200 align-middle whitespace-nowrap"
+                >
                   Región
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Coeficiente
+                <th
+                  rowSpan={2}
+                  className="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider border-r border-slate-200 align-middle whitespace-nowrap"
+                >
+                  Número de equipos
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Número de Equipos
+                <th
+                  colSpan={MODALITIES.length}
+                  className="px-4 py-3 text-center text-xs font-medium text-slate-700 uppercase tracking-wider border-r border-slate-200 bg-slate-100"
+                >
+                  {selectedSeason
+                    ? `Coeficientes temporada ${selectedSeason}`
+                    : 'Coeficientes temporada'}
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  rowSpan={2}
+                  className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider align-middle"
+                >
                   Acciones
                 </th>
               </tr>
+              <tr>
+                {MODALITIES.map(mod => (
+                  <th
+                    key={mod}
+                    title={MODALITY_LABELS[mod]}
+                    className="px-2 py-2 text-center text-xs font-medium text-slate-600 border-r border-slate-200 last:border-r-0 min-w-[3rem]"
+                  >
+                    {MODALITY_SHORT[mod]}
+                  </th>
+                ))}
+              </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredRegions.map((region) => (
+            <tbody className="bg-white divide-y divide-slate-200">
+              {regions.map((region) => {
+                const modCoefs = coeffMap.get(region.id)
+                return (
                 <tr key={region.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap border-r border-gray-100">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
                         <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -198,14 +283,25 @@ const RegionsAdminPage: React.FC = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      <span className="font-medium">{region.coefficient.toFixed(2)}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-center border-r border-gray-100">
                     <span className="font-medium">{region._count?.teams || 0}</span>
                   </td>
+                  {MODALITIES.map(mod => {
+                    const coef = modCoefs?.[mod]
+                    return (
+                      <td key={mod} className="px-2 py-4 whitespace-nowrap text-center border-r border-gray-100 last:border-r-0">
+                        {isLoadingCoeffs ? (
+                          <Loader2 className="mx-auto h-3.5 w-3.5 animate-spin text-slate-400" />
+                        ) : coef != null ? (
+                          <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${getCoefficientColor(coef)}`}>
+                            {coef.toFixed(2)}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )}
+                      </td>
+                    )
+                  })}
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end">
                       <ActionButtonGroup
@@ -219,10 +315,11 @@ const RegionsAdminPage: React.FC = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {/* Modal de confirmación de eliminación */}
@@ -276,7 +373,7 @@ const RegionsAdminPage: React.FC = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="btn-outline"
               >
                 Cancelar
               </button>

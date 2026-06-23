@@ -196,7 +196,7 @@ const NewTeamPage: React.FC = () => {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Nuevo Equipo</h1>
+              <h1 className="page-header-title">Nuevo Equipo</h1>
               <p className="text-gray-600">Registrar un nuevo equipo en el sistema</p>
             </div>
           </div>
@@ -617,14 +617,14 @@ const NewTeamPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/admin/teams')}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              className="btn-outline"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isLoading || createTeamMutation.isPending}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              className="btn-primary flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading || createTeamMutation.isPending ? (
                 <>

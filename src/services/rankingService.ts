@@ -1606,36 +1606,47 @@ const rankingService = {
     }
   },
 
-  // Obtener estadísticas del ranking
+  // Obtener estadísticas del ranking (equipos únicos; current_rankings tiene una fila por categoría)
   getRankingStats: async (): Promise<any> => {
     try {
       if (!supabase) {
         throw new Error('Supabase no está configurado')
       }
 
-      // Obtener estadísticas básicas
-      const { data: statsData, error } = await supabase
-        .from('current_rankings')
-        .select('total_points, ranking_position')
-        .order('ranking_position', { ascending: true })
+      const [teamsCountResult, rankingsResult] = await Promise.all([
+        supabase.from('teams').select('id', { count: 'exact', head: true }),
+        supabase.from('current_rankings').select('team_id, total_points'),
+      ])
 
-      if (error) {
-        console.error('Error al obtener estadísticas:', error)
-        throw error
+      if (rankingsResult.error) {
+        console.error('Error al obtener estadísticas:', rankingsResult.error)
+        throw rankingsResult.error
+      }
+      if (teamsCountResult.error) {
+        console.error('Error al contar equipos registrados:', teamsCountResult.error)
+        throw teamsCountResult.error
       }
 
-      // Calcular estadísticas generales
-      const totalTeams = statsData?.length || 0
-      const teamsWithPoints = statsData?.filter(entry => entry.total_points > 0).length || 0
-      const maxPoints = statsData?.length > 0 ? Math.max(...statsData.map(entry => entry.total_points)) : 0
-      const totalPoints = statsData?.reduce((sum, entry) => sum + entry.total_points, 0) || 0
-      const avgPoints = totalTeams > 0 ? (totalPoints / totalTeams).toFixed(1) : "0.0"
+      const teamBestPoints = new Map<string, number>()
+      for (const entry of rankingsResult.data ?? []) {
+        const current = teamBestPoints.get(entry.team_id) ?? 0
+        if (entry.total_points > current) {
+          teamBestPoints.set(entry.team_id, entry.total_points)
+        }
+      }
+
+      const pointValues = [...teamBestPoints.values()].filter((pts) => pts > 0)
+      const teamsWithPoints = pointValues.length
+      const totalTeams = teamsCountResult.count ?? 0
+      const maxPoints = pointValues.length > 0 ? Math.max(...pointValues) : 0
+      const totalPoints = pointValues.reduce((sum, pts) => sum + pts, 0)
+      const avgPoints = teamsWithPoints > 0 ? (totalPoints / teamsWithPoints).toFixed(1) : '0.0'
 
       return {
         total_teams: totalTeams,
         teams_with_points: teamsWithPoints,
         max_points: maxPoints,
-        avg_points: avgPoints
+        avg_points: avgPoints,
       }
     } catch (error) {
       console.error('Error al obtener estadísticas:', error)

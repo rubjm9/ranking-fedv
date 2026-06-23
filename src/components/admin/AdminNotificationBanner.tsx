@@ -52,6 +52,8 @@ const AdminNotificationBanner: React.FC<AdminNotificationBannerProps> = ({ class
         return <CheckCircle className="w-5 h-5 text-blue-500" />
       case 'data_inconsistency':
         return <AlertTriangle className="w-5 h-5 text-yellow-500" />
+      case 'ranking_stale':
+        return <AlertTriangle className="w-5 h-5 text-amber-600" />
       default:
         return <Info className="w-5 h-5 text-gray-500" />
     }
@@ -65,6 +67,8 @@ const AdminNotificationBanner: React.FC<AdminNotificationBannerProps> = ({ class
         return 'bg-blue-50 border-blue-200'
       case 'data_inconsistency':
         return 'bg-yellow-50 border-yellow-200'
+      case 'ranking_stale':
+        return 'bg-amber-50 border-amber-300'
       default:
         return 'bg-gray-50 border-gray-200'
     }
@@ -118,24 +122,28 @@ const AdminNotificationBanner: React.FC<AdminNotificationBannerProps> = ({ class
                   </Link>
                 )}
                 
-                <button
-                  onClick={() => dismissMutation.mutate(notification.id)}
-                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                  disabled={dismissMutation.isPending}
-                >
-                  Descartar
-                </button>
+                {notification.type !== 'ranking_stale' && (
+                  <button
+                    onClick={() => dismissMutation.mutate(notification.id)}
+                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                    disabled={dismissMutation.isPending}
+                  >
+                    Descartar
+                  </button>
+                )}
               </div>
             </div>
 
             {/* Botón cerrar */}
-            <button
-              onClick={() => dismissMutation.mutate(notification.id)}
-              className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
-              disabled={dismissMutation.isPending}
-            >
-              <X className="w-4 h-4" />
-            </button>
+            {notification.type !== 'ranking_stale' && (
+              <button
+                onClick={() => dismissMutation.mutate(notification.id)}
+                className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                disabled={dismissMutation.isPending}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       ))}

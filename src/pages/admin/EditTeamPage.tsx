@@ -222,7 +222,7 @@ const EditTeamPage: React.FC = () => {
           <p className="text-gray-600">No se encontró el equipo</p>
           <button 
             onClick={() => navigate('/admin/teams')}
-            className="mt-4 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+            className="btn-primary mt-4"
           >
             Volver a equipos
           </button>
@@ -244,7 +244,7 @@ const EditTeamPage: React.FC = () => {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Editar Equipo</h1>
+              <h1 className="page-header-title">Editar Equipo</h1>
               <p className="text-gray-600">Modificar información del equipo</p>
             </div>
           </div>
@@ -255,43 +255,6 @@ const EditTeamPage: React.FC = () => {
             <Trash2 className="h-4 w-4 mr-2" />
             Eliminar Equipo
           </button>
-        </div>
-      </div>
-
-      {/* Team Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Users className="h-6 w-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Torneos Participados</p>
-              <p className="text-2xl font-bold text-gray-900">0</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <MapPin className="h-6 w-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Ranking Actual</p>
-              <p className="text-2xl font-bold text-gray-900">#0</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Image className="h-6 w-6 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Puntos Totales</p>
-              <p className="text-2xl font-bold text-gray-900">0.0</p>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -650,7 +613,7 @@ const EditTeamPage: React.FC = () => {
 
             {/* Different Names Fields */}
             {formData.hasDifferentNames && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pl-6 border-l-2 border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label htmlFor="nameMixed" className="block text-sm font-medium text-gray-700 mb-2">
                     Nombre para Mixto
@@ -701,14 +664,14 @@ const EditTeamPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/admin/teams')}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              className="btn-outline"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              className="btn-primary flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? (
                 <>
@@ -745,7 +708,7 @@ const EditTeamPage: React.FC = () => {
               <div className="flex items-center justify-end space-x-3 mt-6">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                  className="btn-outline"
                 >
                   Cancelar
                 </button>

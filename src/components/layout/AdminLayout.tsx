@@ -15,7 +15,6 @@ import {
   TrendingUp,
   Shield,
   Clock,
-  RefreshCw,
   History
 } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -33,9 +32,8 @@ const AdminLayout: React.FC = () => {
     { name: 'Regiones', href: '/admin/regions', icon: MapPin },
     { name: 'Torneos', href: '/admin/tournaments', icon: Calendar },
     { name: 'Histórico', href: '/admin/historico', icon: History },
-      { name: 'Ranking', href: '/admin/ranking', icon: TrendingUp },
-      { name: 'Actualizar Rankings', href: '/admin/ranking-update', icon: RefreshCw },
-      { name: 'Temporadas', href: '/admin/seasons', icon: Clock },
+    { name: 'Ranking', href: '/admin/ranking', icon: TrendingUp },
+    { name: 'Temporadas y ranking', href: '/admin/seasons', icon: Clock },
     { name: 'Importar/Exportar', href: '/admin/import-export', icon: Upload },
     { name: 'Configuración', href: '/admin/configuration', icon: Settings },
   ]
@@ -55,6 +53,19 @@ const AdminLayout: React.FC = () => {
     return location.pathname === href
   }
 
+  const getCurrentSection = () => {
+    const pathname = location.pathname
+    if (pathname === '/admin' || pathname === '/admin/') {
+      return 'Dashboard'
+    }
+    const match = navigation.find(
+      (item) => pathname === item.href || pathname.startsWith(`${item.href}/`)
+    )
+    return match?.name ?? null
+  }
+
+  const currentSection = getCurrentSection()
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile sidebar overlay */}
@@ -73,10 +84,16 @@ const AdminLayout: React.FC = () => {
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-          <div className="flex items-center">
-            <Shield className="h-8 w-8 text-primary-600 mr-3" />
-            <h1 className="text-xl font-bold text-gray-900">FEDV Admin</h1>
-          </div>
+          <Link
+            to="/admin/dashboard"
+            className="flex items-center min-w-0"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <Shield className="h-8 w-8 text-primary-600 mr-3 flex-shrink-0" />
+            <span className="font-display text-xl font-bold text-slate-900 truncate">
+              FEDV Admin
+            </span>
+          </Link>
           
           <button
             onClick={() => setSidebarOpen(false)}
@@ -151,9 +168,11 @@ const AdminLayout: React.FC = () => {
                 <Menu className="h-6 w-6" />
               </button>
               
-              <h2 className="ml-4 lg:ml-0 text-lg font-semibold text-gray-900">
-                Panel de Administración
-              </h2>
+              {currentSection && (
+                <p className="ml-4 lg:ml-0 font-display text-lg font-semibold text-slate-700">
+                  {currentSection}
+                </p>
+              )}
             </div>
 
             <div className="flex items-center space-x-4">

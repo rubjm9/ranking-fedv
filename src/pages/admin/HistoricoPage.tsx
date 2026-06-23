@@ -62,7 +62,7 @@ export default function HistoricoPage() {
     <div className="p-6">
       <div className="mb-6 flex items-center gap-2">
         <History className="h-8 w-8 text-gray-600" />
-        <h1 className="text-2xl font-bold text-gray-900">Histórico</h1>
+        <h1 className="page-header-title">Histórico</h1>
       </div>
       <p className="text-gray-600 mb-6">
         Por temporada: número de equipos que participaron en cada torneo. Cruz (✕) = temporada cerrada sin torneo; vacío = previsto.

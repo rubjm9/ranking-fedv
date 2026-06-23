@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, Save, X } from 'lucide-react'
 import { positionsService, teamsService, tournamentsService, CreatePositionData } from '@/services/apiService'
+import { markRankingDirtyAfterEdit } from '@/services/rankingStateService'
 
 const NewResultPage: React.FC = () => {
   const navigate = useNavigate()
@@ -40,8 +41,13 @@ const NewResultPage: React.FC = () => {
   const createPositionMutation = useMutation({
     mutationFn: (data: CreatePositionData) => positionsService.create(data),
     onSuccess: () => {
+      const tournament = tournamentsData?.data?.find((t: { id: string }) => t.id === formData.tournamentId)
+      const affectsCoefficients = tournament?.type === 'CE1' || tournament?.type === 'CE2'
+      void markRankingDirtyAfterEdit('Nuevo resultado registrado', { affectsCoefficients })
       queryClient.invalidateQueries({ queryKey: ['positions'] })
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
+      queryClient.invalidateQueries({ queryKey: ['ranking-state'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-notifications-pending'] })
       navigate(`/admin/tournaments/${formData.tournamentId}`)
     },
     onError: (error: any) => {
@@ -135,7 +141,7 @@ const NewResultPage: React.FC = () => {
                 <span>Volver</span>
               </button>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Agregar Resultado</h1>
+            <h1 className="page-header-title">Agregar Resultado</h1>
           </div>
         </div>
 
@@ -244,7 +250,7 @@ const NewResultPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={createPositionMutation.isPending}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 border border-transparent rounded-md text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {createPositionMutation.isPending ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

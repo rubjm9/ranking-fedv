@@ -44,7 +44,7 @@ const RegionDetailAdminPage: React.FC = () => {
           <div className="text-red-500 mb-4">Error al cargar la región</div>
           <button 
             onClick={() => navigate('/admin/regions')} 
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="btn-primary"
           >
             Volver a Regiones
           </button>
@@ -66,13 +66,13 @@ const RegionDetailAdminPage: React.FC = () => {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{region.name}</h1>
+              <h1 className="page-header-title">{region.name}</h1>
               <p className="text-gray-600">Detalles de la región</p>
             </div>
           </div>
           <button
             onClick={() => navigate(`/admin/regions/${region.id}/edit`)}
-            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors flex items-center"
+            className="btn-primary flex items-center"
           >
             <Edit className="h-4 w-4 mr-2" />
             Editar Región
@@ -129,7 +129,7 @@ const RegionDetailAdminPage: React.FC = () => {
                 <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-3">
                   <Users className="h-6 w-6 text-blue-600" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900">{region._count?.teams || region.teams?.length || 0}</div>
+                <div className="page-header-title">{region._count?.teams || region.teams?.length || 0}</div>
                 <div className="text-sm text-gray-500">Equipos</div>
               </div>
               
@@ -137,7 +137,7 @@ const RegionDetailAdminPage: React.FC = () => {
                 <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mx-auto mb-3">
                   <Trophy className="h-6 w-6 text-green-600" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900">{region._count?.tournaments || region.tournaments?.length || 0}</div>
+                <div className="page-header-title">{region._count?.tournaments || region.tournaments?.length || 0}</div>
                 <div className="text-sm text-gray-500">Torneos</div>
               </div>
               
@@ -145,7 +145,7 @@ const RegionDetailAdminPage: React.FC = () => {
                 <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mx-auto mb-3">
                   <BarChart3 className="h-6 w-6 text-purple-600" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="page-header-title">
                   {region.averagePoints ? region.averagePoints.toFixed(0) : '0'}
                 </div>
                 <div className="text-sm text-gray-500">Puntos Promedio</div>
@@ -163,7 +163,7 @@ const RegionDetailAdminPage: React.FC = () => {
             <div className="space-y-3">
               <button
                 onClick={() => navigate(`/admin/regions/${region.id}/edit`)}
-                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                className="btn-primary w-full flex items-center justify-center"
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Editar Región
@@ -171,7 +171,7 @@ const RegionDetailAdminPage: React.FC = () => {
               
               <button
                 onClick={() => navigate('/admin/teams', { state: { regionFilter: region.id } })}
-                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                className="btn-outline w-full flex items-center justify-center"
               >
                 <Users className="h-4 w-4 mr-2" />
                 Ver Equipos
@@ -179,7 +179,7 @@ const RegionDetailAdminPage: React.FC = () => {
               
               <button
                 onClick={() => navigate('/admin/tournaments', { state: { regionFilter: region.id } })}
-                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                className="btn-outline w-full flex items-center justify-center"
               >
                 <Trophy className="h-4 w-4 mr-2" />
                 Ver Torneos
