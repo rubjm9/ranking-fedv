@@ -146,28 +146,35 @@ Nuevo/Editar torneo) y permiten un offset **dinámico** sin contar resultados.
 
 ## 8. Pipeline de cálculo del ranking (CRÍTICO) — `src/services/rankingUpdateService.ts`
 
-Orquestador: **`rebuildFullRankingSystem()`** (alias
-`updateCompleteRankingSystem()`), disparado desde
-`src/pages/admin/RankingUpdatePage.tsx` (botón "Actualización completa").
+Orquestador: **`updateCompleteRankingSystem()`**, disparado desde
+`src/pages/admin/RankingUpdatePage.tsx` (botón "Actualización Completa").
 
 Orden (no saltar pasos, el orden importa):
 
 1. **Paso 0** — `seasonPointsService.recomputeAllPositionPoints()`: reescribe
    `positions.points` de **todos** los torneos con la curva vigente. Imprescindible
    tras cambiar la curva, porque la agregación **suma puntos ya guardados**.
-2. **Bucle cronológico ascendente** por temporada T:
-   - (a) `seasonService.calculateAndSaveRegionalCoefficients(T)` — desde resultados nacionales ≤ T.
-   - (b) `seasonPointsService.calculateAndSaveSeasonPoints(T)` — agrega `positions.points` por equipo/modalidad en `team_season_points`, aplicando el **coef. regional de T−1** solo a REGIONAL.
-   - (c) `teamSeasonRankingsService.calculateSeasonRankings(T)` — rankings históricos.
-3. **Paso 2** — `hybridRankingService.syncWithCurrentRankings(cat, '2024-25')` por
-   las 6 modalidades.
+2. **Paso 1** — `seasonPointsService.regenerateAllSeasons()`: agrega
+   `positions.points` por equipo/modalidad en **`team_season_points`** para todas
+   las temporadas (internamente llama a `calculateAndSaveSeasonPoints(T)`, que
+   aplica el coef. regional solo a REGIONAL).
+3. **Paso 2** — `teamSeasonRankingsService.recalculateAllSeasons()`: reconstruye
+   **`team_season_rankings`** (la **fuente de verdad** que lee la web pública;
+   incluye cambios de posición). Itera todas las temporadas con
+   `calculateSeasonRankings(T)`.
 
-> Por qué el orden es correcto: el coef. de T se calcula de datos nacionales (no
-> de `team_season_points` de T), así que no hay dependencia circular; y la
-> agregación de T usa el coef. ya calculado de T−1.
+> ⚠️ La tabla `current_rankings` fue **eliminada** (migración 010). La función
+> `hybridRankingService.syncWithCurrentRankings` (que escribía a esa tabla) se
+> **eliminó**; el paso final correcto es `recalculateAllSeasons` → `team_season_rankings`.
 
-**Sincronización rápida** (`syncCurrentRankingsOnly`): solo el Paso 2, sin
-recalcular puntos ni temporadas.
+**Reconstrucción rápida** (`syncCurrentRankingsOnly`, botón "Reconstruir Rankings"):
+solo el Paso 2 (`recalculateAllSeasons`), sin recomputar posiciones ni regenerar
+`team_season_points`. Útil cuando los puntos ya están bien y solo hay que reordenar.
+
+> **Coeficientes regionales**: su *cálculo* (`seasonService.calculateAndSaveRegionalCoefficients`)
+> no está dentro de este orquestador en esta rama; se ejecuta aparte (p. ej.
+> `npm run backfill-regional-coefficients`). La *aplicación* del coef. ya guardado
+> sí ocurre dentro de `calculateAndSaveSeasonPoints`.
 
 ---
 
@@ -179,8 +186,8 @@ recalcular puntos ni temporadas.
 - `src/services/seasonPointsService.ts` — `recomputeAllPositionPoints`, `calculateAndSaveSeasonPoints`, `regenerateAllSeasons`.
 - `src/services/rankingUpdateService.ts` — **orquestador** del recálculo.
 - `src/services/seasonService.ts` — coeficientes regionales, snapshots, cierre de temporada.
-- `src/services/teamSeasonRankingsService.ts` — rankings históricos.
-- `src/services/hybridRankingService.ts` — sync de rankings actuales (`CategoryPointsMap`).
+- `src/services/teamSeasonRankingsService.ts` — rankings históricos (`calculateSeasonRankings`, `recalculateAllSeasons`); escribe `team_season_rankings`.
+- `src/services/hybridRankingService.ts` — lectura de rankings desde `team_season_points` (`getRankingFromSeasonPoints`, `getCombinedRanking`, `CategoryPointsMap`).
 
 **Datos / CRUD**
 - `src/services/apiService.ts` — wrapper grande de Supabase (`tournamentsService`, `teamsService`, `regionsService`, posiciones…). `tournamentsService.getCE1ByModality` puebla el selector de 1ª.
@@ -189,8 +196,15 @@ recalcular puntos ni temporadas.
 
 **UI relevante**
 - `src/pages/admin/NewTournamentPage.tsx` y `EditTournamentPage.tsx` — alta/edición + campo "Tamaño de división" (CE1/CE2) y selector "1ª asociada" (CE2), con previsualización de puntos en vivo.
-- `src/pages/admin/RankingUpdatePage.tsx` — dispara el recálculo completo.
-- `src/pages/admin/SeasonManagementPage.tsx`, `ImportExportPage.tsx`, `ConfigurationPage.tsx`, páginas de regiones.
+- `src/pages/admin/RankingUpdatePage.tsx` — "Actualizar Rankings": único punto de recálculo global (Actualización Completa + Reconstruir Rankings).
+- `src/pages/admin/RankingAdminPageHybrid.tsx` — "Ranking": **solo lectura** (visor con filtros).
+- `src/pages/admin/SeasonManagementPage.tsx` — "Temporadas": gestión por temporada (regenerar puntos, cerrar, stats) **+ monitor y cierre de subtemporadas** (absorbió la antigua página "Subtemporadas").
+- `ImportExportPage.tsx`, `ConfigurationPage.tsx`, `HistoricoPage.tsx`, páginas de equipos/regiones/torneos.
+
+> **Panel admin (sidebar)**: 10 pestañas. Se eliminaron artefactos de migración
+> ya consumida (Migrar Sistema Rankings, Simular Subtemporadas, Comparar Sistemas,
+> Diagnóstico DB) y se fusionó "Subtemporadas" en "Temporadas". Menú en
+> `src/components/layout/AdminLayout.tsx`.
 - Público: `RankingPageNew.tsx`, `HomePage.tsx`, `*DetailPage.tsx` (equipos/regiones/torneos, con slugs y redirecciones legacy).
 
 **DB**: `database/migrations/*.sql`.
@@ -224,17 +238,25 @@ recalcular puntos ni temporadas.
 | Cambiar cómo se agregan puntos por temporada | `seasonPointsService.calculateAndSaveSeasonPoints` |
 | Ajustar coeficiente regional | `rankingCalculations.ts` (fórmula) + `seasonService` (datos) |
 | Añadir campo a torneo | migración SQL + `src/types/index.ts` + `TournamentFormData` (`tournamentUtils.ts`) + formularios New/Edit + passthrough en `apiService` |
-| Recalcular todo el ranking | `RankingUpdatePage` → "Actualización completa" (`rebuildFullRankingSystem`) |
+| Recalcular todo el ranking | `RankingUpdatePage` → "Actualización Completa" (`updateCompleteRankingSystem`) |
 | Importar torneos masivos | `tournamentImportService.ts` |
 
 ---
 
 ## 12. Estado actual (a la fecha de este briefing)
 
-- Rama integradora: **`feature/points-reform-merge`** (contiene la reforma de
-  puntos + coeficientes regionales + slugs + skeletons/UI). `main` es la base.
-- **Reforma de puntos**: completa y verificada (curva 85/90, offset CE2,
-  migración 016 con FK `TEXT`, tests unitarios de la curva, recálculo encadenado
-  en el orquestador).
-- Pendiente recomendable: aplicar las migraciones nuevas en Supabase y lanzar
-  "Actualización completa"; opcionalmente añadir `npm test` al CI.
+- Rama de trabajo: **`claude/pensive-noether-lswkla`**. Rama integradora previa:
+  `feature/points-reform-merge` (reforma de puntos + coef. regionales + slugs).
+- **Reforma de puntos**: completa (curva 85/90, offset CE2, migración 016 con FK
+  `TEXT`, tests unitarios de la curva).
+- **Home page**: reestructurada (badge de temporada, banner de próximo torneo,
+  orden rankings→torneos→cómo funciona) y tabla de puntos corregida a la curva nueva.
+- **Panel admin limpiado y consolidado**: eliminadas 4 pestañas de migración
+  consumida + fusión de "Subtemporadas" en "Temporadas" (10 pestañas).
+- **Pipeline arreglado**: "Actualización Completa" ahora termina en
+  `recalculateAllSeasons` → `team_season_rankings` (antes sincronizaba a la tabla
+  muerta `current_rankings`); eliminada `syncWithCurrentRankings`.
+- Pendiente recomendable: aplicar migraciones en Supabase y lanzar "Actualización
+  Completa"; abordar la deuda técnica de `current_rankings` que aún leen
+  `homePageService.getRegions/getMainStats` y `rankingService.ts`; opcionalmente
+  añadir `npm test` al CI.
