@@ -664,6 +664,18 @@ const TeamDetailPage: React.FC = () => {
     badge: typeof tab.badge === 'number' ? tab.badge : undefined
   }))
 
+  const globalRankingPoints = Object.values(currentRankings).reduce((sum, ranking) => sum + ranking.points, 0)
+
+  const shareButton = (
+    <ShareButton
+      url={getTeamPublicUrl(team)}
+      title={`${team.name} - Ranking FEDV`}
+      description={`Consulta las estadísticas y resultados de ${team.name} en el Ranking FEDV`}
+      variant="dark"
+      size="sm"
+    />
+  )
+
   return (
     <>
       {/* Sticky Header */}
@@ -675,24 +687,21 @@ const TeamDetailPage: React.FC = () => {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         tabs={tabsForSticky}
-        actions={
-          <ShareButton
-            url={getTeamPublicUrl(team)}
-            title={`${team.name} - Ranking FEDV`}
-            description={`Consulta las estadísticas y resultados de ${team.name} en el Ranking FEDV`}
-          />
-        }
+        actions={shareButton}
       />
 
       <PageHeroShell className="mb-0 border-b border-slate-800" innerClassName="pb-6">
-          <div className="mb-6">
-            <Breadcrumbs
-              variant="dark"
-              items={[
-                { label: 'Equipos', href: '/equipos' },
-                { label: team.name },
-              ]}
-            />
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <Breadcrumbs
+                variant="dark"
+                items={[
+                  { label: 'Equipos', href: '/equipos' },
+                  { label: team.name },
+                ]}
+              />
+            </div>
+            {shareButton}
           </div>
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-10">
             <div className="team-logo-arcs h-24 w-24 sm:h-28 sm:w-28">
@@ -720,11 +729,24 @@ const TeamDetailPage: React.FC = () => {
                 <p className="text-sm text-slate-500">Región: {team.region.name}</p>
               )}
             </div>
-            <ShareButton
-              url={getTeamPublicUrl(team)}
-              title={`${team.name} - Ranking FEDV`}
-              description={`Consulta las estadísticas y resultados de ${team.name} en el Ranking FEDV`}
-            />
+            <div className="flex flex-shrink-0 gap-6 sm:gap-10">
+              <div className="text-center sm:text-right">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-400">
+                  Ranking global
+                </p>
+                <p className="font-display text-4xl font-bold text-white sm:text-5xl">
+                  {statistics.globalPosition ? `#${statistics.globalPosition}` : 'N/A'}
+                </p>
+              </div>
+              <div className="text-center sm:text-right">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-400">
+                  Puntos
+                </p>
+                <p className="font-display text-4xl font-bold text-primary-300 sm:text-5xl">
+                  {globalRankingPoints > 0 ? globalRankingPoints.toFixed(1) : statistics.totalPoints.toFixed(1)}
+                </p>
+              </div>
+            </div>
           </div>
           <div className="hero-stats-bar-divider">
             <PageHeroStatsBar

@@ -28,10 +28,13 @@ const DetailHeaderSkeleton: React.FC<DetailHeaderSkeletonProps> = ({ variant = '
     return (
       <PageHeroShell className="mb-0 border-b border-slate-800" innerClassName="pb-6">
         <div className="animate-pulse">
-          <div className="mb-6 flex items-center gap-2">
-            <div className="h-4 w-16 rounded bg-white/10" />
-            <div className="h-4 w-4 rounded bg-white/10" />
-            <div className="h-4 w-32 rounded bg-white/10" />
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-16 rounded bg-white/10" />
+              <div className="h-4 w-4 rounded bg-white/10" />
+              <div className="h-4 w-32 rounded bg-white/10" />
+            </div>
+            <div className="h-8 w-24 rounded-lg bg-white/10" />
           </div>
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-10">
             <div className="h-24 w-24 rounded-full bg-white/10 sm:h-28 sm:w-28" />
@@ -39,6 +42,16 @@ const DetailHeaderSkeleton: React.FC<DetailHeaderSkeletonProps> = ({ variant = '
               <div className="mx-auto h-9 w-64 rounded bg-white/10 sm:mx-0" />
               <div className="mx-auto h-5 w-40 rounded bg-white/10 sm:mx-0" />
               <div className="mx-auto h-4 w-28 rounded bg-white/10 sm:mx-0" />
+            </div>
+            <div className="flex gap-6 sm:gap-10">
+              <div className="space-y-2 text-center sm:text-right">
+                <div className="mx-auto h-3 w-20 rounded bg-white/10 sm:ml-auto sm:mr-0" />
+                <div className="mx-auto h-10 w-16 rounded bg-white/10 sm:ml-auto sm:mr-0" />
+              </div>
+              <div className="space-y-2 text-center sm:text-right">
+                <div className="mx-auto h-3 w-12 rounded bg-white/10 sm:ml-auto sm:mr-0" />
+                <div className="mx-auto h-10 w-20 rounded bg-white/10 sm:ml-auto sm:mr-0" />
+              </div>
             </div>
           </div>
           <HeroStatsBarSkeleton />

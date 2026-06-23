@@ -7,6 +7,7 @@ interface ShareButtonProps {
   description?: string
   className?: string
   variant?: 'light' | 'dark'
+  size?: 'default' | 'sm'
 }
 
 const ShareButton: React.FC<ShareButtonProps> = ({
@@ -15,6 +16,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
   description,
   className = '',
   variant = 'light',
+  size = 'default',
 }) => {
   const [copied, setCopied] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -57,10 +59,17 @@ const ShareButton: React.FC<ShareButtonProps> = ({
     }
   }
 
+  const sizeClass =
+    size === 'sm'
+      ? 'gap-1.5 px-2.5 py-1.5 text-xs rounded-lg'
+      : 'gap-2 px-4 py-2 text-sm rounded-xl'
+
+  const iconClass = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4'
+
   const triggerClass =
     variant === 'dark'
-      ? 'flex items-center gap-2 px-4 py-2 text-sm font-medium text-white border border-white/20 rounded-xl hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500'
-      : 'btn-outline bg-white shadow-sm flex items-center gap-2 text-sm'
+      ? `flex items-center font-medium text-white border border-white/20 hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 ${sizeClass}`
+      : `btn-outline bg-white shadow-sm flex items-center ${sizeClass}`
 
   return (
     <div className={`relative ${className}`}>
@@ -70,7 +79,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
         aria-label="Compartir"
         aria-expanded={isOpen}
       >
-        <Share2 className="h-4 w-4" />
+        <Share2 className={iconClass} />
         <span>Compartir</span>
       </button>
 
