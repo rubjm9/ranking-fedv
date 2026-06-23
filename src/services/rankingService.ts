@@ -8,6 +8,7 @@ import {
 export interface RankingEntry {
   team_id: string
   team_name: string
+  logo?: string | null
   region_name?: string
   ranking_category: string
   current_season_points: number

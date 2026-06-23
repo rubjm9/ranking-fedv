@@ -499,6 +499,12 @@ const RankingPageNew: React.FC = () => {
   const [showAllResults, setShowAllResults] = useState<boolean>(false)
   // Durante la animación de colapsar mantenemos todas las filas renderizadas para que se vea la transición
   const [isCollapsing, setIsCollapsing] = useState<boolean>(false)
+  /** Evita recortar el top 10; solo limita altura durante la animación de colapsar */
+  const rankingTableMaxHeight = showAllResults
+    ? '5000px'
+    : isCollapsing
+      ? '960px'
+      : 'none'
   const [selectedTeamsForAnalysis, setSelectedTeamsForAnalysis] = useState<string[]>([])
   const [analysisView, setAnalysisView] = useState<'points' | 'positions'>('points')
   const [hoveredPoint, setHoveredPoint] = useState<{team: any, point: any, x: number, y: number} | null>(null)
@@ -683,8 +689,8 @@ const RankingPageNew: React.FC = () => {
             }
           })
           
-          // Transformar al formato esperado
-          const transformedData = optimizedData.map(item => ({
+          // Transformar al formato esperado (position_change ya viene de la BD)
+          return optimizedData.map(item => ({
             team_id: item.team_id,
             team_name: item.team_name,
             region_name: item.region_name,
@@ -695,14 +701,6 @@ const RankingPageNew: React.FC = () => {
             points_change: item.points_change,
             season_breakdown: seasonBreakdownMap[item.team_id] || {}
           }))
-
-          const previousSeason = getPreviousSeasonLabel(generalSeasonToUse)
-          const previousData = await hybridRankingService.getCombinedRanking(
-            [...ALL_RANKING_SURFACES] as any,
-            previousSeason
-          )
-          const recalculated = recalculateRankingPoints(transformedData, generalSeasonToUse, 'current')
-          return applyPositionChangesAfterSort(recalculated, previousData, previousSeason, 'current')
         }
       } catch (error) {
         console.warn('Error obteniendo datos optimizados del ranking general, usando fallback:', error)
@@ -3157,7 +3155,7 @@ const RankingPageNew: React.FC = () => {
         {/* Tabla estilo UEFA - wrapper con animación expandir/colapsar */}
           <div
             className="overflow-hidden transition-[max-height] duration-500 ease-in-out"
-            style={{ maxHeight: showAllResults ? '5000px' : '760px' }}
+            style={{ maxHeight: rankingTableMaxHeight }}
             onTransitionEnd={() => { if (isCollapsing) setIsCollapsing(false) }}
           >
             <div className="overflow-x-auto">
@@ -3889,7 +3887,7 @@ const RankingPageNew: React.FC = () => {
         {/* Tabla estilo UEFA - wrapper con animación expandir/colapsar */}
         <div
           className="overflow-hidden transition-[max-height] duration-500 ease-in-out"
-          style={{ maxHeight: showAllResults ? '5000px' : '760px' }}
+          style={{ maxHeight: rankingTableMaxHeight }}
           onTransitionEnd={() => { if (isCollapsing) setIsCollapsing(false) }}
         >
           <div className="overflow-x-auto">

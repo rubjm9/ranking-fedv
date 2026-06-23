@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   Trophy,
   Medal,
-  RefreshCw,
   AlertTriangle
 } from 'lucide-react'
 import hybridRankingService from '@/services/hybridRankingService'
@@ -65,25 +64,11 @@ const RankingAdminPageHybrid: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-        <div>
-          <h1 className="page-header-title">Ranking Actual</h1>
-          <p className="text-gray-600 mt-1">
-            Sistema híbrido optimizado - Datos desde team_season_points
-          </p>
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          <Link
-            to="/admin/seasons"
-            className="btn-primary flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            <span>Actualizar ranking</span>
-          </Link>
-          <p className="text-xs text-gray-500">
-            Actualizado: {new Date().toLocaleDateString('es-ES')}
-          </p>
-        </div>
+      <div className="border-b border-gray-200 pb-4">
+        <h1 className="page-header-title">Ranking Actual</h1>
+        <p className="text-gray-600 mt-1">
+          Sistema híbrido optimizado - Datos desde team_season_points
+        </p>
       </div>
 
       {/* Filtros */}
@@ -215,7 +200,7 @@ const RankingAdminPageHybrid: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <TeamLogo name={team.team_name} size="sm" />
+                        <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
                         <div className="ml-3">
                           <div className="text-sm font-medium text-gray-900">
                             {team.team_name}

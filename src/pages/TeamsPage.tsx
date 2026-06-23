@@ -17,6 +17,8 @@ import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
 import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
 import DataTable from '@/components/ui/DataTable'
+import TeamModalityNames from '@/components/teams/TeamModalityNames'
+import { getTeamModalityNameEntries } from '@/utils/teamNames'
 
 const TeamsPage = () => {
   const navigate = useNavigate()
@@ -91,8 +93,14 @@ const TeamsPage = () => {
   // Filtrar y ordenar equipos
   const filteredAndSortedTeams = useMemo(() => {
     const filtered = teams.filter(team => {
-      const matchesSearch = team.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-                           team.location?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+      const search = debouncedSearchTerm.toLowerCase()
+      const modalityNames = getTeamModalityNameEntries(team, team.name)
+        .map((entry) => entry.name.toLowerCase())
+      const matchesSearch =
+        !search ||
+        team.name.toLowerCase().includes(search) ||
+        team.location?.toLowerCase().includes(search) ||
+        modalityNames.some((name) => name.includes(search))
       const matchesRegion = !selectedRegion || team.region?.id === selectedRegion
       return matchesSearch && matchesRegion
     })
@@ -414,6 +422,7 @@ const TeamsPage = () => {
                               <div className="text-sm font-medium text-slate-900">
                                 {team.name}
                               </div>
+                              <TeamModalityNames team={team} />
                               {team.isFilial && (
                                 <div className="text-xs text-primary-600">
                                   Equipo filial
@@ -468,6 +477,7 @@ const TeamsPage = () => {
                       <h3 className="text-lg font-semibold text-slate-900 truncate">
                         {team.name}
                       </h3>
+                      <TeamModalityNames team={team} />
                       {team.isFilial && (
                         <div className="text-xs text-primary-600 mt-1">
                           Equipo filial

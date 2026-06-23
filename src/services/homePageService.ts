@@ -264,11 +264,11 @@ class HomePageService {
 
       if (rankingsError) {
         console.error('Error obteniendo ranking por categoría:', rankingsError)
-        // Fallback al método anterior
         return this.getTopTeamsByCategoryLegacy(category, limit, referenceSeason)
       }
 
       if (!rankingsData || rankingsData.length === 0) {
+        console.warn(`Sin ranking precalculado para ${category}, usando cálculo en tiempo real`)
         return this.getTopTeamsByCategoryLegacy(category, limit, referenceSeason)
       }
 
@@ -413,11 +413,11 @@ class HomePageService {
 
       if (rankingsError) {
         console.error('Error obteniendo ranking global:', rankingsError)
-        // Fallback al método anterior
         return this.getTopTeamsLegacy(limit, referenceSeason)
       }
 
       if (!rankingsData || rankingsData.length === 0) {
+        console.warn('Sin rankings globales precalculados, usando cálculo en tiempo real')
         return this.getTopTeamsLegacy(limit, referenceSeason)
       }
 

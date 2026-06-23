@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { RefreshCw, Lock, BarChart3, CheckCircle, AlertTriangle, Clock, Timer, Minus } from 'lucide-react'
+import { RefreshCw, Lock, BarChart3, CheckCircle, Clock, Timer, Minus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import seasonPointsService from '../../services/seasonPointsService'
 import seasonService from '../../services/seasonService'
@@ -9,7 +9,6 @@ import subseasonAdminService, {
   type SubseasonId
 } from '../../services/subseasonAdminService'
 import { regionsService } from '../../services/apiService'
-import { verifyAllOptimizations } from '../../utils/verifyOptimizations'
 import RankingMaintenancePanel from '@/components/admin/RankingMaintenancePanel'
 import RankingStaleBanner from '@/components/admin/RankingStaleBanner'
 
@@ -36,7 +35,6 @@ const SeasonManagementPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedSeason, setSelectedSeason] = useState('')
   const [seasonStats, setSeasonStats] = useState<any>(null)
-  const [verificationResults, setVerificationResults] = useState<any>(null)
   const [loadingSubseason, setLoadingSubseason] = useState<SubseasonId | null>(null)
   const queryClient = useQueryClient()
 
@@ -71,15 +69,6 @@ const SeasonManagementPage: React.FC = () => {
     queryFn: () => subseasonAdminService.getMonitorData(selectedSeason),
     enabled: !!selectedSeason
   })
-
-  // Verificar optimizaciones al cargar
-  useEffect(() => {
-    const runVerification = async () => {
-      const results = await verifyAllOptimizations()
-      setVerificationResults(results)
-    }
-    runVerification()
-  }, [])
 
   const tableRows: TableRow[] = [
     { type: 'CE1', label: 'Primera división' },
@@ -197,6 +186,7 @@ const SeasonManagementPage: React.FC = () => {
       )
       queryClient.invalidateQueries({ queryKey: ['subseason-monitor', selectedSeason] })
       queryClient.invalidateQueries({ queryKey: ['ranking-optimized'] })
+      queryClient.invalidateQueries({ queryKey: ['general-ranking-optimized'] })
     } catch (err: any) {
       toast.error(err?.message || 'Error al procesar')
     } finally {
@@ -467,69 +457,6 @@ const SeasonManagementPage: React.FC = () => {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Verificación de optimizaciones */}
-      {verificationResults && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Verificación de optimizaciones</h2>
-
-          <div className="space-y-4">
-            <div className={`p-4 rounded-lg border ${verificationResults.positionChange.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-              <div className="flex items-center gap-2 mb-2">
-                {verificationResults.positionChange.success ? (
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                ) : (
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
-                )}
-                <h3 className="font-medium">Columnas position_change</h3>
-              </div>
-              <p className="text-sm text-gray-700">{verificationResults.positionChange.message}</p>
-              {verificationResults.positionChange.details && (
-                <div className="mt-2 text-xs text-gray-600">
-                  <p>Registros con datos: {verificationResults.positionChange.details.recordsWithData} / {verificationResults.positionChange.details.totalRecords}</p>
-                </div>
-              )}
-            </div>
-
-            <div className={`p-4 rounded-lg border ${verificationResults.adminNotifications.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-              <div className="flex items-center gap-2 mb-2">
-                {verificationResults.adminNotifications.success ? (
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                ) : (
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
-                )}
-                <h3 className="font-medium">Tabla admin_notifications</h3>
-              </div>
-              <p className="text-sm text-gray-700">{verificationResults.adminNotifications.message}</p>
-            </div>
-
-            <div className={`p-4 rounded-lg border ${verificationResults.historicalRankings.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-              <div className="flex items-center gap-2 mb-2">
-                {verificationResults.historicalRankings.success ? (
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                ) : (
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
-                )}
-                <h3 className="font-medium">Rankings históricos</h3>
-              </div>
-              <p className="text-sm text-gray-700">{verificationResults.historicalRankings.message}</p>
-              {verificationResults.historicalRankings.details && (
-                <div className="mt-2 text-xs text-gray-600">
-                  <p>Temporadas: {verificationResults.historicalRankings.details.seasons?.join(', ') || 'N/A'}</p>
-                </div>
-              )}
-            </div>
-
-            {verificationResults.allSuccess && (
-              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm font-medium text-blue-900">
-                  ✅ Todas las optimizaciones están funcionando correctamente
-                </p>
-              </div>
-            )}
           </div>
         </div>
       )}

@@ -59,3 +59,43 @@ export const getTeamDisplayNameForCategory = (
 
   return generalName
 }
+
+export interface TeamModalityNameEntry {
+  label: string
+  name: string
+}
+
+/**
+ * Nombres específicos por modalidad (open/masculino, women/femenino, mixed/mixto).
+ * Omite entradas vacías o iguales al nombre general.
+ */
+export const getTeamModalityNameEntries = (
+  team: TeamNameSource | null | undefined,
+  generalName?: string
+): TeamModalityNameEntry[] => {
+  if (!team) return []
+
+  const baseName = (generalName ?? team.name)?.trim() || ''
+  const entries: TeamModalityNameEntry[] = []
+
+  const openName = (team.nameOpen ?? team.nombre_open)?.trim()
+  const womenName = (team.nameWomen ?? team.nombre_women)?.trim()
+  const mixedName = (team.nameMixed ?? team.nombre_mixed)?.trim()
+
+  if (openName && openName !== baseName) {
+    entries.push({ label: 'Masculino', name: openName })
+  }
+  if (womenName && womenName !== baseName) {
+    entries.push({ label: 'Femenino', name: womenName })
+  }
+  if (mixedName && mixedName !== baseName) {
+    entries.push({ label: 'Mixto', name: mixedName })
+  }
+
+  return entries
+}
+
+export const hasTeamModalityNames = (
+  team: TeamNameSource | null | undefined,
+  generalName?: string
+): boolean => getTeamModalityNameEntries(team, generalName).length > 0

@@ -8,6 +8,13 @@ import {
   getTeamDisplayNameForCategory,
   TEAM_RANKING_NAME_SELECT,
 } from '@/utils/teamNames'
+import {
+  ALL_RANKING_SURFACES,
+  computeAllTeamsGlobalPointsForSubupdate,
+  getAllSeasonsNeededForSubupdates,
+  type Subupdate,
+  type TeamSeasonPointsRow,
+} from '@/utils/coefficientCalculator'
 
 export interface TeamSeasonRanking {
   id: string
@@ -80,6 +87,64 @@ const SEASON_COEFFICIENTS = [1.0, 0.8, 0.5, 0.2]
 const getPreviousSeason = (season: string): string => {
   const year = parseInt(season.split('-')[0])
   return `${year - 1}-${(year).toString().slice(-2)}`
+}
+
+const SURFACE_POINTS_SELECT = ALL_RANKING_SURFACES.map((s) => `${s}_points`).join(', ')
+
+const buildSubupdateGlobalFields = (
+  season: string,
+  seasonPointsRows: TeamSeasonPointsRow[],
+  previousRows: Array<Record<string, unknown>>,
+  subupdates: Subupdate[] = [1, 2, 3, 4]
+): Map<string, Record<string, number | null>> => {
+  const previousByTeam = new Map(
+    previousRows.map((row) => [row.team_id as string, row])
+  )
+  const result = new Map<string, Record<string, number | null>>()
+
+  subupdates.forEach((subupdate) => {
+    const pointsMap = computeAllTeamsGlobalPointsForSubupdate(
+      seasonPointsRows,
+      subupdate,
+      season
+    )
+
+    const ranked = [...pointsMap.entries()]
+      .map(([team_id, points]) => ({ team_id, points, rank: 0 }))
+      .sort((a, b) => b.points - a.points)
+
+    ranked.forEach((team, index) => {
+      team.rank = index + 1
+    })
+
+    ranked.forEach((team) => {
+      if (!result.has(team.team_id)) {
+        result.set(team.team_id, {})
+      }
+      const fields = result.get(team.team_id)!
+      const rankCol = `subupdate_${subupdate}_global_rank`
+      const pointsCol = `subupdate_${subupdate}_global_points`
+      const posChangeCol = `subupdate_${subupdate}_global_position_change`
+      const ptsChangeCol = `subupdate_${subupdate}_global_points_change`
+
+      const prev = previousByTeam.get(team.team_id)
+      const prevRank = (prev?.[rankCol] as number) || 0
+      const prevPoints = (prev?.[pointsCol] as number) || 0
+
+      fields[rankCol] = team.rank
+      fields[pointsCol] = team.points
+
+      if (prevRank > 0) {
+        fields[posChangeCol] = prevRank - team.rank
+        fields[ptsChangeCol] = parseFloat((team.points - prevPoints).toFixed(2))
+      } else {
+        fields[posChangeCol] = 0
+        fields[ptsChangeCol] = 0
+      }
+    })
+  })
+
+  return result
 }
 
 const teamSeasonRankingsService = {
@@ -278,12 +343,48 @@ const teamSeasonRankingsService = {
         rankings.forEach(r => allTeamIds.add(r.team_id))
       })
 
+      // Rankings globales por subtemporada (subupdate 1-4)
+      const seasonsNeeded = getAllSeasonsNeededForSubupdates(season)
+      const { data: globalSeasonPoints, error: globalPointsError } = await supabase
+        .from('team_season_points')
+        .select(`team_id, season, ${SURFACE_POINTS_SELECT}`)
+        .in('season', seasonsNeeded)
+
+      if (globalPointsError) {
+        throw globalPointsError
+      }
+
+      const previousSeason = getPreviousSeason(season)
+      const { data: previousGlobalRows } = await supabase
+        .from('team_season_rankings')
+        .select(`
+          team_id,
+          subupdate_1_global_rank, subupdate_1_global_points,
+          subupdate_2_global_rank, subupdate_2_global_points,
+          subupdate_3_global_rank, subupdate_3_global_points,
+          subupdate_4_global_rank, subupdate_4_global_points
+        `)
+        .eq('season', previousSeason)
+
+      const globalFieldsByTeam = buildSubupdateGlobalFields(
+        season,
+        (globalSeasonPoints || []) as TeamSeasonPointsRow[],
+        previousGlobalRows || []
+      )
+
+      globalFieldsByTeam.forEach((_fields, teamId) => allTeamIds.add(teamId))
+
       // Preparar datos para upsert (incluyendo cambios de posición)
       const upsertData = Array.from(allTeamIds).map(teamId => {
         const rankingData: any = {
           team_id: teamId,
           season: season,
           calculated_at: new Date().toISOString()
+        }
+
+        const globalFields = globalFieldsByTeam.get(teamId)
+        if (globalFields) {
+          Object.assign(rankingData, globalFields)
         }
 
         // Obtener datos de la temporada anterior para este equipo
@@ -350,6 +451,93 @@ const teamSeasonRankingsService = {
         success: false,
         message: error.message || 'Error desconocido',
         updated: 0
+      }
+    }
+  },
+
+  /**
+   * Calcula rankings globales por subtemporada (subupdate 1-4) y guarda en team_season_rankings.
+   * Útil al cerrar una subtemporada concreta sin recalcular todas las superficies.
+   */
+  calculateSubupdateGlobalRankings: async (
+    season: string,
+    subupdates?: Subupdate[]
+  ): Promise<{ success: boolean; message: string; updated: number }> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      const subupdateList = subupdates || ([1, 2, 3, 4] as Subupdate[])
+      const seasonsNeeded = getAllSeasonsNeededForSubupdates(season)
+
+      const { data: seasonPoints, error: pointsError } = await supabase
+        .from('team_season_points')
+        .select(`team_id, season, ${SURFACE_POINTS_SELECT}`)
+        .in('season', seasonsNeeded)
+
+      if (pointsError) {
+        throw pointsError
+      }
+
+      const previousSeason = getPreviousSeason(season)
+      const { data: previousRows } = await supabase
+        .from('team_season_rankings')
+        .select(`
+          team_id,
+          subupdate_1_global_rank, subupdate_1_global_points,
+          subupdate_2_global_rank, subupdate_2_global_points,
+          subupdate_3_global_rank, subupdate_3_global_points,
+          subupdate_4_global_rank, subupdate_4_global_points
+        `)
+        .eq('season', previousSeason)
+
+      const globalFieldsByTeam = buildSubupdateGlobalFields(
+        season,
+        (seasonPoints || []) as TeamSeasonPointsRow[],
+        previousRows || [],
+        subupdateList
+      )
+
+      if (globalFieldsByTeam.size === 0) {
+        return {
+          success: true,
+          message: `No hay datos para rankings globales en ${season}`,
+          updated: 0,
+        }
+      }
+
+      const upsertData = Array.from(globalFieldsByTeam.entries()).map(([teamId, fields]) => ({
+        team_id: teamId,
+        season,
+        calculated_at: new Date().toISOString(),
+        ...fields,
+      }))
+
+      const { data, error } = await supabase
+        .from('team_season_rankings')
+        .upsert(upsertData, {
+          onConflict: 'team_id,season',
+          ignoreDuplicates: false,
+        })
+        .select()
+
+      if (error) {
+        throw error
+      }
+
+      return {
+        success: true,
+        message: `Rankings globales (subupdate ${subupdateList.join(', ')}) guardados para ${season}`,
+        updated: data?.length || 0,
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('Error calculando rankings globales por subtemporada:', error)
+      return {
+        success: false,
+        message,
+        updated: 0,
       }
     }
   },
@@ -487,18 +675,18 @@ const teamSeasonRankingsService = {
 
       console.log('🔄 Recalculando rankings para todas las temporadas...')
 
-      // Obtener todas las temporadas únicas de team_season_points
+      // Obtener todas las temporadas únicas de team_season_points (más antigua primero)
       const { data: seasonData, error: seasonError } = await supabase
         .from('team_season_points')
         .select('season')
-        .order('season', { ascending: false })
+        .order('season', { ascending: true })
 
       if (seasonError) {
         throw seasonError
       }
 
-      const uniqueSeasons = [...new Set((seasonData || []).map((s: any) => s.season))]
-      console.log(`📅 Temporadas encontradas: ${uniqueSeasons.length}`)
+      const uniqueSeasons = [...new Set((seasonData || []).map((s: { season: string }) => s.season))]
+      console.log(`📅 Temporadas encontradas: ${uniqueSeasons.length} (orden ascendente)`)
 
       let totalUpdated = 0
 

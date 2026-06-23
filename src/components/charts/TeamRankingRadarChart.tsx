@@ -8,7 +8,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts'
-import { MODALITY_LABELS, MODALITY_SHORT } from '@/components/regions/constants'
+import { MODALITY_LABELS } from '@/components/regions/constants'
 
 interface RankingEntry {
   position: number
@@ -44,6 +44,44 @@ function positionToScore(position: number, totalTeams: number): number {
   if (totalTeams === 1) return position === 1 ? 100 : 0
   const score = ((totalTeams - position) / (totalTeams - 1)) * 100
   return Math.round(score * 10) / 10
+}
+
+/** Etiqueta en dos líneas (superficie + modalidad) para caber en el radar */
+function RadarAxisTick({
+  x = 0,
+  y = 0,
+  payload,
+  textAnchor,
+}: {
+  x?: number
+  y?: number
+  payload?: { value: string }
+  textAnchor?: 'start' | 'middle' | 'end' | 'inherit'
+}) {
+  const label = payload?.value ?? ''
+  const spaceIndex = label.indexOf(' ')
+  const line1 = spaceIndex >= 0 ? label.slice(0, spaceIndex) : label
+  const line2 = spaceIndex >= 0 ? label.slice(spaceIndex + 1) : null
+
+  return (
+    <text
+      x={x}
+      y={y}
+      textAnchor={textAnchor}
+      fill="#64748b"
+      fontSize={10}
+      dominantBaseline="central"
+    >
+      <tspan x={x} dy={line2 ? '-0.35em' : '0'}>
+        {line1}
+      </tspan>
+      {line2 && (
+        <tspan x={x} dy="1.1em">
+          {line2}
+        </tspan>
+      )}
+    </text>
+  )
 }
 
 const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
@@ -106,12 +144,6 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
     )
   }
 
-  const formatAxisTick = (value: string) => {
-    const entry = chartData.find((item) => item.modality === value)
-    // eslint-disable-next-line react/prop-types -- tick interno; datos tipados en chartData
-    return entry ? MODALITY_SHORT[entry.modalityKey] ?? value : value
-  }
-
   return (
     <div className="w-full">
       <ResponsiveContainer width="100%" aspect={1} maxHeight={height}>
@@ -119,7 +151,7 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
           data={chartData}
           cx="50%"
           cy="50%"
-          outerRadius="70%"
+          outerRadius="62%"
           startAngle={RADAR_START_ANGLE}
           endAngle={RADAR_END_ANGLE}
         >
@@ -130,11 +162,7 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
             </linearGradient>
           </defs>
           <PolarGrid gridType="polygon" stroke="#e2e8f0" />
-          <PolarAngleAxis
-            dataKey="modality"
-            tick={{ fontSize: 11, fill: '#64748b' }}
-            tickFormatter={formatAxisTick}
-          />
+          <PolarAngleAxis dataKey="modality" tick={RadarAxisTick} />
           <PolarRadiusAxis
             angle={RADAR_START_ANGLE}
             domain={[0, 100]}

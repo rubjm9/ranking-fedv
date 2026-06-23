@@ -33,6 +33,8 @@ const RankingMaintenancePanel: React.FC<RankingMaintenancePanelProps> = ({ selec
     queryClient.invalidateQueries({ queryKey: ['admin-notifications-pending'] })
     queryClient.invalidateQueries({ queryKey: ['admin-dashboard-actions'] })
     queryClient.invalidateQueries({ queryKey: ['regional-coefficients'] })
+    queryClient.invalidateQueries({ queryKey: ['ranking-optimized'] })
+    queryClient.invalidateQueries({ queryKey: ['general-ranking-optimized'] })
   }
 
   const handleSmartUpdate = async () => {

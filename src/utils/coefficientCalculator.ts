@@ -1,10 +1,6 @@
 /**
- * Helper para calcular coeficientes de antigüedad según subtemporada
- * Aplica la lógica correcta donde solo la superficie jugada tiene x1
- * y las demás mantienen sus coeficientes anteriores
- * 
- * NOTA: Actualmente NO se usa. Simplificado para calcular rankings globales
- * sumando directamente las 6 superficies de team_season_rankings.
+ * Coeficientes de antigüedad por subtemporada para el ranking global.
+ * Solo la superficie ya jugada en la subtemporada actual usa coeficiente x1 en la temporada en curso.
  */
 
 export interface CoeffConfig {
@@ -13,131 +9,174 @@ export interface CoeffConfig {
   }
 }
 
-// TODOs:
-// - Implementar cálculo de coeficientes específicos por subtemporada
-// - Este archivo está preparado para la funcionalidad futura
+export const ALL_RANKING_SURFACES = [
+  'beach_mixed',
+  'beach_open',
+  'beach_women',
+  'grass_mixed',
+  'grass_open',
+  'grass_women',
+] as const
+
+export type RankingSurface = (typeof ALL_RANKING_SURFACES)[number]
+
+export type Subupdate = 1 | 2 | 3 | 4
+
+export interface TeamSeasonPointsRow {
+  team_id: string
+  season: string
+  beach_mixed_points?: number
+  beach_open_points?: number
+  beach_women_points?: number
+  grass_mixed_points?: number
+  grass_open_points?: number
+  grass_women_points?: number
+}
+
+const formatSeason = (startYear: number): string =>
+  `${startYear}-${String(startYear + 1).slice(-2)}`
 
 /**
- * Calcular configuración de coeficientes para cada subtemporada
+ * Temporadas necesarias para calcular un snapshot global de subtemporada.
+ */
+export const getSeasonsNeededForSubupdate = (
+  subupdate: Subupdate,
+  currentSeason: string
+): string[] => {
+  const currentYear = parseInt(currentSeason.split('-')[0])
+  const maxOffset = subupdate <= 2 ? 4 : 3
+  const seasons: string[] = [currentSeason]
+  for (let offset = 1; offset <= maxOffset; offset++) {
+    seasons.push(formatSeason(currentYear - offset))
+  }
+  return seasons
+}
+
+/**
+ * Temporadas necesarias para calcular todos los snapshots (1-4) de una temporada.
+ */
+export const getAllSeasonsNeededForSubupdates = (currentSeason: string): string[] => {
+  const seasons = new Set<string>()
+  ;([1, 2, 3, 4] as Subupdate[]).forEach((subupdate) => {
+    getSeasonsNeededForSubupdate(subupdate, currentSeason).forEach((s) => seasons.add(s))
+  })
+  return [...seasons]
+}
+
+/**
+ * Configuración de coeficientes por superficie y temporada para una subtemporada.
  */
 export const getCoefficientsForSubupdate = (
-  subupdate: 1 | 2 | 3 | 4,
+  subupdate: Subupdate,
   currentSeason: string
 ): CoeffConfig => {
   const config: CoeffConfig = {}
-  
-  // Superficies
-  const surfaces = [
-    'beach_mixed',
-    'beach_open',
-    'beach_women', 
-    'grass_mixed',
-    'grass_open',
-    'grass_women'
-  ]
-  
-  // Calcular años de las temporadas
   const currentYear = parseInt(currentSeason.split('-')[0])
-  
-  surfaces.forEach(surface => {
+
+  ALL_RANKING_SURFACES.forEach((surface) => {
     config[surface] = {}
-    
+
     if (subupdate === 1) {
-      // SUBUPDATE 1: Después de jugarse playa mixto
       if (surface === 'beach_mixed') {
-        // Play mixto: actual*1, prev*0.8, prev2*0.5, prev3*0.2
         config[surface][currentSeason] = 1.0
-        config[surface][`${currentYear - 1}-${(currentYear).toString().slice(-2)}`] = 0.8
-        config[surface][`${currentYear - 2}-${(currentYear - 1).toString().slice(-2)}`] = 0.5
-        config[surface][`${currentYear - 3}-${(currentYear - 2).toString().slice(-2)}`] = 0.2
+        config[surface][formatSeason(currentYear - 1)] = 0.8
+        config[surface][formatSeason(currentYear - 2)] = 0.5
+        config[surface][formatSeason(currentYear - 3)] = 0.2
       } else {
-        // Otras superficies: prev*1, prev2*0.8, prev3*0.5, prev4*0.2
-        config[surface][`${currentYear - 1}-${(currentYear).toString().slice(-2)}`] = 1.0
-        config[surface][`${currentYear - 2}-${(currentYear - 1).toString().slice(-2)}`] = 0.8
-        config[surface][`${currentYear - 3}-${(currentYear - 2).toString().slice(-2)}`] = 0.5
-        config[surface][`${currentYear - 4}-${(currentYear - 3).toString().slice(-2)}`] = 0.2
+        config[surface][formatSeason(currentYear - 1)] = 1.0
+        config[surface][formatSeason(currentYear - 2)] = 0.8
+        config[surface][formatSeason(currentYear - 3)] = 0.5
+        config[surface][formatSeason(currentYear - 4)] = 0.2
       }
     } else if (subupdate === 2) {
-      // SUBUPDATE 2: Después de jugarse playa open/women
       if (surface === 'beach_mixed') {
-        // Play mixto: actual*1, prev*0.8, prev2*0.5, prev3*0.2 (ya se jugó)
         config[surface][currentSeason] = 1.0
-        config[surface][`${currentYear - 1}-${(currentYear).toString().slice(-2)}`] = 0.8
-        config[surface][`${currentYear - 2}-${(currentYear - 1).toString().slice(-2)}`] = 0.5
-        config[surface][`${currentYear - 3}-${(currentYear - 2).toString().slice(-2)}`] = 0.2
+        config[surface][formatSeason(currentYear - 1)] = 0.8
+        config[surface][formatSeason(currentYear - 2)] = 0.5
+        config[surface][formatSeason(currentYear - 3)] = 0.2
       } else if (surface === 'beach_open' || surface === 'beach_women') {
-        // Play open/women: actual*1, prev*0.8, prev2*0.5, prev3*0.2
         config[surface][currentSeason] = 1.0
-        config[surface][`${currentYear - 1}-${(currentYear).toString().slice(-2)}`] = 0.8
-        config[surface][`${currentYear - 2}-${(currentYear - 1).toString().slice(-2)}`] = 0.5
-        config[surface][`${currentYear - 3}-${(currentYear - 2).toString().slice(-2)}`] = 0.2
+        config[surface][formatSeason(currentYear - 1)] = 0.8
+        config[surface][formatSeason(currentYear - 2)] = 0.5
+        config[surface][formatSeason(currentYear - 3)] = 0.2
       } else {
-        // Césped: prev*1, prev2*0.8, prev3*0.5, prev4*0.2
-        config[surface][`${currentYear - 1}-${(currentYear).toString().slice(-2)}`] = 1.0
-        config[surface][`${currentYear - 2}-${(currentYear - 1).toString().slice(-2)}`] = 0.8
-        config[surface][`${currentYear - 3}-${(currentYear - 2).toString().slice(-2)}`] = 0.5
-        config[surface][`${currentYear - 4}-${(currentYear - 3).toString().slice(-2)}`] = 0.2
+        config[surface][formatSeason(currentYear - 1)] = 1.0
+        config[surface][formatSeason(currentYear - 2)] = 0.8
+        config[surface][formatSeason(currentYear - 3)] = 0.5
+        config[surface][formatSeason(currentYear - 4)] = 0.2
       }
     } else if (subupdate === 3) {
-      // SUBUPDATE 3: Después de jugarse césped mixto
       if (surface === 'grass_mixed') {
-        // Césped mixto: actual*1, prev*0.8, prev2*0.5, prev3*0.2
         config[surface][currentSeason] = 1.0
-        config[surface][`${currentYear - 1}-${(currentYear).toString().slice(-2)}`] = 0.8
-        config[surface][`${currentYear - 2}-${(currentYear - 1).toString().slice(-2)}`] = 0.5
-        config[surface][`${currentYear - 3}-${(currentYear - 2).toString().slice(-2)}`] = 0.2
-      } else if (surface === 'beach_mixed' || surface === 'beach_open' || surface === 'beach_women') {
-        // Playa (ya jugadas): actual*1, prev*0.8
+        config[surface][formatSeason(currentYear - 1)] = 0.8
+        config[surface][formatSeason(currentYear - 2)] = 0.5
+        config[surface][formatSeason(currentYear - 3)] = 0.2
+      } else if (
+        surface === 'beach_mixed' ||
+        surface === 'beach_open' ||
+        surface === 'beach_women'
+      ) {
         config[surface][currentSeason] = 1.0
-        config[surface][`${currentYear - 1}-${(currentYear).toString().slice(-2)}`] = 0.8
-      } else if (surface === 'grass_open' || surface === 'grass_women') {
-        // Césped open/women: prev*1, prev2*0.8
-        config[surface][`${currentYear - 1}-${(currentYear).toString().slice(-2)}`] = 1.0
-        config[surface][`${currentYear - 2}-${(currentYear - 1).toString().slice(-2)}`] = 0.8
+        config[surface][formatSeason(currentYear - 1)] = 0.8
+      } else {
+        config[surface][formatSeason(currentYear - 1)] = 1.0
+        config[surface][formatSeason(currentYear - 2)] = 0.8
       }
-    } else if (subupdate === 4) {
-      // SUBUPDATE 4: Final de temporada
-      // Todas las superficies: actual*1, prev*0.8, prev2*0.5, prev3*0.2
+    } else {
       config[surface][currentSeason] = 1.0
-      config[surface][`${currentYear - 1}-${(currentYear).toString().slice(-2)}`] = 0.8
-      config[surface][`${currentYear - 2}-${(currentYear - 1).toString().slice(-2)}`] = 0.5
-      config[surface][`${currentYear - 3}-${(currentYear - 2).toString().slice(-2)}`] = 0.2
+      config[surface][formatSeason(currentYear - 1)] = 0.8
+      config[surface][formatSeason(currentYear - 2)] = 0.5
+      config[surface][formatSeason(currentYear - 3)] = 0.2
     }
   })
-  
+
   return config
 }
 
 /**
- * Calcular puntos ponderados para una superficie según subtemporada
+ * Puntos globales ponderados de un equipo para una subtemporada (función pura, sin I/O).
  */
-export const calculateWeightedPoints = async (
+export const computeWeightedPointsForSubupdate = (
+  teamPointsRows: TeamSeasonPointsRow[],
   teamId: string,
-  surface: string,
-  subupdate: 1 | 2 | 3 | 4,
-  currentSeason: string,
-  supabase: any
-): Promise<number> => {
+  subupdate: Subupdate,
+  currentSeason: string
+): number => {
   const coefficients = getCoefficientsForSubupdate(subupdate, currentSeason)
-  const surfaceCoeffs = coefficients[surface]
-  
-  if (!surfaceCoeffs) return 0
-  
+  const teamRows = teamPointsRows.filter((row) => row.team_id === teamId)
   let totalPoints = 0
-  
-  for (const [season, coeff] of Object.entries(surfaceCoeffs)) {
-    // Obtener puntos base de esa temporada y superficie
-    const { data } = await supabase
-      .from('team_season_points')
-      .select(`${surface}_points`)
-      .eq('team_id', teamId)
-      .eq('season', season)
-      .single()
-    
-    if (data && data[`${surface}_points`]) {
-      totalPoints += data[`${surface}_points`] * coeff
+
+  ALL_RANKING_SURFACES.forEach((surface) => {
+    const surfaceCoeffs = coefficients[surface] || {}
+    Object.entries(surfaceCoeffs).forEach(([season, coeff]) => {
+      const row = teamRows.find((r) => r.season === season)
+      const basePoints = row?.[`${surface}_points`] || 0
+      if (basePoints > 0) {
+        totalPoints += basePoints * coeff
+      }
+    })
+  })
+
+  return parseFloat(totalPoints.toFixed(2))
+}
+
+/**
+ * Puntos globales de todos los equipos para una subtemporada (batch en memoria).
+ */
+export const computeAllTeamsGlobalPointsForSubupdate = (
+  allRows: TeamSeasonPointsRow[],
+  subupdate: Subupdate,
+  currentSeason: string
+): Map<string, number> => {
+  const teamIds = new Set(allRows.map((row) => row.team_id))
+  const result = new Map<string, number>()
+
+  teamIds.forEach((teamId) => {
+    const points = computeWeightedPointsForSubupdate(allRows, teamId, subupdate, currentSeason)
+    if (points > 0) {
+      result.set(teamId, points)
     }
-  }
-  
-  return totalPoints
+  })
+
+  return result
 }

@@ -7,7 +7,7 @@ import { supabase } from '@/services/supabaseService'
 export interface VerificationResult {
   success: boolean
   message: string
-  details?: any
+  details?: Record<string, unknown>
 }
 
 /**
@@ -18,58 +18,83 @@ export async function verifyPositionChangeColumns(): Promise<VerificationResult>
     if (!supabase) {
       return {
         success: false,
-        message: 'Supabase no está configurado'
+        message: 'Supabase no está configurado',
       }
     }
 
-    // Verificar que las columnas existen
-    const { data: columns, error: columnsError } = await supabase
+    const { error: columnsError } = await supabase
       .from('team_season_rankings')
-      .select('beach_mixed_position_change, beach_mixed_points_change, subupdate_4_global_position_change')
+      .select(
+        'beach_mixed_position_change, beach_mixed_points_change, subupdate_4_global_position_change, subupdate_4_global_rank'
+      )
       .limit(1)
 
     if (columnsError) {
       return {
         success: false,
-        message: `Error verificando columnas: ${columnsError.message}`
+        message: `Error verificando columnas: ${columnsError.message}`,
       }
     }
 
-    // Verificar que hay datos con position_change calculado
-    const { data: dataWithChanges, error: dataError } = await supabase
+    const { data: surfaceChanges, error: surfaceError } = await supabase
       .from('team_season_rankings')
-      .select('team_id, season, beach_mixed_position_change, beach_mixed_points_change')
+      .select('team_id, season, beach_mixed_position_change')
       .not('beach_mixed_position_change', 'is', null)
       .limit(10)
 
-    if (dataError) {
+    if (surfaceError) {
       return {
         success: false,
-        message: `Error verificando datos: ${dataError.message}`
+        message: `Error verificando datos de categoría: ${surfaceError.message}`,
       }
     }
 
-    const countWithData = dataWithChanges?.length || 0
+    const { data: globalRanks, error: globalRankError } = await supabase
+      .from('team_season_rankings')
+      .select('team_id, season, subupdate_4_global_rank, subupdate_4_global_position_change')
+      .not('subupdate_4_global_rank', 'is', null)
+      .limit(10)
 
-    // Contar total de registros
+    if (globalRankError) {
+      return {
+        success: false,
+        message: `Error verificando rankings globales: ${globalRankError.message}`,
+      }
+    }
+
+    const { count: subupdate1Count } = await supabase
+      .from('team_season_rankings')
+      .select('*', { count: 'exact', head: true })
+      .not('subupdate_1_global_rank', 'is', null)
+
     const { count: totalCount } = await supabase
       .from('team_season_rankings')
       .select('*', { count: 'exact', head: true })
 
+    const surfaceWithData = surfaceChanges?.length || 0
+    const globalWithData = globalRanks?.length || 0
+    const hasGlobalSnapshots = (subupdate1Count || 0) > 0
+
     return {
-      success: true,
-      message: `Columnas verificadas correctamente. ${countWithData} registros con datos de position_change encontrados de ${totalCount || 0} totales.`,
+      success: hasGlobalSnapshots && surfaceWithData > 0,
+      message: hasGlobalSnapshots
+        ? `Columnas verificadas: ${surfaceWithData} muestras de categoría, ${globalWithData} de ranking global (subupdate 4), ${subupdate1Count || 0} con subupdate 1 de ${totalCount || 0} totales.`
+        : `Columnas de categoría OK (${surfaceWithData} muestras), pero faltan snapshots globales subupdate_* — ejecuta actualización inteligente.`,
       details: {
         columnsExist: true,
-        recordsWithData: countWithData,
+        recordsWithSurfaceChange: surfaceWithData,
+        recordsWithGlobalRank: globalWithData,
+        recordsWithSubupdate1: subupdate1Count || 0,
         totalRecords: totalCount || 0,
-        sampleData: dataWithChanges?.slice(0, 3)
-      }
+        sampleSurface: surfaceChanges?.slice(0, 2),
+        sampleGlobal: globalRanks?.slice(0, 2),
+      },
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Error desconocido'
     return {
       success: false,
-      message: `Error en verificación: ${error.message}`
+      message: `Error en verificación: ${message}`,
     }
   }
 }
@@ -82,11 +107,11 @@ export async function verifyAdminNotificationsTable(): Promise<VerificationResul
     if (!supabase) {
       return {
         success: false,
-        message: 'Supabase no está configurado'
+        message: 'Supabase no está configurado',
       }
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('admin_notifications')
       .select('id, type, status')
       .limit(1)
@@ -94,11 +119,10 @@ export async function verifyAdminNotificationsTable(): Promise<VerificationResul
     if (error) {
       return {
         success: false,
-        message: `Error verificando tabla admin_notifications: ${error.message}`
+        message: `Error verificando tabla admin_notifications: ${error.message}`,
       }
     }
 
-    // Contar notificaciones pendientes
     const { count: pendingCount } = await supabase
       .from('admin_notifications')
       .select('*', { count: 'exact', head: true })
@@ -109,13 +133,14 @@ export async function verifyAdminNotificationsTable(): Promise<VerificationResul
       message: `Tabla admin_notifications verificada. ${pendingCount || 0} notificaciones pendientes.`,
       details: {
         tableExists: true,
-        pendingNotifications: pendingCount || 0
-      }
+        pendingNotifications: pendingCount || 0,
+      },
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Error desconocido'
     return {
       success: false,
-      message: `Error en verificación: ${error.message}`
+      message: `Error en verificación: ${message}`,
     }
   }
 }
@@ -128,11 +153,10 @@ export async function verifyHistoricalRankings(): Promise<VerificationResult> {
     if (!supabase) {
       return {
         success: false,
-        message: 'Supabase no está configurado'
+        message: 'Supabase no está configurado',
       }
     }
 
-    // Contar registros por temporada
     const { data: seasonsData, error: seasonsError } = await supabase
       .from('team_season_rankings')
       .select('season')
@@ -141,32 +165,40 @@ export async function verifyHistoricalRankings(): Promise<VerificationResult> {
     if (seasonsError) {
       return {
         success: false,
-        message: `Error obteniendo temporadas: ${seasonsError.message}`
+        message: `Error obteniendo temporadas: ${seasonsError.message}`,
       }
     }
 
-    const uniqueSeasons = [...new Set(seasonsData?.map(s => s.season) || [])]
+    const uniqueSeasons = [...new Set(seasonsData?.map((s) => s.season) || [])]
     const totalRecords = seasonsData?.length || 0
 
-    // Verificar que hay datos de rankings globales
-    const { count: globalCount } = await supabase
-      .from('team_season_rankings')
-      .select('*', { count: 'exact', head: true })
-      .not('subupdate_4_global_rank', 'is', null)
+    const subupdateCounts = await Promise.all(
+      ([1, 2, 3, 4] as const).map(async (n) => {
+        const { count } = await supabase
+          .from('team_season_rankings')
+          .select('*', { count: 'exact', head: true })
+          .not(`subupdate_${n}_global_rank`, 'is', null)
+        return { subupdate: n, count: count || 0 }
+      })
+    )
+
+    const globalCount = subupdateCounts.find((s) => s.subupdate === 4)?.count || 0
 
     return {
-      success: true,
-      message: `Rankings históricos verificados. ${totalRecords} registros en ${uniqueSeasons.length} temporadas. ${globalCount || 0} con ranking global.`,
+      success: globalCount > 0,
+      message: `Rankings históricos: ${totalRecords} registros en ${uniqueSeasons.length} temporadas. Snapshots globales: ${subupdateCounts.map((s) => `sub${s.subupdate}=${s.count}`).join(', ')}.`,
       details: {
         totalRecords,
         seasons: uniqueSeasons,
-        recordsWithGlobalRank: globalCount || 0
-      }
+        subupdateCounts,
+        recordsWithGlobalRank: globalCount,
+      },
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Error desconocido'
     return {
       success: false,
-      message: `Error en verificación: ${error.message}`
+      message: `Error en verificación: ${message}`,
     }
   }
 }
@@ -183,16 +215,13 @@ export async function verifyAllOptimizations(): Promise<{
   const [positionChange, adminNotifications, historicalRankings] = await Promise.all([
     verifyPositionChangeColumns(),
     verifyAdminNotificationsTable(),
-    verifyHistoricalRankings()
+    verifyHistoricalRankings(),
   ])
 
   return {
     positionChange,
     adminNotifications,
     historicalRankings,
-    allSuccess: positionChange.success && adminNotifications.success && historicalRankings.success
+    allSuccess: positionChange.success && adminNotifications.success && historicalRankings.success,
   }
 }
-
-
-

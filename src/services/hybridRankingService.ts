@@ -351,6 +351,7 @@ const hybridRankingService = {
         .from('teams')
         .select(`
           id,
+          logo,
           ${TEAM_RANKING_NAME_SELECT},
           regionId,
           regions:regionId(
@@ -369,6 +370,7 @@ const hybridRankingService = {
       const rankingEntries: RankingEntry[] = (teams || []).map((team: any) => ({
         team_id: team.id,
         team_name: getTeamDisplayNameForCategory(team, surface),
+        logo: team.logo ?? null,
         region_name: team.regions?.name || 'N/A',
         ranking_category: surface,
         current_season_points: teamPointsMap[team.id].current_season_points,
