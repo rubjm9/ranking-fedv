@@ -8,7 +8,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts'
-import { MODALITIES, MODALITY_LABELS } from '@/components/regions/constants'
+import { MODALITY_LABELS } from '@/components/regions/constants'
 
 interface RankingEntry {
   position: number
@@ -21,6 +21,19 @@ interface TeamRankingRadarChartProps {
   currentRankings: Record<string, RankingEntry>
   height?: number
 }
+
+/** Clockwise from top-left: playa izquierda, césped derecha; arriba=women, lados=mixto, abajo=open */
+const RADAR_MODALITY_ORDER = [
+  'beach_women',
+  'grass_women',
+  'grass_mixed',
+  'grass_open',
+  'beach_open',
+  'beach_mixed',
+] as const
+
+const GRADIENT_ORANGE = '#F97316'
+const GRADIENT_GREEN = '#10B981'
 
 function positionToScore(position: number, totalTeams: number): number {
   if (!position || position <= 0 || totalTeams <= 0) return 0
@@ -35,7 +48,7 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
 }) => {
   const chartData = useMemo(
     () =>
-      MODALITIES.map((modality) => {
+      RADAR_MODALITY_ORDER.map((modality) => {
         const ranking = currentRankings[modality]
         const position = ranking?.position ?? 0
         const totalTeams = ranking?.totalTeams ?? 0
@@ -92,7 +105,19 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
   return (
     <div className="w-full">
       <ResponsiveContainer width="100%" height={height}>
-        <RadarChart data={chartData} cx="50%" cy="50%" outerRadius="70%">
+        <RadarChart
+          data={chartData}
+          cx="50%"
+          cy="50%"
+          outerRadius="70%"
+          startAngle={120}
+        >
+          <defs>
+            <linearGradient id="teamRadarFill" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor={GRADIENT_ORANGE} stopOpacity={0.45} />
+              <stop offset="100%" stopColor={GRADIENT_GREEN} stopOpacity={0.45} />
+            </linearGradient>
+          </defs>
           <PolarGrid stroke="#e2e8f0" />
           <PolarAngleAxis
             dataKey="modality"
@@ -108,9 +133,9 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
           <Radar
             name="Posición"
             dataKey="score"
-            stroke="#3b82f6"
-            fill="#3b82f6"
-            fillOpacity={0.25}
+            stroke={GRADIENT_ORANGE}
+            fill="url(#teamRadarFill)"
+            fillOpacity={1}
             strokeWidth={2}
           />
         </RadarChart>
