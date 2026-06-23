@@ -10,8 +10,8 @@ import { getRegionalCoefficientBaseSeason } from '@/utils/rankingCalculations'
 import { supabase } from '@/services/supabaseService'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
+import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
-import StatsCard from '@/components/ui/StatsCard'
 import EmptyState from '@/components/ui/EmptyState'
 import TeamLogo from '@/components/ui/TeamLogo'
 import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
@@ -477,28 +477,36 @@ const RegionDetailPage: React.FC = () => {
             ]}
           />
         }
+        statsBar={
+          <PageHeroStatsBar
+            isLoading={teamRankingPoints === undefined}
+            items={[
+              {
+                icon: UsersRound,
+                label: 'Equipos',
+                value: region._count?.teams ?? teams.length,
+              },
+              {
+                icon: Trophy,
+                label: 'Torneos',
+                value: region._count?.tournaments ?? tournaments.length,
+                iconClassName: 'text-emerald-400',
+              },
+              {
+                icon: BarChart3,
+                label: 'Total puntos',
+                value: totalPoints.toFixed(0),
+                iconClassName: 'text-accent-400',
+              },
+              {
+                icon: TrendingUp,
+                label: 'Promedio puntos',
+                value: averagePoints.toFixed(1),
+              },
+            ]}
+          />
+        }
       />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard icon={UsersRound} label="Equipos" value={region._count?.teams ?? teams.length} />
-        <StatsCard
-          icon={Trophy}
-          label="Torneos"
-          value={region._count?.tournaments ?? tournaments.length}
-          iconColor="text-emerald-600"
-        />
-        <StatsCard
-          icon={BarChart3}
-          label="Total puntos"
-          value={totalPoints.toFixed(0)}
-          iconColor="text-accent-600"
-        />
-        <StatsCard
-          icon={TrendingUp}
-          label="Promedio puntos"
-          value={averagePoints.toFixed(1)}
-        />
-      </div>
 
       <div className="card mb-8">
         <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Coeficientes por temporada</h2>
