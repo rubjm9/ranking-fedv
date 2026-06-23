@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, Link, useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Users, MapPin, Trophy, Calendar, TrendingUp, BarChart3, Mail, Award, Target, History, Sun, Leaf, UserRound } from 'lucide-react'
+import { ArrowLeft, UsersRound, MapPin, Trophy, Calendar, TrendingUp, BarChart3, Mail, Award, Target, History, Sun, Leaf, UserRound } from 'lucide-react'
 import { teamDetailService, TeamDetailData, prefetchTeamDetail } from '@/services/teamDetailService'
 import { teamsService, tournamentsService, getTeamPublicUrl } from '@/services/apiService'
+import PageHeroShell from '@/components/layout/PageHeroShell'
 import TeamLogo from '@/components/ui/TeamLogo'
 import GeneralRankingChart from '@/components/charts/GeneralRankingChart'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
@@ -178,13 +179,13 @@ const TeamDetailPage: React.FC = () => {
   const getModalityIcon = (modality: string) => {
     switch (modality) {
       case 'OPEN':
-        return <Users className="w-4 h-4 text-slate-600 inline" />
+        return <UsersRound className="w-4 h-4 text-slate-600 inline" />
       case 'WOMEN':
         return <UserRound className="w-4 h-4 text-slate-600 inline" />
       case 'MIXED':
-        return <Users className="w-4 h-4 text-primary-600 inline" />
+        return <UsersRound className="w-4 h-4 text-primary-600 inline" />
       default:
-        return <Users className="w-4 h-4 text-slate-600 inline" />
+        return <UsersRound className="w-4 h-4 text-slate-600 inline" />
     }
   }
 
@@ -210,11 +211,11 @@ const TeamDetailPage: React.FC = () => {
 
   if (!teamData) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="page-container pt-[calc(4.75rem+2rem)]">
         <Breadcrumbs items={[{ label: 'Equipos', href: '/equipos' }, { label: 'No encontrado' }]} />
         <div className="mt-8">
           <EmptyState
-            icon={Users}
+            icon={UsersRound}
             title="Equipo no encontrado"
             description="El equipo que buscas no existe o ha sido eliminado."
             action={{
@@ -293,7 +294,7 @@ const TeamDetailPage: React.FC = () => {
               <h3 className="text-xl font-semibold text-slate-900 mb-4">Información del Equipo</h3>
               <div className="space-y-3">
                 <div className="flex items-center">
-                  <Users className="h-4 w-4 text-slate-400 mr-3" />
+                  <UsersRound className="h-4 w-4 text-slate-400 mr-3" />
                   <span className="text-slate-600">Tipo:</span>
                   <span className="ml-2 font-medium">
                     {team.isFilial ? 'Equipo Filial' : 'Equipo Principal'}
@@ -422,7 +423,9 @@ const TeamDetailPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
-                  {Object.entries(currentRankings).map(([category, ranking]) => (
+                  {Object.entries(currentRankings)
+                    .sort(([, a], [, b]) => a.position - b.position)
+                    .map(([category, ranking]) => (
                     <tr key={category}>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -732,31 +735,31 @@ const TeamDetailPage: React.FC = () => {
         }
       />
 
-      <div className="sports-header-pattern border-b border-secondary-200">
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-4">
+      <PageHeroShell className="mb-0 border-b border-slate-800">
+          <div className="mb-6">
             <Breadcrumbs
+              variant="dark"
               items={[
                 { label: 'Equipos', href: '/equipos' },
                 { label: team.name },
               ]}
             />
           </div>
-          <div className="flex flex-col sm:flex-row items-center sm:items-center gap-6">
+          <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-10">
             <div className="team-logo-arcs h-24 w-24 sm:h-28 sm:w-28">
               <TeamLogo
                 logo={team.logo}
                 name={team.name}
                 size="xl"
-                className="relative z-10 h-24 w-24 sm:h-28 sm:w-28 ring-4 ring-white shadow-sm"
+                className="relative z-10 h-24 w-24 sm:h-28 sm:w-28 ring-4 ring-white/20 shadow-sm"
               />
             </div>
-            <div className="text-center sm:text-left flex-1">
-              <h1 className="font-display text-3xl sm:text-4xl font-bold text-slate-900 mb-2">{team.name}</h1>
-              <p className="text-slate-600 mb-1">
+            <div className="flex-1 text-center sm:text-left">
+              <h1 className="mb-2 font-display text-3xl font-bold text-white sm:text-4xl">{team.name}</h1>
+              <p className="mb-1 text-slate-400">
                 {team.isFilial && team.parentTeam ? (
                   <>Equipo filial de{' '}
-                    <Link to={getTeamPublicUrl(team.parentTeam)} className="text-primary-600 hover:text-primary-700 font-medium">
+                    <Link to={getTeamPublicUrl(team.parentTeam)} className="font-medium text-primary-300 hover:text-primary-200">
                       {team.parentTeam.name}
                     </Link>
                   </>
@@ -774,8 +777,7 @@ const TeamDetailPage: React.FC = () => {
               description={`Consulta las estadísticas y resultados de ${team.name} en el Ranking FEDV`}
             />
           </div>
-        </div>
-      </div>
+      </PageHeroShell>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tabs */}

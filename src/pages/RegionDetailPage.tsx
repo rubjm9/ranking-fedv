@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Users, Trophy, BarChart3, TrendingUp, Loader2, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react'
+import { UsersRound, Trophy, BarChart3, TrendingUp, Loader2, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { regionsService, getTeamPublicUrl } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
@@ -470,6 +470,7 @@ const RegionDetailPage: React.FC = () => {
         }
         breadcrumbs={
           <Breadcrumbs
+            variant="dark"
             items={[
               { label: 'Regiones', href: '/regiones' },
               { label: region.name },
@@ -479,7 +480,7 @@ const RegionDetailPage: React.FC = () => {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard icon={Users} label="Equipos" value={region._count?.teams ?? teams.length} />
+        <StatsCard icon={UsersRound} label="Equipos" value={region._count?.teams ?? teams.length} />
         <StatsCard
           icon={Trophy}
           label="Torneos"

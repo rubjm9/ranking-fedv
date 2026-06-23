@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Search, Filter, Users, MapPin, Trophy, ChevronUp, ChevronDown, Loader2, ArrowUpDown, X, Grid, List, Building2 } from 'lucide-react'
+import { Search, UsersRound, MapPin, Trophy, ChevronUp, ChevronDown, Loader2, ArrowUpDown, X, Grid, List, Shield } from 'lucide-react'
 import { teamsService, regionsService, getTeamPublicUrl } from '@/services/apiService'
 import { homePageService } from '@/services/homePageService'
 import hybridRankingService from '@/services/hybridRankingService'
@@ -13,9 +13,9 @@ import EmptyState from '@/components/ui/EmptyState'
 import Pagination from '@/components/ui/Pagination'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import CardSkeleton from '@/components/ui/CardSkeleton'
-import StatsCard from '@/components/ui/StatsCard'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
+import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
 import DataTable from '@/components/ui/DataTable'
 
 const TeamsPage = () => {
@@ -185,10 +185,10 @@ const TeamsPage = () => {
       <PageContainer>
         <PageHeader
           title="Equipos"
-          breadcrumbs={<Breadcrumbs items={[{ label: 'Equipos' }]} />}
+          breadcrumbs={<Breadcrumbs variant="dark" items={[{ label: 'Equipos' }]} />}
         />
         <EmptyState
-          icon={Users}
+          icon={UsersRound}
           title="Error al cargar los equipos"
           description="No se pudieron cargar los equipos. Por favor, intenta recargar la página."
           action={{
@@ -205,127 +205,135 @@ const TeamsPage = () => {
       <PageHeader
         title="Equipos"
         subtitle="Descubre todos los equipos participantes en el ranking FEDV"
-        breadcrumbs={<Breadcrumbs items={[{ label: 'Equipos' }]} />}
+        breadcrumbs={<Breadcrumbs variant="dark" items={[{ label: 'Equipos' }]} />}
+        statsBar={
+          <PageHeroStatsBar
+            isLoading={statsLoading}
+            items={[
+              {
+                icon: UsersRound,
+                label: 'Total equipos',
+                value: statsData?.totalTeams || teams.length,
+              },
+              {
+                icon: Shield,
+                label: 'Total clubes',
+                value: totalClubs,
+              },
+              {
+                icon: MapPin,
+                label: 'Regiones',
+                value: statsData?.totalRegions || regionsData?.data?.length || 0,
+              },
+              {
+                icon: Trophy,
+                label: 'Total torneos',
+                value: statsData?.totalTournaments || 0,
+              },
+            ]}
+          />
+        }
       />
 
-      {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard
-          icon={Users}
-          label="Total equipos"
-          value={statsData?.totalTeams || teams.length}
-          isLoading={statsLoading}
-          iconBgColor="bg-primary-100"
-          iconColor="text-primary-600"
-        />
-        <StatsCard
-          icon={Building2}
-          label="Total clubes"
-          value={totalClubs}
-          isLoading={statsLoading}
-          iconBgColor="bg-amber-100"
-          iconColor="text-amber-600"
-        />
-        <StatsCard
-          icon={MapPin}
-          label="Regiones"
-          value={statsData?.totalRegions || regionsData?.data?.length || 0}
-          isLoading={statsLoading}
-          iconBgColor="bg-green-100"
-          iconColor="text-green-600"
-        />
-        <StatsCard
-          icon={Trophy}
-          label="Total torneos"
-          value={statsData?.totalTournaments || 0}
-          isLoading={statsLoading}
-          iconBgColor="bg-purple-100"
-          iconColor="text-purple-600"
-        />
-      </div>
+      {/* Filtros y contador */}
+      <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Buscar equipos por nombre o ubicación..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400"
+            aria-label="Buscar equipos"
+          />
+        </div>
 
-      {/* Filtros */}
-      <div className="card mb-8">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          <div className="flex-1 w-full">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Buscar equipos por nombre o ubicación..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-field pl-10"
-                aria-label="Buscar equipos"
-              />
-            </div>
-          </div>
-          <select
-            value={selectedRegion}
-            onChange={(e) => setSelectedRegion(e.target.value)}
-            className="input-field w-auto min-w-[160px]"
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            className="flex flex-wrap items-center gap-1.5"
+            role="group"
             aria-label="Filtrar por región"
           >
-            <option value="">Todas las regiones</option>
+            <button
+              type="button"
+              onClick={() => setSelectedRegion('')}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                selectedRegion === ''
+                  ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-200'
+                  : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              Todas las regiones
+            </button>
             {regionsData?.data?.map(region => (
-              <option key={region.id} value={region.id}>{region.name}</option>
+              <button
+                key={region.id}
+                type="button"
+                onClick={() => setSelectedRegion(region.id)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                  selectedRegion === region.id
+                    ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-200'
+                    : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                {region.name}
+              </button>
             ))}
-          </select>
-          {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
-              aria-label="Limpiar filtros"
-            >
-              <X className="h-4 w-4" />
-              Limpiar
-            </button>
-          )}
-        </div>
-        {hasActiveFilters && (
-          <div className="mt-4 text-sm text-slate-600">
-            Mostrando {filteredAndSortedTeams.length} {filteredAndSortedTeams.length === 1 ? 'equipo' : 'equipos'}
-            {searchTerm && ` que coinciden con "${searchTerm}"`}
-            {selectedRegion && ` de la región seleccionada`}
           </div>
-        )}
-      </div>
 
-      {/* Controles de vista y ordenamiento */}
-      {!isLoading && filteredAndSortedTeams.length > 0 && (
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-sm text-slate-600">
-            {filteredAndSortedTeams.length} {filteredAndSortedTeams.length === 1 ? 'equipo encontrado' : 'equipos encontrados'}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setViewMode('table')}
-              className={`p-2 rounded-lg transition-colors ${
-                viewMode === 'table' ? 'bg-primary-100 text-primary-600' : 'text-slate-400 hover:bg-slate-100'
-              }`}
-              aria-label="Vista de tabla"
-            >
-              <List className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => setViewMode('cards')}
-              className={`p-2 rounded-lg transition-colors ${
-                viewMode === 'cards' ? 'bg-primary-100 text-primary-600' : 'text-slate-400 hover:bg-slate-100'
-              }`}
-              aria-label="Vista de tarjetas"
-            >
-              <Grid className="h-5 w-5" />
-            </button>
+          <div className="flex shrink-0 items-center gap-3 self-end sm:self-auto">
+            {!isLoading && (
+              <p className="text-xs text-slate-500">
+                {filteredAndSortedTeams.length}{' '}
+                {filteredAndSortedTeams.length === 1 ? 'equipo encontrado' : 'equipos encontrados'}
+              </p>
+            )}
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="inline-flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-slate-700"
+                aria-label="Limpiar filtros"
+              >
+                <X className="h-3.5 w-3.5" />
+                Limpiar
+              </button>
+            )}
+            {!isLoading && filteredAndSortedTeams.length > 0 && (
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('table')}
+                  className={`rounded-lg p-1.5 transition-colors ${
+                    viewMode === 'table' ? 'bg-primary-100 text-primary-600' : 'text-slate-400 hover:bg-white'
+                  }`}
+                  aria-label="Vista de tabla"
+                >
+                  <List className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('cards')}
+                  className={`rounded-lg p-1.5 transition-colors ${
+                    viewMode === 'cards' ? 'bg-primary-100 text-primary-600' : 'text-slate-400 hover:bg-white'
+                  }`}
+                  aria-label="Vista de tarjetas"
+                >
+                  <Grid className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
 
       {/* Contenido: Tabla o Cards */}
       {isLoading ? (
         viewMode === 'table' ? <TableSkeleton rows={5} columns={4} /> : <CardSkeleton count={6} />
       ) : filteredAndSortedTeams.length === 0 ? (
         <EmptyState
-          icon={Users}
+          icon={UsersRound}
           title={hasActiveFilters ? "No se encontraron equipos" : "No hay equipos disponibles"}
           description={
             hasActiveFilters

@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/SimpleAuthContext'
 import { 
   BarChart3, 
-  Users, 
+  UsersRound, 
   MapPin, 
   Calendar, 
   Settings, 
@@ -32,7 +32,7 @@ const AdminLayout: React.FC = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: BarChart3 },
-    { name: 'Equipos', href: '/admin/teams', icon: Users },
+    { name: 'Equipos', href: '/admin/teams', icon: UsersRound },
     { name: 'Regiones', href: '/admin/regions', icon: MapPin },
     { name: 'Torneos', href: '/admin/tournaments', icon: Calendar },
     { name: 'Histórico', href: '/admin/historico', icon: History },

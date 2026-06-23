@@ -2,10 +2,11 @@ import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/SimpleAuthContext'
-import { Menu, X, Trophy, Users, MapPin, Calendar, Settings, Home, ChevronDown, Info } from 'lucide-react'
+import { Menu, X, Trophy, UsersRound, MapPin, Calendar, Settings, Home, ChevronDown, Info } from 'lucide-react'
 import RankingMegaMenu from './RankingMegaMenu'
 import RegionsMenu from './RegionsMenu'
 import { buildRegionPublicSlugById, getRegionPublicUrl, regionsService } from '@/services/apiService'
+import { hasPublicHeroHeader } from '@/utils/publicLayout'
 
 const megamenuItems = [
   { label: 'Playa Mixto', to: '/ranking/beach-mixed' },
@@ -49,7 +50,7 @@ const Navbar: React.FC = () => {
   )
 
   const navigationBeforeRegions = [
-    { name: 'Equipos', href: '/equipos', icon: Users },
+    { name: 'Equipos', href: '/equipos', icon: UsersRound },
   ]
 
   const navigationAfterRegions = [
@@ -70,7 +71,7 @@ const Navbar: React.FC = () => {
     return `nav-link${active ? ' nav-link--active' : ''}`
   }
 
-  const isHome = location.pathname === '/'
+  const isOverHero = hasPublicHeroHeader(location.pathname)
   const isRankingActive = location.pathname.startsWith('/ranking')
   const isRegionsActive = location.pathname === '/regiones' || location.pathname.startsWith('/regiones/')
 
@@ -96,25 +97,28 @@ const Navbar: React.FC = () => {
   const mobileAccordionClass = (active: boolean) =>
     `w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-base font-medium transition-colors duration-200 ${
       active
-        ? isHome
+        ? isOverHero
           ? 'bg-white/15 text-white'
           : 'bg-primary-50 text-primary-700'
-        : isHome
+        : isOverHero
           ? 'text-slate-300 hover:text-white hover:bg-white/10'
           : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
     }`
 
-  const mobileSubLinkClass = isHome
+  const mobileSubLinkClass = isOverHero
     ? 'flex items-center px-3 py-1.5 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-white/10 transition-colors'
     : 'flex items-center px-3 py-1.5 rounded-lg text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors'
 
+  const navBarTheme = isOverHero ? ' nav-bar--over-hero' : ''
+  const navTitleClass = isOverHero ? 'text-white' : 'text-slate-900'
+
   return (
     <nav className="fixed top-0 inset-x-0 z-50 px-4 sm:px-6 pt-3 pointer-events-none">
-      <div className={`nav-bar max-w-7xl mx-auto pointer-events-auto${isHome ? ' nav-bar--over-hero' : ''}`}>
+      <div className={`nav-bar max-w-7xl mx-auto pointer-events-auto${navBarTheme}`}>
         <div className="flex justify-between items-center h-14 px-4 sm:px-5">
           <div className="flex items-center min-w-0">
             <Link to="/" className="flex items-center mr-6 lg:mr-10 shrink-0">
-              <span className={`font-display text-xl font-bold ${isHome ? 'text-white' : 'text-slate-900'}`}>
+              <span className={`font-display text-xl font-bold ${navTitleClass}`}>
                 Ranking <span className="text-accent-500">FEDV</span>
               </span>
             </Link>
@@ -220,7 +224,7 @@ const Navbar: React.FC = () => {
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className={`inline-flex items-center justify-center p-2 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
-                  isHome
+                  isOverHero
                     ? 'text-slate-300 hover:text-white hover:bg-white/10'
                     : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
                 }`}
@@ -235,7 +239,7 @@ const Navbar: React.FC = () => {
 
         {isMenuOpen && (
           <div className="md:hidden">
-            <div className={`nav-mobile-panel px-3 pt-2 pb-3 space-y-1${isHome ? ' nav-mobile-panel--over-hero' : ''}`}>
+            <div className={`nav-mobile-panel px-3 pt-2 pb-3 space-y-1${isOverHero ? ' nav-mobile-panel--over-hero' : ''}`}>
             <Link
               to="/"
               className={getNavLinkClass('/', true)}
@@ -309,7 +313,7 @@ const Navbar: React.FC = () => {
                   <Link
                     to="/regiones"
                     className={`flex items-center px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                      isHome
+                      isOverHero
                         ? 'text-accent-400 hover:bg-white/10'
                         : 'text-primary-600 hover:bg-slate-50'
                     }`}

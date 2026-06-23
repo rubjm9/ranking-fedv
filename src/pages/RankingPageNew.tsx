@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Trophy, Medal, TrendingUp, TrendingDown, Users, Calendar, RefreshCw, BarChart3, LineChart, Star, MapPin, ChevronRight, Info } from 'lucide-react'
+import { Trophy, Medal, TrendingUp, TrendingDown, UsersRound, Shield, Calendar, RefreshCw, BarChart3, LineChart, Star, MapPin, ChevronRight, Info } from 'lucide-react'
 import hybridRankingService from '@/services/hybridRankingService'
 import { supabase } from '@/services/supabaseService'
 import TeamLogo from '@/components/ui/TeamLogo'
@@ -18,6 +18,7 @@ import RankingTableSkeleton from '@/components/ui/RankingTableSkeleton'
 import dynamicRankingService from '@/services/dynamicRankingService'
 import teamSeasonRankingsService from '@/services/teamSeasonRankingsService'
 import { useMostRecentSeasons } from '@/hooks/useMostRecentSeasons'
+import { getRankingReferenceSeason } from '@/utils/rankingCalculations'
 
 interface SimpleChartProps {
   data: any[]
@@ -267,15 +268,13 @@ const getAllAvailableSeasonsFromData = (data: any[]) => {
 }
 
 const getLastFourSeasonsFromData = (data: any[], referenceSeason?: string | null) => {
+  if (referenceSeason) {
+    return buildReferenceSeasons(referenceSeason)
+  }
+
   if (!data || data.length === 0) return []
 
   const sortedSeasons = getAllAvailableSeasonsFromData(data)
-
-  if (referenceSeason && sortedSeasons.includes(referenceSeason)) {
-    const refIndex = sortedSeasons.indexOf(referenceSeason)
-    return sortedSeasons.slice(refIndex, refIndex + 4)
-  }
-
   return sortedSeasons.slice(0, 4)
 }
 
@@ -526,19 +525,26 @@ const RankingPageNew: React.FC = () => {
     retry: 2
   })
 
-  const generalSeasonToUse = useMemo(() => {
-    if (activeTab === 'general' && selectedSeasonForGeneralView) {
-      return selectedSeasonForGeneralView
-    }
-    return referenceSeason
-  }, [activeTab, selectedSeasonForGeneralView, referenceSeason])
-
-  // Obtener todas las temporadas más recientes con una sola query (optimizado)
   const { 
     seasons: mostRecentSeasons, 
     isLoading: isLoadingSeasons,
     getSeasonForCategory 
   } = useMostRecentSeasons()
+
+  const defaultGeneralSeason = useMemo(
+    () => getRankingReferenceSeason(referenceSeason ?? mostRecentSeasons.global),
+    [referenceSeason, mostRecentSeasons.global]
+  )
+
+  const generalSeasonToUse = useMemo(() => {
+    if (activeTab === 'general' && selectedSeasonForGeneralView) {
+      return selectedSeasonForGeneralView
+    }
+    if (activeTab === 'general') {
+      return defaultGeneralSeason
+    }
+    return referenceSeason
+  }, [activeTab, selectedSeasonForGeneralView, referenceSeason, defaultGeneralSeason])
   
   // Extraer temporadas individuales del hook consolidado
   const beachMixedSeason = mostRecentSeasons.beach_mixed
@@ -1153,39 +1159,8 @@ const RankingPageNew: React.FC = () => {
   }
 
   // Obtener las últimas 4 temporadas ordenadas (más reciente primero)
-  // Si se proporciona referenceSeason, devuelve esa temporada y las 3 anteriores (más antiguas)
-  const getLastFourSeasons = (data: any[], referenceSeason?: string | null) => {
-    if (!data || data.length === 0) return []
-    
-    // Obtener todas las temporadas únicas de todos los equipos
-    const seasonsSet = new Set<string>()
-    data.forEach(team => {
-      Object.keys(team?.season_breakdown || {}).forEach(season => {
-        seasonsSet.add(season)
-      })
-    })
-    
-    const sortedSeasons = Array.from(seasonsSet)
-      .sort((a, b) => {
-        const yearA = parseInt(a.split('-')[0])
-        const yearB = parseInt(b.split('-')[0])
-        return yearB - yearA // Más reciente primero
-      })
-    
-    // Si hay una temporada de referencia, usar esa y las 3 anteriores (más antiguas)
-    // Las temporadas están ordenadas de más reciente a más antigua
-    // Si seleccionamos 2023-24 (índice 1), queremos: [2023-24, 2022-23, 2021-22, 2020-21]
-    // Eso es slice(1, 5) = índices [1, 2, 3, 4]
-    if (referenceSeason && sortedSeasons.includes(referenceSeason)) {
-      const refIndex = sortedSeasons.indexOf(referenceSeason)
-      // Tomar desde refIndex hasta refIndex + 4 (hasta 4 temporadas incluyendo la seleccionada)
-      // Esto nos da la temporada seleccionada y las 3 siguientes (más antiguas)
-      return sortedSeasons.slice(refIndex, refIndex + 4)
-    }
-    
-    // Si no hay referencia, usar las últimas 4
-    return sortedSeasons.slice(0, 4)
-  }
+  const getLastFourSeasons = (data: any[], referenceSeason?: string | null) =>
+    getLastFourSeasonsFromData(data, referenceSeason)
   
   // Obtener todas las temporadas disponibles de los datos
   const getAllAvailableSeasons = (data: any[]) => {
@@ -2922,7 +2897,10 @@ const RankingPageNew: React.FC = () => {
     // Si es ranking histórico, mostrar TODAS las temporadas disponibles
     // Si no, mostrar solo las últimas 4
     const allGeneralSeasons = getAllAvailableSeasons(activeGeneralData || [])
-    const currentReferenceSeason = selectedSeasonForGeneralView || referenceSeason || allGeneralSeasons[0]
+    const currentReferenceSeason = selectedSeasonForGeneralView || defaultGeneralSeason || referenceSeason || allGeneralSeasons[0]
+    const generalSeasonOptions = currentReferenceSeason && !allGeneralSeasons.includes(currentReferenceSeason)
+      ? [currentReferenceSeason, ...allGeneralSeasons]
+      : allGeneralSeasons
 
     if (!currentReferenceSeason) {
       return (
@@ -3022,7 +3000,7 @@ const RankingPageNew: React.FC = () => {
               title="Mejor Filial"
               value={generalHighlightStats.generalBestFilial?.team_name || 'Sin filiales'}
               subtitle={generalHighlightStats.generalBestFilial ? `${generalHighlightStats.generalBestFilial.global_points?.toFixed(1) || '0'} pts` : 'No hay filiales'}
-              icon={Users}
+              icon={UsersRound}
               color="purple"
               logo={generalHighlightStats.generalBestFilial?.logo}
               teamName={generalHighlightStats.generalBestFilial?.team_name}
@@ -3046,7 +3024,7 @@ const RankingPageNew: React.FC = () => {
               subtitle={generalHighlightStats.generalNewTeamsNames && generalHighlightStats.generalNewTeamsNames.length > 0
                 ? generalHighlightStats.generalNewTeamsNames.join(', ')
                 : 'En esta temporada'}
-              icon={Users}
+              icon={UsersRound}
               color="red"
               tooltip="Equipos nuevos desde que se registran datos en el ranking (solo tienen puntos en la temporada actual del ranking global)."
           />
@@ -3058,7 +3036,7 @@ const RankingPageNew: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4">
             <div className="bg-white rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
-                <Users className="w-8 h-8 text-primary-500" />
+                <UsersRound className="w-8 h-8 text-primary-500" />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-slate-500">Total Equipos</p>
                   <p className="text-2xl font-semibold text-slate-900">{generalStats.total_teams}</p>
@@ -3149,11 +3127,11 @@ const RankingPageNew: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <label className="text-sm font-medium text-slate-700">Temporada:</label>
                 <select
-                  value={selectedSeasonForGeneralView || referenceSeason || ''}
+                  value={selectedSeasonForGeneralView || defaultGeneralSeason || referenceSeason || ''}
                   onChange={(e) => setSelectedSeasonForGeneralView(e.target.value || null)}
                   className="text-sm border border-slate-300 rounded px-3 py-1 bg-white"
                 >
-                  {allGeneralSeasons.map((season) => {
+                  {generalSeasonOptions.map((season) => {
                     const year1 = season.split('-')[0]
                     const year2 = season.split('-')[1]
                     return (
@@ -3360,9 +3338,7 @@ const RankingPageNew: React.FC = () => {
                     className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                   />
                   <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
-                  <RankingTeamLink team={team} className="truncate hover:text-primary-600 transition-colors">
-                    {team.team_name}
-                  </RankingTeamLink>
+                  <span className="truncate">{team.team_name}</span>
                 </label>
               ))}
             </div>
@@ -3756,7 +3732,7 @@ const RankingPageNew: React.FC = () => {
               title="Mejor Filial"
               value={categoryHighlightStats.categoryBestFilial?.team_name || 'Sin filiales'}
               subtitle={categoryHighlightStats.categoryBestFilial ? `${categoryHighlightStats.categoryBestFilial.category_points?.toFixed(1) || '0'} pts` : 'No hay filiales'}
-              icon={Users}
+              icon={UsersRound}
               color="purple"
               logo={categoryHighlightStats.categoryBestFilial?.logo}
               teamName={categoryHighlightStats.categoryBestFilial?.team_name}
@@ -3780,7 +3756,7 @@ const RankingPageNew: React.FC = () => {
               subtitle={categoryHighlightStats.categoryNewTeamsNames && categoryHighlightStats.categoryNewTeamsNames.length > 0
                 ? categoryHighlightStats.categoryNewTeamsNames.join(', ')
                 : 'En esta temporada'}
-              icon={Users}
+              icon={UsersRound}
               color="red"
               tooltip="Equipos nuevos desde que se registran datos en el ranking (solo tienen puntos en la temporada actual de esta categoría)."
             />
@@ -3792,7 +3768,7 @@ const RankingPageNew: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4">
             <div className="bg-white rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
-                <Users className="w-8 h-8 text-primary-500" />
+                <UsersRound className="w-8 h-8 text-primary-500" />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-slate-500">Total Equipos</p>
                   <p className="text-2xl font-semibold text-slate-900">{stats.total_teams}</p>
@@ -4155,9 +4131,7 @@ const RankingPageNew: React.FC = () => {
                     className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                   />
                   <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
-                  <RankingTeamLink team={team} className="truncate hover:text-primary-600 transition-colors">
-                    {team.team_name}
-                  </RankingTeamLink>
+                  <span className="truncate">{team.team_name}</span>
                 </label>
               ))}
             </div>
@@ -4393,8 +4367,9 @@ const RankingPageNew: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-secondary-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <RankingPageHeader season={referenceSeason} isLoadingSeason={isLoadingSeason} />
+      <RankingPageHeader season={referenceSeason} isLoadingSeason={isLoadingSeason} />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
 
         <RankingTabNav tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
 
@@ -4404,7 +4379,7 @@ const RankingPageNew: React.FC = () => {
               {[
                 { id: 'ranking', label: 'Ranking', icon: BarChart3 },
                 { id: 'historical', label: 'Ranking histórico', icon: Star },
-                { id: 'clubs', label: 'Ranking de clubes', icon: Users },
+                { id: 'clubs', label: 'Ranking de clubes', icon: Shield },
                 { id: 'analysis', label: 'Gráficas de análisis', icon: LineChart },
                 { id: 'advanced', label: 'Estadísticas avanzadas', icon: MapPin },
               ].map((subTab) => (

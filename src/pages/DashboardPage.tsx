@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { 
-  Users, 
+  UsersRound, 
   MapPin, 
   Calendar, 
   TrendingUp, 
@@ -22,7 +22,7 @@ const DashboardPage: React.FC = () => {
       value: '156', 
       change: '+12', 
       changeType: 'positive',
-      icon: Users,
+      icon: UsersRound,
       href: '/admin/teams'
     },
     { 
@@ -112,7 +112,7 @@ const DashboardPage: React.FC = () => {
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'team':
-        return <Users className="h-4 w-4" />
+        return <UsersRound className="h-4 w-4" />
       case 'tournament':
         return <Calendar className="h-4 w-4" />
       case 'ranking':

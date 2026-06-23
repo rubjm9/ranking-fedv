@@ -5,7 +5,7 @@ import {
   Trophy,
   Calendar,
   MapPin,
-  Users,
+  UsersRound,
   Award,
   ChevronLeft,
   Crown,
@@ -298,7 +298,7 @@ const TournamentPage = () => {
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Users className="w-5 h-5 text-gray-400" />
+                  <UsersRound className="w-5 h-5 text-gray-400" />
                   <div>
                     <div className="text-sm text-gray-600">Categoría</div>
                     <div className="font-medium">{getCategoryLabel(tournament.category)}</div>
@@ -321,7 +321,7 @@ const TournamentPage = () => {
       {/* Estadísticas rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="card text-center">
-          <Users className="w-8 h-8 text-primary-600 mx-auto mb-2" />
+          <UsersRound className="w-8 h-8 text-primary-600 mx-auto mb-2" />
           <h4 className="text-lg font-semibold text-gray-900 mb-1">Equipos</h4>
           <p className="text-2xl font-bold text-primary-600">{tournamentStats.totalTeams}</p>
           <p className="text-sm text-gray-600">participantes</p>
@@ -354,7 +354,7 @@ const TournamentPage = () => {
         <nav className="flex space-x-8">
           {[
             { id: 'results', label: 'Resultados', icon: Trophy },
-            { id: 'teams', label: 'Equipos', icon: Users },
+            { id: 'teams', label: 'Equipos', icon: UsersRound },
             { id: 'statistics', label: 'Estadísticas', icon: BarChart3 }
           ].map(tab => (
             <button

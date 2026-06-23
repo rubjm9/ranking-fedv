@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { MapPin, Users, TrendingUp, ChevronRight, Loader2, ChevronDown, ChevronUp, Info } from 'lucide-react'
+import { MapPin, UsersRound, TrendingUp, ChevronRight, Loader2, ChevronDown, ChevronUp, Info } from 'lucide-react'
 import { regionsService, getRegionPublicUrl, buildRegionPublicSlugById } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
 import seasonService from '@/services/seasonService'
@@ -181,14 +181,14 @@ const RegionsPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard icon={MapPin} label="Total regiones" value={totalRegions} />
         <StatsCard
-          icon={Users}
+          icon={UsersRound}
           label="Total equipos"
           value={totalTeams}
           iconBgColor="bg-emerald-100"
           iconColor="text-emerald-600"
         />
         <StatsCard
-          icon={Users}
+          icon={UsersRound}
           label="Región más activa"
           value={regionStats.mostActive?.name || 'N/A'}
           subtitle={`${regionStats.mostActive?.count || 0} equipos`}

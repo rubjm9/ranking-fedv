@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   MapPin,
-  Users,
+  UsersRound,
   TrendingUp,
   Trophy,
   BarChart3,
@@ -174,7 +174,7 @@ const RegionPage = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="flex items-center space-x-2">
-                  <Users className="w-5 h-5 text-gray-400" />
+                  <UsersRound className="w-5 h-5 text-gray-400" />
                   <div>
                     <div className="text-sm text-gray-600">Equipos activos</div>
                     <div className="font-medium">{totalTeams}</div>
@@ -215,7 +215,7 @@ const RegionPage = () => {
         <nav className="flex space-x-8">
           {[
             { id: 'overview', label: 'Resumen', icon: BarChart3 },
-            { id: 'teams', label: 'Equipos', icon: Users },
+            { id: 'teams', label: 'Equipos', icon: UsersRound },
             { id: 'statistics', label: 'Estadísticas', icon: TrendingUp }
           ].map(tab => (
             <button

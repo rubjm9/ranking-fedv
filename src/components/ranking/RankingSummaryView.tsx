@@ -1,5 +1,5 @@
 import React from 'react'
-import { Trophy, BarChart3, TrendingUp, Users, Star } from 'lucide-react'
+import { Trophy, BarChart3, TrendingUp, UsersRound, Star } from 'lucide-react'
 import StatsBlock from '@/components/ranking/StatsBlock'
 import SummaryCard from '@/components/ranking/SummaryCard'
 import RankingSummarySkeleton from '@/components/ui/RankingSummarySkeleton'
@@ -88,7 +88,7 @@ const RankingSummaryView: React.FC<RankingSummaryViewProps> = ({
                 ? `${highlightStats.bestFilial.global_points?.toFixed(1) || '0'} pts`
                 : 'No hay filiales'
             }
-            icon={Users}
+            icon={UsersRound}
             logo={highlightStats.bestFilial?.logo}
             teamName={highlightStats.bestFilial?.team_name}
             tooltip="Equipo filial (secundario de un club principal) con más puntos en el ranking."
@@ -108,7 +108,7 @@ const RankingSummaryView: React.FC<RankingSummaryViewProps> = ({
             title="Total equipos"
             value={highlightStats.totalTeams}
             subtitle="Con torneos disputados"
-            icon={Users}
+            icon={UsersRound}
             tooltip="Número total de equipos únicos con puntos en el ranking actual."
           />
         </div>

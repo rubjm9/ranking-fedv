@@ -1,6 +1,6 @@
 import React from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Calendar, MapPin, Trophy, Users, BarChart3, Award, Clock } from 'lucide-react'
+import { ArrowLeft, Calendar, MapPin, Trophy, UsersRound, Users, BarChart3, Award, Clock } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { useQuery } from '@tanstack/react-query'
 import { tournamentsService } from '@/services/apiService'
@@ -282,6 +282,7 @@ const TournamentDetailPage: React.FC = () => {
         subtitle={translateTournamentType(tournament.type)}
         breadcrumbs={
           <Breadcrumbs
+            variant="dark"
             items={[
               { label: 'Torneos', href: '/tournaments' },
               { label: tournament.name },
@@ -292,7 +293,7 @@ const TournamentDetailPage: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard icon={Calendar} label="Año" value={tournament.year} />
-        <StatsCard icon={Users} label="Equipos" value={totalTeams} iconBgColor="bg-emerald-100" iconColor="text-emerald-600" />
+        <StatsCard icon={UsersRound} label="Equipos" value={totalTeams} iconBgColor="bg-emerald-100" iconColor="text-emerald-600" />
         <StatsCard icon={BarChart3} label="Puntos repartidos" value={formatPoints(totalPoints)} iconBgColor="bg-accent-100" iconColor="text-accent-600" />
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <div className="flex items-center">
