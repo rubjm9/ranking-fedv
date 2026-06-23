@@ -5,6 +5,10 @@
 import { supabase } from './supabaseService'
 import hybridRankingService from './hybridRankingService'
 import type { SurfacePointsMap } from './seasonPointsService'
+import {
+  getTeamDisplayNameForCategory,
+  TEAM_RANKING_NAME_SELECT,
+} from '@/utils/teamNames'
 
 // Función auxiliar para obtener ranking de una categoría de la temporada anterior desde team_season_rankings
 const getPreviousSeasonCategoryRanking = async (category: string, referenceSeason: string) => {
@@ -251,7 +255,7 @@ class HomePageService {
           ${rankCol},
           ${pointsCol},
           ${posChangeCol},
-          teams(id, name, logo, region:regions(name))
+          teams(id, ${TEAM_RANKING_NAME_SELECT}, logo, region:regions(name))
         `)
         .eq('season', referenceSeason)
         .not(rankCol, 'is', null)
@@ -290,7 +294,7 @@ class HomePageService {
         
         return {
           id: ranking.team_id,
-          name: team?.name || 'Equipo desconocido',
+          name: getTeamDisplayNameForCategory(team, category),
           region: regionName,
           regionCode: regionName.toLowerCase().replace(/\s+/g, '_'),
           logo: team?.logo,
@@ -319,7 +323,7 @@ class HomePageService {
       
       const { data: teamsData } = await supabase
         .from('teams')
-        .select('id, name, logo, region:regions(name)')
+        .select(`id, logo, ${TEAM_RANKING_NAME_SELECT}, region:regions(name)`)
         .in('id', teamIds)
 
       const teamsMap = new Map(teamsData?.map(team => [team.id, team]) || [])
@@ -344,7 +348,7 @@ class HomePageService {
         
         return {
           id: ranking.team_id,
-          name: teamData?.name || 'Equipo desconocido',
+          name: getTeamDisplayNameForCategory(teamData, category) || ranking.team_name,
           region: regionName,
           regionCode: regionName.toLowerCase().replace(/\s+/g, '_'),
           logo: teamData?.logo,
@@ -400,7 +404,7 @@ class HomePageService {
           ${rankCol},
           ${pointsCol},
           ${posChangeCol},
-          teams(id, name, logo, region:regions(name))
+          teams(id, ${TEAM_RANKING_NAME_SELECT}, logo, region:regions(name))
         `)
         .eq('season', referenceSeason)
         .not(rankCol, 'is', null)
@@ -438,7 +442,7 @@ class HomePageService {
         
         return {
           id: ranking.team_id,
-          name: team?.name || 'Equipo desconocido',
+          name: getTeamDisplayNameForCategory(team),
           region: team?.region?.name || 'Sin región',
           regionCode: team?.region?.name ? team.region.name.substring(0, 3).toUpperCase() : 'N/A',
           logo: team?.logo,
@@ -494,7 +498,7 @@ class HomePageService {
         
         return {
           id: ranking.team_id,
-          name: team?.name || 'Equipo desconocido',
+          name: ranking.team_name || getTeamDisplayNameForCategory(team),
           region: team?.region?.name || 'Sin región',
           regionCode: team?.region?.name ? team.region.name.substring(0, 3).toUpperCase() : 'N/A',
           logo: team?.logo,

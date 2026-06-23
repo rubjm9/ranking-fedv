@@ -98,6 +98,8 @@ export interface TeamStatistics {
   worstPosition: number
   bestPositionSeason?: string
   bestPositionDate?: string
+  worstPositionSeason?: string
+  worstPositionDate?: string
   currentSeason: string
   seasonsActive: number
   categoriesPlayed: string[]
@@ -128,16 +130,22 @@ class TeamDetailService {
       // 6. Calcular estadísticas
       const statistics = this.calculateStatistics(tournamentResults, seasonBreakdown)
       
-      // 7. Calcular posición global actual
-      const globalPosition = await this.calculateGlobalPosition(teamId)
+      // 7. Calcular posición global actual (temporada en curso)
+      const currentSeason = await hybridRankingService.getMostRecentSeason()
+      const globalPosition = await this.calculateGlobalPosition(teamId, currentSeason)
       statistics.globalPosition = globalPosition
       
-      // 8. Calcular posiciones históricas globales
-      const historicalPositions = await this.calculateHistoricalGlobalPositions(teamId)
+      // 8. Calcular posiciones históricas globales (incluye snapshot en vivo)
+      const historicalPositions = await this.calculateHistoricalGlobalPositions(teamId, {
+        currentSeason,
+        currentGlobalPosition: globalPosition,
+      })
       statistics.bestPosition = historicalPositions.bestPosition
       statistics.worstPosition = historicalPositions.worstPosition
       statistics.bestPositionSeason = historicalPositions.bestPositionSeason
       statistics.bestPositionDate = historicalPositions.bestPositionDate
+      statistics.worstPositionSeason = historicalPositions.worstPositionSeason
+      statistics.worstPositionDate = historicalPositions.worstPositionDate
       
       return {
         team: teamData,
@@ -624,14 +632,14 @@ class TeamDetailService {
   }
 
   /**
-   * Fecha aproximada en que se registró la mejor posición global de una temporada.
+   * Fecha aproximada en que se registró una posición global de temporada.
    * Usa los hitos de subtemporada (mar, jun, sep, dic) del historial de ranking.
    */
-  private getBestPositionDateForSeason(
+  private getGlobalPositionDateForSeason(
     seasonRow: Record<string, unknown>,
-    bestRank: number
+    rank: number
   ): string | undefined {
-    if (seasonRow.final_season_global_rank !== bestRank) return undefined
+    if (seasonRow.final_season_global_rank !== rank) return undefined
 
     const seasonYear = parseInt(String(seasonRow.season).split('-')[0])
     const candidateDates: string[] = []
@@ -664,16 +672,74 @@ class TeamDetailService {
     ).at(-1)
   }
 
-  /**
-   * Calcular posiciones históricas en ranking global
-   */
-  private async calculateHistoricalGlobalPositions(teamId: string): Promise<{
+  private summarizeGlobalPositionSnapshots(
+    snapshots: Array<{ position: number; season?: string; date?: string }>
+  ): {
     bestPosition: number
     worstPosition: number
     bestPositionSeason?: string
     bestPositionDate?: string
-  }> {
+    worstPositionSeason?: string
+    worstPositionDate?: string
+  } {
     const empty = { bestPosition: 0, worstPosition: 0 }
+    if (snapshots.length === 0) return empty
+
+    const bestPosition = Math.min(...snapshots.map(s => s.position))
+    const worstPosition = Math.max(...snapshots.map(s => s.position))
+
+    const sortBySeasonDesc = (
+      a: { season?: string },
+      b: { season?: string }
+    ) =>
+      parseInt(String(b.season ?? '0').split('-')[0]) -
+      parseInt(String(a.season ?? '0').split('-')[0])
+
+    const best = snapshots
+      .filter(s => s.position === bestPosition)
+      .sort(sortBySeasonDesc)[0]
+
+    const worst = snapshots
+      .filter(s => s.position === worstPosition)
+      .sort(sortBySeasonDesc)[0]
+
+    return {
+      bestPosition,
+      worstPosition,
+      bestPositionSeason: best?.season,
+      bestPositionDate: best?.date,
+      worstPositionSeason: worst?.season,
+      worstPositionDate: worst?.date,
+    }
+  }
+
+  /**
+   * Calcular posiciones históricas en ranking global
+   */
+  private async calculateHistoricalGlobalPositions(
+    teamId: string,
+    options: { currentSeason: string; currentGlobalPosition: number }
+  ): Promise<{
+    bestPosition: number
+    worstPosition: number
+    bestPositionSeason?: string
+    bestPositionDate?: string
+    worstPositionSeason?: string
+    worstPositionDate?: string
+  }> {
+    const { currentSeason, currentGlobalPosition } = options
+    const empty = { bestPosition: 0, worstPosition: 0 }
+    const snapshots: Array<{ position: number; season?: string; date?: string }> = []
+
+    const appendCurrentSnapshot = () => {
+      if (currentGlobalPosition > 0) {
+        snapshots.push({
+          position: currentGlobalPosition,
+          season: currentSeason,
+          date: new Date().toISOString().slice(0, 10),
+        })
+      }
+    }
 
     try {
       const { data: teamData, error } = await supabase
@@ -698,7 +764,8 @@ class TeamDetailService {
         .order('season', { ascending: false })
 
       if (error || !teamData || teamData.length === 0) {
-        return empty
+        appendCurrentSnapshot()
+        return snapshots.length > 0 ? this.summarizeGlobalPositionSnapshots(snapshots) : empty
       }
 
       const seasonsWithFinalRank = teamData.filter(
@@ -706,36 +773,26 @@ class TeamDetailService {
       )
 
       if (seasonsWithFinalRank.length > 0) {
-        const positions = seasonsWithFinalRank.map(row => row.final_season_global_rank as number)
-        const bestPosition = Math.min(...positions)
-        const worstPosition = Math.max(...positions)
+        for (const row of seasonsWithFinalRank) {
+          // En temporada en curso usar posición en vivo, no el cierre parcial de subtemporada
+          if (row.season === currentSeason && currentGlobalPosition > 0) continue
 
-        const bestSeasonRows = seasonsWithFinalRank
-          .filter(row => row.final_season_global_rank === bestPosition)
-          .sort(
-            (a, b) =>
-              parseInt(String(b.season).split('-')[0]) -
-              parseInt(String(a.season).split('-')[0])
-          )
-
-        const bestSeasonRow = bestSeasonRows[0]
-        const bestPositionSeason = bestSeasonRow?.season as string | undefined
-        const bestPositionDate = bestSeasonRow
-          ? this.getBestPositionDateForSeason(bestSeasonRow, bestPosition)
-          : undefined
-
-        return {
-          bestPosition,
-          worstPosition,
-          bestPositionSeason,
-          bestPositionDate,
+          const rank = row.final_season_global_rank as number
+          snapshots.push({
+            position: rank,
+            season: row.season as string,
+            date: this.getGlobalPositionDateForSeason(row, rank),
+          })
         }
+
+        appendCurrentSnapshot()
+        return this.summarizeGlobalPositionSnapshots(snapshots)
       }
 
       // Fallback: calcular desde puntos si no hay rankings finales precalculados
-      const positions: number[] = []
-
       for (const season of teamData) {
+        if (season.season === currentSeason && currentGlobalPosition > 0) continue
+
         const { data: allTeamsData, error: allError } = await supabase
           .from('team_season_points')
           .select(`
@@ -766,18 +823,15 @@ class TeamDetailService {
         const position = allTeamsTotals.findIndex(team => team.team_id === teamId) + 1
 
         if (position > 0) {
-          positions.push(position)
+          snapshots.push({
+            position,
+            season: season.season as string,
+          })
         }
       }
 
-      if (positions.length === 0) {
-        return empty
-      }
-
-      return {
-        bestPosition: Math.min(...positions),
-        worstPosition: Math.max(...positions),
-      }
+      appendCurrentSnapshot()
+      return snapshots.length > 0 ? this.summarizeGlobalPositionSnapshots(snapshots) : empty
     } catch (error) {
       console.error('Error calculando posiciones históricas globales:', error)
       return empty
@@ -787,7 +841,7 @@ class TeamDetailService {
   /**
    * Calcular posición global del equipo en todas las categorías
    */
-  private async calculateGlobalPosition(teamId: string): Promise<number> {
+  private async calculateGlobalPosition(teamId: string, season: string): Promise<number> {
     try {
       // Obtener puntos totales del equipo en todas las categorías
       const { data: teamPoints, error } = await supabase
@@ -801,7 +855,7 @@ class TeamDetailService {
           grass_women_points
         `)
         .eq('team_id', teamId)
-        .eq('season', '2024-25')
+        .eq('season', season)
 
       if (error || !teamPoints || teamPoints.length === 0) {
         return 0 // No hay datos
@@ -825,7 +879,7 @@ class TeamDetailService {
           grass_open_points,
           grass_women_points
         `)
-        .eq('season', '2024-25')
+        .eq('season', season)
 
       if (allError || !allTeamsPoints) {
         return 0
@@ -876,8 +930,10 @@ class TeamDetailService {
       let query = supabase.from('teams').select('*')
 
       if (team.isFilial && team.parentTeamId) {
-        // Si es filial, obtener otras filiales del mismo club padre
-        query = query.eq('parentTeamId', team.parentTeamId).neq('id', teamId)
+        // Si es filial, obtener el equipo principal y otras filiales del mismo club
+        query = query
+          .or(`parentTeamId.eq.${team.parentTeamId},id.eq.${team.parentTeamId}`)
+          .neq('id', teamId)
       } else {
         // Si es principal, obtener sus filiales
         query = query.eq('parentTeamId', teamId)

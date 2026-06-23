@@ -19,6 +19,10 @@ import dynamicRankingService from '@/services/dynamicRankingService'
 import teamSeasonRankingsService from '@/services/teamSeasonRankingsService'
 import { useMostRecentSeasons } from '@/hooks/useMostRecentSeasons'
 import { getRankingReferenceSeason } from '@/utils/rankingCalculations'
+import {
+  getTeamDisplayNameForCategory,
+  TEAM_RANKING_NAME_SELECT,
+} from '@/utils/teamNames'
 
 interface SimpleChartProps {
   data: any[]
@@ -315,12 +319,19 @@ const buildOutOfRankingTeams = (
     const basePoints = Number(row[`${surface}_points`] || 0)
     if (!teamId || !season || basePoints <= 0) return
 
-    const teams = row.teams as { name?: string; logo?: string | null; region?: { name?: string } } | null
+    const teams = row.teams as {
+      name?: string
+      nameOpen?: string
+      nameWomen?: string
+      nameMixed?: string
+      logo?: string | null
+      region?: { name?: string }
+    } | null
 
     if (!teamMap.has(teamId)) {
       teamMap.set(teamId, {
         team_id: teamId,
-        team_name: teams?.name || 'Equipo desconocido',
+        team_name: getTeamDisplayNameForCategory(teams, surface),
         region_name: teams?.region?.name || 'Sin región',
         logo: teams?.logo || null,
         season_breakdown: {},
@@ -573,7 +584,7 @@ const RankingPageNew: React.FC = () => {
   // Configuración de las pestañas: Mixto, Women, Open (primero playa, luego césped)
   const tabs = [
     { id: 'summary', label: 'Resumen', icon: BarChart3 },
-    { id: 'general', label: 'Rankings combinados', icon: LineChart },
+    { id: 'general', label: 'Ranking global', icon: LineChart },
     { id: 'beach_mixed', label: 'Playa Mixto', icon: IconBeach },
     { id: 'beach_women', label: 'Playa Women', icon: IconBeach },
     { id: 'beach_open', label: 'Playa Open', icon: IconBeach },
@@ -901,7 +912,7 @@ const RankingPageNew: React.FC = () => {
           team_id,
           season,
           ${selectedSurface}_points,
-          teams(id, name, logo, region:regions(name))
+          teams(id, ${TEAM_RANKING_NAME_SELECT}, logo, region:regions(name))
         `)
         .gt(`${selectedSurface}_points`, 0)
         .order('season', { ascending: false })
@@ -1592,7 +1603,7 @@ const RankingPageNew: React.FC = () => {
       const teamIds = selectedTeamsForAnalysis
       const { data: teamsData } = await supabase
         .from('teams')
-        .select('id, name, region:regions(name)')
+        .select(`id, ${TEAM_RANKING_NAME_SELECT}, region:regions(name)`)
         .in('id', teamIds)
 
       const teamsMap = new Map(teamsData?.map(t => [t.id, t]) || [])
@@ -1601,7 +1612,7 @@ const RankingPageNew: React.FC = () => {
         const team = teamsMap.get(teamId)
         return {
           team_id: teamId,
-          team_name: team?.name || 'Equipo desconocido',
+          team_name: getTeamDisplayNameForCategory(team, selectedSurface),
           region_name: team?.region?.name || 'Sin región',
           data: history.map(h => ({
             season: h.season,
@@ -1634,7 +1645,7 @@ const RankingPageNew: React.FC = () => {
       // Obtener nombres de equipos
       const { data: teamsData } = await supabase
         .from('teams')
-        .select('id, name, region:regions(name)')
+        .select(`id, ${TEAM_RANKING_NAME_SELECT}, region:regions(name)`)
         .in('id', selectedTeamsForAnalysis)
 
       const teamsMap = new Map(teamsData?.map(t => [t.id, t]) || [])
@@ -1643,7 +1654,7 @@ const RankingPageNew: React.FC = () => {
         const team = teamsMap.get(teamId)
         return {
           team_id: teamId,
-          team_name: team?.name || 'Equipo desconocido',
+          team_name: getTeamDisplayNameForCategory(team),
           region_name: team?.region?.name || 'Sin región',
           data: history.map(h => ({
             season: h.season,
@@ -2076,7 +2087,7 @@ const RankingPageNew: React.FC = () => {
           team_id,
           ${rankColumn},
           ${pointsColumn},
-          teams(name)
+          teams(${TEAM_RANKING_NAME_SELECT})
         `)
         .eq('season', previousSeason)
         .not(rankColumn, 'is', null)
@@ -2094,7 +2105,7 @@ const RankingPageNew: React.FC = () => {
       // Convertir a formato compatible con calculateGlobalRanking
       return rankingsData.map((row: any) => ({
         team_id: row.team_id,
-        team_name: row.teams?.name || 'Equipo desconocido',
+        team_name: getTeamDisplayNameForCategory(row.teams),
         total_points: parseFloat(row[pointsColumn] || 0),
         ranking_position: row[rankColumn]
       }))
@@ -2124,7 +2135,7 @@ const RankingPageNew: React.FC = () => {
           team_id,
           ${rankColumn},
           ${pointsColumn},
-          teams(name)
+          teams(${TEAM_RANKING_NAME_SELECT})
         `)
         .eq('season', previousSeason)
         .not(rankColumn, 'is', null)
@@ -2142,7 +2153,7 @@ const RankingPageNew: React.FC = () => {
       // Convertir a formato compatible
       return rankingsData.map((row: any) => ({
         team_id: row.team_id,
-        team_name: row.teams?.name || 'Equipo desconocido',
+        team_name: getTeamDisplayNameForCategory(row.teams, category),
         total_points: parseFloat(row[pointsColumn] || 0),
         ranking_position: row[rankColumn]
       }))
@@ -2600,7 +2611,7 @@ const RankingPageNew: React.FC = () => {
       // Obtener el nombre y logo del equipo
       const { data: teamData, error: teamError } = await supabase
         .from('teams')
-        .select('id, name, logo')
+        .select(`id, logo, ${TEAM_RANKING_NAME_SELECT}`)
         .eq('id', bestHistoricalTeamId)
         .single()
 
@@ -2608,7 +2619,7 @@ const RankingPageNew: React.FC = () => {
 
       return {
         team_id: teamData.id,
-        team_name: teamData.name,
+        team_name: getTeamDisplayNameForCategory(teamData, category),
         logo: teamData.logo,
         historical_points: bestHistoricalPoints
       }

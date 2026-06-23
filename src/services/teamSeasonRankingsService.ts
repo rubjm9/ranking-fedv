@@ -4,6 +4,10 @@
  */
 
 import { supabase } from './supabaseService'
+import {
+  getTeamDisplayNameForCategory,
+  TEAM_RANKING_NAME_SELECT,
+} from '@/utils/teamNames'
 
 export interface TeamSeasonRanking {
   id: string
@@ -368,7 +372,7 @@ const teamSeasonRankingsService = {
           team_id,
           ${surface}_rank,
           ${surface}_points,
-          teams(name, region:regions(name))
+          teams(${TEAM_RANKING_NAME_SELECT}, region:regions(name))
         `)
         .eq('season', season)
         .not(`${surface}_rank`, 'is', null)
@@ -381,7 +385,7 @@ const teamSeasonRankingsService = {
 
       return (data || []).map((row: any) => ({
         team_id: row.team_id,
-        team_name: row.teams?.name || 'Equipo desconocido',
+        team_name: getTeamDisplayNameForCategory(row.teams, surface),
         region_name: row.teams?.region?.name || 'Sin región',
         rank: row[`${surface}_rank`],
         points: row[`${surface}_points`]
@@ -589,7 +593,7 @@ const teamSeasonRankingsService = {
           ${surface}_points,
           ${surface}_position_change,
           ${surface}_points_change,
-          teams(name, logo, region:regions(name))
+          teams(${TEAM_RANKING_NAME_SELECT}, logo, region:regions(name))
         `)
         .eq('season', season)
         .not(`${surface}_rank`, 'is', null)
@@ -602,7 +606,7 @@ const teamSeasonRankingsService = {
 
       return (data || []).map((row: any) => ({
         team_id: row.team_id,
-        team_name: row.teams?.name || 'Equipo desconocido',
+        team_name: getTeamDisplayNameForCategory(row.teams, surface),
         region_name: row.teams?.region?.name || 'Sin región',
         logo: row.teams?.logo || null,
         rank: row[`${surface}_rank`],
@@ -672,7 +676,7 @@ const teamSeasonRankingsService = {
           ${pointsCol},
           ${posChangeCol},
           ${ptsChangeCol},
-          teams(name, logo, region:regions(name))
+          teams(${TEAM_RANKING_NAME_SELECT}, logo, region:regions(name))
         `)
         .eq('season', season)
         .not(rankCol, 'is', null)
@@ -685,7 +689,7 @@ const teamSeasonRankingsService = {
 
       return (data || []).map((row: any) => ({
         team_id: row.team_id,
-        team_name: row.teams?.name || 'Equipo desconocido',
+        team_name: getTeamDisplayNameForCategory(row.teams),
         region_name: row.teams?.region?.name || 'Sin región',
         logo: row.teams?.logo || null,
         rank: row[rankCol],

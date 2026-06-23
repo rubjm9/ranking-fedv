@@ -8,6 +8,10 @@ import { supabase } from './supabaseService'
 import seasonPointsService, { SurfacePointsMap } from './seasonPointsService'
 import { RankingEntry } from './rankingService'
 import teamSeasonRankingsService, { type Surface } from './teamSeasonRankingsService'
+import {
+  getTeamDisplayNameForCategory,
+  TEAM_RANKING_NAME_SELECT,
+} from '@/utils/teamNames'
 
 // Formatear temporada (YYYY-YY)
 const formatSeason = (year: number): string => {
@@ -347,7 +351,7 @@ const hybridRankingService = {
         .from('teams')
         .select(`
           id,
-          name,
+          ${TEAM_RANKING_NAME_SELECT},
           regionId,
           regions:regionId(
             id,
@@ -364,7 +368,7 @@ const hybridRankingService = {
       // Crear entradas de ranking
       const rankingEntries: RankingEntry[] = (teams || []).map((team: any) => ({
         team_id: team.id,
-        team_name: team.name,
+        team_name: getTeamDisplayNameForCategory(team, surface),
         region_name: team.regions?.name || 'N/A',
         ranking_category: surface,
         current_season_points: teamPointsMap[team.id].current_season_points,
@@ -377,7 +381,7 @@ const hybridRankingService = {
         season_breakdown: teamPointsMap[team.id].season_breakdown,
         team: {
           id: team.id,
-          name: team.name,
+          name: getTeamDisplayNameForCategory(team, surface),
           regionId: team.regionId,
           region: team.regions ? {
             id: team.regions.id,
@@ -651,7 +655,7 @@ const hybridRankingService = {
         .from('teams')
         .select(`
           id,
-          name,
+          ${TEAM_RANKING_NAME_SELECT},
           regionId,
           regions:regionId(
             id,
@@ -668,7 +672,7 @@ const hybridRankingService = {
       // Crear entradas de ranking
       const rankingEntries: RankingEntry[] = (teams || []).map((team: any) => ({
         team_id: team.id,
-        team_name: team.name,
+        team_name: getTeamDisplayNameForCategory(team, null, surfaces),
         region_name: team.regions?.name || 'N/A',
         ranking_category: surfaces.join('_'), // Superficie combinada
         current_season_points: teamPointsMap[team.id].current_season_points,
@@ -681,7 +685,7 @@ const hybridRankingService = {
         season_breakdown: teamPointsMap[team.id].season_breakdown,
         team: {
           id: team.id,
-          name: team.name,
+          name: getTeamDisplayNameForCategory(team, null, surfaces),
           regionId: team.regionId,
           region: team.regions ? {
             id: team.regions.id,

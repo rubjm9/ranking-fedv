@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react'
 import { LucideIcon } from 'lucide-react'
+import { formatInteger, formatPoints } from '@/utils/rankingCalculations'
 
 export interface HeroStatItem {
   icon: LucideIcon
@@ -11,6 +12,20 @@ interface PageHeroStatsBarProps {
   items: HeroStatItem[]
   isLoading?: boolean
   className?: string
+}
+
+/** Formatea números para la barra de stats (millares con punto, decimales con coma). */
+export const formatStatDisplayValue = (value: ReactNode): ReactNode => {
+  if (typeof value === 'number') {
+    const hasDecimals = Math.abs(value % 1) > 1e-9
+    return hasDecimals ? formatPoints(value, 1) : formatInteger(value)
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (/^-?\d+$/.test(trimmed)) return formatInteger(Number(trimmed))
+    if (/^-?\d+\.\d+$/.test(trimmed)) return formatPoints(Number(trimmed), 1)
+  }
+  return value
 }
 
 const PageHeroStatsBar: React.FC<PageHeroStatsBarProps> = ({
@@ -39,7 +54,7 @@ const PageHeroStatsBar: React.FC<PageHeroStatsBarProps> = ({
                 </div>
               ) : (
                 <>
-                  <p className="hero-stats-bar__value">{item.value}</p>
+                  <p className="hero-stats-bar__value">{formatStatDisplayValue(item.value)}</p>
                   <p className="hero-stats-bar__label">{item.label}</p>
                 </>
               )}

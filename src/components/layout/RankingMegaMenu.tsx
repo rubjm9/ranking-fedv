@@ -15,7 +15,7 @@ const individualCategories = [
 ]
 
 const combinedRankings = [
-  { label: 'Rankings combinados', to: '/ranking/general', desc: 'Todas las superficies' },
+  { label: 'Ranking global', to: '/ranking/general', desc: 'Todas las superficies y categorías' },
   { label: 'Ranking Playa', to: '/ranking/playa', desc: 'Mixed + Women + Open' },
   { label: 'Ranking Césped', to: '/ranking/cesped', desc: 'Mixed + Women + Open' },
   { label: 'Ranking Mixto', to: '/ranking/mixto', desc: 'Beach + Grass Mixto' },

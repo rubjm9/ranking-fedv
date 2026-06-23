@@ -21,24 +21,45 @@ import TableSkeleton from '@/components/ui/TableSkeleton'
 import AnimatedPoints from '@/components/ui/AnimatedPoints'
 import { formatBestGlobalPositionWhen } from '@/utils/rankingCalculations'
 
-const renderBestGlobalPositionValue = (
-  statistics: Pick<TeamStatistics, 'bestPosition' | 'bestPositionSeason' | 'bestPositionDate'>,
+const renderHistoricalGlobalPositionValue = (
+  position: number,
+  season?: string,
+  date?: string,
   whenClassName = 'text-xs text-slate-400 ml-1'
 ) => {
-  if (statistics.bestPosition <= 0) return 'N/A'
+  if (position <= 0) return 'N/A'
 
-  const when = formatBestGlobalPositionWhen(
-    statistics.bestPositionSeason,
-    statistics.bestPositionDate
-  )
+  const when = formatBestGlobalPositionWhen(season, date)
 
   return (
     <>
-      #{statistics.bestPosition}
+      #{position}
       {when ? <span className={whenClassName}>{when}</span> : null}
     </>
   )
 }
+
+const renderBestHistoricalPositionValue = (
+  statistics: Pick<TeamStatistics, 'bestPosition' | 'bestPositionSeason' | 'bestPositionDate'>,
+  whenClassName = 'text-xs text-slate-400 ml-1'
+) =>
+  renderHistoricalGlobalPositionValue(
+    statistics.bestPosition,
+    statistics.bestPositionSeason,
+    statistics.bestPositionDate,
+    whenClassName
+  )
+
+const renderWorstHistoricalPositionValue = (
+  statistics: Pick<TeamStatistics, 'worstPosition' | 'worstPositionSeason' | 'worstPositionDate'>,
+  whenClassName = 'text-xs text-slate-400 ml-1'
+) =>
+  renderHistoricalGlobalPositionValue(
+    statistics.worstPosition,
+    statistics.worstPositionSeason,
+    statistics.worstPositionDate,
+    whenClassName
+  )
 
 interface TeamRedirectState {
   resolvedTeamId?: string
@@ -264,13 +285,13 @@ const TeamDetailPage: React.FC = () => {
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
               <h3 className="text-xl font-semibold text-slate-900 mb-4">Información del equipo</h3>
               <div className="space-y-3">
-                <div className="flex items-center">
-                  <UsersRound className="h-4 w-4 text-slate-400 mr-3" />
-                  <span className="text-slate-600">Tipo:</span>
-                  <span className="ml-2 font-medium">
-                    {team.isFilial ? 'Equipo Filial' : 'Equipo Principal'}
-                  </span>
-                </div>
+                {team.isFilial && (
+                  <div className="flex items-center">
+                    <UsersRound className="h-4 w-4 text-slate-400 mr-3" />
+                    <span className="text-slate-600">Tipo:</span>
+                    <span className="ml-2 font-medium">Equipo filial</span>
+                  </div>
+                )}
                 
                 {team.location && (
                   <div className="flex items-center">
@@ -307,15 +328,15 @@ const TeamDetailPage: React.FC = () => {
               <h3 className="text-xl font-semibold text-slate-900 mb-4">Estadísticas detalladas</h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-sm text-slate-600 font-medium">Mejor posición global:</span>
+                  <span className="text-sm text-slate-600 font-medium">Mejor posición histórica:</span>
                   <span className="text-sm font-semibold text-slate-900">
-                    {renderBestGlobalPositionValue(statistics, 'text-xs text-slate-500 ml-1 font-normal')}
+                    {renderBestHistoricalPositionValue(statistics, 'text-xs text-slate-500 ml-1 font-normal')}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-sm text-slate-600 font-medium">Peor posición global:</span>
+                  <span className="text-sm text-slate-600 font-medium">Peor posición histórica:</span>
                   <span className="text-sm font-semibold text-slate-900">
-                    {statistics.worstPosition > 0 ? `#${statistics.worstPosition}` : 'N/A'}
+                    {renderWorstHistoricalPositionValue(statistics, 'text-xs text-slate-500 ml-1 font-normal')}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
@@ -742,9 +763,13 @@ const TeamDetailPage: React.FC = () => {
             </div>
             <div className="flex-1 text-center sm:text-left">
               <h1 className="mb-2 font-display text-3xl font-bold text-white sm:text-4xl">{team.name}</h1>
-              <p className="mb-1 text-slate-400">
+              <p className="mb-1 text-base text-slate-400 sm:text-lg">
                 {team.isFilial && team.parentTeam ? (
-                  <>Equipo filial de{' '}
+                  <>
+                    {team.location || team.region?.name ? (
+                      <>{team.location || team.region?.name}, </>
+                    ) : null}
+                    equipo filial de{' '}
                     <Link to={getTeamPublicUrl(team.parentTeam)} className="font-medium text-primary-300 hover:text-primary-200">
                       {team.parentTeam.name}
                     </Link>
@@ -754,7 +779,7 @@ const TeamDetailPage: React.FC = () => {
                 )}
               </p>
               {team.region && (
-                <p className="text-sm text-slate-500">Región: {team.region.name}</p>
+                <p className="text-base text-slate-500 sm:text-lg">Región: {team.region.name}</p>
               )}
             </div>
             <div className="flex flex-shrink-0 gap-6 sm:gap-10">
@@ -798,8 +823,8 @@ const TeamDetailPage: React.FC = () => {
                 },
                 {
                   icon: Target,
-                  label: 'Mejor posición global',
-                  value: renderBestGlobalPositionValue(statistics),
+                  label: 'Mejor posición histórica',
+                  value: renderBestHistoricalPositionValue(statistics),
                 },
               ]}
             />

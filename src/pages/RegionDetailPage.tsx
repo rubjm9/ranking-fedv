@@ -29,6 +29,29 @@ import { MODALITIES, MODALITY_LABELS, getCoefficientStyle } from '@/components/r
 const CHART_COLORS = ['#4F46E5', '#F97316', '#10B981', '#6366F1', '#EA580C', '#0EA5E9']
 const formatChartValue = (value: number) => Number(value).toFixed(2)
 
+/** Barra de coeficiente con animación de crecimiento al montar o cambiar el valor. */
+const CoefProgressBar: React.FC<{ pct: number; barClass: string }> = ({ pct, barClass }) => {
+  const targetWidth = Math.max(4, pct)
+  const [width, setWidth] = useState(0)
+
+  useEffect(() => {
+    setWidth(0)
+    const frame = requestAnimationFrame(() => {
+      setWidth(targetWidth)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [targetWidth])
+
+  return (
+    <div className="h-2 bg-slate-200 rounded-full overflow-hidden mb-1">
+      <div
+        className={`h-full rounded-full transition-[width] duration-700 ease-out ${barClass}`}
+        style={{ width: `${width}%` }}
+      />
+    </div>
+  )
+}
+
 type ModalityKey = typeof MODALITIES[number]
 type RankingView = 'global' | ModalityKey
 
@@ -494,12 +517,12 @@ const RegionDetailPage: React.FC = () => {
               {
                 icon: BarChart3,
                 label: 'Total puntos',
-                value: totalPoints.toFixed(0),
+                value: totalPoints,
               },
               {
                 icon: TrendingUp,
                 label: 'Promedio puntos',
-                value: averagePoints.toFixed(1),
+                value: averagePoints,
               },
             ]}
           />
@@ -533,12 +556,7 @@ const RegionDetailPage: React.FC = () => {
                 {coef !== null ? (
                   <>
                     <p className="text-2xl font-bold text-slate-900 mb-2">{coef.toFixed(2)}×</p>
-                    <div className="h-2 bg-slate-200 rounded-full overflow-hidden mb-1">
-                      <div
-                        className={`h-full rounded-full transition-all ${style!.bar}`}
-                        style={{ width: `${Math.max(4, pct)}%` }}
-                      />
-                    </div>
+                    <CoefProgressBar pct={pct} barClass={style!.bar} />
                     <div className="flex justify-between text-[10px] text-slate-400 mb-2">
                       <span>0.80</span>
                       <span>1.00</span>

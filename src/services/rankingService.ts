@@ -1,5 +1,9 @@
 import { supabase } from './supabaseService'
 import seasonService from './seasonService'
+import {
+  getTeamDisplayNameForCategory,
+  TEAM_RANKING_NAME_SELECT,
+} from '@/utils/teamNames'
 
 export interface RankingEntry {
   team_id: string
@@ -265,6 +269,9 @@ const rankingService = {
           teams:team_id(
             id,
             name,
+            nameOpen,
+            nameWomen,
+            nameMixed,
             regions:regionId(
               id,
               name
@@ -333,7 +340,7 @@ const rankingService = {
 
         return {
         team_id: ranking.team_id,
-        team_name: ranking.teams?.name || 'Equipo desconocido',
+        team_name: getTeamDisplayNameForCategory(ranking.teams, surface),
         ranking_category: ranking.ranking_category,
         current_season_points: ranking.current_season_points || 0,
         previous_season_points: ranking.previous_season_points || 0,
@@ -1091,7 +1098,10 @@ const rankingService = {
           *,
           teams:team_id(
             id,
-            name
+            name,
+            nameOpen,
+            nameWomen,
+            nameMixed
           )
         `)
         .order('created_at', { ascending: false })
@@ -1124,7 +1134,7 @@ const rankingService = {
         return {
           id: entry.id,
           team_id: entry.team_id,
-          team_name: entry.teams?.name || 'Equipo desconocido',
+          team_name: getTeamDisplayNameForCategory(entry.teams, category),
           ranking_category: category || 'general',
           position: index + 1, // Simplificado por ahora
           total_points: points,
@@ -1151,7 +1161,7 @@ const rankingService = {
       // Obtener datos del equipo
       const { data: teamData } = await supabase
         .from('teams')
-        .select('id, name')
+        .select(`id, ${TEAM_RANKING_NAME_SELECT}`)
         .eq('id', teamId)
         .single()
 
@@ -1178,7 +1188,7 @@ const rankingService = {
 
       return {
         team_id: teamId,
-        team_name: teamData?.name || 'Equipo desconocido',
+        team_name: getTeamDisplayNameForCategory(teamData, category),
         category,
         data: evolutionData
       }
@@ -1208,6 +1218,9 @@ const rankingService = {
           teams:team_id(
             id,
             name,
+            nameOpen,
+            nameWomen,
+            nameMixed,
             regionId,
             regions:regionId(
               id,
@@ -1286,7 +1299,7 @@ const rankingService = {
         
         return {
           team_id: ranking.team_id,
-          team_name: ranking.teams?.name || 'Equipo desconocido',
+          team_name: getTeamDisplayNameForCategory(ranking.teams, category),
           ranking_category: ranking.ranking_category,
           current_season_points: ranking.current_season_points || 0,
           previous_season_points: ranking.previous_season_points || 0,
@@ -1372,6 +1385,9 @@ const rankingService = {
           teams:team_id(
             id,
             name,
+            nameOpen,
+            nameWomen,
+            nameMixed,
             regions:regionId(
               id,
               name
@@ -1389,7 +1405,7 @@ const rankingService = {
       // Transformar datos
       const transformedData: RankingEntry[] = (rankingData || []).map((ranking, index) => ({
         team_id: ranking.team_id,
-        team_name: ranking.teams?.name || 'Equipo desconocido',
+        team_name: getTeamDisplayNameForCategory(ranking.teams, 'general'),
         ranking_category: 'season_ranking',
         current_season_points: ranking.total_points || 0,
         previous_season_points: 0,
@@ -1646,7 +1662,10 @@ const rankingService = {
           *,
           teams:team_id(
             id,
-            name
+            name,
+            nameOpen,
+            nameWomen,
+            nameMixed
           )
         `)
         .not(`${category}_points`, 'is', null)
@@ -1668,7 +1687,7 @@ const rankingService = {
         }
         
         acc[season][teamId] = {
-          team_name: entry.teams?.name || 'Equipo desconocido',
+          team_name: getTeamDisplayNameForCategory(entry.teams, category),
           points: entry[`${category}_points`] || 0,
           position: 0 // Se calcularía ordenando por puntos
         }

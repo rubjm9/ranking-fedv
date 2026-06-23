@@ -55,7 +55,7 @@ export const DataTableHeaderCell: React.FC<DataTableHeaderCellProps> = ({
 }) => (
   <th
     scope="col"
-    className={`px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider ${className}`}
+    className={`px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider [&_button]:uppercase ${className}`}
   >
     {children}
   </th>
