@@ -740,14 +740,6 @@ const TeamDetailPage: React.FC = () => {
             <div className="flex flex-shrink-0 gap-6 sm:gap-10">
               <div className="text-center sm:text-right">
                 <p className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-400">
-                  Ranking global
-                </p>
-                <p className="font-display text-4xl font-bold text-white sm:text-5xl">
-                  {statistics.globalPosition ? `#${statistics.globalPosition}` : 'N/A'}
-                </p>
-              </div>
-              <div className="text-center sm:text-right">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-400">
                   Puntos
                 </p>
                 <AnimatedPoints
@@ -755,6 +747,14 @@ const TeamDetailPage: React.FC = () => {
                   decimals={1}
                   className="font-display text-4xl font-bold text-primary-300 sm:text-5xl"
                 />
+              </div>
+              <div className="text-center sm:text-right">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-400">
+                  Ranking global
+                </p>
+                <p className="font-display text-4xl font-bold text-white sm:text-5xl">
+                  {statistics.globalPosition ? `#${statistics.globalPosition}` : 'N/A'}
+                </p>
               </div>
             </div>
           </div>
