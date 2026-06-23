@@ -4,32 +4,33 @@
  */
 
 import seasonPointsService from './seasonPointsService'
-import hybridRankingService from './hybridRankingService'
+import teamSeasonRankingsService from './teamSeasonRankingsService'
 
 export interface UpdateResult {
   success: boolean
   message: string
   steps: {
     regenerateSeasons: { success: boolean; message: string; seasons: string[] }
-    syncRankings: { success: boolean; message: string; categories: string[] }
+    rebuildRankings: { success: boolean; message: string; totalUpdated: number }
   }
 }
 
 const rankingUpdateService = {
   /**
    * Función principal: Actualiza completamente el sistema de rankings
-   * 1. Regenera todas las temporadas desde positions
-   * 2. Sincroniza current_rankings desde team_season_points
+   * 1. Recalcula los puntos de todas las posiciones con la curva vigente
+   * 2. Regenera todas las temporadas en team_season_points
+   * 3. Reconstruye team_season_rankings (fuente de verdad del ranking público)
    */
   async updateCompleteRankingSystem(): Promise<UpdateResult> {
     console.log('🚀 Iniciando actualización completa del sistema de rankings...')
-    
+
     const result: UpdateResult = {
       success: false,
       message: '',
       steps: {
         regenerateSeasons: { success: false, message: '', seasons: [] },
-        syncRankings: { success: false, message: '', categories: [] }
+        rebuildRankings: { success: false, message: '', totalUpdated: 0 }
       }
     }
 
@@ -44,10 +45,10 @@ const rankingUpdateService = {
       }
       console.log(`✅ ${recomputeResult.updated} posiciones recalculadas`)
 
-      // PASO 1: Regenerar todas las temporadas
+      // PASO 1: Regenerar todas las temporadas (team_season_points)
       console.log('📅 Paso 1: Regenerando todas las temporadas...')
       const regenerateResult = await seasonPointsService.regenerateAllSeasons()
-      
+
       result.steps.regenerateSeasons = {
         success: regenerateResult.success,
         message: regenerateResult.message,
@@ -61,50 +62,29 @@ const rankingUpdateService = {
 
       console.log(`✅ Temporadas regeneradas: ${regenerateResult.seasons.join(', ')}`)
 
-      // PASO 2: Sincronizar rankings para todas las categorías
-      console.log('🔄 Paso 2: Sincronizando rankings actuales...')
-      
-      const categories: (keyof typeof hybridRankingService.CategoryPointsMap)[] = [
-        'beach_mixed', 'beach_women', 'beach_open',
-        'grass_mixed', 'grass_women', 'grass_open'
-      ]
+      // PASO 2: Reconstruir los rankings históricos (team_season_rankings)
+      // Esta es la tabla que lee la web pública (incluye cambios de posición).
+      console.log('🏆 Paso 2: Reconstruyendo rankings históricos...')
+      const rankingsResult = await teamSeasonRankingsService.recalculateAllSeasons()
 
-      const syncResults = []
-      const currentSeason = '2024-25' // Temporada de referencia actual
-
-      for (const category of categories) {
-        try {
-          console.log(`🔄 Sincronizando ${category}...`)
-          const syncResult = await hybridRankingService.syncWithCurrentRankings(category, currentSeason)
-          syncResults.push({ category, ...syncResult })
-        } catch (error: any) {
-          console.error(`❌ Error sincronizando ${category}:`, error)
-          syncResults.push({ 
-            category, 
-            success: false, 
-            message: error.message || 'Error desconocido' 
-          })
-        }
+      result.steps.rebuildRankings = {
+        success: rankingsResult.success,
+        message: rankingsResult.message,
+        totalUpdated: rankingsResult.totalUpdated
       }
 
-      const successfulSyncs = syncResults.filter(r => r.success)
-      const failedSyncs = syncResults.filter(r => !r.success)
-
-      result.steps.syncRankings = {
-        success: failedSyncs.length === 0,
-        message: failedSyncs.length === 0 
-          ? `${successfulSyncs.length} categorías sincronizadas exitosamente`
-          : `${successfulSyncs.length} exitosas, ${failedSyncs.length} fallidas`,
-        categories: successfulSyncs.map(r => r.category)
+      if (!rankingsResult.success) {
+        result.message = `Error reconstruyendo rankings: ${rankingsResult.message}`
+        return result
       }
 
       // Resultado final
-      result.success = result.steps.regenerateSeasons.success && result.steps.syncRankings.success
-      
+      result.success = result.steps.regenerateSeasons.success && result.steps.rebuildRankings.success
+
       if (result.success) {
-        result.message = `✅ Actualización completa exitosa: ${regenerateResult.seasons.length} temporadas regeneradas, ${successfulSyncs.length} categorías sincronizadas`
+        result.message = `✅ Actualización completa exitosa: ${regenerateResult.seasons.length} temporadas regeneradas, ${rankingsResult.totalUpdated} registros de ranking reconstruidos`
       } else {
-        result.message = `⚠️ Actualización parcial: ${regenerateResult.message} | ${result.steps.syncRankings.message}`
+        result.message = `⚠️ Actualización parcial: ${regenerateResult.message} | ${result.steps.rebuildRankings.message}`
       }
 
       console.log('🎉 Actualización completa finalizada:', result.message)
@@ -118,68 +98,35 @@ const rankingUpdateService = {
   },
 
   /**
-   * Función rápida: Solo sincroniza rankings actuales
-   * Útil cuando solo necesitas actualizar current_rankings
+   * Función rápida: Reconstruye solo los rankings (team_season_rankings) desde
+   * los puntos ya almacenados en team_season_points, sin recomputar posiciones
+   * ni puntos. Útil cuando team_season_points ya está correcto y solo hay que
+   * reordenar los rankings.
    */
   async syncCurrentRankingsOnly(): Promise<{ success: boolean; message: string }> {
-    console.log('🔄 Sincronizando solo rankings actuales...')
-    
+    console.log('🏆 Reconstruyendo rankings desde team_season_points...')
+
     try {
-      const categories: (keyof typeof hybridRankingService.CategoryPointsMap)[] = [
-        'beach_mixed', 'beach_women', 'beach_open',
-        'grass_mixed', 'grass_women', 'grass_open'
-      ]
+      const result = await teamSeasonRankingsService.recalculateAllSeasons()
 
-      const currentSeason = '2024-25'
-      const results = []
-
-      for (const category of categories) {
-        const result = await hybridRankingService.syncWithCurrentRankings(category, currentSeason)
-        results.push({ category, ...result })
-      }
-
-      const successful = results.filter(r => r.success)
-      const failed = results.filter(r => !r.success)
-
-      if (failed.length === 0) {
+      if (result.success) {
         return {
           success: true,
-          message: `✅ ${successful.length} categorías sincronizadas exitosamente`
+          message: `✅ ${result.totalUpdated} registros de ranking reconstruidos`
         }
       } else {
         return {
           success: false,
-          message: `⚠️ ${successful.length} exitosas, ${failed.length} fallidas`
+          message: `⚠️ ${result.message}`
         }
       }
 
     } catch (error: any) {
-      console.error('❌ Error en sincronización:', error)
+      console.error('❌ Error en reconstrucción de rankings:', error)
       return {
         success: false,
         message: `Error: ${error.message || 'Error desconocido'}`
       }
-    }
-  },
-
-  /**
-   * Función de diagnóstico: Verifica el estado del sistema
-   */
-  async diagnoseSystem(): Promise<{
-    seasons: { count: number; list: string[] }
-    teamSeasonPoints: { count: number }
-    currentRankings: { count: number; categories: string[] }
-    positions: { count: number }
-  }> {
-    console.log('🔍 Diagnosticando sistema de rankings...')
-    
-    // Esta función necesitaría implementarse con consultas específicas
-    // Por ahora retornamos estructura básica
-    return {
-      seasons: { count: 0, list: [] },
-      teamSeasonPoints: { count: 0 },
-      currentRankings: { count: 0, categories: [] },
-      positions: { count: 0 }
     }
   }
 }

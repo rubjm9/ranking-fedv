@@ -1,28 +1,24 @@
 import React, { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { 
-  Trophy, 
-  Medal, 
-  RefreshCw, 
-  CheckCircle, 
-  AlertTriangle, 
+import {
+  Trophy,
+  Medal,
+  RefreshCw,
+  CheckCircle,
+  AlertTriangle,
   BarChart3,
   TrendingUp,
   Users,
   Calendar,
   Filter
 } from 'lucide-react'
-import toast from 'react-hot-toast'
 import hybridRankingService from '@/services/hybridRankingService'
-import seasonPointsService from '@/services/seasonPointsService'
 import TeamLogo from '@/components/ui/TeamLogo'
 
 const RankingAdminPageHybrid: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('beach_mixed')
   const [selectedSeason, setSelectedSeason] = useState<string>('current')
-  const [isLoading, setIsLoading] = useState(false)
-  const queryClient = useQueryClient()
 
   const categories = [
     { value: 'beach_mixed', label: 'Playa Mixto', icon: '🏖️' },
@@ -54,51 +50,6 @@ const RankingAdminPageHybrid: React.FC = () => {
     staleTime: 2 * 60 * 1000, // 2 minutos
     enabled: !!selectedCategory && !!referenceSeason
   })
-
-  // Mutación para sincronizar rankings
-  const syncRankingsMutation = useMutation({
-    mutationFn: () => hybridRankingService.syncWithCurrentRankings(
-      selectedCategory as any,
-      referenceSeason
-    ),
-    onSuccess: (result) => {
-      if (result.success) {
-        toast.success(result.message)
-        queryClient.invalidateQueries({ queryKey: ['hybrid-admin-ranking'] })
-      } else {
-        toast.error(result.message)
-      }
-    },
-    onError: (error: any) => {
-      toast.error(`Error: ${error.message}`)
-    }
-  })
-
-  // Mutación para regenerar temporada
-  const regenerateSeasonMutation = useMutation({
-    mutationFn: () => seasonPointsService.calculateAndSaveSeasonPoints(referenceSeason),
-    onSuccess: (result) => {
-      if (result.success) {
-        toast.success(result.message)
-        queryClient.invalidateQueries({ queryKey: ['hybrid-admin-ranking'] })
-      } else {
-        toast.error(result.message)
-      }
-    },
-    onError: (error: any) => {
-      toast.error(`Error: ${error.message}`)
-    }
-  })
-
-  const handleSyncRankings = () => {
-    syncRankingsMutation.mutate()
-  }
-
-  const handleRegenerateSeason = () => {
-    if (confirm(`¿Regenerar temporada ${referenceSeason} desde datos brutos?`)) {
-      regenerateSeasonMutation.mutate()
-    }
-  }
 
   const handleRefresh = () => {
     refetch()
