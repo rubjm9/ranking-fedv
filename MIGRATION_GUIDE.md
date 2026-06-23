@@ -6,24 +6,17 @@ Esta guía describe cómo completar la migración del sistema de rankings antigu
 
 ---
 
-## ✅ Progreso Actual
+## ✅ Progreso actual
 
-### Completado (Fases 1-3)
+**Migración completada** (fases 1-6 ejecutadas en producción).
 
-- ✅ **Migraciones de Base de Datos** (007, 008, 009, 010)
-- ✅ **Servicio teamSeasonRankingsService.ts** 
-- ✅ **Script de Migración migrateToNewRankingSystem.ts**
-- ✅ **Actualización de Servicios** (seasonPointsService, hybridRankingService, dynamicRankingService)
-- ✅ **Página de Administración** (MigrateRankingsPage)
-- ✅ **Commits realizados** (4 commits en feature/team-detail-ui-improvements)
+- ✅ **Migraciones de base de datos** (007, 008, 009, 010)
+- ✅ **Servicio** `teamSeasonRankingsService.ts`
+- ✅ **Actualización de servicios** (seasonPointsService, hybridRankingService, dynamicRankingService)
+- ✅ **Migración de datos** y validación
+- ✅ **Limpieza de código legacy** en el panel de administración
 
-### Pendiente (Fase 4-6)
-
-- ⏳ **Ejecutar Migración 007 en Supabase**
-- ⏳ **Ejecutar Script de Migración de Datos**
-- ⏳ **Validación y Testing**
-- ⏳ **Ejecutar Migraciones de Limpieza**
-- ⏳ **Limpieza de Código Legacy**
+> **Nota (junio 2026):** Las herramientas de migración one-shot (`MigrateRankingsPage`, scripts `migrateToNewRankingSystem.ts`, simulación y comparación) fueron retiradas del panel. El flujo operativo actual es **Actualizar rankings** (`/admin/ranking-update`) y **Temporadas** (`/admin/seasons`).
 
 ---
 
@@ -65,33 +58,16 @@ WHERE tablename = 'team_season_rankings';
 
 ---
 
-### Fase 5: Migración de Datos
+### Fase 5: Migración de datos (histórico)
 
-#### Opción A: Desde el Dashboard (Recomendado)
+La migración inicial de `current_rankings` → `team_season_rankings` ya se ejecutó. No vuelvas a usar rutas o scripts eliminados (`/admin/migrate-rankings`, `MigrateRankingsPage`, `migrateToNewRankingSystem.ts`).
+
+Si necesitas **reconstruir o refrescar** rankings después de cambios en datos:
 
 1. Acceder al admin: `http://localhost:5173/admin`
-2. Ir a: **"Migrar Sistema Rankings"**
-3. Leer todas las advertencias e instrucciones
-4. Clic en **"Ejecutar Migración"**
-5. Esperar a que termine (puede tardar varios minutos)
-6. Revisar el reporte de migración
-
-**Monitoreo:**
-- Abrir consola del navegador (F12)
-- Ver logs detallados del progreso
-- Verificar que no haya errores
-
-#### Opción B: Desde la Terminal
-
-```bash
-cd /Users/zhinelia.watson/Desktop/dev/ranking-fedv
-
-# Ejecutar script de migración
-npm run dev
-
-# En otra terminal:
-node -r ts-node/register src/scripts/migrateToNewRankingSystem.ts
-```
+2. Ir a **Actualizar rankings** (`/admin/ranking-update`)
+3. Usar **Reconstruir rankings** o **Actualizar sistema completo** según el caso
+4. Revisar logs en consola (F12) y el resultado en la UI
 
 #### Validación Post-Migración
 
@@ -360,7 +336,7 @@ Si encuentras problemas durante la migración:
 
 ---
 
-**Última actualización:** 25 de octubre de 2025
-**Versión:** 1.0.0
-**Branch:** feature/team-detail-ui-improvements
+**Última actualización:** 23 de junio de 2026
+**Versión:** 1.1.0
+**Branch:** main
 

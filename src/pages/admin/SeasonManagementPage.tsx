@@ -1,27 +1,72 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { RefreshCw, Lock, Unlock, TrendingUp, BarChart3, CheckCircle, AlertTriangle, MapPin } from 'lucide-react'
+import { RefreshCw, Lock, BarChart3, CheckCircle, AlertTriangle, Clock, Timer, Minus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import seasonPointsService from '../../services/seasonPointsService'
-import seasonService from '../../services/seasonService'
-import hybridRankingService from '../../services/hybridRankingService'
 import teamSeasonRankingsService from '../../services/teamSeasonRankingsService'
-import rankingUpdateService from '../../services/rankingUpdateService'
-import subseasonDetectionService from '../../services/subseasonDetectionService'
+import subseasonAdminService, {
+  type SubseasonId
+} from '../../services/subseasonAdminService'
+import { regionsService } from '../../services/apiService'
 import { verifyAllOptimizations } from '../../utils/verifyOptimizations'
+
+const COLUMNS: { surface: string; category: string; subseason: SubseasonId }[] = [
+  { surface: 'BEACH', category: 'MIXED', subseason: 1 },
+  { surface: 'BEACH', category: 'OPEN', subseason: 2 },
+  { surface: 'BEACH', category: 'WOMEN', subseason: 2 },
+  { surface: 'GRASS', category: 'MIXED', subseason: 3 },
+  { surface: 'GRASS', category: 'OPEN', subseason: 4 },
+  { surface: 'GRASS', category: 'WOMEN', subseason: 4 }
+]
+
+const CATEGORY_LABEL: Record<string, string> = { MIXED: 'Mixto', OPEN: 'Open', WOMEN: 'Women' }
+
+type CellState = 'none' | 'scheduled' | 'played'
+
+interface TableRow {
+  type: string
+  label: string
+  regionId?: string
+}
 
 const SeasonManagementPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedSeason, setSelectedSeason] = useState('')
   const [seasonStats, setSeasonStats] = useState<any>(null)
   const [verificationResults, setVerificationResults] = useState<any>(null)
+  const [loadingSubseason, setLoadingSubseason] = useState<SubseasonId | null>(null)
   const queryClient = useQueryClient()
 
-  // Obtener estado de la temporada actual
-  const { data: seasonStatus, refetch: refetchStatus } = useQuery({
-    queryKey: ['season-status', selectedSeason],
-    queryFn: () => selectedSeason ? subseasonDetectionService.detectSeasonStatus(selectedSeason) : null,
+  // Lista de temporadas (dropdown)
+  const { data: seasonsList } = useQuery({
+    queryKey: ['subseason-admin-seasons'],
+    queryFn: () => subseasonAdminService.getSeasonsFromDb()
+  })
+
+  // Regiones (para las filas del monitor)
+  const { data: regionsResponse } = useQuery({
+    queryKey: ['regions-list'],
+    queryFn: async () => {
+      const res = await regionsService.getAll()
+      if (!res.success) throw new Error(res.message)
+      return res.data as Array<{ id: string; name: string }>
+    }
+  })
+
+  const regions = regionsResponse ?? []
+
+  // Precargar la temporada más reciente
+  useEffect(() => {
+    if (seasonsList?.length && !selectedSeason) {
+      setSelectedSeason(seasonsList[0].value)
+    }
+  }, [seasonsList, selectedSeason])
+
+  // Monitor de torneos por subtemporada
+  const { data: monitorData, isLoading: loadingMonitor } = useQuery({
+    queryKey: ['subseason-monitor', selectedSeason],
+    queryFn: () => subseasonAdminService.getMonitorData(selectedSeason),
     enabled: !!selectedSeason
   })
 
@@ -34,33 +79,11 @@ const SeasonManagementPage: React.FC = () => {
     runVerification()
   }, [])
 
-  const handleRegenerateAll = async () => {
-    if (!confirm('¿Reconstruir todo el sistema de rankings? Recalcula puntos de posiciones, coeficientes regionales, puntos por temporada, rankings históricos y rankings actuales. Puede tardar varios minutos.')) {
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      const result = await rankingUpdateService.rebuildFullRankingSystem()
-
-      if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['ranking-optimized'] })
-        queryClient.invalidateQueries({ queryKey: ['season-status'] })
-        queryClient.invalidateQueries({ queryKey: ['regional-coefficients'] })
-        queryClient.invalidateQueries({ queryKey: ['regional-coeff-season-info'] })
-        queryClient.invalidateQueries({ queryKey: ['region-coefficients'] })
-        toast.success(result.message)
-        console.log('✅ Reconstrucción completa:', result.steps)
-      } else {
-        const coeffMsg = result.steps.regionalCoefficients?.message
-        toast.error(coeffMsg ? `${result.message} | ${coeffMsg}` : result.message)
-      }
-    } catch (error: any) {
-      toast.error(`Error: ${error.message}`)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const tableRows: TableRow[] = [
+    { type: 'CE1', label: 'Primera división' },
+    { type: 'CE2', label: 'Segunda división' },
+    ...regions.map(r => ({ type: 'REGIONAL', label: `Regional – ${r.name}`, regionId: r.id }))
+  ]
 
   const handleRegenerateSeason = async () => {
     if (!selectedSeason) {
@@ -71,7 +94,7 @@ const SeasonManagementPage: React.FC = () => {
     setIsLoading(true)
     try {
       const result = await seasonPointsService.calculateAndSaveSeasonPoints(selectedSeason)
-      
+
       if (result.success) {
         toast.success(result.message)
       } else {
@@ -97,7 +120,7 @@ const SeasonManagementPage: React.FC = () => {
     setIsLoading(true)
     try {
       const result = await seasonPointsService.closeSeason(selectedSeason)
-      
+
       if (result.success) {
         toast.success(result.message)
       } else {
@@ -128,173 +151,116 @@ const SeasonManagementPage: React.FC = () => {
     }
   }
 
-  const handleSyncRankings = async () => {
-    if (!confirm('¿Sincronizar todos los rankings con la tabla team_season_points?')) {
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      const categories = [
-        'beach_mixed',
-        'beach_open',
-        'beach_women',
-        'grass_mixed',
-        'grass_open',
-        'grass_women'
-      ]
-
-      const referenceSeason = selectedSeason || '2024-25'
-
-      for (const category of categories) {
-        await hybridRankingService.syncWithCurrentRankings(
-          category as any,
-          referenceSeason
-        )
-      }
-
-      toast.success('Todos los rankings sincronizados')
-    } catch (error: any) {
-      toast.error(`Error: ${error.message}`)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Consolidar subtemporada - actualiza team_season_rankings con position_change
-  const handleConsolidateSubseason = async (subseason: number) => {
+  // Cerrar o recalcular una subtemporada concreta (flujo completo)
+  const handleCloseOrRecalculate = async (subseason: SubseasonId) => {
     if (!selectedSeason) {
-      toast.error('Selecciona una temporada primero')
+      toast.error('Selecciona una temporada')
       return
     }
 
-    if (!confirm(`¿Consolidar subtemporada ${subseason} de ${selectedSeason}? Esto actualizará los rankings históricos y cambios de posición.`)) {
-      return
+    const block = monitorData?.subseasons.find(s => s.id === subseason)
+    if (!block) return
+
+    const ce1OrCe2WithoutPositions = block.tournaments.filter(
+      t => (t.type === 'CE1' || t.type === 'CE2') && !t.hasPositions
+    )
+    if (ce1OrCe2WithoutPositions.length > 0) {
+      const names = ce1OrCe2WithoutPositions.map(t => `${t.name} (${t.type})`).join(', ')
+      const ok = window.confirm(
+        `Faltan 1ª División o 2ª División por introducir: ${names}. ¿Continuar de todos modos?`
+      )
+      if (!ok) return
     }
 
-    setIsLoading(true)
+    setLoadingSubseason(subseason)
     try {
-      // 1. Recalcular rankings de la temporada (incluye position_change)
-      const result = await teamSeasonRankingsService.calculateSeasonRankings(selectedSeason)
-      
-      if (result.success) {
-        // 2. Marcar la notificación como resuelta
-        const notifications = await subseasonDetectionService.getPendingNotifications()
-        const relatedNotification = notifications.find(
-          n => n.type === 'subseason_complete' && n.season === selectedSeason && n.subseason === subseason
-        )
-        if (relatedNotification) {
-          await subseasonDetectionService.resolveNotification(relatedNotification.id)
-        }
-
-        // 3. Invalidar queries relacionadas
-        queryClient.invalidateQueries({ queryKey: ['admin-notifications-pending'] })
-        queryClient.invalidateQueries({ queryKey: ['season-status'] })
-        queryClient.invalidateQueries({ queryKey: ['ranking-optimized'] })
-
-        toast.success(`Subtemporada ${subseason} consolidada: ${result.updated} equipos actualizados`)
-        refetchStatus()
-      } else {
-        toast.error(result.message)
+      const recalcResult = await seasonPointsService.calculateAndSaveSeasonPoints(
+        selectedSeason,
+        undefined
+      )
+      if (!recalcResult.success) {
+        toast.error(recalcResult.message)
+        return
       }
-    } catch (error: any) {
-      toast.error(`Error: ${error.message}`)
+
+      const rankingResult = await seasonPointsService.calculateSubseasonRankings(
+        selectedSeason,
+        subseason
+      )
+      if (!rankingResult.success) {
+        toast.error(rankingResult.message)
+        return
+      }
+
+      const globalResult = await teamSeasonRankingsService.calculateSeasonRankings(selectedSeason)
+      if (!globalResult.success) {
+        toast.error(globalResult.message)
+        return
+      }
+
+      toast.success(
+        monitorData?.subseasonClosed?.[subseason]
+          ? `Subtemporada ${subseason} recalculada correctamente`
+          : `Subtemporada ${subseason} cerrada correctamente`
+      )
+      queryClient.invalidateQueries({ queryKey: ['subseason-monitor', selectedSeason] })
+      queryClient.invalidateQueries({ queryKey: ['ranking-optimized'] })
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al procesar')
     } finally {
-      setIsLoading(false)
+      setLoadingSubseason(null)
     }
   }
 
-  // Consolidar temporada completa
-  const handleConsolidateSeason = async () => {
-    if (!selectedSeason) {
-      toast.error('Selecciona una temporada primero')
-      return
-    }
-
-    if (!confirm(`¿Consolidar temporada ${selectedSeason} completa? Esto recalculará todos los rankings y cambios de posición.`)) {
-      return
-    }
-
-    setIsLoading(true)
+  const formatDate = (iso: string | null) => {
+    if (!iso) return '—'
     try {
-      // 1. Recalcular rankings de la temporada
-      const result = await teamSeasonRankingsService.calculateSeasonRankings(selectedSeason)
-      
-      if (result.success) {
-        // 2. Marcar notificaciones como resueltas
-        const notifications = await subseasonDetectionService.getPendingNotifications()
-        for (const n of notifications) {
-          if (n.season === selectedSeason) {
-            await subseasonDetectionService.resolveNotification(n.id)
-          }
-        }
-
-        // 3. Invalidar queries
-        queryClient.invalidateQueries({ queryKey: ['admin-notifications-pending'] })
-        queryClient.invalidateQueries({ queryKey: ['season-status'] })
-        queryClient.invalidateQueries({ queryKey: ['ranking-optimized'] })
-        queryClient.invalidateQueries({ queryKey: ['most-recent-seasons-all'] })
-
-        toast.success(`Temporada ${selectedSeason} consolidada: ${result.updated} equipos actualizados`)
-        refetchStatus()
-      } else {
-        toast.error(result.message)
-      }
-    } catch (error: any) {
-      toast.error(`Error: ${error.message}`)
-    } finally {
-      setIsLoading(false)
+      const d = new Date(iso)
+      return d.toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })
+    } catch {
+      return iso
     }
   }
 
-  // Backfill de coeficientes regionales para todas las temporadas
-  const handleBackfillCoefficients = async () => {
-    if (!confirm('¿Calcular coeficientes regionales para TODAS las temporadas históricas? Esto puede tardar unos minutos.')) {
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      const results = await seasonService.backfillRegionalCoefficients()
-      const total = results.reduce((s, r) => s + r.count, 0)
-      queryClient.invalidateQueries({ queryKey: ['regional-coefficients'] })
-      queryClient.invalidateQueries({ queryKey: ['regional-coeff-season-info'] })
-      queryClient.invalidateQueries({ queryKey: ['region-coefficients'] })
-      if (total === 0) {
-        toast.error('No se guardó ningún coeficiente. Inicia sesión en admin o usa npm run backfill-regional-coefficients con service role.')
-      } else {
-        toast.success(`Coeficientes regionales guardados: ${total} entradas en ${results.length} temporadas`)
-      }
-      console.log('Backfill completado:', results)
-    } catch (error: any) {
-      toast.error(`Error: ${error.message}`)
-    } finally {
-      setIsLoading(false)
-    }
+  const getCellState = (
+    type: string,
+    surface: string,
+    category: string,
+    regionId?: string
+  ): CellState => {
+    if (!monitorData?.flatTournaments) return 'none'
+    const list = monitorData.flatTournaments.filter(
+      t =>
+        t.type === type &&
+        t.surface === surface &&
+        t.category === category &&
+        (type !== 'REGIONAL' || t.regionId === regionId)
+    )
+    if (list.length === 0) return 'none'
+    const hasPlayed = list.some(t => t.positionCount > 0)
+    return hasPlayed ? 'played' : 'scheduled'
   }
 
-  // Recalcular todas las temporadas históricas
-  const handleRecalculateAllRankings = async () => {
-    if (!confirm('¿Recalcular rankings históricos de TODAS las temporadas? Esto puede tardar varios minutos.')) {
-      return
+  const renderCellIcon = (state: CellState) => {
+    if (state === 'none') {
+      return (
+        <span className="inline-flex text-gray-300" title="Sin torneo">
+          <Minus className="h-4 w-4" />
+        </span>
+      )
     }
-
-    setIsLoading(true)
-    try {
-      const result = await teamSeasonRankingsService.recalculateAllSeasons()
-      
-      if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['ranking-optimized'] })
-        queryClient.invalidateQueries({ queryKey: ['season-status'] })
-        toast.success(`${result.totalUpdated} registros actualizados en rankings históricos`)
-      } else {
-        toast.error(result.message)
-      }
-    } catch (error: any) {
-      toast.error(`Error: ${error.message}`)
-    } finally {
-      setIsLoading(false)
+    if (state === 'scheduled') {
+      return (
+        <span className="inline-flex text-amber-500" title="Programado, sin resultados todavía">
+          <Timer className="h-4 w-4" />
+        </span>
+      )
     }
+    return (
+      <span className="inline-flex text-green-600" title="Jugado, con resultados registrados">
+        <CheckCircle className="h-4 w-4" />
+      </span>
+    )
   }
 
   return (
@@ -303,7 +269,7 @@ const SeasonManagementPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestión de temporadas</h1>
           <p className="text-gray-600 mt-1">
-            Sistema híbrido: cache materializada de temporadas
+            Estado de subtemporadas, cierre y acciones por temporada
           </p>
         </div>
         <div className="flex items-center space-x-3">
@@ -317,119 +283,144 @@ const SeasonManagementPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Información del sistema */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h2 className="text-sm font-semibold text-blue-900 mb-2">ℹ️ Sobre el sistema híbrido</h2>
-        <p className="text-sm text-blue-800">
-          El sistema utiliza una tabla <code className="bg-blue-100 px-1 rounded">team_season_points</code> que 
-          almacena puntos por equipo y temporada. Esto permite:
-        </p>
-        <ul className="text-sm text-blue-800 mt-2 ml-4 list-disc space-y-1">
-          <li>Consultas instantáneas de rankings históricos</li>
-          <li>Gráficas de evolución temporal</li>
-          <li>Comparativas entre temporadas</li>
-          <li>Regeneración desde datos brutos cuando sea necesario</li>
-        </ul>
+      {/* Selector de temporada */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="flex flex-wrap items-end gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Temporada</label>
+            <select
+              value={selectedSeason}
+              onChange={e => {
+                setSelectedSeason(e.target.value)
+                setSeasonStats(null)
+              }}
+              className="block rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:ring-blue-500"
+            >
+              <option value="">Selecciona una temporada</option>
+              {(seasonsList || []).map(s => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          {monitorData?.lastUpdated && (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Clock className="w-4 h-4" />
+              <span>Última actualización: {formatDate(monitorData.lastUpdated)}</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Reconstruir todo el sistema */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Reconstruir todo el sistema</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          Reconstrucción completa de extremo a extremo: recalcula los puntos de cada posición con la
-          curva vigente, los coeficientes regionales por temporada (ventana de 4 años de CE1/CE2),
-          los puntos por equipo y temporada (aplicando el coeficiente regional a los campeonatos
-          regionales), los rankings históricos y combinados, y finalmente los rankings actuales.
-          Úsalo tras cambiar la fórmula de puntos o importar nuevos torneos.
-        </p>
-        <button
-          onClick={handleRegenerateAll}
-          disabled={isLoading}
-          className="flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-        >
-          <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
-          <span>Reconstruir todo el sistema</span>
-        </button>
-      </div>
+      {/* Monitor de subtemporadas */}
+      {selectedSeason && (
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Estado de subtemporadas</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Revisa los torneos por subtemporada y ciérralos o recalcúlalos cuando corresponda.
+          </p>
+          {loadingMonitor ? (
+            <p className="text-gray-500 py-4">Cargando datos...</p>
+          ) : monitorData ? (
+            <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th rowSpan={2} className="px-4 py-3 text-left font-medium text-gray-700 border-r border-gray-200 w-48 align-middle">
+                      Campeonato
+                    </th>
+                    <th colSpan={3} className="px-2 py-3 text-center font-medium text-gray-700 border-r border-gray-200 bg-gray-100">
+                      Playa
+                    </th>
+                    <th colSpan={3} className="px-2 py-3 text-center font-medium text-gray-700 border-r border-gray-200 last:border-r-0 bg-gray-100">
+                      Césped
+                    </th>
+                  </tr>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    {COLUMNS.map(col => (
+                      <th
+                        key={`${col.surface}-${col.category}`}
+                        className="px-3 py-2 text-center font-medium text-gray-600 border-r border-gray-200 last:border-r-0 min-w-[4rem]"
+                      >
+                        {CATEGORY_LABEL[col.category] || col.category}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableRows.map((row) => (
+                    <tr key={row.type === 'REGIONAL' && row.regionId ? `REGIONAL-${row.regionId}` : row.type} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="px-4 py-2 font-medium text-gray-900 border-r border-gray-200 whitespace-nowrap">
+                        {row.label}
+                      </td>
+                      {COLUMNS.map(col => {
+                        const state = getCellState(row.type, col.surface, col.category, row.regionId)
+                        return (
+                          <td
+                            key={`${col.surface}-${col.category}`}
+                            className="px-3 py-2 text-center border-r border-gray-100 last:border-r-0"
+                          >
+                            {renderCellIcon(state)}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 border-gray-200 bg-gray-50">
+                    <td className="px-4 py-3 font-medium text-gray-700 border-r border-gray-200">
+                      Recalcular subtemporadas
+                    </td>
+                    {([1, 2, 3, 4] as SubseasonId[]).map(subId => {
+                      const colIndices = COLUMNS.map((c, i) => (c.subseason === subId ? i : null)).filter(
+                        (i): i is number => i !== null
+                      )
+                      const colSpan = colIndices.length
+                      return (
+                        <td
+                          key={subId}
+                          colSpan={colSpan}
+                          className="px-2 py-2 text-center border-r border-gray-200 last:border-r-0 align-middle"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleCloseOrRecalculate(subId)}
+                            disabled={!!loadingSubseason}
+                            className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                          >
+                            {loadingSubseason === subId ? (
+                              <>
+                                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                Procesando...
+                              </>
+                            ) : monitorData.subseasonClosed?.[subId] ? (
+                              <>
+                                <RefreshCw className="h-3.5 w-3.5" />
+                                Recalcular
+                              </>
+                            ) : (
+                              <>
+                                <Lock className="h-3.5 w-3.5" />
+                                Cerrar subtemporada
+                              </>
+                            )}
+                          </button>
+                        </td>
+                      )
+                    })}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-gray-500 py-4">No se pudieron cargar los datos.</p>
+          )}
+        </div>
+      )}
 
       {/* Acciones por temporada */}
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Acciones por temporada</h2>
-        
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Seleccionar temporada
-          </label>
-          <input
-            type="text"
-            value={selectedSeason}
-            onChange={(e) => setSelectedSeason(e.target.value)}
-            placeholder="Ej: 2024-25"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-          <p className="text-xs text-gray-500 mt-1">Formato: YYYY-YY (ejemplo: 2024-25)</p>
-        </div>
-
-        {/* Estado de la temporada */}
-        {seasonStatus && (
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
-            <h3 className="font-medium text-gray-900 mb-3">Estado de {selectedSeason}</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[1, 2, 3, 4].map(subseason => {
-                const categories = subseason === 1 ? ['beach_mixed'] 
-                  : subseason === 2 ? ['beach_open', 'beach_women']
-                  : subseason === 3 ? ['grass_mixed']
-                  : ['grass_open', 'grass_women']
-                
-                const hasData = categories.some(cat => 
-                  seasonStatus.categories[cat]?.hasData
-                )
-
-                return (
-                  <div 
-                    key={subseason}
-                    className={`p-3 rounded-lg border ${hasData ? 'bg-green-50 border-green-200' : 'bg-gray-100 border-gray-200'}`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      {hasData ? (
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <AlertTriangle className="w-4 h-4 text-gray-400" />
-                      )}
-                      <span className="font-medium text-sm">Sub {subseason}</span>
-                    </div>
-                    <p className="text-xs text-gray-600">
-                      {categories.map(c => c.replace('_', ' ')).join(', ')}
-                    </p>
-                    {hasData && (
-                      <button
-                        onClick={() => handleConsolidateSubseason(subseason)}
-                        disabled={isLoading}
-                        className="mt-2 text-xs text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        Consolidar
-                      </button>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-            
-            {seasonStatus.isComplete && (
-              <div className="mt-4 pt-4 border-t">
-                <button
-                  onClick={handleConsolidateSeason}
-                  disabled={isLoading}
-                  className="flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition w-full"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Consolidar temporada completa</span>
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
             onClick={handleRegenerateSeason}
@@ -458,6 +449,11 @@ const SeasonManagementPage: React.FC = () => {
             <span>Estadísticas</span>
           </button>
         </div>
+        <div className="mt-4 text-sm text-gray-600 space-y-1">
+          <p><strong>Regenerar puntos:</strong> si corriges resultados de la temporada seleccionada.</p>
+          <p><strong>Cerrar temporada:</strong> cuando termina oficialmente (todos los CEs completados).</p>
+          <p><strong>Cerrar subtemporada:</strong> usa los botones del monitor cuando termine cada subtemporada.</p>
+        </div>
       </div>
 
       {/* Estadísticas de temporada */}
@@ -466,7 +462,7 @@ const SeasonManagementPage: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Estadísticas de {selectedSeason}
           </h2>
-          
+
           <div className="mb-4">
             <p className="text-sm text-gray-600">
               <strong>Total de equipos:</strong> {seasonStats.total_teams}
@@ -490,51 +486,11 @@ const SeasonManagementPage: React.FC = () => {
         </div>
       )}
 
-      {/* Rankings históricos */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Rankings históricos (team_season_rankings)</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          La tabla <code className="bg-gray-100 px-1 rounded">team_season_rankings</code> almacena rankings pre-calculados
-          con cambios de posición incluidos. Esto optimiza las consultas de la web pública.
-        </p>
-        <button
-          onClick={handleRecalculateAllRankings}
-          disabled={isLoading}
-          className="flex items-center justify-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-        >
-          <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
-          <span>Recalcular todos los rankings históricos</span>
-        </button>
-      </div>
-
-      {/* Coeficientes regionales */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Coeficientes regionales</h2>
-        <p className="text-sm text-gray-600 mb-2">
-          Calcula y almacena los coeficientes regionales para todas las temporadas históricas.
-          Se genera un coeficiente por región y por modalidad (30 entradas por temporada).
-        </p>
-        <p className="text-sm text-gray-600 mb-4">
-          <strong>Convención:</strong> el coeficiente de la temporada T se calcula usando los rankings de T
-          y se aplica a los torneos <em>regionales</em> de la temporada T+1.
-          <br />
-          <strong>Ejecuta primero "Recalcular todos los rankings históricos"</strong> si acabas de implementar el sistema.
-        </p>
-        <button
-          onClick={handleBackfillCoefficients}
-          disabled={isLoading}
-          className="flex items-center justify-center space-x-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-        >
-          <MapPin className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
-          <span>Calcular coeficientes regionales históricos</span>
-        </button>
-      </div>
-
       {/* Verificación de optimizaciones */}
       {verificationResults && (
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Verificación de optimizaciones</h2>
-          
+
           <div className="space-y-4">
             <div className={`p-4 rounded-lg border ${verificationResults.positionChange.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
               <div className="flex items-center gap-2 mb-2">
@@ -592,20 +548,8 @@ const SeasonManagementPage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Ayuda */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-semibold text-gray-900 mb-2">💡 Cuándo usar cada acción</h3>
-        <div className="text-sm text-gray-600 space-y-2">
-          <p><strong>Regenerar puntos:</strong> Si corriges resultados de una temporada específica</p>
-          <p><strong>Consolidar subtemporada:</strong> Cuando termina una subtemporada (ej: después del CE1 de playa mixto)</p>
-          <p><strong>Cerrar temporada:</strong> Cuando termina oficialmente (todos los CEs completados)</p>
-          <p><strong>Recalcular rankings históricos:</strong> Actualiza cambios de posición y rankings pre-calculados</p>
-        </div>
-      </div>
     </div>
   )
 }
 
 export default SeasonManagementPage
-
