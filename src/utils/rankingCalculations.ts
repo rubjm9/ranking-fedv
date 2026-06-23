@@ -1,4 +1,5 @@
 import { RegionalCoefficientConfig } from '@/types'
+import { getCurrentSeasonValue } from '@/utils/tournamentUtils'
 
 export const MODALITIES = [
   'beach_mixed',
@@ -42,6 +43,26 @@ export const getNextSeasonLabel = (season: string): string => {
  */
 export const getRegionalCoefficientBaseSeason = (currentSeason: string): string =>
   getPreviousSeasonLabel(currentSeason)
+
+/**
+ * Temporada de referencia para rankings: la temporada en curso del calendario,
+ * salvo que existan datos de una temporada posterior (caso excepcional).
+ */
+export const getRankingReferenceSeason = (
+  latestDataSeason?: string | null,
+  calendarSeason: string = getCurrentSeasonValue()
+): string => {
+  if (!latestDataSeason) return calendarSeason
+
+  const calendarYear = parseInt(calendarSeason.split('-')[0], 10)
+  const dataYear = parseInt(latestDataSeason.split('-')[0], 10)
+
+  if (Number.isNaN(calendarYear) || Number.isNaN(dataYear)) {
+    return latestDataSeason
+  }
+
+  return calendarYear >= dataYear ? calendarSeason : latestDataSeason
+}
 
 /** Etiqueta de temporada a partir del año de inicio (ej: 2024 → 2024-25). */
 export const formatSeasonFromYear = (year: number): string =>
