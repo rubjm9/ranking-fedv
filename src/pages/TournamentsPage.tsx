@@ -1,17 +1,21 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Calendar, Trophy, MapPin, Search, ArrowUpDown, ArrowUp, ArrowDown, Eye, Waves, Sprout } from 'lucide-react'
+import { Calendar, Trophy, MapPin, Search, Eye } from 'lucide-react'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
-import FilterBar from '@/components/ui/FilterBar'
 import EmptyState from '@/components/ui/EmptyState'
 import DataTable from '@/components/ui/DataTable'
 import TableSkeleton from '@/components/ui/TableSkeleton'
+import TableColumnFilter from '@/components/ui/TableColumnFilter'
+import TournamentCategoryIcon from '@/components/ui/TournamentCategoryIcon'
 import { tournamentsService } from '@/services/apiService'
 
 type SortField = 'name' | 'year' | 'type' | 'surface' | 'category' | 'region'
 type SortDirection = 'asc' | 'desc'
+
+const filterSelectClass =
+  'h-7 w-full min-w-[5.5rem] rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
 
 const TournamentsPage = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -19,37 +23,40 @@ const TournamentsPage = () => {
   const [selectedYear, setSelectedYear] = useState('')
   const [selectedSurface, setSelectedSurface] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
+  const [selectedRegion, setSelectedRegion] = useState('')
   const [sortField, setSortField] = useState<SortField>('year')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
 
-  // Obtener torneos desde la API (solo una vez, sin filtros)
   const { data: tournamentsData, isLoading, error } = useQuery({
     queryKey: ['tournaments'],
-    queryFn: () => tournamentsService.getAll()
+    queryFn: () => tournamentsService.getAll(),
   })
 
   const allTournaments = tournamentsData?.data || []
 
-  // Función para formatear temporada
   const formatSeason = (year: number) => {
     const nextYear = (year + 1).toString().slice(-2)
     return `${year}-${nextYear}`
   }
 
-  // Filtrar torneos localmente (sin query nueva)
   const filteredTournaments = allTournaments.filter(tournament => {
     const matchesSearch = tournament.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesType = !selectedType || tournament.type === selectedType
     const matchesYear = !selectedYear || tournament.year.toString() === selectedYear
     const matchesSurface = !selectedSurface || tournament.surface === selectedSurface
     const matchesCategory = !selectedCategory || tournament.category === selectedCategory
-    return matchesSearch && matchesType && matchesYear && matchesSurface && matchesCategory
+    const matchesRegion =
+      !selectedRegion ||
+      (selectedRegion === '__national__'
+        ? !tournament.regionId && !tournament.region?.name
+        : tournament.regionId === selectedRegion)
+    return matchesSearch && matchesType && matchesYear && matchesSurface && matchesCategory && matchesRegion
   })
 
-  // Ordenar torneos
   const sortedTournaments = [...filteredTournaments].sort((a, b) => {
-    let aValue: any, bValue: any
-    
+    let aValue: string | number
+    let bValue: string | number
+
     switch (sortField) {
       case 'name':
         aValue = a.name.toLowerCase()
@@ -68,8 +75,8 @@ const TournamentsPage = () => {
         bValue = b.surface
         break
       case 'category':
-        aValue = a.category
-        bValue = b.category
+        aValue = a.category || ''
+        bValue = b.category || ''
         break
       case 'region':
         aValue = a.region?.name || ''
@@ -78,17 +85,29 @@ const TournamentsPage = () => {
       default:
         return 0
     }
-    
+
     if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
     if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
     return 0
   })
 
-  // Obtener valores únicos para filtros (siempre de todos los torneos, no de los filtrados)
   const types = Array.from(new Set(allTournaments.map(t => t.type))).filter(Boolean).sort()
   const years = Array.from(new Set(allTournaments.map(t => t.year))).filter(Boolean).sort((a, b) => b - a)
   const surfaces = Array.from(new Set(allTournaments.map(t => t.surface))).filter(Boolean).sort()
   const categories = Array.from(new Set(allTournaments.map(t => t.category))).filter(Boolean).sort()
+
+  const regionOptions = Array.from(
+    allTournaments.reduce((map, tournament) => {
+      if (tournament.regionId && tournament.region?.name) {
+        map.set(tournament.regionId, tournament.region.name)
+      }
+      return map
+    }, new Map<string, string>())
+  )
+    .map(([id, name]) => ({ id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'es'))
+
+  const hasNationalTournaments = allTournaments.some(t => !t.regionId && !t.region?.name)
 
   const getTypeLabel = (type: string) => {
     switch (type) {
@@ -118,58 +137,13 @@ const TournamentsPage = () => {
     }
   }
 
-  // Iconos SVG ultra minimalistas para categorías
-  // Open = Hombre (♂)
-  const IconOpen = ({ className = 'w-6 h-6' }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={className} aria-hidden="true">
-      <circle cx="12" cy="8" r="3"/>
-      <path d="M12 5l-2 4h4l-2-4z" fill="currentColor"/>
-      <line x1="12" y1="11" x2="12" y2="15"/>
-    </svg>
+  const getCombinedIcon = (surface: string, category: string) => (
+    <TournamentCategoryIcon
+      surface={surface}
+      category={category}
+      title={`${getSurfaceLabel(surface)} - ${getCategoryLabel(category)}`}
+    />
   )
-
-  // Women = Mujer (♀)
-  const IconWomen = ({ className = 'w-6 h-6' }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={className} aria-hidden="true">
-      <circle cx="12" cy="7" r="3"/>
-      <line x1="12" y1="10" x2="12" y2="15"/>
-      <line x1="9" y1="12.5" x2="15" y2="12.5"/>
-    </svg>
-  )
-
-  // Mixed = Ambos (♂ y ♀)
-  const IconMixed = ({ className = 'w-6 h-6' }: { className?: string }) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={className} aria-hidden="true">
-      <circle cx="8" cy="7" r="2.5"/>
-      <path d="M8 4.5l-1.5 3h3l-1.5-3z" fill="currentColor"/>
-      <line x1="8" y1="9.5" x2="8" y2="12"/>
-      <circle cx="16" cy="7" r="2.5"/>
-      <line x1="16" y1="9.5" x2="16" y2="12"/>
-      <line x1="14" y1="11" x2="18" y2="11"/>
-    </svg>
-  )
-
-  // Función para obtener el icono combinado (superficie + categoría) que reemplaza al trofeo
-  const getCombinedIcon = (surface: string, category: string) => {
-    // Determinar color base según superficie (el color de fondo indica la superficie)
-    const surfaceColor = surface === 'GRASS' ? 'text-green-600' : surface === 'BEACH' ? 'text-yellow-600' : 'text-primary-600'
-    const bgColor = surface === 'GRASS' ? 'bg-green-100' : surface === 'BEACH' ? 'bg-yellow-100' : 'bg-primary-100'
-    
-    // Icono de categoría (centrado y más grande)
-    const CategoryIconComponent = category === 'OPEN' ? IconOpen : category === 'WOMEN' ? IconWomen : category === 'MIXED' ? IconMixed : Trophy
-    
-    return (
-      <div className={`flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center ${bgColor}`} title={`${getSurfaceLabel(surface)} - ${getCategoryLabel(category)}`}>
-        <div className={surfaceColor}>
-          {category === 'OPEN' || category === 'WOMEN' || category === 'MIXED' ? (
-            <CategoryIconComponent className="w-6 h-6" />
-          ) : (
-            <Trophy className="h-6 w-6" />
-          )}
-        </div>
-      </div>
-    )
-  }
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -180,23 +154,25 @@ const TournamentsPage = () => {
     }
   }
 
-  const getSortIcon = (field: SortField) => {
-    if (sortField !== field) {
-      return <ArrowUpDown className="w-4 h-4 text-slate-400" />
-    }
-    return sortDirection === 'asc' 
-      ? <ArrowUp className="w-4 h-4 text-primary-600" />
-      : <ArrowDown className="w-4 h-4 text-primary-600" />
+  const getSortState = (field: SortField): 'inactive' | 'asc' | 'desc' => {
+    if (sortField !== field) return 'inactive'
+    return sortDirection
   }
 
-  const activeFiltersCount = [selectedType, selectedYear, selectedSurface, selectedCategory].filter(Boolean).length
+  const activeFiltersCount = [selectedType, selectedYear, selectedSurface, selectedCategory, selectedRegion].filter(Boolean).length
+  const hasActiveFilters = activeFiltersCount > 0 || searchTerm.length > 0
 
   const clearFilters = () => {
     setSelectedType('')
     setSelectedYear('')
     setSelectedSurface('')
     setSelectedCategory('')
+    setSelectedRegion('')
     setSearchTerm('')
+  }
+
+  const stopPropagation = (event: React.SyntheticEvent) => {
+    event.stopPropagation()
   }
 
   if (error) {
@@ -205,8 +181,8 @@ const TournamentsPage = () => {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="text-red-500 mb-4">Error al cargar los torneos</div>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
             >
               Reintentar
@@ -224,184 +200,168 @@ const TournamentsPage = () => {
         subtitle="Explora y filtra todos los torneos del ranking FEDV"
       />
 
-      <FilterBar activeFiltersCount={activeFiltersCount} onClearFilters={clearFilters}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {/* Búsqueda integrada */}
-            <div className="sm:col-span-2 lg:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Buscar
-              </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Por nombre..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="input-field pl-9 text-sm"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Tipo
-              </label>
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="input-field text-sm"
-              >
-                <option value="">Todos</option>
-                {types.map(type => (
-                  <option key={type} value={type}>{getTypeLabel(type)}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Temporada
-              </label>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="input-field text-sm"
-              >
-                <option value="">Todas</option>
-                {years.map(year => (
-                  <option key={year} value={year.toString()}>
-                    {formatSeason(year)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Superficie
-              </label>
-              <select
-                value={selectedSurface}
-                onChange={(e) => setSelectedSurface(e.target.value)}
-                className="input-field text-sm"
-              >
-                <option value="">Todas</option>
-                {surfaces.map(surface => (
-                  <option key={surface} value={surface}>{getSurfaceLabel(surface)}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Categoría
-              </label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="input-field text-sm"
-              >
-                <option value="">Todas</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>{getCategoryLabel(category)}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-      </FilterBar>
-
-      {/* Contador de resultados */}
-      <div className="card mb-6 !p-0 overflow-hidden">
-        <div className="px-4 py-3 bg-secondary-50 border-t border-slate-200">
-          <p className="text-sm text-slate-600">
-            {sortedTournaments.length === filteredTournaments.length 
-              ? `${sortedTournaments.length} torneo${sortedTournaments.length !== 1 ? 's' : ''} encontrado${sortedTournaments.length !== 1 ? 's' : ''}`
-              : `${sortedTournaments.length} de ${filteredTournaments.length} torneos`
-            }
-          </p>
-        </div>
-      </div>
-
-      {/* Tabla de torneos */}
       {isLoading ? (
         <TableSkeleton rows={8} columns={7} showLeadingAvatar />
-      ) : sortedTournaments.length === 0 ? (
+      ) : sortedTournaments.length === 0 && !hasActiveFilters ? (
         <EmptyState
           icon={Trophy}
           title="No se encontraron torneos"
-          description={
-            activeFiltersCount > 0 || searchTerm
-              ? 'Intenta ajustar los filtros o la búsqueda para encontrar más resultados.'
-              : 'Aún no hay torneos registrados en el sistema.'
-          }
-          action={activeFiltersCount > 0 ? { label: 'Limpiar filtros', onClick: clearFilters } : undefined}
-          actionLink={!activeFiltersCount && !searchTerm ? { label: 'Ver torneos recientes', href: '/tournaments' } : undefined}
+          description="Aún no hay torneos registrados en el sistema."
+          actionLink={{ label: 'Ver torneos recientes', href: '/tournaments' }}
         />
       ) : (
-        <DataTable caption="Listado de torneos" darkHeader={false}>
-          <thead className="bg-secondary-50">
-            <tr>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
-                    onClick={() => handleSort('name')}
+        <>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-xs text-slate-500">
+              {sortedTournaments.length} torneo{sortedTournaments.length !== 1 ? 's' : ''} encontrado{sortedTournaments.length !== 1 ? 's' : ''}
+            </p>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-xs text-slate-500 hover:text-primary-600 transition-colors"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+
+          <DataTable caption="Listado de torneos" darkHeader={false}>
+            <thead className="bg-secondary-50 border-b border-slate-200">
+              <tr>
+                <TableColumnFilter
+                  label="Torneo"
+                  sortIcon={getSortState('name')}
+                  onSort={() => handleSort('name')}
+                  active={!!searchTerm}
+                >
+                  <div className="relative min-w-[10rem]">
+                    <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Buscar..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onClick={stopPropagation}
+                      className={`${filterSelectClass} pl-7`}
+                    />
+                  </div>
+                </TableColumnFilter>
+
+                <TableColumnFilter
+                  label="Temporada"
+                  sortIcon={getSortState('year')}
+                  onSort={() => handleSort('year')}
+                  active={!!selectedYear}
+                >
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    onClick={stopPropagation}
+                    className={filterSelectClass}
                   >
-                    <div className="flex items-center space-x-1">
-                      <span>Torneo</span>
-                      {getSortIcon('name')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
-                    onClick={() => handleSort('year')}
+                    <option value="">Todas</option>
+                    {years.map(year => (
+                      <option key={year} value={year.toString()}>
+                        {formatSeason(year)}
+                      </option>
+                    ))}
+                  </select>
+                </TableColumnFilter>
+
+                <TableColumnFilter
+                  label="Tipo"
+                  sortIcon={getSortState('type')}
+                  onSort={() => handleSort('type')}
+                  active={!!selectedType}
+                >
+                  <select
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    onClick={stopPropagation}
+                    className={filterSelectClass}
                   >
-                    <div className="flex items-center space-x-1">
-                      <span>Temporada</span>
-                      {getSortIcon('year')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
-                    onClick={() => handleSort('type')}
+                    <option value="">Todos</option>
+                    {types.map(type => (
+                      <option key={type} value={type}>{getTypeLabel(type)}</option>
+                    ))}
+                  </select>
+                </TableColumnFilter>
+
+                <TableColumnFilter
+                  label="Superficie"
+                  sortIcon={getSortState('surface')}
+                  onSort={() => handleSort('surface')}
+                  active={!!selectedSurface}
+                >
+                  <select
+                    value={selectedSurface}
+                    onChange={(e) => setSelectedSurface(e.target.value)}
+                    onClick={stopPropagation}
+                    className={filterSelectClass}
                   >
-                    <div className="flex items-center space-x-1">
-                      <span>Tipo</span>
-                      {getSortIcon('type')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
-                    onClick={() => handleSort('surface')}
+                    <option value="">Todas</option>
+                    {surfaces.map(surface => (
+                      <option key={surface} value={surface}>{getSurfaceLabel(surface)}</option>
+                    ))}
+                  </select>
+                </TableColumnFilter>
+
+                <TableColumnFilter
+                  label="Categoría"
+                  sortIcon={getSortState('category')}
+                  onSort={() => handleSort('category')}
+                  active={!!selectedCategory}
+                >
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    onClick={stopPropagation}
+                    className={filterSelectClass}
                   >
-                    <div className="flex items-center space-x-1">
-                      <span>Superficie</span>
-                      {getSortIcon('surface')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
-                    onClick={() => handleSort('category')}
+                    <option value="">Todas</option>
+                    {categories.map(category => (
+                      <option key={category} value={category}>{getCategoryLabel(category)}</option>
+                    ))}
+                  </select>
+                </TableColumnFilter>
+
+                <TableColumnFilter
+                  label="Región"
+                  sortIcon={getSortState('region')}
+                  onSort={() => handleSort('region')}
+                  active={!!selectedRegion}
+                >
+                  <select
+                    value={selectedRegion}
+                    onChange={(e) => setSelectedRegion(e.target.value)}
+                    onClick={stopPropagation}
+                    className={filterSelectClass}
                   >
-                    <div className="flex items-center space-x-1">
-                      <span>Categoría</span>
-                      {getSortIcon('category')}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
-                    onClick={() => handleSort('region')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>Región</span>
-                      {getSortIcon('region')}
-                    </div>
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
-                    Acción
-                  </th>
+                    <option value="">Todas</option>
+                    {hasNationalTournaments && (
+                      <option value="__national__">Nacional</option>
+                    )}
+                    {regionOptions.map(region => (
+                      <option key={region.id} value={region.id}>{region.name}</option>
+                    ))}
+                  </select>
+                </TableColumnFilter>
+
+                <TableColumnFilter label="Acción" sortIcon="none" />
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-slate-200">
+              {sortedTournaments.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-slate-500">
+                    No hay torneos que coincidan con los filtros aplicados.
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-slate-200">
-                {sortedTournaments.map((tournament) => (
-                  <tr 
-                    key={tournament.id} 
+              ) : (
+                sortedTournaments.map((tournament) => (
+                  <tr
+                    key={tournament.id}
                     className="hover:bg-secondary-50 transition-colors"
                   >
                     <td className="px-6 py-4">
@@ -425,7 +385,7 @@ const TournamentsPage = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        tournament.type === 'CE1' 
+                        tournament.type === 'CE1'
                           ? 'bg-yellow-100 text-yellow-800'
                           : tournament.type === 'CE2'
                           ? 'bg-slate-100 text-slate-800'
@@ -460,9 +420,11 @@ const TournamentsPage = () => {
                       </Link>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-        </DataTable>
+                ))
+              )}
+            </tbody>
+          </DataTable>
+        </>
       )}
     </PageContainer>
   )
