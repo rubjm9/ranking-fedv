@@ -8,7 +8,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts'
-import { MODALITY_LABELS } from '@/components/regions/constants'
+import { MODALITY_LABELS, MODALITY_SHORT } from '@/components/regions/constants'
 
 interface RankingEntry {
   position: number
@@ -34,6 +34,10 @@ const RADAR_MODALITY_ORDER = [
 
 const GRADIENT_ORANGE = '#F97316'
 const GRADIENT_GREEN = '#10B981'
+
+/** 6 ejes → 60° entre vértices; endAngle = startAngle - 360 para hexágono regular */
+const RADAR_START_ANGLE = 120
+const RADAR_END_ANGLE = RADAR_START_ANGLE - 360
 
 function positionToScore(position: number, totalTeams: number): number {
   if (!position || position <= 0 || totalTeams <= 0) return 0
@@ -102,15 +106,21 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
     )
   }
 
+  const formatAxisTick = (value: string) => {
+    const entry = chartData.find((item) => item.modality === value)
+    return entry ? MODALITY_SHORT[entry.modalityKey] ?? value : value
+  }
+
   return (
     <div className="w-full">
-      <ResponsiveContainer width="100%" height={height}>
+      <ResponsiveContainer width="100%" aspect={1} maxHeight={height}>
         <RadarChart
           data={chartData}
           cx="50%"
           cy="50%"
           outerRadius="70%"
-          startAngle={120}
+          startAngle={RADAR_START_ANGLE}
+          endAngle={RADAR_END_ANGLE}
         >
           <defs>
             <linearGradient id="teamRadarFill" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -118,13 +128,14 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
               <stop offset="100%" stopColor={GRADIENT_GREEN} stopOpacity={0.45} />
             </linearGradient>
           </defs>
-          <PolarGrid stroke="#e2e8f0" />
+          <PolarGrid gridType="polygon" stroke="#e2e8f0" />
           <PolarAngleAxis
             dataKey="modality"
             tick={{ fontSize: 11, fill: '#64748b' }}
+            tickFormatter={formatAxisTick}
           />
           <PolarRadiusAxis
-            angle={90}
+            angle={RADAR_START_ANGLE}
             domain={[0, 100]}
             tick={false}
             axisLine={false}
