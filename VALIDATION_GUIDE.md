@@ -225,7 +225,7 @@ LIMIT 10;
 -- Verificar que hay datos
 SELECT COUNT(*) FROM team_season_rankings;
 
--- Si está vacío, ejecutar migración nuevamente desde /admin/migrate-rankings
+-- Si está vacío, ir a /admin/ranking-update y usar "Reconstruir rankings" o "Actualizar sistema completo"
 ```
 
 ### **Problema 2: Gráfica muestra "No data"**
