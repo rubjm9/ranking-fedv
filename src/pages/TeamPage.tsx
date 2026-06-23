@@ -123,8 +123,8 @@ const TeamPage = () => {
         {/* Información principal del equipo */}
         <div className="card">
           <div className="flex items-start space-x-6">
-            <div className="w-20 h-20 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Trophy className="w-10 h-10 text-primary-600" />
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center">
+              <Trophy className="h-10 w-10 text-primary-600" strokeWidth={1.5} />
             </div>
 
             <div className="flex-1">
@@ -273,8 +273,8 @@ const TeamPage = () => {
                 {yearPositions.map(position => (
                   <div key={position.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-4">
-                      <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
-                        <Trophy className="w-4 h-4 text-primary-600" />
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center">
+                        <Trophy className="h-5 w-5 text-primary-600" strokeWidth={1.5} />
                       </div>
                       <div>
                         <div className="font-medium">Torneo {position.tournamentId}</div>

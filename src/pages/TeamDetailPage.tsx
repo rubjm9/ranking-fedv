@@ -242,8 +242,8 @@ const TeamDetailPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-200">
               <div className="flex items-center">
-                <div className="p-3 bg-yellow-100 rounded-xl">
-                  <Trophy className="h-7 w-7 text-yellow-600" />
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+                  <Trophy className="h-7 w-7 text-yellow-600" strokeWidth={1.5} />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-slate-600">Torneos Ganados</p>
@@ -253,8 +253,8 @@ const TeamDetailPage: React.FC = () => {
             </div>
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-200">
               <div className="flex items-center">
-                <div className="p-3 bg-primary-100 rounded-xl">
-                  <Target className="h-7 w-7 text-primary-600" />
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+                  <Target className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-slate-600">Ranking global</p>
@@ -266,8 +266,8 @@ const TeamDetailPage: React.FC = () => {
             </div>
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-200">
               <div className="flex items-center">
-                <div className="p-3 bg-purple-100 rounded-xl">
-                  <Calendar className="h-7 w-7 text-purple-600" />
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+                  <Calendar className="h-7 w-7 text-purple-600" strokeWidth={1.5} />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-slate-600">Torneos</p>
@@ -277,8 +277,8 @@ const TeamDetailPage: React.FC = () => {
             </div>
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-200">
               <div className="flex items-center">
-                <div className="p-3 bg-orange-100 rounded-xl">
-                  <Award className="h-7 w-7 text-orange-600" />
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+                  <Award className="h-7 w-7 text-orange-600" strokeWidth={1.5} />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-slate-600">Podios</p>

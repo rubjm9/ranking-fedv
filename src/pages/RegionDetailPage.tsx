@@ -485,22 +485,18 @@ const RegionDetailPage: React.FC = () => {
           icon={Trophy}
           label="Torneos"
           value={region._count?.tournaments ?? tournaments.length}
-          iconBgColor="bg-emerald-100"
           iconColor="text-emerald-600"
         />
         <StatsCard
           icon={BarChart3}
           label="Total puntos"
           value={totalPoints.toFixed(0)}
-          iconBgColor="bg-accent-100"
           iconColor="text-accent-600"
         />
         <StatsCard
           icon={TrendingUp}
           label="Promedio puntos"
           value={averagePoints.toFixed(1)}
-          iconBgColor="bg-primary-100"
-          iconColor="text-primary-600"
         />
       </div>
 

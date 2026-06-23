@@ -155,8 +155,8 @@ const RegionPage = () => {
         {/* Información principal de la región */}
         <div className="card">
           <div className="flex items-start space-x-6">
-            <div className="w-20 h-20 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
-              <MapPin className="w-10 h-10 text-primary-600" />
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center">
+              <MapPin className="h-10 w-10 text-primary-600" strokeWidth={1.5} />
             </div>
 
             <div className="flex-1">
@@ -373,8 +373,8 @@ const RegionPage = () => {
                   className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                      <Trophy className="w-6 h-6 text-primary-600" />
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+                      <Trophy className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">

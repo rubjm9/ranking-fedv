@@ -238,8 +238,8 @@ const HomePage: React.FC = () => {
         {upcomingTournaments[0] && (
           <div className="mb-8 bg-primary-50 border border-primary-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
-                <Calendar className="h-6 w-6 text-primary-600" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+                <Calendar className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
               </div>
               <div>
                 <span className="text-xs font-semibold text-primary-600 uppercase tracking-wide">Próximo torneo</span>
@@ -355,8 +355,8 @@ const HomePage: React.FC = () => {
                   className="flex items-center justify-between py-4 -mx-2 px-2 rounded-lg hover:bg-secondary-50 transition-colors"
                 >
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mr-4 shrink-0">
-                      <Calendar className="h-6 w-6 text-primary-600" />
+                    <div className="mr-4 flex h-12 w-12 shrink-0 items-center justify-center">
+                      <Calendar className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
                     </div>
                     <div>
                       <h4 className="font-medium text-slate-900">{tournament.name}</h4>
@@ -401,8 +401,8 @@ const HomePage: React.FC = () => {
                   className="flex items-center justify-between py-4 -mx-2 px-2 rounded-lg hover:bg-secondary-50 transition-colors"
                 >
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mr-4 shrink-0">
-                      <Trophy className="h-6 w-6 text-primary-600" />
+                    <div className="mr-4 flex h-12 w-12 shrink-0 items-center justify-center">
+                      <Trophy className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
                     </div>
                     <div>
                       <h4 className="font-medium text-slate-900">{tournament.name}</h4>
@@ -833,8 +833,8 @@ const HomePage: React.FC = () => {
             className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-slate-100"
           >
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
-                <UsersRound className="h-6 w-6 text-primary-600" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+                <UsersRound className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-slate-900">Equipos</h3>
@@ -847,8 +847,8 @@ const HomePage: React.FC = () => {
             className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-slate-100"
           >
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
-                <Trophy className="h-6 w-6 text-primary-600" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+                <Trophy className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-slate-900">Torneos</h3>
@@ -861,8 +861,8 @@ const HomePage: React.FC = () => {
             className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-slate-100"
           >
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
-                <MapPin className="h-6 w-6 text-primary-600" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+                <MapPin className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-slate-900">Regiones</h3>

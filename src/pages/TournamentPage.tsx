@@ -196,13 +196,13 @@ const TournamentPage = () => {
   const getTournamentIcon = (type: TournamentType) => {
     switch (type) {
       case TournamentType.CE1:
-        return <Crown className="w-6 h-6 text-yellow-600" />
+        return <Crown className="h-10 w-10 text-yellow-600" strokeWidth={1.5} />
       case TournamentType.CE2:
-        return <Medal className="w-6 h-6 text-gray-600" />
+        return <Medal className="h-10 w-10 text-gray-600" strokeWidth={1.5} />
       case TournamentType.REGIONAL:
-        return <Award className="w-6 h-6 text-blue-600" />
+        return <Award className="h-10 w-10 text-blue-600" strokeWidth={1.5} />
       default:
-        return <Trophy className="w-6 h-6 text-primary-600" />
+        return <Trophy className="h-10 w-10 text-primary-600" strokeWidth={1.5} />
     }
   }
 
@@ -263,7 +263,7 @@ const TournamentPage = () => {
         {/* Información principal del torneo */}
         <div className="card">
           <div className="flex items-start space-x-6">
-            <div className="w-20 h-20 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center">
               {getTournamentIcon(tournament.type)}
             </div>
 
@@ -408,8 +408,8 @@ const TournamentPage = () => {
                     </div>
 
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                        <Trophy className="w-5 h-5 text-primary-600" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center">
+                        <Trophy className="h-6 w-6 text-primary-600" strokeWidth={1.5} />
                       </div>
                       <div>
                         <Link

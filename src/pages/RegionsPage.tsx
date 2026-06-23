@@ -184,7 +184,6 @@ const RegionsPage = () => {
           icon={UsersRound}
           label="Total equipos"
           value={totalTeams}
-          iconBgColor="bg-emerald-100"
           iconColor="text-emerald-600"
         />
         <StatsCard
@@ -192,8 +191,6 @@ const RegionsPage = () => {
           label="Región más activa"
           value={regionStats.mostActive?.name || 'N/A'}
           subtitle={`${regionStats.mostActive?.count || 0} equipos`}
-          iconBgColor="bg-primary-100"
-          iconColor="text-primary-600"
         />
         <StatsCard
           icon={TrendingUp}
@@ -204,7 +201,6 @@ const RegionsPage = () => {
               ? `promedio ${highestCoef.avg.toFixed(2)}${highestCoefPoints != null ? ` · ${highestCoefPoints.toFixed(1)} pts` : ''}`
               : undefined
           }
-          iconBgColor="bg-emerald-100"
           iconColor="text-emerald-600"
         />
       </div>
@@ -246,8 +242,8 @@ const RegionsPage = () => {
               <Link key={region.id} to={getRegionPublicUrl(region, regionSlugById)} className="card-hover group">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
-                      <MapPin className="h-6 w-6 text-primary-600" />
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+                      <MapPin className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
                     </div>
                     <div className="ml-3">
                       <h3 className="text-lg font-semibold text-slate-900 group-hover:text-primary-600 transition-colors">

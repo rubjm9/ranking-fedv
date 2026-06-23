@@ -293,11 +293,13 @@ const TournamentDetailPage: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard icon={Calendar} label="Año" value={tournament.year} />
-        <StatsCard icon={UsersRound} label="Equipos" value={totalTeams} iconBgColor="bg-emerald-100" iconColor="text-emerald-600" />
-        <StatsCard icon={BarChart3} label="Puntos repartidos" value={formatPoints(totalPoints)} iconBgColor="bg-accent-100" iconColor="text-accent-600" />
+        <StatsCard icon={UsersRound} label="Equipos" value={totalTeams} iconColor="text-emerald-600" />
+        <StatsCard icon={BarChart3} label="Puntos repartidos" value={formatPoints(totalPoints)} iconColor="text-accent-600" />
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <div className="flex items-center">
-            <Trophy className="h-6 w-6 text-primary-600 mr-3" />
+            <div className="mr-3 flex h-12 w-12 shrink-0 items-center justify-center">
+              <Trophy className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
+            </div>
             <div>
               <p className="text-sm font-medium text-slate-600">Estado</p>
               <span className={`inline-flex mt-1 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(isFinished)}`}>

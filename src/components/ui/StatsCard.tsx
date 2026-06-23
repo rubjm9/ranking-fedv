@@ -7,7 +7,6 @@ interface StatsCardProps {
   value: number | string
   subtitle?: string
   isLoading?: boolean
-  iconBgColor?: string
   iconColor?: string
   className?: string
 }
@@ -18,15 +17,14 @@ const StatsCard: React.FC<StatsCardProps> = ({
   value,
   subtitle,
   isLoading = false,
-  iconBgColor = 'bg-primary-100',
   iconColor = 'text-primary-600',
   className = '',
 }) => {
   return (
     <div className={`bg-white rounded-2xl shadow-sm p-6 ${className}`}>
       <div className="flex items-center">
-        <div className={`p-2 ${iconBgColor} rounded-xl`}>
-          <Icon className={`h-6 w-6 ${iconColor}`} />
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center">
+          <Icon className={`h-7 w-7 ${iconColor}`} strokeWidth={1.5} />
         </div>
         <div className="ml-4">
           <p className="text-sm font-medium text-slate-600">{label}</p>
