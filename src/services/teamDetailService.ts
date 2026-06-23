@@ -96,6 +96,8 @@ export interface TeamStatistics {
   averagePoints: number
   bestPosition: number
   worstPosition: number
+  bestPositionSeason?: string
+  bestPositionDate?: string
   currentSeason: string
   seasonsActive: number
   categoriesPlayed: string[]
@@ -134,6 +136,8 @@ class TeamDetailService {
       const historicalPositions = await this.calculateHistoricalGlobalPositions(teamId)
       statistics.bestPosition = historicalPositions.bestPosition
       statistics.worstPosition = historicalPositions.worstPosition
+      statistics.bestPositionSeason = historicalPositions.bestPositionSeason
+      statistics.bestPositionDate = historicalPositions.bestPositionDate
       
       return {
         team: teamData,
@@ -620,26 +624,118 @@ class TeamDetailService {
   }
 
   /**
+   * Fecha aproximada en que se registró la mejor posición global de una temporada.
+   * Usa los hitos de subtemporada (mar, jun, sep, dic) del historial de ranking.
+   */
+  private getBestPositionDateForSeason(
+    seasonRow: Record<string, unknown>,
+    bestRank: number
+  ): string | undefined {
+    if (seasonRow.final_season_global_rank !== bestRank) return undefined
+
+    const seasonYear = parseInt(String(seasonRow.season).split('-')[0])
+    const candidateDates: string[] = []
+
+    if (seasonRow.subseason_1_beach_mixed_rank != null) {
+      candidateDates.push(`${seasonYear}-03-31`)
+    }
+    if (
+      seasonRow.subseason_2_beach_open_rank != null ||
+      seasonRow.subseason_2_beach_women_rank != null
+    ) {
+      candidateDates.push(`${seasonYear}-06-30`)
+    }
+    if (seasonRow.subseason_3_grass_mixed_rank != null) {
+      candidateDates.push(`${seasonYear}-09-30`)
+    }
+    if (
+      seasonRow.subseason_4_grass_open_rank != null ||
+      seasonRow.subseason_4_grass_women_rank != null
+    ) {
+      candidateDates.push(`${seasonYear}-12-31`)
+    }
+
+    if (candidateDates.length === 0) {
+      return `${seasonYear}-12-31`
+    }
+
+    return candidateDates.sort(
+      (a, b) => new Date(a).getTime() - new Date(b).getTime()
+    ).at(-1)
+  }
+
+  /**
    * Calcular posiciones históricas en ranking global
    */
-  private async calculateHistoricalGlobalPositions(teamId: string): Promise<{ bestPosition: number; worstPosition: number }> {
+  private async calculateHistoricalGlobalPositions(teamId: string): Promise<{
+    bestPosition: number
+    worstPosition: number
+    bestPositionSeason?: string
+    bestPositionDate?: string
+  }> {
+    const empty = { bestPosition: 0, worstPosition: 0 }
+
     try {
-      // Obtener datos históricos del equipo
       const { data: teamData, error } = await supabase
         .from('team_season_points')
-        .select('*')
+        .select(`
+          season,
+          final_season_global_rank,
+          subseason_1_beach_mixed_rank,
+          subseason_2_beach_open_rank,
+          subseason_2_beach_women_rank,
+          subseason_3_grass_mixed_rank,
+          subseason_4_grass_open_rank,
+          subseason_4_grass_women_rank,
+          beach_mixed_points,
+          beach_open_points,
+          beach_women_points,
+          grass_mixed_points,
+          grass_open_points,
+          grass_women_points
+        `)
         .eq('team_id', teamId)
         .order('season', { ascending: false })
 
       if (error || !teamData || teamData.length === 0) {
-        return { bestPosition: 0, worstPosition: 0 }
+        return empty
       }
 
+      const seasonsWithFinalRank = teamData.filter(
+        row => row.final_season_global_rank != null && row.final_season_global_rank > 0
+      )
+
+      if (seasonsWithFinalRank.length > 0) {
+        const positions = seasonsWithFinalRank.map(row => row.final_season_global_rank as number)
+        const bestPosition = Math.min(...positions)
+        const worstPosition = Math.max(...positions)
+
+        const bestSeasonRows = seasonsWithFinalRank
+          .filter(row => row.final_season_global_rank === bestPosition)
+          .sort(
+            (a, b) =>
+              parseInt(String(b.season).split('-')[0]) -
+              parseInt(String(a.season).split('-')[0])
+          )
+
+        const bestSeasonRow = bestSeasonRows[0]
+        const bestPositionSeason = bestSeasonRow?.season as string | undefined
+        const bestPositionDate = bestSeasonRow
+          ? this.getBestPositionDateForSeason(bestSeasonRow, bestPosition)
+          : undefined
+
+        return {
+          bestPosition,
+          worstPosition,
+          bestPositionSeason,
+          bestPositionDate,
+        }
+      }
+
+      // Fallback: calcular desde puntos si no hay rankings finales precalculados
       const positions: number[] = []
 
-      // Para cada temporada, calcular la posición global
       for (const season of teamData) {
-        // Obtener todos los equipos de esa temporada
         const { data: allTeamsData, error: allError } = await supabase
           .from('team_season_points')
           .select(`
@@ -655,20 +751,17 @@ class TeamDetailService {
 
         if (allError || !allTeamsData) continue
 
-        // Calcular puntos totales del equipo actual
-        const teamTotalPoints = (season.beach_mixed_points || 0) + (season.beach_open_points || 0) + 
-                               (season.beach_women_points || 0) + (season.grass_mixed_points || 0) + 
-                               (season.grass_open_points || 0) + (season.grass_women_points || 0)
-
-        // Calcular puntos totales de todos los equipos
         const allTeamsTotals = allTeamsData.map(row => ({
           team_id: row.team_id,
-          totalPoints: (row.beach_mixed_points || 0) + (row.beach_open_points || 0) + 
-                      (row.beach_women_points || 0) + (row.grass_mixed_points || 0) + 
-                      (row.grass_open_points || 0) + (row.grass_women_points || 0)
+          totalPoints:
+            (row.beach_mixed_points || 0) +
+            (row.beach_open_points || 0) +
+            (row.beach_women_points || 0) +
+            (row.grass_mixed_points || 0) +
+            (row.grass_open_points || 0) +
+            (row.grass_women_points || 0),
         }))
 
-        // Ordenar por puntos totales y encontrar posición
         allTeamsTotals.sort((a, b) => b.totalPoints - a.totalPoints)
         const position = allTeamsTotals.findIndex(team => team.team_id === teamId) + 1
 
@@ -678,16 +771,16 @@ class TeamDetailService {
       }
 
       if (positions.length === 0) {
-        return { bestPosition: 0, worstPosition: 0 }
+        return empty
       }
 
       return {
         bestPosition: Math.min(...positions),
-        worstPosition: Math.max(...positions)
+        worstPosition: Math.max(...positions),
       }
     } catch (error) {
       console.error('Error calculando posiciones históricas globales:', error)
-      return { bestPosition: 0, worstPosition: 0 }
+      return empty
     }
   }
 

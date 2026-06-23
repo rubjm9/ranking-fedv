@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useParams, Link, useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, UsersRound, MapPin, Trophy, Calendar, TrendingUp, BarChart3, Mail, Award, Target, History, Sun, Leaf, UserRound } from 'lucide-react'
-import { teamDetailService, TeamDetailData, prefetchTeamDetail } from '@/services/teamDetailService'
+import { teamDetailService, TeamDetailData, TeamStatistics, prefetchTeamDetail } from '@/services/teamDetailService'
 import { teamsService, tournamentsService, getTeamPublicUrl } from '@/services/apiService'
 import PageHeroShell from '@/components/layout/PageHeroShell'
 import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
@@ -19,6 +19,26 @@ import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
 import TabsSkeleton from '@/components/ui/TabsSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import AnimatedPoints from '@/components/ui/AnimatedPoints'
+import { formatBestGlobalPositionWhen } from '@/utils/rankingCalculations'
+
+const renderBestGlobalPositionValue = (
+  statistics: Pick<TeamStatistics, 'bestPosition' | 'bestPositionSeason' | 'bestPositionDate'>,
+  whenClassName = 'text-xs text-slate-400 ml-1'
+) => {
+  if (statistics.bestPosition <= 0) return 'N/A'
+
+  const when = formatBestGlobalPositionWhen(
+    statistics.bestPositionSeason,
+    statistics.bestPositionDate
+  )
+
+  return (
+    <>
+      #{statistics.bestPosition}
+      {when ? <span className={whenClassName}>{when}</span> : null}
+    </>
+  )
+}
 
 interface TeamRedirectState {
   resolvedTeamId?: string
@@ -289,7 +309,7 @@ const TeamDetailPage: React.FC = () => {
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
                   <span className="text-sm text-slate-600 font-medium">Mejor posición global:</span>
                   <span className="text-sm font-semibold text-slate-900">
-                    {statistics.bestPosition > 0 ? `#${statistics.bestPosition}` : 'N/A'}
+                    {renderBestGlobalPositionValue(statistics, 'text-xs text-slate-500 ml-1 font-normal')}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
@@ -779,7 +799,7 @@ const TeamDetailPage: React.FC = () => {
                 {
                   icon: Target,
                   label: 'Mejor posición global',
-                  value: statistics.bestPosition > 0 ? `#${statistics.bestPosition}` : 'N/A',
+                  value: renderBestGlobalPositionValue(statistics),
                 },
               ]}
             />

@@ -70,13 +70,23 @@ export const formatSeasonFromYear = (year: number): string =>
 
 const POINTS_DECIMALS = 2
 
+const esNumberFormat = (value: number, options?: Intl.NumberFormatOptions): string =>
+  new Intl.NumberFormat('es-ES', options).format(value)
+
 /** Redondea puntos a decimales fijos (evita errores de coma flotante). */
 export const roundPoints = (points: number, decimals = POINTS_DECIMALS): number =>
   parseFloat(points.toFixed(decimals))
 
-/** Formato de visualización de puntos con decimales. */
+/** Formato de visualización de puntos con decimales (es-ES: 1.234,56). */
 export const formatPoints = (points: number, decimals = POINTS_DECIMALS): string =>
-  points.toFixed(decimals)
+  esNumberFormat(points, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  })
+
+/** Entero con separador de millares (es-ES: 38.129). */
+export const formatInteger = (value: number): string =>
+  esNumberFormat(Math.round(value), { maximumFractionDigits: 0 })
 
 /** Clave de modalidad usada en regional_coefficients (ej: BEACH + MIXED → beach_mixed). */
 export const getModalityKey = (surface: string, category: string): string =>
@@ -151,4 +161,29 @@ export const calculateRegionalCoefficient = (
   const raw = 1.0 + ((regionPoints - nationalMean) / nationalMean) * k
   const clamped = Math.min(config.ceiling, Math.max(config.floor, raw))
   return Math.round(clamped / config.increment) * config.increment
+}
+
+const SPANISH_MONTH_ABBREV = [
+  'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+  'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
+] as const
+
+/** Etiqueta de cuándo se logró la mejor posición global (ej. "dic 2021" o "2022"). */
+export const formatBestGlobalPositionWhen = (
+  season?: string,
+  isoDate?: string
+): string | null => {
+  if (isoDate) {
+    const [yearStr, monthStr] = isoDate.split('-')
+    const year = Number(yearStr)
+    const month = Number(monthStr)
+    if (!year || !month || month < 1 || month > 12) return null
+    return `${SPANISH_MONTH_ABBREV[month - 1]} ${year}`
+  }
+  if (season) {
+    const endPart = season.split('-')[1]
+    if (endPart?.length === 2) return `20${endPart}`
+    return season
+  }
+  return null
 }
