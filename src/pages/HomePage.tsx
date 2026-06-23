@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Trophy, Users, MapPin, Calendar, BarChart3, TrendingUp, TrendingDown, Eye, Sun, Leaf, Medal, Award, ChevronDown } from 'lucide-react'
+import { Trophy, UsersRound, MapPin, Calendar, BarChart3, TrendingUp, TrendingDown, Eye, Sun, Leaf, Medal, Award, ChevronDown } from 'lucide-react'
 import { homePageService, HomePageTeam, HomePageRegion, HomePageTournament, HomePageStats, RankingHistory } from '@/services/homePageService'
 import hybridRankingService from '@/services/hybridRankingService'
 import SummaryCard from '@/components/ranking/SummaryCard'
@@ -238,8 +238,8 @@ const HomePage: React.FC = () => {
         {upcomingTournaments[0] && (
           <div className="mb-8 bg-primary-50 border border-primary-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
-                <Calendar className="h-5 w-5 text-primary-600" />
+              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
+                <Calendar className="h-6 w-6 text-primary-600" />
               </div>
               <div>
                 <span className="text-xs font-semibold text-primary-600 uppercase tracking-wide">Próximo torneo</span>
@@ -344,19 +344,19 @@ const HomePage: React.FC = () => {
           {/* Próximos torneos */}
           <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
             <h3 className="text-lg font-semibold text-slate-900 mb-4">Próximos torneos</h3>
-            <div className="space-y-4">
+            <div className="divide-y divide-slate-100">
               {upcomingTournaments.length === 0 && (
-                <p className="text-slate-500 text-sm">No hay torneos próximos programados.</p>
+                <p className="text-slate-500 text-sm py-2">No hay torneos próximos programados.</p>
               )}
               {upcomingTournaments.map((tournament) => (
                 <Link
                   key={tournament.id}
                   to={`/tournaments/${tournament.id}`}
-                  className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-secondary-50 transition-colors"
+                  className="flex items-center justify-between py-4 -mx-2 px-2 rounded-lg hover:bg-secondary-50 transition-colors"
                 >
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mr-4">
-                      <Calendar className="h-5 w-5 text-primary-600" />
+                    <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mr-4 shrink-0">
+                      <Calendar className="h-6 w-6 text-primary-600" />
                     </div>
                     <div>
                       <h4 className="font-medium text-slate-900">{tournament.name}</h4>
@@ -393,16 +393,16 @@ const HomePage: React.FC = () => {
           {/* Torneos pasados */}
           <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
             <h3 className="text-lg font-semibold text-slate-900 mb-4">Torneos pasados</h3>
-            <div className="space-y-4">
+            <div className="divide-y divide-slate-100">
               {completedTournaments.map((tournament) => (
                 <Link
                   key={tournament.id}
                   to={`/tournaments/${tournament.id}`}
-                  className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-secondary-50 transition-colors"
+                  className="flex items-center justify-between py-4 -mx-2 px-2 rounded-lg hover:bg-secondary-50 transition-colors"
                 >
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mr-4">
-                      <Trophy className="h-5 w-5 text-primary-600" />
+                    <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mr-4 shrink-0">
+                      <Trophy className="h-6 w-6 text-primary-600" />
                     </div>
                     <div>
                       <h4 className="font-medium text-slate-900">{tournament.name}</h4>
@@ -833,8 +833,8 @@ const HomePage: React.FC = () => {
             className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-slate-100"
           >
             <div className="flex items-center">
-              <div className="p-2 bg-primary-100 rounded-lg">
-                <Users className="h-6 w-6 text-primary-600" />
+              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
+                <UsersRound className="h-6 w-6 text-primary-600" />
               </div>
               <div className="ml-4">
                 <h3 className="text-lg font-medium text-slate-900">Equipos</h3>
@@ -847,7 +847,7 @@ const HomePage: React.FC = () => {
             className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-slate-100"
           >
             <div className="flex items-center">
-              <div className="p-2 bg-primary-100 rounded-lg">
+              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
                 <Trophy className="h-6 w-6 text-primary-600" />
               </div>
               <div className="ml-4">
@@ -861,7 +861,7 @@ const HomePage: React.FC = () => {
             className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-slate-100"
           >
             <div className="flex items-center">
-              <div className="p-2 bg-primary-100 rounded-lg">
+              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center shrink-0">
                 <MapPin className="h-6 w-6 text-primary-600" />
               </div>
               <div className="ml-4">
