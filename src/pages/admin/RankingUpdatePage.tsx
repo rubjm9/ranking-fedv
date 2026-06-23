@@ -28,7 +28,7 @@ const RankingUpdatePage: React.FC = () => {
         message: `Error crítico: ${error.message}`,
         steps: {
           regenerateSeasons: { success: false, message: 'Error', seasons: [] },
-          syncRankings: { success: false, message: 'Error', categories: [] }
+          rebuildRankings: { success: false, message: 'Error', totalUpdated: 0 }
         }
       })
     } finally {
@@ -39,27 +39,27 @@ const RankingUpdatePage: React.FC = () => {
   const handleQuickSync = async () => {
     setIsQuickSync(true)
     setLastResult(null)
-    
+
     try {
-      console.log('🔄 Iniciando sincronización rápida...')
+      console.log('🏆 Reconstruyendo rankings...')
       const result = await rankingUpdateService.syncCurrentRankingsOnly()
-      
+
       setLastResult({
         success: result.success,
         message: result.message,
         steps: {
           regenerateSeasons: { success: true, message: 'Omitido', seasons: [] },
-          syncRankings: { success: result.success, message: result.message, categories: [] }
+          rebuildRankings: { success: result.success, message: result.message, totalUpdated: 0 }
         }
       })
     } catch (error: any) {
-      console.error('❌ Error en sincronización:', error)
+      console.error('❌ Error en reconstrucción:', error)
       setLastResult({
         success: false,
         message: `Error: ${error.message}`,
         steps: {
           regenerateSeasons: { success: false, message: 'Error', seasons: [] },
-          syncRankings: { success: false, message: 'Error', categories: [] }
+          rebuildRankings: { success: false, message: 'Error', totalUpdated: 0 }
         }
       })
     } finally {
@@ -71,7 +71,7 @@ const RankingUpdatePage: React.FC = () => {
     <div className="max-w-4xl mx-auto p-6">
       {/* Header */}
       <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Actualización de rankings</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Actualización de Rankings</h1>
         <p className="text-lg text-gray-600">
           Centraliza todas las operaciones de actualización del sistema de rankings
         </p>
@@ -84,8 +84,8 @@ const RankingUpdatePage: React.FC = () => {
           <div>
             <h3 className="font-semibold text-blue-900 mb-2">¿Cuándo usar cada opción?</h3>
             <div className="text-sm text-blue-800 space-y-2">
-              <p><strong>Actualización completa:</strong> después de cambiar la curva de puntos, importar torneos o ajustar coeficientes. Recalcula puntos de posiciones, coeficientes regionales, puntos por temporada, rankings históricos y rankings actuales.</p>
-              <p><strong>Sincronización rápida:</strong> cuando solo necesitas actualizar los rankings actuales desde datos ya procesados.</p>
+              <p><strong>Actualización Completa:</strong> Después de agregar o corregir datos de torneos. Recalcula puntos, regenera temporadas y reconstruye los rankings públicos (team_season_rankings)</p>
+              <p><strong>Reconstruir Rankings:</strong> Cuando los puntos por temporada ya están bien y solo hay que recalcular el orden de los rankings</p>
             </div>
           </div>
         </div>
@@ -98,8 +98,8 @@ const RankingUpdatePage: React.FC = () => {
           <div className="flex items-center mb-4">
             <RefreshCw className="w-8 h-8 text-blue-600 mr-3" />
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Actualización completa</h3>
-              <p className="text-sm text-gray-600">Recalcula puntos, coeficientes y rankings</p>
+              <h3 className="text-lg font-semibold text-gray-900">Actualización Completa</h3>
+              <p className="text-sm text-gray-600">Recalcula puntos + regenera temporadas + reconstruye rankings</p>
             </div>
           </div>
           
@@ -109,40 +109,38 @@ const RankingUpdatePage: React.FC = () => {
             className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             <RefreshCw className={`w-5 h-5 ${isUpdating ? 'animate-spin' : ''}`} />
-            <span>{isUpdating ? 'Actualizando...' : 'Actualización completa'}</span>
+            <span>{isUpdating ? 'Actualizando...' : 'Actualización Completa'}</span>
           </button>
 
           <div className="mt-4 text-xs text-gray-500">
-            <p>• Recalcula puntos de posiciones (curva vigente)</p>
-            <p>• Calcula coeficientes regionales por temporada</p>
-            <p>• Regenera puntos y rankings históricos</p>
-            <p>• Sincroniza current_rankings</p>
-            <p>• Proceso completo pero más lento</p>
+            <p>• Recalcula puntos de posiciones con la curva vigente</p>
+            <p>• Regenera todas las temporadas (team_season_points)</p>
+            <p>• Reconstruye los rankings públicos (team_season_rankings)</p>
           </div>
         </div>
 
-        {/* Sincronización rápida */}
+        {/* Reconstruir rankings */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center mb-4">
             <CheckCircle className="w-8 h-8 text-green-600 mr-3" />
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Sincronización Rápida</h3>
-              <p className="text-sm text-gray-600">Solo actualiza rankings actuales</p>
+              <h3 className="text-lg font-semibold text-gray-900">Reconstruir Rankings</h3>
+              <p className="text-sm text-gray-600">Recalcula el orden desde los puntos ya guardados</p>
             </div>
           </div>
-          
+
           <button
             onClick={handleQuickSync}
             disabled={isQuickSync}
             className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             <CheckCircle className={`w-5 h-5 ${isQuickSync ? 'animate-spin' : ''}`} />
-            <span>{isQuickSync ? 'Sincronizando...' : 'Sincronización Rápida'}</span>
+            <span>{isQuickSync ? 'Reconstruyendo...' : 'Reconstruir Rankings'}</span>
           </button>
 
           <div className="mt-4 text-xs text-gray-500">
-            <p>• Solo sincroniza current_rankings</p>
-            <p>• No regenera temporadas</p>
+            <p>• Reconstruye team_season_rankings</p>
+            <p>• No recalcula puntos ni regenera temporadas</p>
             <p>• Proceso rápido</p>
           </div>
         </div>
@@ -176,42 +174,6 @@ const RankingUpdatePage: React.FC = () => {
 
               {/* Detalles de pasos */}
               <div className="space-y-3">
-                {lastResult.steps.recomputePositions && (
-                  <div className={`p-3 rounded ${
-                    lastResult.steps.recomputePositions.success ? 'bg-green-100' : 'bg-red-100'
-                  }`}>
-                    <div className="flex items-center">
-                      {lastResult.steps.recomputePositions.success ? (
-                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-                      ) : (
-                        <AlertTriangle className="w-4 h-4 text-red-600 mr-2" />
-                      )}
-                      <span className="font-medium text-sm">Puntos de posiciones (curva vigente)</span>
-                    </div>
-                    <p className="text-xs mt-1 text-gray-600">
-                      {lastResult.steps.recomputePositions.message}
-                    </p>
-                  </div>
-                )}
-
-                {lastResult.steps.regionalCoefficients && (
-                  <div className={`p-3 rounded ${
-                    lastResult.steps.regionalCoefficients.success ? 'bg-green-100' : 'bg-red-100'
-                  }`}>
-                    <div className="flex items-center">
-                      {lastResult.steps.regionalCoefficients.success ? (
-                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-                      ) : (
-                        <AlertTriangle className="w-4 h-4 text-red-600 mr-2" />
-                      )}
-                      <span className="font-medium text-sm">Coeficientes regionales</span>
-                    </div>
-                    <p className="text-xs mt-1 text-gray-600">
-                      {lastResult.steps.regionalCoefficients.message}
-                    </p>
-                  </div>
-                )}
-
                 <div className={`p-3 rounded ${
                   lastResult.steps.regenerateSeasons.success 
                     ? 'bg-green-100' 
@@ -223,7 +185,7 @@ const RankingUpdatePage: React.FC = () => {
                     ) : (
                       <AlertTriangle className="w-4 h-4 text-red-600 mr-2" />
                     )}
-                    <span className="font-medium text-sm">Regeneración de temporadas</span>
+                    <span className="font-medium text-sm">Regeneración de Temporadas</span>
                   </div>
                   <p className="text-xs mt-1 text-gray-600">
                     {lastResult.steps.regenerateSeasons.message}
@@ -235,42 +197,24 @@ const RankingUpdatePage: React.FC = () => {
                   </p>
                 </div>
 
-                {lastResult.steps.historicalRankings && (
-                  <div className={`p-3 rounded ${
-                    lastResult.steps.historicalRankings.success ? 'bg-green-100' : 'bg-red-100'
-                  }`}>
-                    <div className="flex items-center">
-                      {lastResult.steps.historicalRankings.success ? (
-                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-                      ) : (
-                        <AlertTriangle className="w-4 h-4 text-red-600 mr-2" />
-                      )}
-                      <span className="font-medium text-sm">Rankings históricos</span>
-                    </div>
-                    <p className="text-xs mt-1 text-gray-600">
-                      {lastResult.steps.historicalRankings.message}
-                    </p>
-                  </div>
-                )}
-
                 <div className={`p-3 rounded ${
-                  lastResult.steps.syncRankings.success 
-                    ? 'bg-green-100' 
+                  lastResult.steps.rebuildRankings.success
+                    ? 'bg-green-100'
                     : 'bg-red-100'
                 }`}>
                   <div className="flex items-center">
-                    {lastResult.steps.syncRankings.success ? (
+                    {lastResult.steps.rebuildRankings.success ? (
                       <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
                     ) : (
                       <AlertTriangle className="w-4 h-4 text-red-600 mr-2" />
                     )}
-                    <span className="font-medium text-sm">Sincronización de rankings</span>
+                    <span className="font-medium text-sm">Reconstrucción de Rankings</span>
                   </div>
                   <p className="text-xs mt-1 text-gray-600">
-                    {lastResult.steps.syncRankings.message}
-                    {lastResult.steps.syncRankings.categories.length > 0 && (
+                    {lastResult.steps.rebuildRankings.message}
+                    {lastResult.steps.rebuildRankings.totalUpdated > 0 && (
                       <span className="ml-2">
-                        ({lastResult.steps.syncRankings.categories.join(', ')})
+                        ({lastResult.steps.rebuildRankings.totalUpdated} registros)
                       </span>
                     )}
                   </p>

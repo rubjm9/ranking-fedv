@@ -15,7 +15,6 @@ import {
   TrendingUp,
   Shield,
   Clock,
-  Lock,
   RefreshCw,
   History
 } from 'lucide-react'
@@ -37,7 +36,6 @@ const AdminLayout: React.FC = () => {
       { name: 'Ranking', href: '/admin/ranking', icon: TrendingUp },
       { name: 'Actualizar Rankings', href: '/admin/ranking-update', icon: RefreshCw },
       { name: 'Temporadas', href: '/admin/seasons', icon: Clock },
-    { name: 'Subtemporadas', href: '/admin/subseasons', icon: Lock },
     { name: 'Importar/Exportar', href: '/admin/import-export', icon: Upload },
     { name: 'Configuración', href: '/admin/configuration', icon: Settings },
   ]
