@@ -35,7 +35,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
         {actions && <div className="flex-shrink-0">{actions}</div>}
       </div>
       {statsBar && (
-        <div className="-mx-4 mt-6 border-t border-primary-600/20 pt-5 sm:-mx-6 lg:-mx-8">
+        <div className="hero-stats-bar-divider">
           {statsBar}
         </div>
       )}

@@ -726,32 +726,28 @@ const TeamDetailPage: React.FC = () => {
               description={`Consulta las estadísticas y resultados de ${team.name} en el Ranking FEDV`}
             />
           </div>
-          <div className="-mx-4 mt-6 border-t border-primary-600/20 pt-5 sm:-mx-6 lg:-mx-8">
+          <div className="hero-stats-bar-divider">
             <PageHeroStatsBar
               items={[
                 {
                   icon: Trophy,
                   label: 'Torneos ganados',
                   value: statistics.tournamentsWon,
-                  iconClassName: 'text-yellow-400',
                 },
                 {
                   icon: Target,
                   label: 'Ranking global',
                   value: statistics.globalPosition ? `#${statistics.globalPosition}` : 'N/A',
-                  iconClassName: 'text-primary-400',
                 },
                 {
                   icon: Calendar,
                   label: 'Torneos',
                   value: statistics.totalTournaments,
-                  iconClassName: 'text-purple-400',
                 },
                 {
                   icon: Award,
                   label: 'Podios',
                   value: statistics.podiums,
-                  iconClassName: 'text-orange-400',
                 },
               ]}
             />

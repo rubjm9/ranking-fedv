@@ -490,13 +490,11 @@ const RegionDetailPage: React.FC = () => {
                 icon: Trophy,
                 label: 'Torneos',
                 value: region._count?.tournaments ?? tournaments.length,
-                iconClassName: 'text-emerald-400',
               },
               {
                 icon: BarChart3,
                 label: 'Total puntos',
                 value: totalPoints.toFixed(0),
-                iconClassName: 'text-accent-400',
               },
               {
                 icon: TrendingUp,

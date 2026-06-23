@@ -193,7 +193,6 @@ const RegionsPage = () => {
                 icon: UsersRound,
                 label: 'Total equipos',
                 value: totalTeams,
-                iconClassName: 'text-emerald-400',
               },
               {
                 icon: UsersRound,
@@ -204,7 +203,6 @@ const RegionsPage = () => {
                 icon: TrendingUp,
                 label: highestCoefLabel,
                 value: highestCoef?.name || 'N/A',
-                iconClassName: 'text-emerald-400',
               },
             ]}
           />

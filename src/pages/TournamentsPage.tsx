@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Calendar, Trophy, MapPin, Search, Eye } from 'lucide-react'
+import { Calendar, Trophy, MapPin, Search, Eye, BarChart3 } from 'lucide-react'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
+import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
 import EmptyState from '@/components/ui/EmptyState'
 import DataTable from '@/components/ui/DataTable'
 import TableSkeleton from '@/components/ui/TableSkeleton'
@@ -109,6 +110,11 @@ const TournamentsPage = () => {
 
   const hasNationalTournaments = allTournaments.some(t => !t.regionId && !t.region?.name)
 
+  const totalTournaments = allTournaments.length
+  const totalSeasons = years.length
+  const totalRegions = regionOptions.length + (hasNationalTournaments ? 1 : 0)
+  const totalTypes = types.length
+
   const getTypeLabel = (type: string) => {
     switch (type) {
       case 'CE1': return 'CE1'
@@ -198,6 +204,33 @@ const TournamentsPage = () => {
       <PageHeader
         title="Torneos"
         subtitle="Explora y filtra todos los torneos del ranking FEDV"
+        statsBar={
+          <PageHeroStatsBar
+            isLoading={isLoading}
+            items={[
+              {
+                icon: Trophy,
+                label: 'Total torneos',
+                value: totalTournaments,
+              },
+              {
+                icon: Calendar,
+                label: 'Temporadas',
+                value: totalSeasons,
+              },
+              {
+                icon: MapPin,
+                label: 'Regiones',
+                value: totalRegions,
+              },
+              {
+                icon: BarChart3,
+                label: 'Tipos',
+                value: totalTypes,
+              },
+            ]}
+          />
+        }
       />
 
       {isLoading ? (

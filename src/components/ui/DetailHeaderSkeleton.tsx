@@ -5,6 +5,24 @@ interface DetailHeaderSkeletonProps {
   variant?: 'team' | 'default'
 }
 
+const HeroStatsBarSkeleton = () => (
+  <div className="hero-stats-bar-divider">
+    <div className="hero-stats-bar">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="hero-stats-bar__item">
+          <div className="hero-stats-bar__icon-wrap">
+            <div className="h-7 w-7 animate-pulse rounded bg-white/10" />
+          </div>
+          <div className="space-y-1.5">
+            <div className="hero-stats-bar__skeleton-value" />
+            <div className="hero-stats-bar__skeleton-label" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)
+
 const DetailHeaderSkeleton: React.FC<DetailHeaderSkeletonProps> = ({ variant = 'default' }) => {
   if (variant === 'team') {
     return (
@@ -23,34 +41,25 @@ const DetailHeaderSkeleton: React.FC<DetailHeaderSkeletonProps> = ({ variant = '
               <div className="mx-auto h-4 w-28 rounded bg-white/10 sm:mx-0" />
             </div>
           </div>
-          <div className="-mx-4 mt-6 border-t border-primary-600/20 pt-5 sm:-mx-6 lg:-mx-8">
-            <div className="flex gap-6 overflow-x-auto pb-1 md:grid md:grid-cols-4 md:overflow-visible md:pb-0">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex min-w-[8.5rem] shrink-0 items-center gap-3 md:min-w-0 md:border-l md:border-slate-800 md:pl-6 first:md:border-l-0 first:md:pl-0">
-                  <div className="h-12 w-12 shrink-0 rounded bg-white/10" />
-                  <div className="space-y-1.5">
-                    <div className="h-7 w-12 rounded bg-white/10" />
-                    <div className="h-3 w-20 rounded bg-white/10" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <HeroStatsBarSkeleton />
         </div>
       </PageHeroShell>
     )
   }
 
   return (
-    <div className="animate-pulse mb-8">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="h-4 bg-slate-200 rounded w-16" />
-        <div className="h-4 bg-slate-200 rounded w-4" />
-        <div className="h-4 bg-slate-200 rounded w-40" />
+    <PageHeroShell innerClassName="pb-6">
+      <div className="animate-pulse">
+        <div className="mb-3 flex items-center gap-2">
+          <div className="h-4 w-16 rounded bg-white/10" />
+          <div className="h-4 w-4 rounded bg-white/10" />
+          <div className="h-4 w-40 rounded bg-white/10" />
+        </div>
+        <div className="mb-2 h-9 w-72 rounded bg-white/10" />
+        <div className="h-5 w-48 rounded bg-white/10" />
+        <HeroStatsBarSkeleton />
       </div>
-      <div className="h-9 bg-slate-200 rounded w-72 mb-2" />
-      <div className="h-5 bg-slate-200 rounded w-32" />
-    </div>
+    </PageHeroShell>
   )
 }
 

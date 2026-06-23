@@ -13,17 +13,16 @@ import {
   getWeightedRegionalPoints,
   roundPoints,
 } from '@/utils/rankingCalculations'
-import { translateSurface, translateModality, translateTournamentType, getStatusLabel, getStatusColor } from '@/utils/translations'
+import { translateSurface, translateModality, translateTournamentType, getStatusLabel } from '@/utils/translations'
 import { isTournamentFinished } from '@/utils/tournamentUtils'
 import TeamLogo from '@/components/ui/TeamLogo'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
+import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
-import StatsCard from '@/components/ui/StatsCard'
 import EmptyState from '@/components/ui/EmptyState'
 import DataTable from '@/components/ui/DataTable'
 import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
-import StatsGridSkeleton from '@/components/ui/StatsGridSkeleton'
 import ContentGridSkeleton from '@/components/ui/ContentGridSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 
@@ -233,8 +232,7 @@ const TournamentDetailPage: React.FC = () => {
   if (tournamentLoading) {
     return (
       <PageContainer>
-        <DetailHeaderSkeleton variant="default" />
-        <StatsGridSkeleton />
+        <DetailHeaderSkeleton />
         <ContentGridSkeleton />
         <TableSkeleton rows={10} columns={5} showLeadingAvatar />
       </PageContainer>
@@ -289,26 +287,33 @@ const TournamentDetailPage: React.FC = () => {
             ]}
           />
         }
+        statsBar={
+          <PageHeroStatsBar
+            items={[
+              {
+                icon: Calendar,
+                label: 'Año',
+                value: tournament.year,
+              },
+              {
+                icon: UsersRound,
+                label: 'Equipos',
+                value: totalTeams,
+              },
+              {
+                icon: BarChart3,
+                label: 'Puntos repartidos',
+                value: formatPoints(totalPoints),
+              },
+              {
+                icon: Trophy,
+                label: 'Estado',
+                value: getStatusLabel(isFinished),
+              },
+            ]}
+          />
+        }
       />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard icon={Calendar} label="Año" value={tournament.year} />
-        <StatsCard icon={UsersRound} label="Equipos" value={totalTeams} iconColor="text-emerald-600" />
-        <StatsCard icon={BarChart3} label="Puntos repartidos" value={formatPoints(totalPoints)} iconColor="text-accent-600" />
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <div className="flex items-center">
-            <div className="mr-3 flex h-12 w-12 shrink-0 items-center justify-center">
-              <Trophy className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-600">Estado</p>
-              <span className={`inline-flex mt-1 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(isFinished)}`}>
-                {getStatusLabel(isFinished)}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
 
         {/* Información del torneo y distribución por regiones */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
