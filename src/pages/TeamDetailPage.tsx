@@ -8,6 +8,7 @@ import PageHeroShell from '@/components/layout/PageHeroShell'
 import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
 import TeamLogo from '@/components/ui/TeamLogo'
 import GeneralRankingChart from '@/components/charts/GeneralRankingChart'
+import TeamRankingRadarChart from '@/components/charts/TeamRankingRadarChart'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import EmptyState from '@/components/ui/EmptyState'
 import Tabs, { TabItem } from '@/components/ui/Tabs'
@@ -238,9 +239,9 @@ const TeamDetailPage: React.FC = () => {
       content: (
         <div className="space-y-6">
           {/* Team Info */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h3 className="text-xl font-semibold text-slate-900 mb-4">Información del Equipo</h3>
+              <h3 className="text-xl font-semibold text-slate-900 mb-4">Información del equipo</h3>
               <div className="space-y-3">
                 <div className="flex items-center">
                   <UsersRound className="h-4 w-4 text-slate-400 mr-3" />
@@ -282,7 +283,7 @@ const TeamDetailPage: React.FC = () => {
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h3 className="text-xl font-semibold text-slate-900 mb-4">Estadísticas Detalladas</h3>
+              <h3 className="text-xl font-semibold text-slate-900 mb-4">Estadísticas detalladas</h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
                   <span className="text-sm text-slate-600 font-medium">Mejor posición global:</span>
@@ -309,6 +310,11 @@ const TeamDetailPage: React.FC = () => {
                   <span className="text-sm font-semibold text-slate-900">{statistics.categoriesPlayed.length}</span>
                 </div>
               </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <h3 className="text-xl font-semibold text-slate-900 mb-4">Posición por modalidad</h3>
+              <TeamRankingRadarChart currentRankings={currentRankings} />
             </div>
           </div>
 
@@ -768,7 +774,7 @@ const TeamDetailPage: React.FC = () => {
                 },
                 {
                   icon: Target,
-                  label: 'Mejor posición',
+                  label: 'Mejor posición global',
                   value: statistics.bestPosition > 0 ? `#${statistics.bestPosition}` : 'N/A',
                 },
               ]}
