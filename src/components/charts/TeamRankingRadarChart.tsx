@@ -108,6 +108,7 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
 
   const formatAxisTick = (value: string) => {
     const entry = chartData.find((item) => item.modality === value)
+    // eslint-disable-next-line react/prop-types -- tick interno; datos tipados en chartData
     return entry ? MODALITY_SHORT[entry.modalityKey] ?? value : value
   }
 
