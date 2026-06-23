@@ -42,6 +42,7 @@ export interface TeamDetailData {
       position: number
       points: number
       change: number
+      totalTeams: number
     }
   }
   tournamentResults: TournamentResult[]
@@ -257,6 +258,7 @@ class TeamDetailService {
   private async getCurrentRankings(teamId: string) {
     const categories = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'] as const
     const rankings: { [category: string]: { position: number; points: number; change: number } } = {}
+    const totalsByCategory: Record<string, number> = {}
 
     try {
       // Determinar la temporada más reciente

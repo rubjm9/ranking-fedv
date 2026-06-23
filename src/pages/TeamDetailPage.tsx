@@ -18,6 +18,7 @@ import TournamentTable from '@/components/ui/TournamentTable'
 import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
 import TabsSkeleton from '@/components/ui/TabsSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
+import AnimatedPoints from '@/components/ui/AnimatedPoints'
 
 interface TeamRedirectState {
   resolvedTeamId?: string
@@ -671,6 +672,7 @@ const TeamDetailPage: React.FC = () => {
   }))
 
   const globalRankingPoints = Object.values(currentRankings).reduce((sum, ranking) => sum + ranking.points, 0)
+  const heroPoints = globalRankingPoints > 0 ? globalRankingPoints : statistics.totalPoints
 
   const shareButton = (
     <ShareButton
@@ -748,9 +750,11 @@ const TeamDetailPage: React.FC = () => {
                 <p className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-400">
                   Puntos
                 </p>
-                <p className="font-display text-4xl font-bold text-primary-300 sm:text-5xl">
-                  {globalRankingPoints > 0 ? globalRankingPoints.toFixed(1) : statistics.totalPoints.toFixed(1)}
-                </p>
+                <AnimatedPoints
+                  value={heroPoints}
+                  decimals={1}
+                  className="font-display text-4xl font-bold text-primary-300 sm:text-5xl"
+                />
               </div>
             </div>
           </div>

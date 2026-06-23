@@ -14,6 +14,7 @@ interface RankingEntry {
   position: number
   points: number
   change: number
+  totalTeams?: number
 }
 
 interface TeamRankingRadarChartProps {
@@ -21,9 +22,11 @@ interface TeamRankingRadarChartProps {
   height?: number
 }
 
-function positionToScore(position: number): number {
-  if (!position || position <= 0) return 0
-  return Math.round((100 / position) * 10) / 10
+function positionToScore(position: number, totalTeams: number): number {
+  if (!position || position <= 0 || totalTeams <= 0) return 0
+  if (totalTeams === 1) return position === 1 ? 100 : 0
+  const score = ((totalTeams - position) / (totalTeams - 1)) * 100
+  return Math.round(score * 10) / 10
 }
 
 const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
@@ -35,11 +38,13 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
       MODALITIES.map((modality) => {
         const ranking = currentRankings[modality]
         const position = ranking?.position ?? 0
+        const totalTeams = ranking?.totalTeams ?? 0
         return {
           modality: MODALITY_LABELS[modality],
           modalityKey: modality,
-          score: positionToScore(position),
+          score: positionToScore(position, totalTeams),
           position,
+          totalTeams,
           points: ranking?.points ?? 0,
         }
       }),
@@ -57,7 +62,13 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
         {entry.position > 0 ? (
           <>
             <p className="text-slate-600">
-              Posición: <span className="font-semibold text-slate-900">#{entry.position}</span>
+              Posición:{' '}
+              <span className="font-semibold text-slate-900">
+                #{entry.position}
+                {entry.totalTeams > 0 && (
+                  <span className="font-normal text-slate-500"> de {entry.totalTeams} equipos</span>
+                )}
+              </span>
             </p>
             <p className="text-slate-600">
               Puntos: <span className="font-semibold text-slate-900">{entry.points.toFixed(1)}</span>
