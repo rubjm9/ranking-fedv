@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Calendar, MapPin, Trophy, UsersRound, Users, BarChart3, Award, Clock } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { useQuery } from '@tanstack/react-query'
-import { tournamentsService } from '@/services/apiService'
+import { tournamentsService, getTeamPublicUrl } from '@/services/apiService'
 import seasonService from '@/services/seasonService'
 import {
   buildRegionalCoefficientLookup,
@@ -481,9 +481,12 @@ const TournamentDetailPage: React.FC = () => {
                             />
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-slate-900">
+                            <Link
+                              to={getTeamPublicUrl(position.team)}
+                              className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                            >
                               {position.team.name}
-                            </div>
+                            </Link>
                           </div>
                         </div>
                       </td>

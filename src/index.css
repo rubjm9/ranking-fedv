@@ -287,6 +287,27 @@
   .animate-bounce-gentle {
     animation: bounceGentle 2s infinite;
   }
+
+  .onboarding-float {
+    animation: onboardingFloat 5.5s ease-in-out infinite;
+  }
+
+  .onboarding-breathe {
+    animation: onboardingBreathe 4.8s ease-in-out infinite;
+  }
+
+  .onboarding-pulse {
+    animation: onboardingPulse 3.8s ease-in-out infinite;
+    transform-origin: center;
+  }
+
+  .onboarding-ledger-chip {
+    animation: onboardingLedgerChip 0.7s ease-out both;
+  }
+
+  .onboarding-ledger-bump {
+    animation: onboardingLedgerBump 0.45s ease-out;
+  }
 }
 
 /* Hero dot pattern */
@@ -403,6 +424,48 @@
   50% { transform: translateY(-5px); }
 }
 
+@keyframes onboardingFloat {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -6px, 0); }
+}
+
+@keyframes onboardingBreathe {
+  0%, 100% { opacity: 0.95; filter: saturate(1); }
+  50% { opacity: 1; filter: saturate(1.08); }
+}
+
+@keyframes onboardingLedgerChip {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.96);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+
+@keyframes onboardingLedgerBump {
+  0% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-3px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes onboardingPulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.12); opacity: 1; }
+}
+
 /* Tables */
 .table-container {
   @apply overflow-x-auto rounded-lg border border-slate-200;
@@ -479,6 +542,11 @@
   .animate-fade-in,
   .animate-slide-up,
   .animate-bounce-gentle,
+  .onboarding-float,
+  .onboarding-breathe,
+  .onboarding-pulse,
+  .onboarding-ledger-chip,
+  .onboarding-ledger-bump,
   .loading-spinner,
   .loading-dots > div,
   .nav-link,

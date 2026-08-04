@@ -419,9 +419,12 @@ const TeamsPage = () => {
                               className="mr-3"
                             />
                             <div>
-                              <div className="text-sm font-medium text-slate-900">
+                              <Link
+                                to={getTeamPublicUrl(team)}
+                                className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                              >
                                 {team.name}
-                              </div>
+                              </Link>
                               <TeamModalityNames team={team} />
                               {team.isFilial && (
                                 <div className="text-xs text-primary-600">
