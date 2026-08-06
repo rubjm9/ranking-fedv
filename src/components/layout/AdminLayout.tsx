@@ -15,14 +15,15 @@ import {
   TrendingUp,
   Shield,
   Clock,
-  History
+  History,
+  UserCog
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import AdminNotificationBanner, { NotificationBadge } from '@/components/admin/AdminNotificationBanner'
 
 const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { user, logout } = useAuth()
+  const { user, logout, isAdmin, role } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -36,6 +37,9 @@ const AdminLayout: React.FC = () => {
     { name: 'Temporadas y ranking', href: '/admin/seasons', icon: Clock },
     { name: 'Importar/Exportar', href: '/admin/import-export', icon: Upload },
     { name: 'Configuración', href: '/admin/configuration', icon: Settings },
+    ...(isAdmin
+      ? [{ name: 'Usuarios', href: '/admin/users', icon: UserCog }]
+      : []),
   ]
 
   const handleLogout = async () => {
@@ -139,7 +143,9 @@ const AdminLayout: React.FC = () => {
                 </span>
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">Administrador</p>
+                <p className="text-sm font-medium text-gray-900">
+                  {role === 'admin' ? 'Admin' : 'Editor'}
+                </p>
                 <p className="text-xs text-gray-500 truncate">{user?.email}</p>
               </div>
             </div>

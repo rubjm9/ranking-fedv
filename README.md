@@ -119,8 +119,17 @@ npm run dev
 
 ### 🔐 Acceso al Sistema
 - **URL Frontend**: http://localhost:5173
-- **URL Backend**: http://localhost:3001
 - **Admin por defecto**: admin@fedv.es / admin123
+- **Roles**: `admin` (gestión de usuarios) y `editor` (resto del backoffice). El rol vive en `app_metadata.role` de Supabase Auth.
+- **Usuarios**: la sección `/admin/users` solo es visible para admins. Si no hay ningún admin, asígnalo una vez en SQL:
+
+```sql
+UPDATE auth.users
+SET raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb) || '{"role":"admin"}'::jsonb
+WHERE email = 'admin@fedv.es';
+```
+
+Tras el primer admin, el resto de usuarios se gestiona desde el backoffice. Hay que cerrar sesión y volver a entrar para que el JWT recoja el rol nuevo.
 
 ### 🎯 Funcionalidades Principales
 
@@ -130,6 +139,7 @@ npm run dev
 - **Regiones**: Configuración de regiones y coeficientes
 - **Torneos**: Gestión de torneos y resultados
 - **Ranking**: Visualización y gestión del ranking
+- **Usuarios**: Alta, edición, reset de contraseña y desactivación (solo rol admin)
 - **Import/Export**: Funcionalidad de importación y exportación de datos
 
 #### Sitio Público

@@ -2,12 +2,16 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { User } from '@supabase/supabase-js'
 import { supabase } from '@/services/supabaseService'
 
+export type AppUserRole = 'admin' | 'editor'
+
 interface AuthContextType {
   user: User | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<boolean>
   logout: () => void
   isAuthenticated: boolean
+  role: AppUserRole
+  isAdmin: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -20,6 +24,11 @@ export const useAuth = () => {
   return context
 }
 
+function getRoleFromUser(user: User | null): AppUserRole {
+  const role = user?.app_metadata?.role
+  return role === 'admin' ? 'admin' : 'editor'
+}
+
 interface AuthProviderProps {
   children: ReactNode
 }
@@ -29,7 +38,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Verificar autenticación al cargar
     const checkAuth = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser()
@@ -43,8 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     checkAuth()
 
-    // Escuchar cambios en el estado de autenticación
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
       setIsLoading(false)
     })
@@ -58,12 +65,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         password
       })
-      
+
       if (error) {
         console.error('Error en login:', error)
         return false
       }
-      
+
       setUser(data.user)
       return true
     } catch (error) {
@@ -81,12 +88,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const value = {
+  const role = getRoleFromUser(user)
+
+  const value: AuthContextType = {
     user,
     isLoading,
     login,
     logout,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    role,
+    isAdmin: role === 'admin'
   }
 
   return (

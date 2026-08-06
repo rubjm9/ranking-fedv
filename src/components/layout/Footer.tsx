@@ -92,7 +92,7 @@ const Footer: React.FC = () => {
                 { label: 'Cómo funciona', to: '/como-funciona' },
                 { label: 'Privacidad', to: '/privacy' },
                 { label: 'Términos', to: '/terms' },
-                ...(!isAuthenticated ? [{ label: 'Iniciar sesión', to: '/auth/login' }] : []),
+                ...(!isAuthenticated ? [{ label: 'Iniciar sesión', to: '/login' }] : []),
               ].map(({ label, to }) => (
                 <Link key={to} to={to} className="text-slate-500 hover:text-white text-sm transition-colors duration-200">
                   {label}
