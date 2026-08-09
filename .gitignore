@@ -8,6 +8,10 @@ yarn-error.log*
 dist/
 build/
 
+# Cloudflare Wrangler
+.wrangler/
+.wrangler-dry-run/
+
 # Environment variables
 .env
 .env.local
