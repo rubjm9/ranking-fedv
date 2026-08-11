@@ -4,12 +4,11 @@ export const SUPABASE_CONFIG = {
   anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzZXNoYmZpamJhcmhqdGF5cW1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5NzQ4MDAsImV4cCI6MjA1MDU1MDgwMH0.placeholder_key'
 }
 
-// Función para verificar si las variables de entorno están configuradas
+// Función para verificar si las variables de entorno están configuradas.
+// En el navegador solo existe import.meta.env (Vite); process.env no está definido.
 export const getSupabaseConfig = () => {
-  const envUrl =
-    import.meta.env?.VITE_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL
-  const envKey =
-    import.meta.env?.VITE_SUPABASE_ANON_KEY ?? process.env.VITE_SUPABASE_ANON_KEY
+  const envUrl = import.meta.env.VITE_SUPABASE_URL
+  const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
   if (envUrl && envKey) {
     return {
