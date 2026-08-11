@@ -9,6 +9,7 @@ export const hasPublicHeroHeader = (pathname: string): boolean => {
     '/ranking',
     '/como-funciona',
     '/about',
+    '/disc-golf',
     '/privacy',
     '/terms',
   ]

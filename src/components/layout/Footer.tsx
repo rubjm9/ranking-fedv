@@ -55,6 +55,7 @@ const Footer: React.FC = () => {
                 { label: 'Equipos', to: '/equipos' },
                 { label: 'Regiones', to: '/regiones' },
                 { label: 'Torneos', to: '/tournaments' },
+                { label: 'Disc golf', to: '/disc-golf' },
               ].map(({ label, to }) => (
                 <li key={to}>
                   <Link to={to} className="text-slate-400 hover:text-white transition-colors duration-200 text-sm">

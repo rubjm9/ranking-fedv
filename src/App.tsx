@@ -15,6 +15,7 @@ import AboutPage from '@/pages/AboutPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import PrivacyPage from '@/pages/PrivacyPage'
 import TermsPage from '@/pages/TermsPage'
+import DiscGolfPage from '@/pages/DiscGolfPage'
 
 // Páginas de autenticación
 import LoginPage from '@/pages/LoginPage'
@@ -90,6 +91,7 @@ function App() {
               <Route path="tournaments/:id" element={<TournamentDetailPage />} />
               <Route path="como-funciona" element={<AboutPage />} />
               <Route path="about" element={<Navigate to="/como-funciona" replace />} />
+              <Route path="disc-golf" element={<DiscGolfPage />} />
               <Route path="privacy" element={<PrivacyPage />} />
               <Route path="terms" element={<TermsPage />} />
               <Route path="*" element={<NotFoundPage />} />
