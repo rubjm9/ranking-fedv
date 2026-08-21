@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/SimpleAuthContext'
 import { 
@@ -26,6 +26,7 @@ const AdminLayout: React.FC = () => {
   const { user, logout, isAdmin, role } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
+  const sidebarToggleRef = useRef<HTMLButtonElement>(null)
 
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: BarChart3 },
@@ -70,45 +71,76 @@ const AdminLayout: React.FC = () => {
 
   const currentSection = getCurrentSection()
 
+  // Drawer móvil: bloquea el scroll del fondo y permite cerrar con Escape.
+  useEffect(() => {
+    if (!sidebarOpen) return
+
+    const { body } = document
+    const previousOverflow = body.style.overflow
+    body.style.overflow = 'hidden'
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSidebarOpen(false)
+        sidebarToggleRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [sidebarOpen])
+
+  // Cierra el drawer al navegar a otra sección.
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [location.pathname])
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-surface-muted flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 lg:hidden"
+        <div
+          className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
           onClick={() => setSidebarOpen(false)}
-        >
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-75"></div>
-        </div>
+          aria-hidden="true"
+        />
       )}
 
       {/* Sidebar */}
+      {/*
+        Layout en columna: sin él, el bloque de usuario iba en `absolute bottom-0`
+        y tapaba los últimos enlaces en pantallas cortas, sin scroll para alcanzarlos.
+      */}
       <div className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:relative
+        fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-surface shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:relative
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+        <div className="flex flex-shrink-0 items-center justify-between h-16 px-6 border-b border-line">
           <Link
             to="/admin/dashboard"
             className="flex items-center min-w-0"
             onClick={() => setSidebarOpen(false)}
           >
-            <Shield className="h-8 w-8 text-primary-600 mr-3 flex-shrink-0" />
-            <span className="font-display text-xl font-bold text-slate-900 truncate">
+            <Shield className="h-8 w-8 text-link mr-3 flex-shrink-0" />
+            <span className="font-display text-xl font-bold text-content truncate">
               FEDV Admin
             </span>
           </Link>
           
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+            aria-label="Cerrar menú"
+            className="lg:hidden inline-flex items-center justify-center min-h-[44px] min-w-[44px] touch-manipulation rounded-md text-content-muted hover:text-content hover:bg-surface-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <X className="h-6 w-6" />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="mt-8 px-4">
+        <nav className="mt-8 flex-1 overflow-y-auto overscroll-contain px-4 pb-4">
           <div className="space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon
@@ -119,8 +151,8 @@ const AdminLayout: React.FC = () => {
                   className={`
                     flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200
                     ${isActive(item.href)
-                      ? 'bg-primary-100 text-primary-700 border-r-2 border-primary-600'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-brand-subtle text-brand-strong border-r-2 border-primary-600'
+                      : 'text-content-muted hover:bg-surface-muted hover:text-content'
                     }
                   `}
                   onClick={() => setSidebarOpen(false)}
@@ -134,26 +166,26 @@ const AdminLayout: React.FC = () => {
         </nav>
 
         {/* User info and logout */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <div className="flex-shrink-0 p-4 border-t border-line">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-primary-700">
+              <div className="w-8 h-8 bg-brand-subtle rounded-full flex items-center justify-center">
+                <span className="text-sm font-medium text-brand-strong">
                   {user?.email?.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-content">
                   {role === 'admin' ? 'Admin' : 'Editor'}
                 </p>
-                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                <p className="text-xs text-content-subtle truncate">{user?.email}</p>
               </div>
             </div>
             
             <button
               onClick={handleLogout}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-              title="Cerrar sesión"
+              className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] touch-manipulation text-content-muted hover:text-content hover:bg-surface-muted rounded-lg transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              aria-label="Cerrar sesión"
             >
               <LogOut className="h-5 w-5" />
             </button>
@@ -164,18 +196,21 @@ const AdminLayout: React.FC = () => {
       {/* Main content */}
       <div className="flex-1 lg:ml-0">
         {/* Top header */}
-        <div className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200">
+        <div className="sticky top-0 z-10 bg-surface shadow-sm border-b border-line">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center">
               <button
+                ref={sidebarToggleRef}
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                aria-label="Abrir menú"
+                aria-expanded={sidebarOpen}
+                className="lg:hidden inline-flex items-center justify-center min-h-[44px] min-w-[44px] touch-manipulation rounded-md text-content-muted hover:text-content hover:bg-surface-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               >
                 <Menu className="h-6 w-6" />
               </button>
               
               {currentSection && (
-                <p className="ml-4 lg:ml-0 font-display text-lg font-semibold text-slate-700">
+                <p className="ml-4 lg:ml-0 font-display text-lg font-semibold text-content-muted">
                   {currentSection}
                 </p>
               )}
@@ -187,7 +222,7 @@ const AdminLayout: React.FC = () => {
               
               <Link
                 to="/"
-                className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200"
+                className="flex items-center text-sm text-content-muted hover:text-content transition-colors duration-200"
               >
                 <Home className="h-4 w-4 mr-1" />
                 Sitio público
@@ -195,9 +230,9 @@ const AdminLayout: React.FC = () => {
               
               <div className="hidden sm:block w-px h-6 bg-gray-300"></div>
               
-              <div className="flex items-center text-sm text-gray-600">
+              <div className="flex items-center text-sm text-content-muted">
                 <span className="hidden sm:inline">Bienvenido,</span>
-                <span className="font-medium text-gray-900 ml-1">
+                <span className="font-medium text-content ml-1">
                   {user?.email}
                 </span>
               </div>

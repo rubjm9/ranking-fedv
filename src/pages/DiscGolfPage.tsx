@@ -14,13 +14,13 @@ const DiscGolfPage: React.FC = () => {
 
       <div className="card">
         <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-          <div className="mb-4 p-4 bg-primary-50 rounded-2xl">
+          <div className="mb-4 p-4 bg-brand-subtle rounded-2xl">
             <Disc3 className="h-8 w-8 text-primary-400" aria-hidden />
           </div>
-          <h2 className="font-display text-xl font-semibold text-slate-900 mb-2">
+          <h2 className="font-display text-xl font-semibold text-content mb-2">
             Próximamente
           </h2>
-          <p className="text-slate-600 max-w-lg mb-8">
+          <p className="text-content-muted max-w-lg mb-8">
             Pronto estarán disponibles aquí los resultados de los campeonatos de España de
             disc golf. Mientras tanto, puedes consultar el ranking de Ultimate Frisbee.
           </p>

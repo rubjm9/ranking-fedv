@@ -17,24 +17,24 @@ const StatsCard: React.FC<StatsCardProps> = ({
   value,
   subtitle,
   isLoading = false,
-  iconColor = 'text-primary-600',
+  iconColor = 'text-link',
   className = '',
 }) => {
   return (
-    <div className={`bg-white rounded-2xl shadow-sm p-6 ${className}`}>
+    <div className={`bg-surface rounded-2xl shadow-sm p-6 ${className}`}>
       <div className="flex items-center">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center">
           <Icon className={`h-7 w-7 ${iconColor}`} strokeWidth={1.5} />
         </div>
         <div className="ml-4">
-          <p className="text-sm font-medium text-slate-600">{label}</p>
+          <p className="text-sm font-medium text-content-muted">{label}</p>
           {isLoading ? (
             <div className="h-8 w-16 bg-slate-200 rounded animate-pulse mt-1" />
           ) : (
             <>
-              <p className="text-2xl font-bold text-slate-900">{value}</p>
+              <p className="text-2xl font-bold text-content">{value}</p>
               {subtitle && (
-                <p className="text-xs text-slate-600 mt-1">{subtitle}</p>
+                <p className="text-xs text-content-muted mt-1">{subtitle}</p>
               )}
             </>
           )}

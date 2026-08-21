@@ -36,7 +36,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-2 max-w-3xl text-sm text-slate-400 md:text-base">{subtitle}</p>
+            <p className="mt-2 max-w-3xl text-sm text-content-subtle md:text-base">{subtitle}</p>
           )}
         </div>
         {actions && <div className="flex-shrink-0">{actions}</div>}

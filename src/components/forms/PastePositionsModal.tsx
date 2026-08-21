@@ -95,28 +95,29 @@ const PastePositionsModal: React.FC<PastePositionsModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+      <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-surface">
         <div className="mt-3">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
-              <Clipboard className="h-6 w-6 text-blue-600 mr-2" />
-              <h3 className="text-lg font-medium text-gray-900">
+              <Clipboard className="h-6 w-6 text-blue-600 dark:text-blue-300 mr-2" />
+              <h3 className="text-lg font-medium text-content">
                 Pegar listado de posiciones
               </h3>
             </div>
             <button
               onClick={handleClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Cerrar"
+              className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg touch-manipulation text-content-muted hover:text-content hover:bg-surface-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             >
               <X className="h-6 w-6" />
             </button>
           </div>
 
           {/* Instructions */}
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">Instrucciones:</h4>
-            <ul className="text-sm text-blue-700 space-y-1">
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg">
+            <h4 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">Instrucciones:</h4>
+            <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
               <li>• Pega una lista de equipos, uno por línea</li>
               <li>• El orden de las líneas será el orden de las posiciones</li>
               <li>• Los nombres deben coincidir exactamente con los registrados</li>
@@ -126,7 +127,7 @@ const PastePositionsModal: React.FC<PastePositionsModalProps> = ({
 
           {/* Text Area */}
           <div className="mb-4">
-            <label htmlFor="positions-text" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="positions-text" className="block text-sm font-medium text-content-muted mb-2">
               Listado de equipos (uno por línea):
             </label>
             <textarea
@@ -134,17 +135,17 @@ const PastePositionsModal: React.FC<PastePositionsModalProps> = ({
               value={pastedText}
               onChange={(e) => handleTextChange(e.target.value)}
               placeholder="Ejemplo:&#10;Sharks&#10;Guayota&#10;Murciélagos&#10;Bravas&#10;PXT"
-              className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full h-32 px-3 py-2 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             />
           </div>
 
           {/* Preview */}
           {parsedPositions.length > 0 && (
             <div className="mb-4">
-              <h4 className="text-sm font-medium text-gray-900 mb-2">
+              <h4 className="text-sm font-medium text-content mb-2">
                 Vista previa ({parsedPositions.length} posiciones):
               </h4>
-              <div className="bg-gray-50 rounded-lg p-3 max-h-40 overflow-y-auto">
+              <div className="bg-surface-muted rounded-lg p-3 max-h-40 overflow-y-auto">
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   {parsedPositions.map((team, index) => {
                     const position = index + 1
@@ -155,15 +156,15 @@ const PastePositionsModal: React.FC<PastePositionsModalProps> = ({
                       <div
                         key={index}
                         className={`flex items-center p-1 rounded ${
-                          isValid && !isDuplicate ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          isValid && !isDuplicate ? 'bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-300' : 'bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-300'
                         }`}
                       >
                         <span className="font-medium mr-2">{position}º</span>
                         <span>{team}</span>
                         {isValid && !isDuplicate ? (
-                          <CheckCircle className="h-4 w-4 ml-auto text-green-600" />
+                          <CheckCircle className="h-4 w-4 ml-auto text-green-600 dark:text-green-300" />
                         ) : (
-                          <AlertCircle className="h-4 w-4 ml-auto text-red-600" />
+                          <AlertCircle className="h-4 w-4 ml-auto text-red-600 dark:text-red-300" />
                         )}
                       </div>
                     )
@@ -176,12 +177,12 @@ const PastePositionsModal: React.FC<PastePositionsModalProps> = ({
           {/* Validation Errors */}
           {validationErrors.length > 0 && (
             <div className="mb-4">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <h4 className="text-sm font-medium text-red-900 mb-2 flex items-center">
+              <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 rounded-lg p-3">
+                <h4 className="text-sm font-medium text-red-900 dark:text-red-300 mb-2 flex items-center">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   Errores encontrados ({validationErrors.length}):
                 </h4>
-                <ul className="text-sm text-red-700 space-y-1">
+                <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
                   {validationErrors.map((error, index) => (
                     <li key={index}>• {error}</li>
                   ))}
@@ -194,7 +195,7 @@ const PastePositionsModal: React.FC<PastePositionsModalProps> = ({
           <div className="flex items-center justify-end space-x-3">
             <button
               onClick={handleClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="px-4 py-2 text-sm font-medium text-content-muted bg-surface border border-line-strong rounded-lg hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             >
               Cancelar
             </button>

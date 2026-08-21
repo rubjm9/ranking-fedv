@@ -12,9 +12,9 @@ const statIcons: Record<string, React.ComponentType<{ className?: string }>> = {
 }
 
 const changeTypeClass: Record<DashboardStatItem['changeType'], string> = {
-  positive: 'text-emerald-600',
-  negative: 'text-red-600',
-  neutral: 'text-secondary-500',
+  positive: 'text-emerald-600 dark:text-emerald-300',
+  negative: 'text-red-600 dark:text-red-300',
+  neutral: 'text-content-subtle',
 }
 
 interface DashboardStatCardsProps {
@@ -32,7 +32,7 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({ items, isLoadin
               <div className="flex-1 space-y-2">
                 <div className="h-4 bg-secondary-200 rounded w-2/3" />
                 <div className="h-8 bg-secondary-200 rounded w-1/2" />
-                <div className="h-3 bg-secondary-100 rounded w-3/4" />
+                <div className="h-3 bg-surface-muted rounded w-3/4" />
               </div>
               <div className="w-12 h-12 bg-secondary-200 rounded-lg" />
             </div>
@@ -55,8 +55,8 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({ items, isLoadin
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-secondary-600">{stat.name}</p>
-                <p className="text-2xl font-bold text-secondary-900">
+                <p className="text-sm font-medium text-content-muted">{stat.name}</p>
+                <p className="text-2xl font-bold text-content">
                   {formatStatDisplayValue(stat.value)}
                 </p>
                 {stat.change && (
@@ -69,11 +69,11 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({ items, isLoadin
                   </p>
                 )}
                 {stat.footnote && (
-                  <p className="text-xs text-amber-700 mt-0.5">{stat.footnote}</p>
+                  <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">{stat.footnote}</p>
                 )}
               </div>
-              <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                <Icon className="h-6 w-6 text-primary-600" />
+              <div className="w-12 h-12 bg-brand-subtle rounded-lg flex items-center justify-center">
+                <Icon className="h-6 w-6 text-link" />
               </div>
             </div>
           </Link>

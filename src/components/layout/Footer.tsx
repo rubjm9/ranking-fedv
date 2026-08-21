@@ -27,7 +27,7 @@ const Footer: React.FC = () => {
               <a
                 href="mailto:info@fedv.es"
                 aria-label="Enviar correo a info@fedv.es"
-                className="text-slate-400 hover:text-white transition-colors duration-200"
+                className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg touch-manipulation text-slate-300 hover:text-white hover:bg-white/10 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               >
                 <Mail className="w-5 h-5" />
               </a>
@@ -36,7 +36,7 @@ const Footer: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Visitar sitio web de FEDV"
-                className="text-slate-400 hover:text-white transition-colors duration-200"
+                className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg touch-manipulation text-slate-300 hover:text-white hover:bg-white/10 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               >
                 <MapPin className="w-5 h-5" />
               </a>
@@ -58,7 +58,10 @@ const Footer: React.FC = () => {
                 { label: 'Disc golf', to: '/disc-golf' },
               ].map(({ label, to }) => (
                 <li key={to}>
-                  <Link to={to} className="text-slate-400 hover:text-white transition-colors duration-200 text-sm">
+                  <Link
+                    to={to}
+                    className="inline-flex items-center min-h-[44px] touch-manipulation text-slate-300 hover:text-white transition-colors duration-200 text-sm"
+                  >
                     {label}
                   </Link>
                 </li>
@@ -74,7 +77,7 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-slate-500" />
-                <a href="mailto:info@fedv.es" className="text-slate-400 text-sm hover:text-white transition-colors">
+                <a href="mailto:info@fedv.es" className="inline-flex items-center min-h-[44px] touch-manipulation text-slate-300 text-sm hover:text-white transition-colors">
                   info@fedv.es
                 </a>
               </div>
@@ -84,7 +87,7 @@ const Footer: React.FC = () => {
 
         <div className="border-t border-slate-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-slate-500 text-sm">
+            <p className="text-slate-300 text-sm">
               © {currentYear} Federación Española de Disco Volador (FEDV).
               Todos los derechos reservados.
             </p>
@@ -95,7 +98,11 @@ const Footer: React.FC = () => {
                 { label: 'Términos', to: '/terms' },
                 ...(!isAuthenticated ? [{ label: 'Iniciar sesión', to: '/login' }] : []),
               ].map(({ label, to }) => (
-                <Link key={to} to={to} className="text-slate-500 hover:text-white text-sm transition-colors duration-200">
+                <Link
+                  key={to}
+                  to={to}
+                  className="inline-flex items-center min-h-[44px] touch-manipulation text-slate-300 hover:text-white text-sm transition-colors duration-200"
+                >
                   {label}
                 </Link>
               ))}

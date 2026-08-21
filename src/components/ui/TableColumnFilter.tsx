@@ -24,9 +24,9 @@ const TableColumnFilter: React.FC<TableColumnFilterProps> = ({
 }) => {
   const SortIcon = () => {
     if (sortIcon === 'none') return null
-    if (sortIcon === 'asc') return <ArrowUp className="h-3.5 w-3.5 text-primary-600" />
-    if (sortIcon === 'desc') return <ArrowDown className="h-3.5 w-3.5 text-primary-600" />
-    return <ArrowUpDown className="h-3.5 w-3.5 text-slate-400" />
+    if (sortIcon === 'asc') return <ArrowUp className="h-3.5 w-3.5 text-link" />
+    if (sortIcon === 'desc') return <ArrowDown className="h-3.5 w-3.5 text-link" />
+    return <ArrowUpDown className="h-3.5 w-3.5 text-content-subtle" />
   }
 
   return (
@@ -39,15 +39,15 @@ const TableColumnFilter: React.FC<TableColumnFilterProps> = ({
         <button
           type="button"
           onClick={onSort}
-          className={`inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider transition-colors ${
-            active ? 'text-primary-700' : 'text-slate-500 hover:text-slate-700'
+          className={`inline-flex items-center gap-1 min-h-[44px] touch-manipulation text-xs font-medium uppercase tracking-wider transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+            active ? 'text-brand-strong' : 'text-content-muted hover:text-content'
           }`}
         >
           <span>{label}</span>
           <SortIcon />
         </button>
       ) : (
-        <span className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</span>
+        <span className="text-xs font-medium uppercase tracking-wider text-content-subtle">{label}</span>
       )}
       {children && <div className="mt-1.5">{children}</div>}
     </th>

@@ -19,7 +19,7 @@ import AdminPageHeader from '@/components/layout/AdminPageHeader'
 import { generateSeasons } from '@/utils/tournamentUtils'
 
 const filterSelectClass =
-  'h-7 w-full min-w-[5.5rem] rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
+  'h-7 w-full min-w-[5.5rem] rounded-md border border-line bg-surface px-2 text-xs text-content-muted focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
 
 const RegionsAdminPage: React.FC = () => {
   const navigate = useNavigate()
@@ -200,11 +200,11 @@ const RegionsAdminPage: React.FC = () => {
       ) : (
         <>
           <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-content-subtle">
               {regions.length} {regions.length === 1 ? 'región' : 'regiones'} encontrada{regions.length !== 1 ? 's' : ''}
             </p>
             <div className="flex items-center gap-2">
-              <label htmlFor="regions-admin-season" className="text-xs text-slate-500 whitespace-nowrap">
+              <label htmlFor="regions-admin-season" className="text-xs text-content-subtle whitespace-nowrap">
                 Temporada
               </label>
               <select
@@ -223,25 +223,25 @@ const RegionsAdminPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-secondary-50 border-b border-slate-200">
+          <div className="bg-surface rounded-lg shadow overflow-x-auto">
+          <table className="min-w-full divide-y divide-line">
+            <thead className="bg-surface-muted border-b border-line">
               <tr>
                 <th
                   rowSpan={2}
-                  className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider border-r border-slate-200 align-middle whitespace-nowrap"
+                  className="px-4 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider border-r border-line align-middle whitespace-nowrap"
                 >
                   Región
                 </th>
                 <th
                   rowSpan={2}
-                  className="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider border-r border-slate-200 align-middle whitespace-nowrap"
+                  className="px-4 py-3 text-center text-xs font-medium text-content-subtle uppercase tracking-wider border-r border-line align-middle whitespace-nowrap"
                 >
                   Número de equipos
                 </th>
                 <th
                   colSpan={MODALITIES.length}
-                  className="px-4 py-3 text-center text-xs font-medium text-slate-700 uppercase tracking-wider border-r border-slate-200 bg-slate-100"
+                  className="px-4 py-3 text-center text-xs font-medium text-content-muted uppercase tracking-wider border-r border-line bg-surface-muted"
                 >
                   {selectedSeason
                     ? `Coeficientes temporada ${selectedSeason}`
@@ -249,7 +249,7 @@ const RegionsAdminPage: React.FC = () => {
                 </th>
                 <th
                   rowSpan={2}
-                  className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider align-middle"
+                  className="px-6 py-3 text-right text-xs font-medium text-content-subtle uppercase tracking-wider align-middle"
                 >
                   Acciones
                 </th>
@@ -259,45 +259,45 @@ const RegionsAdminPage: React.FC = () => {
                   <th
                     key={mod}
                     title={MODALITY_LABELS[mod]}
-                    className="px-2 py-2 text-center text-xs font-medium text-slate-600 border-r border-slate-200 last:border-r-0 min-w-[3rem]"
+                    className="px-2 py-2 text-center text-xs font-medium text-content-muted border-r border-line last:border-r-0 min-w-[3rem]"
                   >
                     {MODALITY_SHORT[mod]}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-slate-200">
+            <tbody className="bg-surface divide-y divide-line">
               {regions.map((region) => {
                 const modCoefs = coeffMap.get(region.id)
                 return (
-                <tr key={region.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap border-r border-gray-100">
+                <tr key={region.id} className="hover:bg-surface-muted">
+                  <td className="px-6 py-4 whitespace-nowrap border-r border-line">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
                         <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <MapPin className="h-5 w-5 text-blue-600" />
+                          <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-300" />
                         </div>
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{region.name}</div>
+                        <div className="text-sm font-medium text-content">{region.name}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-center border-r border-gray-100">
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-content text-center border-r border-line">
                     <span className="font-medium">{region._count?.teams || 0}</span>
                   </td>
                   {MODALITIES.map(mod => {
                     const coef = modCoefs?.[mod]
                     return (
-                      <td key={mod} className="px-2 py-4 whitespace-nowrap text-center border-r border-gray-100 last:border-r-0">
+                      <td key={mod} className="px-2 py-4 whitespace-nowrap text-center border-r border-line last:border-r-0">
                         {isLoadingCoeffs ? (
-                          <Loader2 className="mx-auto h-3.5 w-3.5 animate-spin text-slate-400" />
+                          <Loader2 className="mx-auto h-3.5 w-3.5 animate-spin text-content-subtle" />
                         ) : coef != null ? (
                           <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${getCoefficientColor(coef)}`}>
                             {coef.toFixed(2)}
                           </span>
                         ) : (
-                          <span className="text-xs text-gray-400">—</span>
+                          <span className="text-xs text-content-subtle">—</span>
                         )}
                       </td>
                     )
@@ -325,8 +325,8 @@ const RegionsAdminPage: React.FC = () => {
       {/* Modal de confirmación de eliminación */}
       {showDeleteModal && selectedRegion && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+          <div className="bg-surface rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-medium text-content mb-4">
               Confirmar eliminación
             </h3>
             
@@ -340,10 +340,10 @@ const RegionsAdminPage: React.FC = () => {
                     </svg>
                   </div>
                   <div className="ml-3">
-                    <h3 className="text-sm font-medium text-yellow-800">
+                    <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
                       Datos asociados encontrados
                     </h3>
-                    <div className="mt-2 text-sm text-yellow-700">
+                    <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
                       <ul className="list-disc list-inside space-y-1">
                         {selectedRegion._count?.teams > 0 && (
                           <li>{selectedRegion._count.teams} equipo(s) asociado(s)</li>
@@ -353,7 +353,7 @@ const RegionsAdminPage: React.FC = () => {
                         )}
                       </ul>
                     </div>
-                    <div className="mt-2 text-sm text-yellow-700">
+                    <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
                       <strong>Nota:</strong> No se puede eliminar una región que tiene equipos o torneos asociados.
                     </div>
                   </div>
@@ -361,10 +361,10 @@ const RegionsAdminPage: React.FC = () => {
               </div>
             )}
             
-            <p className="text-gray-600 mb-6">
+            <p className="text-content-muted mb-6">
               ¿Estás seguro de que quieres eliminar la región "{selectedRegion.name}"? 
               {selectedRegion._count?.teams > 0 || selectedRegion._count?.tournaments > 0 ? (
-                <span className="text-red-600 font-medium"> Esta acción no se puede realizar mientras tenga datos asociados.</span>
+                <span className="text-red-600 dark:text-red-300 font-medium"> Esta acción no se puede realizar mientras tenga datos asociados.</span>
               ) : (
                 <span> Esta acción no se puede deshacer.</span>
               )}

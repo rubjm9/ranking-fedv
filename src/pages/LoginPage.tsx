@@ -59,7 +59,7 @@ const LoginPage: React.FC = () => {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-6">
+          <div className="mx-auto h-16 w-16 bg-surface bg-opacity-20 rounded-full flex items-center justify-center mb-6">
             <Lock className="h-8 w-8 text-white" />
           </div>
           
@@ -73,17 +73,17 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="bg-surface rounded-2xl shadow-lg p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-content-muted mb-2">
                 Email
               </label>
               
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-slate-400" />
+                  <Mail className="h-5 w-5 text-content-subtle" />
                 </div>
                 
                 <input
@@ -95,14 +95,14 @@ const LoginPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className={`input-field pl-10 pr-3 py-3 ${
-                    errors.email ? 'border-red-300 bg-red-50' : ''
+                    errors.email ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : ''
                   }`}
                   placeholder="admin@fedv.es"
                 />
               </div>
               
               {errors.email && (
-                <div className="flex items-center mt-2 text-sm text-red-600">
+                <div className="flex items-center mt-2 text-sm text-red-600 dark:text-red-300">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {errors.email}
                 </div>
@@ -111,13 +111,13 @@ const LoginPage: React.FC = () => {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-content-muted mb-2">
                 Contraseña
               </label>
               
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-slate-400" />
+                  <Lock className="h-5 w-5 text-content-subtle" />
                 </div>
                 
                 <input
@@ -129,7 +129,7 @@ const LoginPage: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={`input-field pl-10 pr-12 py-3 ${
-                    errors.password ? 'border-red-300 bg-red-50' : ''
+                    errors.password ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : ''
                   }`}
                   placeholder="••••••••"
                 />
@@ -140,15 +140,15 @@ const LoginPage: React.FC = () => {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-slate-400 hover:text-slate-600" />
+                    <EyeOff className="h-5 w-5 text-content-subtle hover:text-content-muted" />
                   ) : (
-                    <Eye className="h-5 w-5 text-slate-400 hover:text-slate-600" />
+                    <Eye className="h-5 w-5 text-content-subtle hover:text-content-muted" />
                   )}
                 </button>
               </div>
               
               {errors.password && (
-                <div className="flex items-center mt-2 text-sm text-red-600">
+                <div className="flex items-center mt-2 text-sm text-red-600 dark:text-red-300">
                   <AlertCircle className="h-4 w-4 mr-1" />
                   {errors.password}
                 </div>
@@ -178,7 +178,7 @@ const LoginPage: React.FC = () => {
           <div className="mt-6 text-center">
             <Link
               to="/"
-              className="text-sm text-primary-600 hover:text-primary-500 transition-colors duration-200"
+              className="text-sm text-link hover:text-primary-500 transition-colors duration-200"
             >
               ← Volver al sitio público
             </Link>
@@ -186,7 +186,7 @@ const LoginPage: React.FC = () => {
         </div>
 
         {/* Info Card */}
-        <div className="bg-white bg-opacity-10 rounded-lg p-4 text-center">
+        <div className="bg-surface bg-opacity-10 rounded-lg p-4 text-center">
           <p className="text-sm text-primary-100">
             Solo personal autorizado de FEDV puede acceder al panel de administración.
           </p>

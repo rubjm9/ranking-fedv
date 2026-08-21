@@ -46,29 +46,29 @@ const Tabs: React.FC<TabsProps> = ({
     if (variant === 'pills') {
       return `${baseClasses} ${
         isActive
-          ? 'bg-primary-50 text-primary-700'
-          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+          ? 'bg-brand-subtle text-brand-strong'
+          : 'text-content-subtle hover:text-content hover:bg-surface-muted'
       }`
     }
 
     if (variant === 'underline') {
       return `${baseClasses} rounded-none border-b-2 ${
         isActive
-          ? 'border-primary-600 text-primary-700'
-          : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+          ? 'border-primary-600 text-brand-strong'
+          : 'border-transparent text-content-subtle hover:text-content-muted hover:border-line-strong'
       }`
     }
 
     return `${baseClasses} ${
       isActive
-        ? 'bg-white text-primary-700 border-b-2 border-primary-600'
-        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+        ? 'bg-surface text-brand-strong border-b-2 border-primary-600'
+        : 'text-content-subtle hover:text-content-muted hover:bg-surface-muted'
     }`
   }
 
   return (
     <div className={className}>
-      <div className={`mb-6 ${variant === 'underline' || variant === 'default' ? 'border-b border-slate-200' : ''}`}>
+      <div className={`mb-6 ${variant === 'underline' || variant === 'default' ? 'border-b border-line' : ''}`}>
         <nav className="flex gap-1 overflow-x-auto pb-1" aria-label="Tabs" role="tablist">
           {items.map((item) => {
             const Icon = item.icon
@@ -90,8 +90,8 @@ const Tabs: React.FC<TabsProps> = ({
                   <span
                     className={`ml-1 px-2 py-0.5 text-xs rounded-full ${
                       isActive
-                        ? 'bg-primary-100 text-primary-700'
-                        : 'bg-slate-200 text-slate-600'
+                        ? 'bg-brand-subtle text-brand-strong'
+                        : 'bg-slate-200 text-content-muted'
                     }`}
                   >
                     {item.badge}

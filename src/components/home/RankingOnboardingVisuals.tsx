@@ -12,9 +12,10 @@ import {
 } from 'recharts'
 import { nationalCurvePoints, regionalCurvePoints } from '@/utils/tournamentUtils'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
+import { cn } from '@/utils/cn'
 
 const baseNodeClass =
-  'rounded-xl border border-slate-200 bg-white/92 p-3 shadow-[0_18px_45px_-28px_rgba(30,64,175,0.45)] backdrop-blur-sm'
+  'rounded-xl border border-line bg-surface/92 p-3 shadow-[0_18px_45px_-28px_rgba(30,64,175,0.45)] backdrop-blur-sm'
 
 const modalityColumns = [
   { id: 'beach_mixed', label: 'Playa mixto', tone: 'primary' },
@@ -133,13 +134,13 @@ const SceneFrame: React.FC<{
   className?: string
 }> = ({ title, description, children, className = '' }) => (
   <div
-    className={`relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-primary-50/50 p-5 shadow-[0_25px_80px_-45px_rgba(15,23,42,0.35)] ${className}`}
+    className={`relative overflow-hidden rounded-[1.75rem] border border-line bg-gradient-to-br from-white via-slate-50 to-primary-50/50 p-5 shadow-[0_25px_80px_-45px_rgba(15,23,42,0.35)] ${className}`}
   >
     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.12),_transparent_42%),linear-gradient(rgba(148,163,184,0.14)_1px,_transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.14)_1px,_transparent_1px)] bg-[size:auto,24px_24px,24px_24px]" />
     <div className="relative">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <h4 className="text-lg font-semibold text-slate-900">{title}</h4>
-        <p className="max-w-xl text-sm leading-6 text-slate-600">{description}</p>
+        <h4 className="text-lg font-semibold text-content">{title}</h4>
+        <p className="max-w-xl text-sm leading-6 text-content-muted">{description}</p>
       </div>
       {children}
     </div>
@@ -147,9 +148,9 @@ const SceneFrame: React.FC<{
 )
 
 const toneClasses: Record<string, string> = {
-  slate: 'bg-slate-50 text-slate-700 ring-slate-200',
-  primary: 'bg-primary-50 text-primary-700 ring-primary-200',
-  emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+  slate: 'bg-surface-muted text-content-muted ring-line',
+  primary: 'bg-brand-subtle text-brand-strong ring-brand-strong/30',
+  emerald: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-emerald-200',
 }
 
 type SeasonPhase = 'idle' | 'incoming' | 'committed' | 'hold'
@@ -247,17 +248,17 @@ export const TournamentFlowScene: React.FC = () => {
         aria-label="Acumulado animado donde cada torneo suma puntos solo en la modalidad correspondiente"
       >
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <span className="inline-flex items-center rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700">
+          <span className="inline-flex items-center rounded-full border border-brand-strong/30 bg-brand-subtle px-3 py-1 text-xs font-semibold text-brand-strong">
             Temporada 24/25
           </span>
-          <p className="text-sm font-medium text-slate-600">{caption}</p>
+          <p className="text-sm font-medium text-content-muted">{caption}</p>
         </div>
 
         <div className="relative mb-4 flex min-h-[3.25rem] items-center justify-center">
           {!prefersReducedMotion && phase === 'incoming' && activeEvent && (
             <div
               key={`${activeEvent.id}-${eventIndex}`}
-              className="onboarding-ledger-chip absolute inline-flex items-center gap-2 rounded-full border border-primary-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm"
+              className="onboarding-ledger-chip absolute inline-flex items-center gap-2 rounded-full border border-brand-strong/30 bg-surface px-4 py-2 text-sm font-semibold text-content shadow-sm"
             >
               <span className="rounded-full bg-primary-600 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
                 {activeEvent.chip.split(' · ')[0]}
@@ -265,7 +266,7 @@ export const TournamentFlowScene: React.FC = () => {
               <span>
                 {activeEvent.chip.split(' · ')[1]} · {activeEvent.detail}
               </span>
-              <span className="text-primary-700">+{activeEvent.points}</span>
+              <span className="text-brand-strong">+{activeEvent.points}</span>
             </div>
           )}
         </div>
@@ -282,14 +283,17 @@ export const TournamentFlowScene: React.FC = () => {
             return (
               <div
                 key={column.id}
-                className={`${baseNodeClass} flex min-h-[10.5rem] flex-col transition-all duration-300 ${
-                  isActive ? 'border-primary-300 ring-2 ring-primary-100' : ''
-                } ${isBumping ? 'onboarding-ledger-bump' : ''}`}
+                className={cn(
+                  baseNodeClass,
+                  'flex min-h-[10.5rem] flex-col transition-all duration-300',
+                  isActive && 'border-primary-300 ring-2 ring-primary-100',
+                  isBumping && 'onboarding-ledger-bump'
+                )}
               >
                 <div className="mb-2 flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-sm font-semibold leading-5 text-slate-900">{column.label}</p>
-                    <p className="mt-1 text-[11px] uppercase tracking-[0.08em] text-slate-400">
+                    <p className="text-sm font-semibold leading-5 text-content">{column.label}</p>
+                    <p className="mt-1 text-[11px] uppercase tracking-[0.08em] text-content-subtle">
                       Acumulado
                     </p>
                   </div>
@@ -302,18 +306,18 @@ export const TournamentFlowScene: React.FC = () => {
 
                 <div className="flex flex-1 flex-col gap-1">
                   {columnStamps.length === 0 ? (
-                    <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50/70 px-2 py-3 text-center text-[11px] text-slate-400">
+                    <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed border-line bg-surface-muted/70 px-2 py-3 text-center text-[11px] text-content-subtle">
                       Sin resultados
                     </div>
                   ) : (
                     columnStamps.map((stamp) => (
                       <div
                         key={stamp.id}
-                        className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] leading-4 text-slate-600"
+                        className="rounded-lg border border-line bg-surface px-2 py-1.5 text-[11px] leading-4 text-content-muted"
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <span className="font-semibold text-slate-800">{stamp.chip}</span>
-                          <span className="font-semibold text-primary-700">+{stamp.points}</span>
+                          <span className="font-semibold text-content">{stamp.chip}</span>
+                          <span className="font-semibold text-brand-strong">+{stamp.points}</span>
                         </div>
                       </div>
                     ))
@@ -325,22 +329,22 @@ export const TournamentFlowScene: React.FC = () => {
         </div>
 
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <div className={`${baseNodeClass} bg-primary-50/80`}>
-            <p className="text-sm font-semibold text-slate-900">Acumulación</p>
-            <p className="mt-2 text-sm text-slate-600">
+          <div className={cn(baseNodeClass, 'bg-brand-subtle/80')}>
+            <p className="text-sm font-semibold text-content">Acumulación</p>
+            <p className="mt-2 text-sm text-content-muted">
               Un CE (CE1 o CE2) y los regionales de la misma modalidad se suman en la misma
               columna.
             </p>
           </div>
-          <div className={`${baseNodeClass} bg-slate-50/80`}>
-            <p className="text-sm font-semibold text-slate-900">Independencia</p>
-            <p className="mt-2 text-sm text-slate-600">
+          <div className={cn(baseNodeClass, 'bg-surface-muted/80')}>
+            <p className="text-sm font-semibold text-content">Independencia</p>
+            <p className="mt-2 text-sm text-content-muted">
               Un resultado de césped open no mueve playa mixto ni ninguna otra modalidad.
             </p>
           </div>
-          <div className={`${baseNodeClass} bg-emerald-50/80`}>
-            <p className="text-sm font-semibold text-slate-900">Temporada completa</p>
-            <p className="mt-2 text-sm text-slate-600">
+          <div className={cn(baseNodeClass, 'bg-emerald-50/80 dark:bg-emerald-950/40')}>
+            <p className="text-sm font-semibold text-content">Temporada completa</p>
+            <p className="mt-2 text-sm text-content-muted">
               El ranking de modalidad es la suma de todos los torneos oficiales del año.
             </p>
           </div>
@@ -363,13 +367,13 @@ const CurveTooltip: React.FC<CurveTooltipProps> = ({ active, payload, label }) =
   const regional = payload.find((entry) => entry.dataKey === 'regional')?.value
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm shadow-lg">
-      <p className="font-semibold text-slate-900">Puesto n.º {label}</p>
-      <p className="mt-1 text-slate-600">
-        CE: <span className="font-semibold text-primary-700">{ce ?? '—'} pts</span>
+    <div className="rounded-xl border border-line bg-surface px-3 py-2 text-sm shadow-lg">
+      <p className="font-semibold text-content">Puesto n.º {label}</p>
+      <p className="mt-1 text-content-muted">
+        CE: <span className="font-semibold text-brand-strong">{ce ?? '—'} pts</span>
       </p>
-      <p className="text-slate-600">
-        Regional: <span className="font-semibold text-emerald-700">{regional ?? '—'} pts</span>
+      <p className="text-content-muted">
+        Regional: <span className="font-semibold text-emerald-700 dark:text-emerald-300">{regional ?? '—'} pts</span>
       </p>
     </div>
   )
@@ -384,11 +388,11 @@ export const PositionCurveScene: React.FC = () => {
       description="La bajada es más agresiva del 1.º al 8.º puesto y luego se comprime. Compara la curva nacional con la base regional previa al coeficiente."
     >
       <div
-        className="overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/80 p-4"
+        className="overflow-hidden rounded-[1.5rem] border border-line bg-surface/80 p-4"
         role="img"
         aria-label="Gráfica interactiva de puntos por puesto para Campeonatos de España y regionales"
       >
-        <div className="mb-3 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
+        <div className="mb-3 flex flex-wrap items-center gap-3 text-xs font-medium text-content-subtle">
           <span className="inline-flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-primary-600" aria-hidden />
             Campeonatos de España
@@ -397,7 +401,7 @@ export const PositionCurveScene: React.FC = () => {
             <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
             Regionales (base)
           </span>
-          <span className="text-slate-400">Toca o pasa el cursor para ver el detalle</span>
+          <span className="text-content-subtle">Toca o pasa el cursor para ver el detalle</span>
         </div>
 
         <div className="h-[260px] w-full sm:h-[300px]">
@@ -429,9 +433,13 @@ export const PositionCurveScene: React.FC = () => {
               <Legend
                 verticalAlign="top"
                 height={28}
-                formatter={(value) =>
-                  value === 'ce' ? 'Campeonatos de España' : 'Regionales'
-                }
+                formatter={(value) => (
+                  /* Sin esto la etiqueta hereda el color de la serie, que sobre
+                     fondo oscuro bajaba a 3,35:1. */
+                  <span className="text-content-muted">
+                    {value === 'ce' ? 'Campeonatos de España' : 'Regionales'}
+                  </span>
+                )}
               />
               <ReferenceLine
                 x={8.5}
@@ -469,23 +477,23 @@ export const PositionCurveScene: React.FC = () => {
         </div>
 
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <div className={`${baseNodeClass} bg-primary-50/80`}>
-            <p className="text-xs font-semibold tracking-[0.08em] text-primary-700">1.º a 8.º</p>
-            <p className="mt-2 text-sm text-slate-700">
+          <div className={cn(baseNodeClass, 'bg-brand-subtle/80')}>
+            <p className="text-xs font-semibold tracking-[0.08em] text-brand-strong">1.º a 8.º</p>
+            <p className="mt-2 text-sm text-content-muted">
               Caída del 15% por posición: ganar cambia mucho la foto.
             </p>
           </div>
-          <div className={`${baseNodeClass} bg-slate-50/80`}>
-            <p className="text-xs font-semibold tracking-[0.08em] text-slate-700">
+          <div className={cn(baseNodeClass, 'bg-surface-muted/80')}>
+            <p className="text-xs font-semibold tracking-[0.08em] text-content-muted">
               9.º en adelante
             </p>
-            <p className="mt-2 text-sm text-slate-700">
+            <p className="mt-2 text-sm text-content-muted">
               Caída del 10%: sigue premiando, pero comprime la zona baja.
             </p>
           </div>
-          <div className={`${baseNodeClass} bg-amber-50/80`}>
-            <p className="text-xs font-semibold tracking-[0.08em] text-amber-700">Regionales</p>
-            <p className="mt-2 text-sm text-slate-700">
+          <div className={cn(baseNodeClass, 'bg-amber-50/80 dark:bg-amber-950/40')}>
+            <p className="text-xs font-semibold tracking-[0.08em] text-amber-700 dark:text-amber-300">Regionales</p>
+            <p className="mt-2 text-sm text-content-muted">
               La curva regional parte de 100 puntos y después se multiplica por coeficiente.
             </p>
           </div>

@@ -239,7 +239,7 @@ const SeasonManagementPage: React.FC = () => {
       )
     }
     return (
-      <span className="inline-flex text-green-600" title="Jugado, con resultados registrados">
+      <span className="inline-flex text-green-600 dark:text-green-300" title="Jugado, con resultados registrados">
         <CheckCircle className="h-4 w-4" />
       </span>
     )
@@ -247,9 +247,9 @@ const SeasonManagementPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="border-b border-gray-200 pb-4">
+      <div className="border-b border-line pb-4">
         <h1 className="page-header-title">Temporadas y ranking</h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-content-muted mt-1">
           Monitor de subtemporadas, actualización del ranking y cierre de temporada
         </p>
       </div>
@@ -257,17 +257,17 @@ const SeasonManagementPage: React.FC = () => {
       <RankingStaleBanner />
 
       {/* Selector de temporada */}
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-surface shadow rounded-lg p-6">
         <div className="flex flex-wrap items-end gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Temporada</label>
+            <label className="block text-sm font-medium text-content-muted mb-1">Temporada</label>
             <select
               value={selectedSeason}
               onChange={e => {
                 setSelectedSeason(e.target.value)
                 setSeasonStats(null)
               }}
-              className="block rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:ring-blue-500"
+              className="block rounded-md border border-line-strong bg-surface py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:ring-blue-500"
             >
               <option value="">Selecciona una temporada</option>
               {(seasonsList || []).map(s => (
@@ -278,7 +278,7 @@ const SeasonManagementPage: React.FC = () => {
             </select>
           </div>
           {monitorData?.lastUpdated && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-content-muted">
               <Clock className="w-4 h-4" />
               <span>Última actualización: {formatDate(monitorData.lastUpdated)}</span>
             </div>
@@ -288,33 +288,33 @@ const SeasonManagementPage: React.FC = () => {
 
       {/* Monitor de subtemporadas */}
       {selectedSeason && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Estado de subtemporadas</h2>
-          <p className="text-sm text-gray-600 mb-4">
+        <div className="bg-surface shadow rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-content mb-2">Estado de subtemporadas</h2>
+          <p className="text-sm text-content-muted mb-4">
             Revisa los torneos por subtemporada y ciérralos o recalcúlalos cuando corresponda.
           </p>
           {loadingMonitor ? (
-            <p className="text-gray-500 py-4">Cargando datos...</p>
+            <p className="text-content-subtle py-4">Cargando datos...</p>
           ) : monitorData ? (
-            <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+            <div className="overflow-x-auto rounded-lg border border-line bg-surface">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50">
-                    <th rowSpan={2} className="px-4 py-3 text-left font-medium text-gray-700 border-r border-gray-200 w-48 align-middle">
+                  <tr className="border-b border-line bg-surface-muted">
+                    <th rowSpan={2} className="px-4 py-3 text-left font-medium text-content-muted border-r border-line w-48 align-middle">
                       Campeonato
                     </th>
-                    <th colSpan={3} className="px-2 py-3 text-center font-medium text-gray-700 border-r border-gray-200 bg-gray-100">
+                    <th colSpan={3} className="px-2 py-3 text-center font-medium text-content-muted border-r border-line bg-surface-muted">
                       Playa
                     </th>
-                    <th colSpan={3} className="px-2 py-3 text-center font-medium text-gray-700 border-r border-gray-200 last:border-r-0 bg-gray-100">
+                    <th colSpan={3} className="px-2 py-3 text-center font-medium text-content-muted border-r border-line last:border-r-0 bg-surface-muted">
                       Césped
                     </th>
                   </tr>
-                  <tr className="border-b border-gray-200 bg-gray-50">
+                  <tr className="border-b border-line bg-surface-muted">
                     {COLUMNS.map(col => (
                       <th
                         key={`${col.surface}-${col.category}`}
-                        className="px-3 py-2 text-center font-medium text-gray-600 border-r border-gray-200 last:border-r-0 min-w-[4rem]"
+                        className="px-3 py-2 text-center font-medium text-content-muted border-r border-line last:border-r-0 min-w-[4rem]"
                       >
                         {CATEGORY_LABEL[col.category] || col.category}
                       </th>
@@ -323,8 +323,8 @@ const SeasonManagementPage: React.FC = () => {
                 </thead>
                 <tbody>
                   {tableRows.map((row) => (
-                    <tr key={row.type === 'REGIONAL' && row.regionId ? `REGIONAL-${row.regionId}` : row.type} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="px-4 py-2 font-medium text-gray-900 border-r border-gray-200 whitespace-nowrap">
+                    <tr key={row.type === 'REGIONAL' && row.regionId ? `REGIONAL-${row.regionId}` : row.type} className="border-b border-line hover:bg-surface-muted">
+                      <td className="px-4 py-2 font-medium text-content border-r border-line whitespace-nowrap">
                         {row.label}
                       </td>
                       {COLUMNS.map(col => {
@@ -332,7 +332,7 @@ const SeasonManagementPage: React.FC = () => {
                         return (
                           <td
                             key={`${col.surface}-${col.category}`}
-                            className="px-3 py-2 text-center border-r border-gray-100 last:border-r-0"
+                            className="px-3 py-2 text-center border-r border-line last:border-r-0"
                           >
                             {renderCellIcon(state)}
                           </td>
@@ -340,8 +340,8 @@ const SeasonManagementPage: React.FC = () => {
                       })}
                     </tr>
                   ))}
-                  <tr className="border-t-2 border-gray-200 bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-700 border-r border-gray-200">
+                  <tr className="border-t-2 border-line bg-surface-muted">
+                    <td className="px-4 py-3 font-medium text-content-muted border-r border-line">
                       Recalcular subtemporadas
                     </td>
                     {([1, 2, 3, 4] as SubseasonId[]).map(subId => {
@@ -353,7 +353,7 @@ const SeasonManagementPage: React.FC = () => {
                         <td
                           key={subId}
                           colSpan={colSpan}
-                          className="px-2 py-2 text-center border-r border-gray-200 last:border-r-0 align-middle"
+                          className="px-2 py-2 text-center border-r border-line last:border-r-0 align-middle"
                         >
                           <button
                             type="button"
@@ -386,7 +386,7 @@ const SeasonManagementPage: React.FC = () => {
               </table>
             </div>
           ) : (
-            <p className="text-gray-500 py-4">No se pudieron cargar los datos.</p>
+            <p className="text-content-subtle py-4">No se pudieron cargar los datos.</p>
           )}
         </div>
       )}
@@ -394,8 +394,8 @@ const SeasonManagementPage: React.FC = () => {
       <RankingMaintenancePanel selectedSeason={selectedSeason} />
 
       {/* Acciones por temporada */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Cierre y estadísticas</h2>
+      <div className="bg-surface shadow rounded-lg p-6">
+        <h2 className="text-lg font-semibold text-content mb-4">Cierre y estadísticas</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button
             onClick={handleCloseSeason}
@@ -415,7 +415,7 @@ const SeasonManagementPage: React.FC = () => {
             <span>Estadísticas</span>
           </button>
         </div>
-        <div className="mt-4 text-sm text-gray-600 space-y-1">
+        <div className="mt-4 text-sm text-content-muted space-y-1">
           <p>
             <strong>Cerrar temporada:</strong> marca la temporada como completa y calcula coeficientes
             regionales para la siguiente.
@@ -433,24 +433,24 @@ const SeasonManagementPage: React.FC = () => {
 
       {/* Estadísticas de temporada */}
       {seasonStats && (
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-surface shadow rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-content mb-4">
             Estadísticas de {selectedSeason}
           </h2>
 
           <div className="mb-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-content-muted">
               <strong>Total de equipos:</strong> {seasonStats.total_teams}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.keys(seasonStats.categories || {}).map(category => (
-              <div key={category} className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">
+              <div key={category} className="bg-surface-muted rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-content mb-2">
                   {category.replace('_', ' ')}
                 </h3>
-                <div className="space-y-1 text-sm text-gray-600">
+                <div className="space-y-1 text-sm text-content-muted">
                   <p><strong>Equipos:</strong> {seasonStats.categories[category].teams}</p>
                   <p><strong>Total puntos:</strong> {seasonStats.categories[category].total_points.toFixed(1)}</p>
                   <p><strong>Promedio:</strong> {seasonStats.categories[category].avg_points.toFixed(1)}</p>

@@ -476,8 +476,8 @@ const RegionDetailPage: React.FC = () => {
   if (isLoading || !region) {
     return (
       <PageContainer className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-        <span className="ml-3 text-slate-600">Cargando región...</span>
+        <Loader2 className="w-8 h-8 animate-spin text-link" />
+        <span className="ml-3 text-content-muted">Cargando región...</span>
       </PageContainer>
     )
   }
@@ -530,7 +530,7 @@ const RegionDetailPage: React.FC = () => {
       />
 
       <div className="card mb-8">
-        <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Coeficientes por temporada</h2>
+        <h2 className="font-display text-lg font-semibold text-content mb-4">Coeficientes por temporada</h2>
         <SeasonNavigator
           seasons={availableSeasons}
           defaultSeason={referenceSeason}
@@ -546,18 +546,18 @@ const RegionDetailPage: React.FC = () => {
             const surface = key.startsWith('grass') ? 'GRASS' : 'BEACH'
             const pct = coef !== null ? ((coef - 0.80) / (1.20 - 0.80)) * 100 : 50
             return (
-              <div key={key} className="bg-slate-50 rounded-xl p-4">
+              <div key={key} className="bg-surface-muted rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-slate-700">{label}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${surface === 'GRASS' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
+                  <span className="text-sm font-medium text-content-muted">{label}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${surface === 'GRASS' ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300' : 'bg-blue-100 text-blue-700 dark:text-blue-300'}`}>
                     {surface === 'GRASS' ? 'Césped' : 'Playa'}
                   </span>
                 </div>
                 {coef !== null ? (
                   <>
-                    <p className="text-2xl font-bold text-slate-900 mb-2">{coef.toFixed(2)}×</p>
+                    <p className="text-2xl font-bold text-content mb-2">{coef.toFixed(2)}×</p>
                     <CoefProgressBar pct={pct} barClass={style!.bar} />
-                    <div className="flex justify-between text-[10px] text-slate-400 mb-2">
+                    <div className="flex justify-between text-[10px] text-content-subtle mb-2">
                       <span>0.80</span>
                       <span>1.00</span>
                       <span>1.20</span>
@@ -565,7 +565,7 @@ const RegionDetailPage: React.FC = () => {
                     <span className={`text-xs ${style!.badge}`}>{style!.label}</span>
                   </>
                 ) : (
-                  <p className="text-sm text-slate-400 italic mt-1">Sin datos</p>
+                  <p className="text-sm text-content-subtle italic mt-1">Sin datos</p>
                 )}
               </div>
             )
@@ -575,7 +575,7 @@ const RegionDetailPage: React.FC = () => {
 
       {evolutionChartData.length > 1 && (
         <div className="card mb-8">
-          <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Evolución histórica</h2>
+          <h2 className="font-display text-lg font-semibold text-content mb-4">Evolución histórica</h2>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={evolutionChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -611,14 +611,14 @@ const RegionDetailPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         <div className="lg:col-span-2 card">
-          <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Equipos de la región</h2>
+          <h2 className="font-display text-lg font-semibold text-content mb-4">Equipos de la región</h2>
           <div className="flex flex-wrap gap-2 mb-4">
             <button
               onClick={() => handleRankingViewChange('global')}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 isGlobalView
                   ? 'bg-primary-600 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  : 'bg-surface-muted text-content-muted hover:bg-slate-200'
               }`}
             >
               Ranking global
@@ -630,7 +630,7 @@ const RegionDetailPage: React.FC = () => {
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   activeRankingView === m
                     ? 'bg-primary-600 text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    : 'bg-surface-muted text-content-muted hover:bg-slate-200'
                 }`}
               >
                 {MODALITY_LABELS[m]}
@@ -640,8 +640,8 @@ const RegionDetailPage: React.FC = () => {
 
           {isRankingLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-5 h-5 animate-spin text-primary-600 mr-2" />
-              <span className="text-sm text-slate-500">Cargando clasificación...</span>
+              <Loader2 className="w-5 h-5 animate-spin text-link mr-2" />
+              <span className="text-sm text-content-subtle">Cargando clasificación...</span>
             </div>
           ) : displayedTeams.length === 0 ? (
             <EmptyState
@@ -725,7 +725,7 @@ const RegionDetailPage: React.FC = () => {
                         <DataTableCell>
                           <Link
                             to={getTeamPublicUrl(team)}
-                            className="flex items-center gap-3 font-medium text-slate-900 hover:text-primary-600"
+                            className="flex items-center gap-3 font-medium text-content hover:text-link"
                           >
                             <TeamLogo name={team.name} logo={team.logo} size="sm" />
                             {team.name}
@@ -733,20 +733,20 @@ const RegionDetailPage: React.FC = () => {
                         </DataTableCell>
                         <DataTableCell>{team.points.toFixed(1)}</DataTableCell>
                         <DataTableCell>{team.historicalPoints.toFixed(1)}</DataTableCell>
-                        <DataTableCell className="text-slate-500">{team.tournaments}</DataTableCell>
+                        <DataTableCell className="text-content-subtle">{team.tournaments}</DataTableCell>
                       </DataTableRow>
                     ))
                   : modalityTeams.map(team => (
                       <DataTableRow key={team.id}>
                         <DataTableCell>
-                          <span className={`font-bold ${team.nationalPosition <= 3 ? 'text-amber-600' : team.nationalPosition <= 8 ? 'text-primary-600' : 'text-slate-700'}`}>
+                          <span className={`font-bold ${team.nationalPosition <= 3 ? 'text-amber-600 dark:text-amber-300' : team.nationalPosition <= 8 ? 'text-link' : 'text-content-muted'}`}>
                             #{team.nationalPosition}
                           </span>
                         </DataTableCell>
                         <DataTableCell>
                           <Link
                             to={getTeamPublicUrl({ id: team.id })}
-                            className="flex items-center gap-3 font-medium text-slate-900 hover:text-primary-600"
+                            className="flex items-center gap-3 font-medium text-content hover:text-link"
                           >
                             <TeamLogo name={team.name} logo={team.logo} size="sm" />
                             {team.name}
@@ -763,7 +763,7 @@ const RegionDetailPage: React.FC = () => {
 
         <div className="space-y-6">
           <div className="card">
-            <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Ranking general actual</h2>
+            <h2 className="font-display text-lg font-semibold text-content mb-4">Ranking general actual</h2>
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={chartData}>
@@ -775,12 +775,12 @@ const RegionDetailPage: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-sm text-slate-500 text-center py-8">Sin datos de puntos</p>
+              <p className="text-sm text-content-subtle text-center py-8">Sin datos de puntos</p>
             )}
           </div>
 
           <div className="card">
-            <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Puntuación histórica</h2>
+            <h2 className="font-display text-lg font-semibold text-content mb-4">Puntuación histórica</h2>
             {historicalChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={historicalChartData}>
@@ -792,14 +792,14 @@ const RegionDetailPage: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-sm text-slate-500 text-center py-8">Sin datos históricos</p>
+              <p className="text-sm text-content-subtle text-center py-8">Sin datos históricos</p>
             )}
           </div>
         </div>
       </div>
 
       <div>
-        <h2 className="font-display text-lg font-semibold text-slate-900 mb-4">Campeonatos regionales</h2>
+        <h2 className="font-display text-lg font-semibold text-content mb-4">Campeonatos regionales</h2>
         {tournaments.length === 0 ? (
           <EmptyState
             title="Sin torneos"
@@ -821,13 +821,13 @@ const RegionDetailPage: React.FC = () => {
                   <DataTableCell>
                     <Link
                       to={`/tournaments/${tournament.id}`}
-                      className="font-medium text-slate-900 hover:text-primary-600"
+                      className="font-medium text-content hover:text-link"
                     >
                       {tournament.name}
                     </Link>
                   </DataTableCell>
                   <DataTableCell>{tournament.year}</DataTableCell>
-                  <DataTableCell className="text-slate-500">
+                  <DataTableCell className="text-content-subtle">
                     {getTournamentTypeLabel(tournament.type)}
                   </DataTableCell>
                   <DataTableCell>

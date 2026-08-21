@@ -8,18 +8,18 @@ const NotFoundPage: React.FC = () => {
     <PageContainer className="flex items-center justify-center min-h-[60vh]">
       <div className="max-w-md w-full text-center">
         <div className="flex justify-center mb-8">
-          <div className="w-20 h-20 bg-primary-50 rounded-2xl flex items-center justify-center">
-            <AlertTriangle className="w-10 h-10 text-primary-600" />
+          <div className="w-20 h-20 bg-brand-subtle rounded-2xl flex items-center justify-center">
+            <AlertTriangle className="w-10 h-10 text-link" />
           </div>
         </div>
 
         <h1 className="font-display text-6xl font-bold text-slate-300 mb-4">404</h1>
 
-        <h2 className="font-display text-2xl font-semibold text-slate-900 mb-4">
+        <h2 className="font-display text-2xl font-semibold text-content mb-4">
           Página no encontrada
         </h2>
 
-        <p className="text-slate-600 mb-8">
+        <p className="text-content-muted mb-8">
           La página que buscas no existe o ha sido movida.
         </p>
 

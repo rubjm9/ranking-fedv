@@ -115,20 +115,20 @@ const RankingMaintenancePanel: React.FC<RankingMaintenancePanelProps> = ({ selec
   }
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h2 className="text-lg font-semibold text-secondary-900 mb-2">Actualización del ranking</h2>
-      <p className="text-sm text-secondary-600 mb-4">
+    <div className="bg-surface shadow rounded-lg p-6">
+      <h2 className="text-lg font-semibold text-content mb-2">Actualización del ranking</h2>
+      <p className="text-sm text-content-muted mb-4">
         Flujo recomendado tras editar torneos o resultados: recalcula posiciones, coeficientes
         regionales (si afectan CE1/CE2), puntos por temporada y rankings públicos.
       </p>
 
-      <div className="rounded-xl border border-primary-200 bg-primary-50/40 p-4 mb-4">
+      <div className="rounded-xl border border-brand-strong/30 bg-brand-subtle/40 p-4 mb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <Sparkles className="h-6 w-6 shrink-0 text-primary-600 mt-0.5" aria-hidden />
+            <Sparkles className="h-6 w-6 shrink-0 text-link mt-0.5" aria-hidden />
             <div>
-              <h3 className="font-medium text-secondary-900">Actualización inteligente</h3>
-              <p className="text-sm text-secondary-600 mt-1">
+              <h3 className="font-medium text-content">Actualización inteligente</h3>
+              <p className="text-sm text-content-muted mt-1">
                 Ejecuta los 4 pasos en orden: posiciones → coeficientes → puntos → rankings
               </p>
             </div>
@@ -148,7 +148,7 @@ const RankingMaintenancePanel: React.FC<RankingMaintenancePanelProps> = ({ selec
       <button
         type="button"
         onClick={() => setShowAdvanced((v) => !v)}
-        className="flex items-center gap-2 text-sm font-medium text-secondary-700 hover:text-primary-600 transition-colors"
+        className="flex items-center gap-2 text-sm font-medium text-content-muted hover:text-link transition-colors"
         aria-expanded={showAdvanced}
       >
         {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -161,7 +161,7 @@ const RankingMaintenancePanel: React.FC<RankingMaintenancePanelProps> = ({ selec
             type="button"
             onClick={handleRegenerateSeasonOnly}
             disabled={isRegeneratingSeason || !selectedSeason}
-            className="flex items-center justify-center gap-2 rounded-lg border border-secondary-200 px-4 py-3 text-sm font-medium text-secondary-800 hover:bg-secondary-50 disabled:opacity-50 transition-colors"
+            className="flex items-center justify-center gap-2 rounded-lg border border-line px-4 py-3 text-sm font-medium text-content hover:bg-surface-muted disabled:opacity-50 transition-colors"
           >
             <RefreshCw className={`h-4 w-4 ${isRegeneratingSeason ? 'animate-spin' : ''}`} />
             Regenerar puntos (temporada)
@@ -170,7 +170,7 @@ const RankingMaintenancePanel: React.FC<RankingMaintenancePanelProps> = ({ selec
             type="button"
             onClick={handleRecalcCoeffsOnly}
             disabled={isRecalcCoeffs}
-            className="flex items-center justify-center gap-2 rounded-lg border border-secondary-200 px-4 py-3 text-sm font-medium text-secondary-800 hover:bg-secondary-50 disabled:opacity-50 transition-colors"
+            className="flex items-center justify-center gap-2 rounded-lg border border-line px-4 py-3 text-sm font-medium text-content hover:bg-surface-muted disabled:opacity-50 transition-colors"
           >
             <Calculator className={`h-4 w-4 ${isRecalcCoeffs ? 'animate-spin' : ''}`} />
             Recalcular coeficientes
@@ -179,7 +179,7 @@ const RankingMaintenancePanel: React.FC<RankingMaintenancePanelProps> = ({ selec
             type="button"
             onClick={handleSyncRankingsOnly}
             disabled={isSyncing}
-            className="flex items-center justify-center gap-2 rounded-lg border border-secondary-200 px-4 py-3 text-sm font-medium text-secondary-800 hover:bg-secondary-50 disabled:opacity-50 transition-colors"
+            className="flex items-center justify-center gap-2 rounded-lg border border-line px-4 py-3 text-sm font-medium text-content hover:bg-surface-muted disabled:opacity-50 transition-colors"
           >
             <TrendingUp className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
             Reconstruir rankings
@@ -190,20 +190,20 @@ const RankingMaintenancePanel: React.FC<RankingMaintenancePanelProps> = ({ selec
       {lastResult && (
         <div
           className={`mt-4 rounded-lg border p-4 ${
-            lastResult.success ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'
+            lastResult.success ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200' : 'bg-red-50 dark:bg-red-950/40 border-red-200'
           }`}
         >
           <div className="flex items-start gap-2 mb-3">
             {lastResult.success ? (
-              <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0" />
+              <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-300 shrink-0" />
             ) : (
-              <AlertTriangle className="h-5 w-5 text-red-600 shrink-0" />
+              <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-300 shrink-0" />
             )}
-            <p className={`text-sm font-medium ${lastResult.success ? 'text-emerald-900' : 'text-red-900'}`}>
+            <p className={`text-sm font-medium ${lastResult.success ? 'text-emerald-900 dark:text-emerald-300' : 'text-red-900 dark:text-red-300'}`}>
               {lastResult.message}
             </p>
           </div>
-          <div className="space-y-2 text-xs text-secondary-700">
+          <div className="space-y-2 text-xs text-content-muted">
             {[
               { label: 'Posiciones', step: lastResult.steps.recomputePositions },
               { label: 'Coeficientes regionales', step: lastResult.steps.regionalCoefficients },
@@ -212,7 +212,7 @@ const RankingMaintenancePanel: React.FC<RankingMaintenancePanelProps> = ({ selec
             ].map(({ label, step }) => (
               <div key={label} className="flex items-center gap-2">
                 {step.success ? (
-                  <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
+                  <CheckCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-300" />
                 ) : (
                   <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
                 )}

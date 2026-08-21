@@ -109,13 +109,13 @@ Equipo C,3,725`
           <div className="flex items-center">
             <button
               onClick={() => navigate(`/admin/tournaments/${tournamentId}`)}
-              className="mr-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              className="mr-4 p-2 text-content-subtle hover:text-content-muted hover:bg-surface-muted rounded-lg transition-colors duration-200"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
               <h1 className="page-header-title">Importar Resultados</h1>
-              <p className="text-gray-600">Importa resultados del torneo desde un archivo CSV</p>
+              <p className="text-content-muted">Importa resultados del torneo desde un archivo CSV</p>
             </div>
           </div>
         </div>
@@ -123,9 +123,9 @@ Equipo C,3,725`
 
       <div className="space-y-8">
         {/* Instrucciones */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-blue-900 mb-4">Instrucciones</h3>
-          <div className="space-y-3 text-blue-800">
+        <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-medium text-blue-900 dark:text-blue-300 mb-4">Instrucciones</h3>
+          <div className="space-y-3 text-blue-800 dark:text-blue-300">
             <p>• El archivo debe estar en formato CSV</p>
             <p>• Las columnas deben ser: <strong>team, position, points</strong></p>
             <p>• <strong>team</strong>: Nombre del equipo</p>
@@ -136,9 +136,9 @@ Equipo C,3,725`
         </div>
 
         {/* Descargar plantilla */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Descargar Plantilla</h3>
-          <p className="text-gray-600 mb-4">
+        <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
+          <h3 className="text-lg font-medium text-content mb-4">Descargar Plantilla</h3>
+          <p className="text-content-muted mb-4">
             Descarga la plantilla de ejemplo para ver el formato correcto del archivo.
           </p>
           <button
@@ -151,10 +151,10 @@ Equipo C,3,725`
         </div>
 
         {/* Subir archivo */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Subir Archivo</h3>
+        <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
+          <h3 className="text-lg font-medium text-content mb-4">Subir Archivo</h3>
           
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+          <div className="border-2 border-dashed border-line-strong rounded-lg p-8 text-center">
             <input
               ref={fileInputRef}
               type="file"
@@ -165,8 +165,8 @@ Equipo C,3,725`
             
             {!selectedFile ? (
               <div>
-                <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-2">
+                <Upload className="h-12 w-12 text-content-subtle mx-auto mb-4" />
+                <p className="text-content-muted mb-2">
                   Arrastra tu archivo aquí o haz clic para seleccionar
                 </p>
                 <button
@@ -179,8 +179,8 @@ Equipo C,3,725`
             ) : (
               <div>
                 <FileText className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                <p className="text-gray-900 font-medium mb-2">{selectedFile.name}</p>
-                <p className="text-gray-600 mb-4">
+                <p className="text-content font-medium mb-2">{selectedFile.name}</p>
+                <p className="text-content-muted mb-4">
                   {(selectedFile.size / 1024).toFixed(1)} KB
                 </p>
                 <div className="flex justify-center space-x-3">
@@ -205,23 +205,23 @@ Equipo C,3,725`
 
         {/* Vista previa */}
         {showPreview && previewData.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Vista Previa</h3>
+          <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
+            <h3 className="text-lg font-medium text-content mb-4">Vista Previa</h3>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-line">
+                <thead className="bg-surface-muted">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Equipo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Posición</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Puntos</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase">Equipo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase">Posición</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase">Puntos</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-surface divide-y divide-line">
                   {previewData.map((row, index) => (
                     <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.team}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.position}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.points}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-content">{row.team}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-content">{row.position}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-content">{row.points}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -232,23 +232,23 @@ Equipo C,3,725`
 
         {/* Resultado de importación */}
         {importResult && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Resultado de la Importación</h3>
+          <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
+            <h3 className="text-lg font-medium text-content mb-4">Resultado de la Importación</h3>
             
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-green-700">
+                <span className="text-green-700 dark:text-green-300">
                   {importResult.imported} resultados importados exitosamente
                 </span>
               </div>
               
               {importResult.errors.length > 0 && (
                 <div>
-                  <h4 className="font-medium text-red-700 mb-2">Errores:</h4>
+                  <h4 className="font-medium text-red-700 dark:text-red-300 mb-2">Errores:</h4>
                   <ul className="space-y-1">
                     {importResult.errors.map((error, index) => (
-                      <li key={index} className="flex items-center space-x-2 text-red-600">
+                      <li key={index} className="flex items-center space-x-2 text-red-600 dark:text-red-300">
                         <AlertCircle className="h-4 w-4" />
                         <span className="text-sm">{error}</span>
                       </li>
@@ -259,10 +259,10 @@ Equipo C,3,725`
               
               {importResult.warnings.length > 0 && (
                 <div>
-                  <h4 className="font-medium text-yellow-700 mb-2">Advertencias:</h4>
+                  <h4 className="font-medium text-yellow-700 dark:text-yellow-300 mb-2">Advertencias:</h4>
                   <ul className="space-y-1">
                     {importResult.warnings.map((warning, index) => (
-                      <li key={index} className="flex items-center space-x-2 text-yellow-600">
+                      <li key={index} className="flex items-center space-x-2 text-yellow-600 dark:text-yellow-300">
                         <AlertCircle className="h-4 w-4" />
                         <span className="text-sm">{warning}</span>
                       </li>

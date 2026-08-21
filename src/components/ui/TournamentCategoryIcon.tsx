@@ -14,14 +14,14 @@ interface TournamentCategoryIconProps {
 }
 
 const SURFACE_STYLES: Record<string, { bg: string; color: string; SurfaceIcon: typeof Waves }> = {
-  GRASS: { bg: 'bg-emerald-50', color: 'text-emerald-600', SurfaceIcon: Sprout },
-  BEACH: { bg: 'bg-amber-50', color: 'text-amber-600', SurfaceIcon: Waves },
-  INDOOR: { bg: 'bg-violet-50', color: 'text-violet-600', SurfaceIcon: Trophy },
+  GRASS: { bg: 'bg-emerald-50 dark:bg-emerald-950/40', color: 'text-emerald-600 dark:text-emerald-300', SurfaceIcon: Sprout },
+  BEACH: { bg: 'bg-amber-50 dark:bg-amber-950/40', color: 'text-amber-600 dark:text-amber-300', SurfaceIcon: Waves },
+  INDOOR: { bg: 'bg-violet-50', color: 'text-violet-600 dark:text-violet-300', SurfaceIcon: Trophy },
 }
 
 const DEFAULT_SURFACE_STYLE = {
-  bg: 'bg-primary-50',
-  color: 'text-primary-600',
+  bg: 'bg-brand-subtle',
+  color: 'text-link',
   SurfaceIcon: Trophy,
 }
 
@@ -54,7 +54,7 @@ const TournamentCategoryIcon: React.FC<TournamentCategoryIconProps> = ({
     >
       <CategoryIcon className={`${iconSize} ${surfaceStyle.color}`} />
       <span
-        className={`absolute -bottom-0.5 -right-0.5 flex items-center justify-center rounded-md bg-white shadow-sm ring-1 ring-slate-200/80 ${badgeSize}`}
+        className={`absolute -bottom-0.5 -right-0.5 flex items-center justify-center rounded-md bg-surface shadow-sm ring-1 ring-line/80 ${badgeSize}`}
         aria-hidden="true"
       >
         <SurfaceIcon className={`${badgeIconSize} ${surfaceStyle.color}`} strokeWidth={2} />

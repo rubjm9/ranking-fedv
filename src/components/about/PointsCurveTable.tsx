@@ -46,9 +46,9 @@ const PointsCurveTable: React.FC<PointsCurveTableProps> = ({
   const tableRows = useMemo(() => buildTableRows(visiblePositions), [visiblePositions])
 
   return (
-    <div className="border border-slate-200 rounded-2xl p-6">
-      <h3 className="text-lg font-semibold text-slate-900 mb-3">{title}</h3>
-      <div className="text-slate-600 text-sm mb-4">{description}</div>
+    <div className="border border-line rounded-2xl p-6">
+      <h3 className="text-lg font-semibold text-content mb-3">{title}</h3>
+      <div className="text-content-muted text-sm mb-4">{description}</div>
 
       <div
         className={`transition-[max-height] duration-500 ease-in-out ${
@@ -57,9 +57,9 @@ const PointsCurveTable: React.FC<PointsCurveTableProps> = ({
       >
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-200">
-              <th className="py-2 pr-4 text-left font-medium text-slate-500">Puesto</th>
-              <th className="py-2 text-right font-medium text-slate-500">Puntos</th>
+            <tr className="border-b border-line">
+              <th className="py-2 pr-4 text-left font-medium text-content-subtle">Puesto</th>
+              <th className="py-2 text-right font-medium text-content-subtle">Puntos</th>
             </tr>
           </thead>
           <tbody>
@@ -74,7 +74,7 @@ const PointsCurveTable: React.FC<PointsCurveTableProps> = ({
                 <tr key={row.position}>
                   <td
                     colSpan={2}
-                    className={`p-0 ${row.gapBefore ? '' : index > 0 ? 'border-t border-slate-100' : ''}`}
+                    className={`p-0 ${row.gapBefore ? '' : index > 0 ? 'border-t border-line' : ''}`}
                   >
                     {row.gapBefore && (
                       <div
@@ -82,14 +82,14 @@ const PointsCurveTable: React.FC<PointsCurveTableProps> = ({
                         aria-hidden
                         title={`Puestos omitidos: ${gapLabel}`}
                       >
-                        <span className="h-px flex-1 border-t border-dotted border-slate-300" />
-                        <span className="shrink-0 text-[11px] leading-none text-slate-400">···</span>
-                        <span className="h-px flex-1 border-t border-dotted border-slate-300" />
+                        <span className="h-px flex-1 border-t border-dotted border-line-strong" />
+                        <span className="shrink-0 text-[11px] leading-none text-content-subtle">···</span>
+                        <span className="h-px flex-1 border-t border-dotted border-line-strong" />
                       </div>
                     )}
                     <div className={`grid grid-cols-2 py-2 ${row.gapBefore ? 'pt-1.5' : ''}`}>
-                      <span className="pr-4 text-slate-700">{row.position}º</span>
-                      <span className="text-right font-medium text-slate-900">
+                      <span className="pr-4 text-content-muted">{row.position}º</span>
+                      <span className="text-right font-medium text-content">
                         {getPoints(row.position)} pts
                       </span>
                     </div>

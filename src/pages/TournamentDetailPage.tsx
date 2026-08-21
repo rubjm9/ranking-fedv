@@ -87,7 +87,7 @@ interface RegionStats {
   color: string
 }
 
-const iconClass = 'h-5 w-5 text-slate-400 mr-3 flex-shrink-0'
+const iconClass = 'h-5 w-5 text-content-subtle mr-3 flex-shrink-0'
 
 const IconFrisbee = ({ className = iconClass }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
@@ -204,9 +204,9 @@ const TournamentDetailPage: React.FC = () => {
   // Función para obtener el icono de posición
   const getPositionIcon = (position: number) => {
     if (position === 1) return <Award className="h-5 w-5 text-yellow-500" />
-    if (position === 2) return <Award className="h-5 w-5 text-slate-400" />
+    if (position === 2) return <Award className="h-5 w-5 text-content-subtle" />
     if (position === 3) return <Award className="h-5 w-5 text-orange-500" />
-    return <Trophy className="h-4 w-4 text-slate-400" />
+    return <Trophy className="h-4 w-4 text-content-subtle" />
   }
 
   // Función para formatear fechas
@@ -319,37 +319,37 @@ const TournamentDetailPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           {/* Información del torneo - 2/3 */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-              <h2 className="text-xl font-semibold text-slate-900 mb-4">Sobre el torneo</h2>
+            <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
+              <h2 className="text-xl font-semibold text-content mb-4">Sobre el torneo</h2>
               
-              <p className="text-slate-700 leading-relaxed mb-6">
+              <p className="text-content-muted leading-relaxed mb-6">
                 {tournament.description || 'El campeonato más importante de España para equipos de primera división. Celebrado en diferentes ciudades cada año con la participación de los mejores equipos del país.'}
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-4">
                   <div className="flex items-center">
-                    <Trophy className="h-5 w-5 text-slate-400 mr-3" />
-                    <span className="text-slate-600">Tipo:</span>
-                    <span className="ml-2 font-medium text-slate-900">{translateTournamentType(tournament.type)}</span>
+                    <Trophy className="h-5 w-5 text-content-subtle mr-3" />
+                    <span className="text-content-muted">Tipo:</span>
+                    <span className="ml-2 font-medium text-content">{translateTournamentType(tournament.type)}</span>
                   </div>
                   
                   <div className="flex items-center">
                     <IconFrisbee />
-                    <span className="text-slate-600">Superficie:</span>
-                    <span className="ml-2 font-medium text-slate-900">{translateSurface(tournament.surface)}</span>
+                    <span className="text-content-muted">Superficie:</span>
+                    <span className="ml-2 font-medium text-content">{translateSurface(tournament.surface)}</span>
                   </div>
                   
                   <div className="flex items-center">
-                    <Users className="h-5 w-5 text-slate-400 mr-3" />
-                    <span className="text-slate-600">Categoría:</span>
-                    <span className="ml-2 font-medium text-slate-900">{translateModality(tournament.category)}</span>
+                    <Users className="h-5 w-5 text-content-subtle mr-3" />
+                    <span className="text-content-muted">Categoría:</span>
+                    <span className="ml-2 font-medium text-content">{translateModality(tournament.category)}</span>
                   </div>
                   
                   <div className="flex items-center">
                     <IconSpain />
-                    <span className="text-slate-600">Región:</span>
-                    <span className="ml-2 font-medium text-slate-900">
+                    <span className="text-content-muted">Región:</span>
+                    <span className="ml-2 font-medium text-content">
                       {tournament.type === 'REGIONAL' ? (tournament.region?.name || 'Sin región') : 'Nacional'}
                     </span>
                   </div>
@@ -357,21 +357,21 @@ const TournamentDetailPage: React.FC = () => {
                 
                 <div className="space-y-4">
                   <div className="flex items-center">
-                    <Clock className="h-5 w-5 text-slate-400 mr-3" />
-                    <span className="text-slate-600">Inicio:</span>
-                    <span className="ml-2 font-medium text-slate-900">{formatDate(tournament.startDate)}</span>
+                    <Clock className="h-5 w-5 text-content-subtle mr-3" />
+                    <span className="text-content-muted">Inicio:</span>
+                    <span className="ml-2 font-medium text-content">{formatDate(tournament.startDate)}</span>
                   </div>
                   
                   <div className="flex items-center">
-                    <Clock className="h-5 w-5 text-slate-400 mr-3" />
-                    <span className="text-slate-600">Fin:</span>
-                    <span className="ml-2 font-medium text-slate-900">{formatDate(tournament.endDate)}</span>
+                    <Clock className="h-5 w-5 text-content-subtle mr-3" />
+                    <span className="text-content-muted">Fin:</span>
+                    <span className="ml-2 font-medium text-content">{formatDate(tournament.endDate)}</span>
                   </div>
 
                   <div className="flex items-center">
-                    <MapPin className="h-5 w-5 text-slate-400 mr-3" />
-                    <span className="text-slate-600">Ubicación:</span>
-                    <span className="ml-2 font-medium text-slate-900">{tournament.location || 'Sin ubicación'}</span>
+                    <MapPin className="h-5 w-5 text-content-subtle mr-3" />
+                    <span className="text-content-muted">Ubicación:</span>
+                    <span className="ml-2 font-medium text-content">{tournament.location || 'Sin ubicación'}</span>
                   </div>
                 </div>
               </div>
@@ -381,8 +381,8 @@ const TournamentDetailPage: React.FC = () => {
           {/* Distribución por regiones - 1/3 */}
           {regionStats.length > 0 && (
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-                <h2 className="text-xl font-semibold text-slate-900 mb-4">Distribución por regiones</h2>
+              <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
+                <h2 className="text-xl font-semibold text-content mb-4">Distribución por regiones</h2>
                 
                 <div className="flex justify-center mb-4">
                   <ResponsiveContainer width={200} height={200}>
@@ -412,8 +412,8 @@ const TournamentDetailPage: React.FC = () => {
                         className="w-3 h-3 rounded-full mr-2" 
                         style={{ backgroundColor: region.color }}
                       />
-                      <span className="text-sm text-slate-900">{region.name}</span>
-                      <span className="ml-auto text-sm text-slate-600">{region.teams}</span>
+                      <span className="text-sm text-content">{region.name}</span>
+                      <span className="ml-auto text-sm text-content-muted">{region.teams}</span>
                     </div>
                   ))}
                 </div>
@@ -423,10 +423,10 @@ const TournamentDetailPage: React.FC = () => {
         </div>
 
         {/* Resultados finales */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Resultados finales</h2>
+        <div className="bg-surface rounded-lg shadow-sm border border-line p-8">
+          <h2 className="text-2xl font-bold text-content mb-2">Resultados finales</h2>
           {isRegional && coefficientBaseSeason && (
-            <p className="text-sm text-slate-600 mb-6">
+            <p className="text-sm text-content-muted mb-6">
               Coeficiente regional de la temporada {coefficientBaseSeason} aplicado a los puntos base del campeonato.
             </p>
           )}
@@ -439,34 +439,34 @@ const TournamentDetailPage: React.FC = () => {
             />
           ) : (
             <DataTable caption="Resultados finales del torneo" darkHeader={false}>
-              <thead className="bg-secondary-50">
+              <thead className="bg-surface-muted">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">
                       Posición
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">
                       Equipo
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">
                       Región
                     </th>
                     {isRegional && (
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">
                         Coeficiente
                       </th>
                     )}
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">
                       Puntos
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-slate-200">
+                <tbody className="bg-surface divide-y divide-line">
                   {positions.map((position) => (
-                    <tr key={position.id} className="hover:bg-secondary-50 transition-colors">
+                    <tr key={position.id} className="hover:bg-surface-muted transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {getPositionIcon(position.position)}
-                          <span className="ml-2 text-sm font-medium text-slate-900">
+                          <span className="ml-2 text-sm font-medium text-content">
                             {position.position}°
                           </span>
                         </div>
@@ -483,7 +483,7 @@ const TournamentDetailPage: React.FC = () => {
                           <div className="ml-4">
                             <Link
                               to={getTeamPublicUrl(position.team)}
-                              className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                              className="text-sm font-medium text-content hover:text-link transition-colors"
                             >
                               {position.team.name}
                             </Link>
@@ -491,19 +491,19 @@ const TournamentDetailPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-slate-900">{position.team.region}</div>
+                        <div className="text-sm text-content">{position.team.region}</div>
                       </td>
                       {isRegional && (
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-900">
+                          <div className="text-sm text-content">
                             {position.coefficient.toFixed(2)}x
                           </div>
                         </td>
                       )}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-slate-900">{formatPoints(position.points)}</div>
+                        <div className="text-sm font-medium text-content">{formatPoints(position.points)}</div>
                         {isRegional && position.coefficient !== 1 && (
-                          <div className="text-xs text-slate-500">
+                          <div className="text-xs text-content-subtle">
                             base {position.basePoints}
                           </div>
                         )}

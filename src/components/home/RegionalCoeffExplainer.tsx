@@ -21,9 +21,9 @@ const buildUnequalPoints = (count: number): number[] => {
 }
 
 const coefficientTone = (coefficient: number) => {
-  if (coefficient > 1) return 'bg-emerald-50 text-emerald-800 ring-emerald-200'
-  if (coefficient < 1) return 'bg-amber-50 text-amber-800 ring-amber-200'
-  return 'bg-slate-100 text-slate-700 ring-slate-200'
+  if (coefficient > 1) return 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 ring-emerald-200'
+  if (coefficient < 1) return 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 ring-amber-200'
+  return 'bg-surface-muted text-content-muted ring-line'
 }
 
 const RegionalCoeffExplainer: React.FC = () => {
@@ -108,39 +108,39 @@ const RegionalCoeffExplainer: React.FC = () => {
 
   return (
     <div className="space-y-5">
-      <p className="text-lg text-slate-700">
+      <p className="text-lg text-content-muted">
         El coeficiente regional compara el rendimiento nacional de cada región con la media y
         luego traslada ese ajuste a los torneos regionales de la siguiente temporada.
       </p>
 
-      <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-primary-50/40 p-5 shadow-[0_24px_80px_-50px_rgba(15,23,42,0.45)]">
+      <div className="overflow-hidden rounded-[1.75rem] border border-line bg-gradient-to-br from-white via-slate-50 to-primary-50/40 p-5 shadow-[0_24px_80px_-50px_rgba(15,23,42,0.45)]">
         <div className="mb-5">
-          <p className="text-sm font-semibold tracking-[0.08em] text-primary-700">Calculadora</p>
-          <h4 className="mt-1 text-lg font-semibold text-slate-900">
+          <p className="text-sm font-semibold tracking-[0.08em] text-brand-strong">Calculadora</p>
+          <h4 className="mt-1 text-lg font-semibold text-content">
             Prueba el coeficiente con regiones reales
           </h4>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-content-muted">
             Edita los puntos nacionales y mira cómo cambia el coeficiente. El valor queda entre{' '}
             {DEFAULT_REGIONAL_CONFIG.floor.toFixed(2)} y {DEFAULT_REGIONAL_CONFIG.ceiling.toFixed(2)}.
           </p>
         </div>
 
         {isLoading && (
-          <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-6 text-sm text-slate-600">
-            <Loader2 className="h-4 w-4 animate-spin text-primary-600" aria-hidden />
+          <div className="flex items-center gap-2 rounded-2xl border border-line bg-surface px-4 py-6 text-sm text-content-muted">
+            <Loader2 className="h-4 w-4 animate-spin text-link" aria-hidden />
             Cargando regiones…
           </div>
         )}
 
         {!isLoading && apiFailed && (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 dark:bg-amber-950/40 px-4 py-4 text-sm text-amber-900 dark:text-amber-300">
             No se pudieron cargar las regiones. Revisa la conexión e inténtalo de nuevo; sin
             regiones reales la calculadora permanece desactivada.
           </div>
         )}
 
         {!isLoading && !apiFailed && noRegions && (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-700">
+          <div className="rounded-2xl border border-line bg-surface-muted px-4 py-4 text-sm text-content-muted">
             No hay regiones disponibles en este momento. La calculadora se activará cuando existan
             regiones reales.
           </div>
@@ -149,15 +149,15 @@ const RegionalCoeffExplainer: React.FC = () => {
         {!isLoading && !apiFailed && !noRegions && (
           <>
             <div className="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-              <div className="rounded-2xl border border-primary-200 bg-primary-50 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary-700">
+              <div className="rounded-2xl border border-brand-strong/30 bg-brand-subtle px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-brand-strong">
                   Media nacional
                 </p>
-                <p className="mt-1 text-3xl font-semibold text-primary-950">
+                <p className="mt-1 text-3xl font-semibold text-brand-strong">
                   {mean.toFixed(0)}{' '}
-                  <span className="text-base font-medium text-primary-700">pts</span>
+                  <span className="text-base font-medium text-brand-strong">pts</span>
                 </p>
-                <p className="mt-1 text-sm text-primary-800/80">
+                <p className="mt-1 text-sm text-brand-strong/80">
                   Referencia para calcular el coeficiente de cada región
                 </p>
               </div>
@@ -167,7 +167,7 @@ const RegionalCoeffExplainer: React.FC = () => {
                   type="button"
                   onClick={applyUnequalExample}
                   disabled={inputsDisabled}
-                  className="cursor-pointer rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center justify-center min-h-[44px] touch-manipulation cursor-pointer rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 >
                   Ejemplo desigual
                 </button>
@@ -175,7 +175,7 @@ const RegionalCoeffExplainer: React.FC = () => {
                   type="button"
                   onClick={equalizeAll}
                   disabled={inputsDisabled}
-                  className="cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:border-primary-300 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center justify-center min-h-[44px] touch-manipulation cursor-pointer rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-medium text-content-muted transition-colors hover:border-primary-300 hover:text-brand-strong disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 >
                   Igualar todas
                 </button>
@@ -186,10 +186,10 @@ const RegionalCoeffExplainer: React.FC = () => {
               {rows.map((row) => (
                 <div
                   key={row.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                  className="rounded-2xl border border-line bg-surface p-4 shadow-sm"
                 >
-                  <p className="text-base font-semibold text-slate-900">{row.name}</p>
-                  <label className="mt-3 block text-xs font-medium text-slate-500">
+                  <p className="text-base font-semibold text-content">{row.name}</p>
+                  <label className="mt-3 block text-xs font-medium text-content-subtle">
                     Puntos nacionales
                     <input
                       type="number"
@@ -198,7 +198,7 @@ const RegionalCoeffExplainer: React.FC = () => {
                       value={row.points}
                       disabled={inputsDisabled}
                       onChange={(event) => updatePoints(row.id, event.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-base text-slate-800 focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:bg-slate-50"
+                      className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-base text-content focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:bg-surface-muted"
                       aria-label={`Puntos nacionales de ${row.name}`}
                     />
                   </label>
@@ -208,18 +208,18 @@ const RegionalCoeffExplainer: React.FC = () => {
                     >
                       × {row.coefficient.toFixed(2)}
                     </span>
-                    <p className="text-sm text-slate-600">
+                    <p className="text-sm text-content-muted">
                       Si gana un regional ({BASE_EXAMPLE_POINTS} pts) →{' '}
-                      <span className="font-semibold text-slate-900">{row.preview} pts</span>
+                      <span className="font-semibold text-content">{row.preview} pts</span>
                     </p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white md:block">
+            <div className="hidden overflow-hidden rounded-2xl border border-line bg-surface md:block">
               <table className="min-w-full text-left text-sm">
-                <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-500">
+                <thead className="border-b border-line bg-surface-muted text-xs font-semibold text-content-subtle">
                   <tr>
                     <th className="px-4 py-3">Región</th>
                     <th className="px-4 py-3">Puntos nacionales</th>
@@ -229,8 +229,8 @@ const RegionalCoeffExplainer: React.FC = () => {
                 </thead>
                 <tbody>
                   {rows.map((row) => (
-                    <tr key={row.id} className="border-b border-slate-100 last:border-0">
-                      <td className="px-4 py-3 font-semibold text-slate-900">{row.name}</td>
+                    <tr key={row.id} className="border-b border-line last:border-0">
+                      <td className="px-4 py-3 font-semibold text-content">{row.name}</td>
                       <td className="px-4 py-3">
                         <input
                           type="number"
@@ -239,7 +239,7 @@ const RegionalCoeffExplainer: React.FC = () => {
                           value={row.points}
                           disabled={inputsDisabled}
                           onChange={(event) => updatePoints(row.id, event.target.value)}
-                          className="w-32 rounded-xl border border-slate-200 bg-white px-3 py-2 text-base text-slate-800 focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:bg-slate-50"
+                          className="w-32 rounded-xl border border-line bg-surface px-3 py-2 text-base text-content focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:bg-surface-muted"
                           aria-label={`Puntos nacionales de ${row.name}`}
                         />
                       </td>
@@ -251,7 +251,7 @@ const RegionalCoeffExplainer: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="font-semibold text-slate-900">{row.preview} pts</span>
+                        <span className="font-semibold text-content">{row.preview} pts</span>
                       </td>
                     </tr>
                   ))}
@@ -259,7 +259,7 @@ const RegionalCoeffExplainer: React.FC = () => {
               </table>
             </div>
 
-            <p className="mt-4 text-center font-mono text-xs text-slate-500">
+            <p className="mt-4 text-center font-mono text-xs text-content-subtle">
               coef = clamp(1.0 + (pts_region − media) / media × 0.20, 0.80, 1.20)
             </p>
           </>
@@ -267,21 +267,21 @@ const RegionalCoeffExplainer: React.FC = () => {
       </div>
 
       <div className="grid gap-3 md:grid-cols-3">
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-          <strong className="block text-slate-900">Solo nacionales</strong>
+        <div className="rounded-lg border border-line bg-surface-muted p-3 text-sm text-content-muted">
+          <strong className="block text-content">Solo nacionales</strong>
           Usa resultados de CE1 y CE2, nunca de torneos regionales.
         </div>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-          <strong className="block text-slate-900">Por modalidad</strong>
+        <div className="rounded-lg border border-line bg-surface-muted p-3 text-sm text-content-muted">
+          <strong className="block text-content">Por modalidad</strong>
           Se calcula por separado para cada una de las seis modalidades.
         </div>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-          <strong className="block text-slate-900">Aplicación diferida</strong>
+        <div className="rounded-lg border border-line bg-surface-muted p-3 text-sm text-content-muted">
+          <strong className="block text-content">Aplicación diferida</strong>
           Los coeficientes de T - 1 se aplican a los regionales de T.
         </div>
       </div>
 
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-content-muted">
         El valor final siempre queda acotado entre <strong>0.80</strong> y <strong>1.20</strong>,
         redondeado en saltos de <strong>0.05</strong>.
       </p>
@@ -289,7 +289,7 @@ const RegionalCoeffExplainer: React.FC = () => {
       <div>
         <Link
           to="/regiones"
-          className="inline-block font-medium text-primary-600 hover:text-primary-700"
+          className="inline-block font-medium text-link hover:text-brand-strong"
         >
           Ver coeficientes por región →
         </Link>

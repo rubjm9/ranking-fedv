@@ -34,12 +34,12 @@ const RegionalCoefficientMatrix: React.FC<RegionalCoefficientMatrixProps> = ({
   const sortedRegions = [...regions].sort((a, b) => a.name.localeCompare(b.name))
 
   if (isLoading) {
-    return <div className="py-8 text-center text-sm text-slate-500">Cargando coeficientes...</div>
+    return <div className="py-8 text-center text-sm text-content-subtle">Cargando coeficientes...</div>
   }
 
   if (!coefficients.length) {
     return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+      <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/40 p-4 text-sm text-amber-900 dark:text-amber-300">
         No hay coeficientes guardados para la temporada {season}. El desglose se calcula desde los datos de CE1/CE2.
       </div>
     )
@@ -49,24 +49,24 @@ const RegionalCoefficientMatrix: React.FC<RegionalCoefficientMatrixProps> = ({
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse min-w-[640px]">
         <thead>
-          <tr className="bg-slate-50">
-            <th className="text-left p-2 font-medium text-slate-700 sticky left-0 bg-slate-50">Región</th>
+          <tr className="bg-surface-muted">
+            <th className="text-left p-2 font-medium text-content-muted sticky left-0 bg-surface-muted">Región</th>
             {MODALITIES.map(mod => (
-              <th key={mod} className="text-center p-2 font-medium text-slate-700 text-xs" title={MODALITY_LABELS[mod]}>
+              <th key={mod} className="text-center p-2 font-medium text-content-muted text-xs" title={MODALITY_LABELS[mod]}>
                 {MODALITY_SHORT[mod]}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-line">
           {sortedRegions.map(region => {
             const modCoefs = coeffMap.get(region.id)
             return (
-              <tr key={region.id} className="hover:bg-slate-50">
-                <td className="p-2 font-medium text-slate-900 sticky left-0 bg-white">
+              <tr key={region.id} className="hover:bg-surface-muted">
+                <td className="p-2 font-medium text-content sticky left-0 bg-surface">
                   <Link
                     to={`${getRegionPublicUrl(region, slugById)}?temporada=${encodeURIComponent(season)}`}
-                    className="hover:text-primary-600 transition-colors"
+                    className="hover:text-link transition-colors"
                   >
                     {region.name}
                   </Link>

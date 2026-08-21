@@ -112,25 +112,25 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
     if (!active || !payload?.length) return null
     const entry = payload[0].payload
     return (
-      <div className="bg-white p-3 border border-slate-200 rounded-lg shadow-lg text-sm">
-        <p className="font-medium text-slate-900 mb-1">{entry.modality}</p>
+      <div className="bg-surface p-3 border border-line rounded-lg shadow-lg text-sm">
+        <p className="font-medium text-content mb-1">{entry.modality}</p>
         {entry.position > 0 ? (
           <>
-            <p className="text-slate-600">
+            <p className="text-content-muted">
               Posición:{' '}
-              <span className="font-semibold text-slate-900">
+              <span className="font-semibold text-content">
                 #{entry.position}
                 {entry.totalTeams > 0 && (
-                  <span className="font-normal text-slate-500"> de {entry.totalTeams} equipos</span>
+                  <span className="font-normal text-content-subtle"> de {entry.totalTeams} equipos</span>
                 )}
               </span>
             </p>
-            <p className="text-slate-600">
-              Puntos: <span className="font-semibold text-slate-900">{entry.points.toFixed(1)}</span>
+            <p className="text-content-muted">
+              Puntos: <span className="font-semibold text-content">{entry.points.toFixed(1)}</span>
             </p>
           </>
         ) : (
-          <p className="text-slate-400 italic">Sin ranking</p>
+          <p className="text-content-subtle italic">Sin ranking</p>
         )}
       </div>
     )
@@ -138,7 +138,7 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
 
   if (!hasAnyRanking) {
     return (
-      <div className="flex items-center justify-center h-48 text-slate-400 text-sm text-center px-4">
+      <div className="flex items-center justify-center h-48 text-content-subtle text-sm text-center px-4">
         No hay posiciones en rankings para mostrar
       </div>
     )
@@ -180,7 +180,7 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
           />
         </RadarChart>
       </ResponsiveContainer>
-      <p className="mt-2 text-xs text-slate-400 text-center">
+      <p className="mt-2 text-xs text-content-subtle text-center">
         Mayor área = mejor posición en cada modalidad
       </p>
     </div>

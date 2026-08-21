@@ -14,15 +14,15 @@ const RankingStaleBanner: React.FC = () => {
   if (isLoading || !state?.isDirty) return null
 
   return (
-    <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 shadow-sm">
+    <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 p-4 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 mt-0.5" aria-hidden />
+          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-300 mt-0.5" aria-hidden />
           <div>
-            <h3 className="font-medium text-secondary-900">Ranking desactualizado</h3>
-            <p className="text-sm text-secondary-700 mt-1">{state.reason}</p>
+            <h3 className="font-medium text-content">Ranking desactualizado</h3>
+            <p className="text-sm text-content-muted mt-1">{state.reason}</p>
             {state.affectsCoefficients && (
-              <p className="text-sm text-amber-800 mt-2">
+              <p className="text-sm text-amber-800 dark:text-amber-300 mt-2">
                 Los cambios pueden afectar a los coeficientes regionales. Usa la actualización
                 inteligente para recalcular todo el pipeline.
               </p>

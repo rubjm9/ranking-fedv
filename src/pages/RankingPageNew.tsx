@@ -17,7 +17,10 @@ import EmptyState from '@/components/ui/EmptyState'
 import RankingTableSkeleton from '@/components/ui/RankingTableSkeleton'
 import dynamicRankingService from '@/services/dynamicRankingService'
 import teamSeasonRankingsService from '@/services/teamSeasonRankingsService'
+import RankingCardList from '@/components/ranking/RankingCardList'
+import ViewModeToggle from '@/components/ui/ViewModeToggle'
 import { useMostRecentSeasons } from '@/hooks/useMostRecentSeasons'
+import { useViewMode } from '@/hooks/useViewMode'
 import { getRankingReferenceSeason } from '@/utils/rankingCalculations'
 import {
   getTeamDisplayNameForCategory,
@@ -75,7 +78,7 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
 
   return (
     <div className="w-full overflow-x-auto relative">
-      <svg width={width} height={height} className="border border-slate-200 rounded-lg">
+      <svg width={width} height={height} className="border border-line rounded-lg">
         {/* Ejes */}
         <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#E5E7EB" strokeWidth="2" />
         <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#E5E7EB" strokeWidth="2" />
@@ -499,6 +502,8 @@ const RankingPageNew: React.FC = () => {
   const [showAllResults, setShowAllResults] = useState<boolean>(false)
   // Durante la animación de colapsar mantenemos todas las filas renderizadas para que se vea la transición
   const [isCollapsing, setIsCollapsing] = useState<boolean>(false)
+  // En móvil arranca en tarjetas: la tabla tiene 8 columnas y 807px de ancho.
+  const [rankingViewMode, setRankingViewMode] = useViewMode()
   /** Evita recortar el top 10; solo limita altura durante la animación de colapsar */
   const rankingTableMaxHeight = showAllResults
     ? '5000px'
@@ -1162,9 +1167,9 @@ const RankingPageNew: React.FC = () => {
 
   const getRankIcon = (position: number) => {
     if (position === 1) return <Trophy className="w-6 h-6 text-yellow-500" />
-    if (position === 2) return <Medal className="w-6 h-6 text-slate-400" />
+    if (position === 2) return <Medal className="w-6 h-6 text-content-subtle" />
     if (position === 3) return <Medal className="w-6 h-6 text-orange-500" />
-    return <span className="text-sm font-semibold text-slate-500">#{position}</span>
+    return <span className="text-sm font-semibold text-content-subtle">#{position}</span>
   }
 
   // Obtener las últimas 4 temporadas ordenadas (más reciente primero)
@@ -2831,7 +2836,7 @@ const RankingPageNew: React.FC = () => {
   const getChangeIcon = (change: number) => {
     if (change > 0) return <TrendingUp className="h-4 w-4 text-green-500" />
     if (change < 0) return <TrendingDown className="h-4 w-4 text-red-500" />
-    return <BarChart3 className="h-4 w-4 text-slate-400" />
+    return <BarChart3 className="h-4 w-4 text-content-subtle" />
   }
 
   const getChangeText = (change: number) => {
@@ -2852,8 +2857,8 @@ const RankingPageNew: React.FC = () => {
   }
 
   const renderCombinedSubSelector = () => (
-    <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-      <p className="mb-3 text-sm font-semibold text-slate-900">Tipo de ranking combinado</p>
+    <div className="mb-8 rounded-2xl border border-line bg-surface p-4 shadow-sm sm:p-5">
+      <p className="mb-3 text-sm font-semibold text-content">Tipo de ranking combinado</p>
       <div className="flex flex-wrap gap-2 sm:gap-3" role="group" aria-label="Tipo de ranking combinado">
         {(Object.keys(combinedTypeLabels) as CombinedType[]).map((type) => (
           <button
@@ -2870,7 +2875,7 @@ const RankingPageNew: React.FC = () => {
             className={`min-h-[44px] rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
               selectedCombinedType === type
                 ? 'bg-primary-600 text-white shadow-md ring-2 ring-primary-600/20'
-                : 'border border-slate-200 bg-slate-50 text-slate-700 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700'
+                : 'border border-line bg-surface-muted text-content-muted hover:border-primary-300 hover:bg-brand-subtle hover:text-brand-strong'
             }`}
           >
             {combinedTypeLabels[type]}
@@ -3043,12 +3048,12 @@ const RankingPageNew: React.FC = () => {
         {/* Estadísticas destacadas con tooltips (solo para ranking 'all') */}
         {selectedCombinedType === 'all' && generalStats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4">
-            <div className="bg-white rounded-lg shadow p-4 group relative">
+            <div className="bg-surface rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
                 <UsersRound className="w-8 h-8 text-primary-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-slate-500">Total Equipos</p>
-                  <p className="text-2xl font-semibold text-slate-900">{generalStats.total_teams}</p>
+                  <p className="text-sm font-medium text-content-subtle">Total Equipos</p>
+                  <p className="text-2xl font-semibold text-content">{generalStats.total_teams}</p>
                 </div>
               </div>
               {/* Tooltip */}
@@ -3058,12 +3063,12 @@ const RankingPageNew: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow p-4 group relative">
+            <div className="bg-surface rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
                 <TrendingUp className="w-8 h-8 text-green-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-slate-500">Equipos Nuevos</p>
-                  <p className="text-2xl font-semibold text-slate-900">{generalStats.new_teams}</p>
+                  <p className="text-sm font-medium text-content-subtle">Equipos Nuevos</p>
+                  <p className="text-2xl font-semibold text-content">{generalStats.new_teams}</p>
                 </div>
               </div>
               {/* Tooltip */}
@@ -3073,12 +3078,12 @@ const RankingPageNew: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow p-4 group relative">
+            <div className="bg-surface rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
                 <Trophy className="w-8 h-8 text-yellow-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-slate-500">Consistencia</p>
-                  <p className="text-2xl font-semibold text-slate-900">{generalStats.consistent_teams}</p>
+                  <p className="text-sm font-medium text-content-subtle">Consistencia</p>
+                  <p className="text-2xl font-semibold text-content">{generalStats.consistent_teams}</p>
                 </div>
               </div>
               {/* Tooltip */}
@@ -3088,12 +3093,12 @@ const RankingPageNew: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow p-4 group relative">
+            <div className="bg-surface rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
                 <Calendar className="w-8 h-8 text-orange-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-slate-500">Actividad</p>
-                  <p className="text-2xl font-semibold text-slate-900">{generalStats.avg_activity.toFixed(1)}</p>
+                  <p className="text-sm font-medium text-content-subtle">Actividad</p>
+                  <p className="text-2xl font-semibold text-content">{generalStats.avg_activity.toFixed(1)}</p>
                 </div>
               </div>
               {/* Tooltip */}
@@ -3105,17 +3110,17 @@ const RankingPageNew: React.FC = () => {
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-surface rounded-lg shadow-sm border border-line overflow-hidden">
           {/* Header con controles estilo UEFA */}
-          <div className="px-6 py-4 border-b border-slate-200 bg-secondary-50">
+          <div className="px-6 py-4 border-b border-line bg-surface-muted">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <LineChart className="w-6 h-6 text-primary-600" />
-                <h2 className="text-xl font-semibold text-slate-900">
+                <LineChart className="w-6 h-6 text-link" />
+                <h2 className="text-xl font-semibold text-content">
                   Ranking {combinedTypeLabels[selectedCombinedType]} - Temporada {currentReferenceSeason}
                 </h2>
               </div>
-              <div className="flex items-center space-x-4 text-sm text-slate-600">
+              <div className="flex items-center space-x-4 text-sm text-content-muted">
                 <span>
                   {rankingTypeToUse === 'clubs' 
                     ? `${rankingDataWithRecalculatedPoints?.length || 0} clubes` 
@@ -3123,22 +3128,23 @@ const RankingPageNew: React.FC = () => {
                   }
                 </span>
                 {rankingTypeToUse === 'historical' && (
-                  <span className="text-xs text-slate-500">• Suma total histórica</span>
+                  <span className="text-xs text-content-subtle">• Suma total histórica</span>
                 )}
                 {rankingTypeToUse === 'clubs' && (
-                  <span className="text-xs text-slate-500">• Incluye filiales</span>
+                  <span className="text-xs text-content-subtle">• Incluye filiales</span>
                 )}
               </div>
             </div>
           
             {/* Controles de tabla estilo UEFA */}
-            <div className="flex items-center justify-end">
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              <ViewModeToggle value={rankingViewMode} onChange={setRankingViewMode} />
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-slate-700">Temporada:</label>
+                <label className="text-sm font-medium text-content-muted">Temporada:</label>
                 <select
                   value={selectedSeasonForGeneralView || defaultGeneralSeason || referenceSeason || ''}
                   onChange={(e) => setSelectedSeasonForGeneralView(e.target.value || null)}
-                  className="text-sm border border-slate-300 rounded px-3 py-1 bg-white"
+                  className="text-sm border border-line-strong rounded px-3 py-1 bg-surface"
                 >
                   {generalSeasonOptions.map((season) => {
                     const year1 = season.split('-')[0]
@@ -3158,13 +3164,25 @@ const RankingPageNew: React.FC = () => {
             style={{ maxHeight: rankingTableMaxHeight }}
             onTransitionEnd={() => { if (isCollapsing) setIsCollapsing(false) }}
           >
-            <div className="overflow-x-auto">
-            <table className="w-full">
-            <thead className="bg-slate-100">
+            {rankingViewMode === 'cards' ? (
+              <RankingCardList
+                teams={rankingDataWithRecalculatedPoints?.slice(0, (showAllResults || isCollapsing) ? undefined : 10) || []}
+                seasons={seasons}
+                getSeasonPoints={getSeasonPoints}
+                getRankIcon={getRankIcon}
+                getChangeIcon={getChangeIcon}
+                getChangeText={getChangeText}
+                showCoefficients={rankingTypeToUse !== 'historical'}
+                showTeamsCount={rankingTypeToUse === 'clubs'}
+              />
+            ) : (
+            <div className="data-table-wrapper">
+            <table className="ranking-table-sticky w-full">
+            <thead className="bg-surface-muted">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Posición</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cambio</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Equipo</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">Posición</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">Cambio</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">Equipo</th>
                 {seasons.map((season, index) => {
                   const coefficients = [1.0, 0.8, 0.5, 0.2]
                   const year1 = season.split('-')[0]
@@ -3172,28 +3190,28 @@ const RankingPageNew: React.FC = () => {
                   const coefficient = coefficients[index] || 0
                   
                   return (
-                    <th key={season} className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th key={season} className="px-4 py-3 text-right text-xs font-medium text-content-subtle uppercase tracking-wider">
                       <div className="flex flex-col">
                         <span>{year1}/{year2}</span>
                         {rankingTypeToUse !== 'historical' && (
-                          <span className="text-xs text-slate-400 font-normal">{coefficient}</span>
+                          <span className="text-xs text-content-subtle font-normal">{coefficient}</span>
                         )}
                       </div>
                     </th>
                   )
                 })}
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-medium text-content-subtle uppercase tracking-wider">
                   Pts <span className="text-primary-500">?</span>
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-slate-200">
+            <tbody className="bg-surface divide-y divide-line">
               {rankingDataWithRecalculatedPoints?.slice(0, (showAllResults || isCollapsing) ? undefined : 10).map((team, index) => {
                 const isEvenRow = index % 2 === 1
                 
                 return (
-                  <tr key={team.team_id} className={`hover:bg-secondary-50 ${isEvenRow ? 'bg-secondary-50' : 'bg-white'}`}>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
+                  <tr key={team.team_id} className={`hover:bg-surface-muted ${isEvenRow ? 'bg-surface-muted' : 'bg-surface'}`}>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-content">
                       <div className="flex items-center">
                         {getRankIcon(index + 1)}
                       </div>
@@ -3202,8 +3220,8 @@ const RankingPageNew: React.FC = () => {
                       <div className="flex items-center">
                         {getChangeIcon(team.position_change || 0)}
                         <span className={`ml-1 text-sm font-medium ${
-                          (team.position_change || 0) > 0 ? 'text-green-600' : 
-                          (team.position_change || 0) < 0 ? 'text-red-600' : 'text-slate-500'
+                          (team.position_change || 0) > 0 ? 'text-green-600 dark:text-green-300' : 
+                          (team.position_change || 0) < 0 ? 'text-red-600 dark:text-red-300' : 'text-content-subtle'
                         }`}>
                           {getChangeText(team.position_change || 0)}
                         </span>
@@ -3215,25 +3233,25 @@ const RankingPageNew: React.FC = () => {
                         <div className="ml-3">
                           <RankingTeamLink
                             team={team}
-                            className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                            className="text-sm font-medium text-content hover:text-link transition-colors"
                           >
                             {team.team_name}
                           </RankingTeamLink>
                           {team.region_name && (
-                            <div className="text-xs text-slate-500">{team.region_name}</div>
+                            <div className="text-xs text-content-subtle">{team.region_name}</div>
                           )}
                           {rankingTypeToUse === 'clubs' && team.teams_count && team.teams_count > 1 && (
-                            <div className="text-xs text-primary-600">{team.teams_count} equipos</div>
+                            <div className="text-xs text-link">{team.teams_count} equipos</div>
                           )}
                         </div>
                       </div>
                     </td>
                       {seasons.map((season) => (
-                        <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-slate-900 text-right">
+                        <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-content text-right">
                           {(getSeasonPoints(team, season) || 0).toFixed(2)}
                         </td>
                       ))}
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-slate-900 text-right">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-content text-right">
                         {team.total_points?.toFixed(2) || '0.00'}
                       </td>
                     </tr>
@@ -3242,10 +3260,11 @@ const RankingPageNew: React.FC = () => {
               </tbody>
             </table>
             </div>
+            )}
           </div>
 
         {/* Footer estilo UEFA */}
-          <div className="px-6 py-4 border-t border-slate-200 bg-secondary-50">
+          <div className="px-6 py-4 border-t border-line bg-surface-muted">
             <div className="flex items-center justify-between">
               <button
                 onClick={() => {
@@ -3256,7 +3275,7 @@ const RankingPageNew: React.FC = () => {
                     setShowAllResults(true)
                   }
                 }}
-                className="text-sm text-primary-600 hover:text-primary-800 font-medium transition-colors"
+                className="text-sm text-link hover:text-brand-strong font-medium transition-colors"
               >
                 {showAllResults ? 'Ver solo top 10' : 'Ver ranking completo'} ✓
               </button>
@@ -3282,22 +3301,22 @@ const RankingPageNew: React.FC = () => {
 
     return (
       <div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+        <div className="bg-surface rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-content mb-4 flex items-center">
             <LineChart className="w-5 h-5 mr-2" />
             Análisis de Equipos - Ranking General
             </h3>
-          <p className="text-slate-600 mb-6">
+          <p className="text-content-muted mb-6">
             Selecciona equipos para comparar su evolución de puntos y posiciones a lo largo del tiempo.
           </p>
           
           {/* Selector de equipos múltiple */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-content-muted">
                 Seleccionar equipos para análisis:
               </label>
-              <span className="text-sm text-slate-500">
+              <span className="text-sm text-content-subtle">
                 {selectedTeamsForAnalysis.length} equipos seleccionados
               </span>
           </div>
@@ -3319,19 +3338,19 @@ const RankingPageNew: React.FC = () => {
                 onClick={() => setShowAllTeams(!showAllTeams)}
                 className={`px-3 py-1 rounded-lg text-sm font-medium ${
                   showAllTeams
-                    ? 'bg-primary-100 text-primary-700 border border-slate-200'
-                    : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+                    ? 'bg-brand-subtle text-brand-strong border border-line'
+                    : 'bg-surface-muted text-content-muted border border-line hover:bg-slate-200'
                 }`}
               >
                 {showAllTeams ? 'Mostrar solo top 20' : 'Mostrar todos los equipos'}
               </button>
-              <span className="text-sm text-slate-500">
+              <span className="text-sm text-content-subtle">
                 {rankingDataWithChanges?.length || 0} equipos disponibles
               </span>
           </div>
 
             {/* Lista de equipos */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto border border-slate-200 rounded-lg p-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto border border-line rounded-lg p-3">
               {rankingDataWithChanges
                 ?.filter(team => 
                   team.team_name.toLowerCase().includes(teamSearchTerm.toLowerCase()) ||
@@ -3339,12 +3358,12 @@ const RankingPageNew: React.FC = () => {
                 )
                 ?.slice(0, showAllTeams ? undefined : 20)
                 ?.map((team) => (
-                <label key={team.team_id} className="flex items-center space-x-2 text-sm hover:bg-secondary-50 p-1 rounded">
+                <label key={team.team_id} className="flex items-center space-x-2 text-sm hover:bg-surface-muted p-1 rounded">
                   <input
                     type="checkbox"
                     checked={selectedTeamsForAnalysis.includes(team.team_id)}
                     onChange={(e) => handleTeamSelection(team.team_id, e.target.checked)}
-                    className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                    className="rounded border-line-strong text-link focus:ring-primary-500"
                   />
                   <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
                   <span className="truncate">{team.team_name}</span>
@@ -3357,7 +3376,7 @@ const RankingPageNew: React.FC = () => {
               team.team_name.toLowerCase().includes(teamSearchTerm.toLowerCase()) ||
               team.region_name?.toLowerCase().includes(teamSearchTerm.toLowerCase())
             )?.length === 0 && teamSearchTerm && (
-              <div className="text-center py-4 text-slate-500">
+              <div className="text-center py-4 text-content-subtle">
                 No se encontraron equipos que coincidan con "{teamSearchTerm}"
               </div>
             )}
@@ -3366,14 +3385,14 @@ const RankingPageNew: React.FC = () => {
                 {selectedTeamsForAnalysis.map(teamId => {
                   const team = rankingDataWithChanges?.find(t => t.team_id === teamId)
                   return team ? (
-                    <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary-100 text-primary-800">
+                    <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-brand-subtle text-brand-strong">
                       <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
-                      <RankingTeamLink team={team} className="ml-1 hover:text-primary-600 transition-colors">
+                      <RankingTeamLink team={team} className="ml-1 hover:text-link transition-colors">
                         {team.team_name}
                       </RankingTeamLink>
                       <button
                         onClick={() => handleTeamSelection(teamId, false)}
-                        className="ml-1 text-primary-600 hover:text-primary-800"
+                        className="ml-1 text-link hover:text-brand-strong"
                       >
                         ×
                       </button>
@@ -3392,8 +3411,8 @@ const RankingPageNew: React.FC = () => {
                   onClick={() => setAnalysisView('points')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'points'
-                      ? 'bg-primary-100 text-primary-700 border border-slate-200'
-                      : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+                      ? 'bg-brand-subtle text-brand-strong border border-line'
+                      : 'bg-surface-muted text-content-muted border border-line hover:bg-slate-200'
                   }`}
                 >
                   Evolución de Puntos
@@ -3402,8 +3421,8 @@ const RankingPageNew: React.FC = () => {
                   onClick={() => setAnalysisView('positions')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'positions'
-                      ? 'bg-primary-100 text-primary-700 border border-slate-200'
-                      : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+                      ? 'bg-brand-subtle text-brand-strong border border-line'
+                      : 'bg-surface-muted text-content-muted border border-line hover:bg-slate-200'
                   }`}
                 >
                   Evolución de Posiciones
@@ -3414,16 +3433,16 @@ const RankingPageNew: React.FC = () => {
 
           {/* Gráfica */}
           {selectedTeamsForAnalysis.length === 0 ? (
-            <div className="bg-secondary-50 rounded-lg p-8 text-center">
-              <LineChart className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-              <p className="text-slate-500">Selecciona equipos para ver su comparación</p>
-              <p className="text-sm text-slate-400 mt-2">Puedes seleccionar hasta 6 equipos para comparar</p>
+            <div className="bg-surface-muted rounded-lg p-8 text-center">
+              <LineChart className="w-12 h-12 text-content-subtle mx-auto mb-4" />
+              <p className="text-content-subtle">Selecciona equipos para ver su comparación</p>
+              <p className="text-sm text-content-subtle mt-2">Puedes seleccionar hasta 6 equipos para comparar</p>
             </div>
           ) : (
             <div className="space-y-6">
               {/* Gráfica */}
-              <div className="bg-secondary-50 rounded-lg p-4">
-                <h4 className="text-md font-medium text-slate-900 mb-4">
+              <div className="bg-surface-muted rounded-lg p-4">
+                <h4 className="text-md font-medium text-content mb-4">
                   {analysisView === 'points' ? 'Evolución de Puntos por Temporada' : 'Evolución de Posiciones por Temporada'}
                 </h4>
                 <SimpleChart 
@@ -3435,8 +3454,8 @@ const RankingPageNew: React.FC = () => {
               </div>
 
               {/* Leyenda */}
-              <div className="bg-white border border-slate-200 rounded-lg p-4">
-                <h5 className="text-sm font-medium text-slate-900 mb-3">Equipos seleccionados:</h5>
+              <div className="bg-surface border border-line rounded-lg p-4">
+                <h5 className="text-sm font-medium text-content mb-3">Equipos seleccionados:</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {analysisData.map((team, index) => {
                     const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
@@ -3447,10 +3466,10 @@ const RankingPageNew: React.FC = () => {
                           style={{ backgroundColor: colors[index % colors.length] }}
                         />
                         <TeamLogo name={team.team_name} logo={rankingDataWithChanges?.find(t => t.team_id === team.team_id)?.logo} size="sm" />
-                        <RankingTeamLink team={team} className="text-sm text-slate-900 hover:text-primary-600 transition-colors">
+                        <RankingTeamLink team={team} className="text-sm text-content hover:text-link transition-colors">
                           {team.team_name}
                         </RankingTeamLink>
-                        <span className="text-xs text-slate-500">({team.region_name})</span>
+                        <span className="text-xs text-content-subtle">({team.region_name})</span>
                       </div>
                     )
                   })}
@@ -3458,8 +3477,8 @@ const RankingPageNew: React.FC = () => {
               </div>
 
               {/* Resumen estadístico */}
-              <div className="bg-white border border-slate-200 rounded-lg p-4">
-                <h5 className="text-sm font-medium text-slate-900 mb-3">Resumen estadístico:</h5>
+              <div className="bg-surface border border-line rounded-lg p-4">
+                <h5 className="text-sm font-medium text-content mb-3">Resumen estadístico:</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {analysisData.map(team => {
                     const totalPoints = team.data.reduce((sum, d) => sum + d.points, 0)
@@ -3468,14 +3487,14 @@ const RankingPageNew: React.FC = () => {
                     const minPoints = Math.min(...team.data.map(d => d.points))
                     
                     return (
-                      <div key={team.team_id} className="bg-secondary-50 rounded-lg p-3">
+                      <div key={team.team_id} className="bg-surface-muted rounded-lg p-3">
                         <div className="flex items-center mb-2">
                           <TeamLogo name={team.team_name} logo={rankingDataWithChanges?.find(t => t.team_id === team.team_id)?.logo} size="sm" />
-                          <RankingTeamLink team={team} className="ml-2 font-medium text-slate-900 hover:text-primary-600 transition-colors">
+                          <RankingTeamLink team={team} className="ml-2 font-medium text-content hover:text-link transition-colors">
                             {team.team_name}
                           </RankingTeamLink>
                         </div>
-                        <div className="text-sm text-slate-600 space-y-1">
+                        <div className="text-sm text-content-muted space-y-1">
                           <div>Total: {totalPoints.toFixed(1)} pts</div>
                           <div>Promedio: {avgPoints.toFixed(1)} pts</div>
                           <div>Máximo: {maxPoints.toFixed(1)} pts</div>
@@ -3506,18 +3525,18 @@ const RankingPageNew: React.FC = () => {
 
     return (
       <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+        <div className="bg-surface rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-content mb-4 flex items-center">
             <MapPin className="w-5 h-5 mr-2" />
             Estadísticas Avanzadas - Ranking General
             </h3>
-          <p className="text-slate-600 mb-6">
+          <p className="text-content-muted mb-6">
             Análisis detallado de la distribución geográfica y competitividad del ranking general.
           </p>
           
           {/* Estadísticas por región */}
           <div className="mb-6">
-            <h4 className="text-md font-medium text-slate-900 mb-3">Distribución por Región</h4>
+            <h4 className="text-md font-medium text-content mb-3">Distribución por Región</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(
                 rankingDataWithChanges?.reduce((acc: { [key: string]: number }, team) => {
@@ -3526,10 +3545,10 @@ const RankingPageNew: React.FC = () => {
                   return acc
                 }, {}) || {}
               ).map(([region, count]) => (
-                <div key={region} className="bg-secondary-50 rounded-lg p-4">
+                <div key={region} className="bg-surface-muted rounded-lg p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-slate-900">{region}</span>
-                    <span className="text-lg font-semibold text-primary-600">{count as number}</span>
+                    <span className="text-sm font-medium text-content">{region}</span>
+                    <span className="text-lg font-semibold text-link">{count as number}</span>
                   </div>
                 </div>
               ))}
@@ -3538,26 +3557,26 @@ const RankingPageNew: React.FC = () => {
 
           {/* Competitividad */}
           <div className="mb-6">
-            <h4 className="text-md font-medium text-slate-900 mb-3">Análisis de Competitividad</h4>
+            <h4 className="text-md font-medium text-content mb-3">Análisis de Competitividad</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-secondary-50 rounded-lg p-4">
-                <div className="text-sm text-slate-600">Diferencia 1º-2º</div>
-                <div className="text-xl font-semibold text-slate-900">
+              <div className="bg-surface-muted rounded-lg p-4">
+                <div className="text-sm text-content-muted">Diferencia 1º-2º</div>
+                <div className="text-xl font-semibold text-content">
                   {rankingDataWithChanges && rankingDataWithChanges.length > 1 
                     ? (rankingDataWithChanges[0].total_points - rankingDataWithChanges[1].total_points).toFixed(1)
                     : '0.0'
                   }
                 </div>
               </div>
-              <div className="bg-secondary-50 rounded-lg p-4">
-                <div className="text-sm text-slate-600">Equipos en Top 10</div>
-                <div className="text-xl font-semibold text-slate-900">
+              <div className="bg-surface-muted rounded-lg p-4">
+                <div className="text-sm text-content-muted">Equipos en Top 10</div>
+                <div className="text-xl font-semibold text-content">
                   {Math.min(10, rankingDataWithChanges?.length || 0)}
                 </div>
               </div>
-              <div className="bg-secondary-50 rounded-lg p-4">
-                <div className="text-sm text-slate-600">Densidad Competitiva</div>
-                <div className="text-xl font-semibold text-slate-900">
+              <div className="bg-surface-muted rounded-lg p-4">
+                <div className="text-sm text-content-muted">Densidad Competitiva</div>
+                <div className="text-xl font-semibold text-content">
                   {rankingDataWithChanges && rankingDataWithChanges.length > 0
                     ? ((rankingDataWithChanges.slice(0, 10).reduce((sum, team) => sum + (team.total_points || 0), 0) / 10) / 
                        (rankingDataWithChanges[0].total_points || 1) * 100).toFixed(1) + '%'
@@ -3582,7 +3601,7 @@ const RankingPageNew: React.FC = () => {
 
     if (error) {
       return (
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
+        <div className="bg-surface rounded-lg shadow-sm border border-line p-8">
           <div className="text-center text-red-500">
             <p>Error al cargar el ranking</p>
           </div>
@@ -3775,12 +3794,12 @@ const RankingPageNew: React.FC = () => {
         {/* Estadísticas destacadas con tooltips */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4">
-            <div className="bg-white rounded-lg shadow p-4 group relative">
+            <div className="bg-surface rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
                 <UsersRound className="w-8 h-8 text-primary-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-slate-500">Total Equipos</p>
-                  <p className="text-2xl font-semibold text-slate-900">{stats.total_teams}</p>
+                  <p className="text-sm font-medium text-content-subtle">Total Equipos</p>
+                  <p className="text-2xl font-semibold text-content">{stats.total_teams}</p>
                 </div>
               </div>
               {/* Tooltip */}
@@ -3790,12 +3809,12 @@ const RankingPageNew: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow p-4 group relative">
+            <div className="bg-surface rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
                 <TrendingUp className="w-8 h-8 text-green-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-slate-500">Equipos Nuevos</p>
-                  <p className="text-2xl font-semibold text-slate-900">{stats.new_teams}</p>
+                  <p className="text-sm font-medium text-content-subtle">Equipos Nuevos</p>
+                  <p className="text-2xl font-semibold text-content">{stats.new_teams}</p>
                 </div>
               </div>
               {/* Tooltip */}
@@ -3805,12 +3824,12 @@ const RankingPageNew: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow p-4 group relative">
+            <div className="bg-surface rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
                 <Trophy className="w-8 h-8 text-yellow-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-slate-500">Consistencia</p>
-                  <p className="text-2xl font-semibold text-slate-900">{stats.consistent_teams}</p>
+                  <p className="text-sm font-medium text-content-subtle">Consistencia</p>
+                  <p className="text-2xl font-semibold text-content">{stats.consistent_teams}</p>
                 </div>
               </div>
               {/* Tooltip */}
@@ -3820,12 +3839,12 @@ const RankingPageNew: React.FC = () => {
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow p-4 group relative">
+            <div className="bg-surface rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
                 <Calendar className="w-8 h-8 text-orange-500" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-slate-500">Actividad</p>
-                  <p className="text-2xl font-semibold text-slate-900">{stats.avg_activity.toFixed(1)}</p>
+                  <p className="text-sm font-medium text-content-subtle">Actividad</p>
+                  <p className="text-2xl font-semibold text-content">{stats.avg_activity.toFixed(1)}</p>
                 </div>
               </div>
               {/* Tooltip */}
@@ -3837,17 +3856,17 @@ const RankingPageNew: React.FC = () => {
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-surface rounded-lg shadow-sm border border-line overflow-hidden">
           {/* Header con controles estilo UEFA */}
-          <div className="px-6 py-4 border-b border-slate-200 bg-secondary-50">
+          <div className="px-6 py-4 border-b border-line bg-surface-muted">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <currentTab.icon className="w-6 h-6 text-primary-600" />
-                <h2 className="text-xl font-semibold text-slate-900">
+                <currentTab.icon className="w-6 h-6 text-link" />
+                <h2 className="text-xl font-semibold text-content">
                 {currentTab?.label} - Temporada {currentReferenceSeason || referenceSeason}
                 </h2>
               </div>
-              <div className="flex items-center space-x-4 text-sm text-slate-600">
+              <div className="flex items-center space-x-4 text-sm text-content-muted">
                 <span>
                   {rankingTypeToUse === 'clubs' 
                     ? `${finalRankingData?.length || 0} clubes` 
@@ -3855,10 +3874,10 @@ const RankingPageNew: React.FC = () => {
                   }
                 </span>
                 {rankingTypeToUse === 'historical' && (
-                  <span className="text-xs text-slate-500">• Suma total histórica</span>
+                  <span className="text-xs text-content-subtle">• Suma total histórica</span>
                 )}
                 {rankingTypeToUse === 'clubs' && (
-                  <span className="text-xs text-slate-500">• Incluye filiales</span>
+                  <span className="text-xs text-content-subtle">• Incluye filiales</span>
                 )}
               </div>
             </div>
@@ -3866,11 +3885,11 @@ const RankingPageNew: React.FC = () => {
             {/* Controles de tabla estilo UEFA */}
             <div className="flex items-center justify-end">
                 <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-slate-700">Temporada:</label>
+                <label className="text-sm font-medium text-content-muted">Temporada:</label>
                   <select 
                 value={selectedSeasonForDetailedView || referenceSeason || ''}
                 onChange={(e) => setSelectedSeasonForDetailedView(e.target.value || null)}
-                    className="text-sm border border-slate-300 rounded px-3 py-1 bg-white"
+                    className="text-sm border border-line-strong rounded px-3 py-1 bg-surface"
                   >
                 {allSeasons.map((season) => {
                   const year1 = season.split('-')[0]
@@ -3892,39 +3911,39 @@ const RankingPageNew: React.FC = () => {
         >
           <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-100">
+            <thead className="bg-surface-muted">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Posición</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cambio</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Equipo</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">Posición</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">Cambio</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">Equipo</th>
                 {seasons.map((season, index) => {
                   const year1 = season.split('-')[0]
                   const year2 = season.split('-')[1]
                   const coefficient = coefficients[index] || 0
                   
                   return (
-                    <th key={season} className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th key={season} className="px-4 py-3 text-right text-xs font-medium text-content-subtle uppercase tracking-wider">
                       <div className="flex flex-col">
                         <span>{year1}/{year2}</span>
                         {rankingTypeToUse !== 'historical' && (
-                          <span className="text-xs text-slate-400 font-normal">{coefficient}</span>
+                          <span className="text-xs text-content-subtle font-normal">{coefficient}</span>
                         )}
                       </div>
                     </th>
                   )
                 })}
-                <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-medium text-content-subtle uppercase tracking-wider">
                   Pts <span className="text-primary-500">?</span>
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-slate-200">
+            <tbody className="bg-surface divide-y divide-line">
               {rankedTeamsWithPoints.slice(0, (showAllResults || isCollapsing) ? undefined : 10).map((team, index) => {
                 const isEvenRow = index % 2 === 1
                 
                 return (
-                  <tr key={team.team_id} className={`hover:bg-secondary-50 ${isEvenRow ? 'bg-secondary-50' : 'bg-white'}`}>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
+                  <tr key={team.team_id} className={`hover:bg-surface-muted ${isEvenRow ? 'bg-surface-muted' : 'bg-surface'}`}>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-content">
                       <div className="flex items-center">
                         {getRankIcon(index + 1)}
                       </div>
@@ -3933,8 +3952,8 @@ const RankingPageNew: React.FC = () => {
                       <div className="flex items-center">
                         {getChangeIcon(team.position_change || 0)}
                         <span className={`ml-1 text-sm font-medium ${
-                          (team.position_change || 0) > 0 ? 'text-green-600' : 
-                          (team.position_change || 0) < 0 ? 'text-red-600' : 'text-slate-500'
+                          (team.position_change || 0) > 0 ? 'text-green-600 dark:text-green-300' : 
+                          (team.position_change || 0) < 0 ? 'text-red-600 dark:text-red-300' : 'text-content-subtle'
                         }`}>
                           {getChangeText(team.position_change || 0)}
                         </span>
@@ -3946,25 +3965,25 @@ const RankingPageNew: React.FC = () => {
                         <div className="ml-3">
                           <RankingTeamLink
                             team={team}
-                            className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                            className="text-sm font-medium text-content hover:text-link transition-colors"
                           >
                             {team.team_name}
                           </RankingTeamLink>
                           {team.region_name && (
-                            <div className="text-xs text-slate-500">{team.region_name}</div>
+                            <div className="text-xs text-content-subtle">{team.region_name}</div>
                           )}
                           {rankingTypeToUse === 'clubs' && team.teams_count && team.teams_count > 1 && (
-                            <div className="text-xs text-primary-600">{team.teams_count} equipos</div>
+                            <div className="text-xs text-link">{team.teams_count} equipos</div>
                           )}
                         </div>
                       </div>
                     </td>
                     {seasons.map((season) => (
-                      <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-slate-900 text-right">
+                      <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-content text-right">
                         {getSeasonPoints(team, season).toFixed(2)}
                       </td>
                     ))}
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-slate-900 text-right">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-content text-right">
                       {team.total_points?.toFixed(2) || '0.00'}
                     </td>
                   </tr>
@@ -3972,14 +3991,14 @@ const RankingPageNew: React.FC = () => {
               })}
             </tbody>
             {showOutOfRanking && (
-              <tbody className="bg-white divide-y divide-slate-200">
-                <tr className="bg-slate-50">
+              <tbody className="bg-surface divide-y divide-line">
+                <tr className="bg-surface-muted">
                   <td
                     colSpan={3 + seasons.length + 1}
-                    className="px-4 py-3 border-t border-slate-200"
+                    className="px-4 py-3 border-t border-line"
                   >
-                    <p className="text-sm font-medium text-slate-700 italic">Fuera del ranking</p>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-sm font-medium text-content-muted italic">Fuera del ranking</p>
+                    <p className="text-xs text-content-subtle mt-1">
                       Equipos que obtuvieron puntos en esta categoría, pero ya no suman porque sus torneos quedan fuera de la ventana de 4 temporadas.
                     </p>
                   </td>
@@ -3988,34 +4007,34 @@ const RankingPageNew: React.FC = () => {
                   const isEvenRow = index % 2 === 1
 
                   return (
-                    <tr key={team.team_id} className={`hover:bg-secondary-50 ${isEvenRow ? 'bg-secondary-50' : 'bg-white'}`}>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-400">—</td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-400">—</td>
+                    <tr key={team.team_id} className={`hover:bg-surface-muted ${isEvenRow ? 'bg-surface-muted' : 'bg-surface'}`}>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-content-subtle">—</td>
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-content-subtle">—</td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
                           <div className="ml-3">
                             <RankingTeamLink
                             team={team}
-                            className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                            className="text-sm font-medium text-content hover:text-link transition-colors"
                           >
                             {team.team_name}
                           </RankingTeamLink>
                             {team.region_name && (
-                              <div className="text-xs text-slate-500">{team.region_name}</div>
+                              <div className="text-xs text-content-subtle">{team.region_name}</div>
                             )}
-                            <div className="text-xs text-slate-400">
+                            <div className="text-xs text-content-subtle">
                               Última temporada con puntos: {formatSeasonDisplay(team.last_active_season)}
                             </div>
                           </div>
                         </div>
                       </td>
                       {seasons.map((season) => (
-                        <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-slate-400 text-right">
+                        <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-content-subtle text-right">
                           0.00
                         </td>
                       ))}
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-slate-400 text-right">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-content-subtle text-right">
                         0.00
                       </td>
                     </tr>
@@ -4028,7 +4047,7 @@ const RankingPageNew: React.FC = () => {
         </div>
 
         {/* Footer estilo UEFA */}
-        <div className="px-6 py-4 border-t border-slate-200 bg-secondary-50">
+        <div className="px-6 py-4 border-t border-line bg-surface-muted">
           <div className="flex items-center justify-between">
             <button
               onClick={() => {
@@ -4039,11 +4058,11 @@ const RankingPageNew: React.FC = () => {
                   setShowAllResults(true)
                 }
               }}
-              className="text-sm text-primary-600 hover:text-primary-800 font-medium transition-colors"
+              className="text-sm text-link hover:text-brand-strong font-medium transition-colors"
             >
               {showAllResults ? 'Ver solo top 10' : 'Ver ranking completo'}
             </button>
-            <div className="text-xs text-slate-500">
+            <div className="text-xs text-content-subtle">
               Última actualización: {new Date().toLocaleDateString('es-ES')} {new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>
@@ -4062,7 +4081,7 @@ const RankingPageNew: React.FC = () => {
 
     if (error || !rankingData) {
       return (
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
+        <div className="bg-surface rounded-lg shadow-sm border border-line p-8">
           <div className="text-center text-red-500">
             <p>Error al cargar los datos del ranking</p>
           </div>
@@ -4075,22 +4094,22 @@ const RankingPageNew: React.FC = () => {
 
     return (
       <div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+        <div className="bg-surface rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-content mb-4 flex items-center">
             <LineChart className="w-5 h-5 mr-2" />
             Análisis de Equipos
           </h3>
-          <p className="text-slate-600 mb-6">
+          <p className="text-content-muted mb-6">
             Selecciona equipos para comparar su evolución de puntos y posiciones a lo largo del tiempo.
           </p>
           
           {/* Selector de equipos múltiple */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-content-muted">
                 Seleccionar equipos para análisis:
               </label>
-              <span className="text-sm text-slate-500">
+              <span className="text-sm text-content-subtle">
                 {selectedTeamsForAnalysis.length} equipos seleccionados
               </span>
             </div>
@@ -4112,19 +4131,19 @@ const RankingPageNew: React.FC = () => {
                 onClick={() => setShowAllTeams(!showAllTeams)}
                 className={`px-3 py-1 rounded-lg text-sm font-medium ${
                   showAllTeams
-                    ? 'bg-primary-100 text-primary-700 border border-slate-200'
-                    : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+                    ? 'bg-brand-subtle text-brand-strong border border-line'
+                    : 'bg-surface-muted text-content-muted border border-line hover:bg-slate-200'
                 }`}
               >
                 {showAllTeams ? 'Mostrar solo top 20' : 'Mostrar todos los equipos'}
               </button>
-              <span className="text-sm text-slate-500">
+              <span className="text-sm text-content-subtle">
                 {rankingData?.length || 0} equipos disponibles
               </span>
             </div>
             
             {/* Lista de equipos */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto border border-slate-200 rounded-lg p-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto border border-line rounded-lg p-3">
               {rankingData
                 ?.filter(team => 
                   team.team_name.toLowerCase().includes(teamSearchTerm.toLowerCase()) ||
@@ -4132,12 +4151,12 @@ const RankingPageNew: React.FC = () => {
                 )
                 ?.slice(0, showAllTeams ? undefined : 20)
                 ?.map((team) => (
-                <label key={team.team_id} className="flex items-center space-x-2 text-sm hover:bg-secondary-50 p-1 rounded">
+                <label key={team.team_id} className="flex items-center space-x-2 text-sm hover:bg-surface-muted p-1 rounded">
                   <input
                     type="checkbox"
                     checked={selectedTeamsForAnalysis.includes(team.team_id)}
                     onChange={(e) => handleTeamSelection(team.team_id, e.target.checked)}
-                    className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+                    className="rounded border-line-strong text-link focus:ring-primary-500"
                   />
                   <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
                   <span className="truncate">{team.team_name}</span>
@@ -4150,7 +4169,7 @@ const RankingPageNew: React.FC = () => {
               team.team_name.toLowerCase().includes(teamSearchTerm.toLowerCase()) ||
               team.region_name?.toLowerCase().includes(teamSearchTerm.toLowerCase())
             )?.length === 0 && teamSearchTerm && (
-              <div className="text-center py-4 text-slate-500">
+              <div className="text-center py-4 text-content-subtle">
                 No se encontraron equipos que coincidan con "{teamSearchTerm}"
               </div>
             )}
@@ -4159,14 +4178,14 @@ const RankingPageNew: React.FC = () => {
                 {selectedTeamsForAnalysis.map(teamId => {
                   const team = rankingData?.find(t => t.team_id === teamId)
                   return team ? (
-                    <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary-100 text-primary-800">
+                    <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-brand-subtle text-brand-strong">
                       <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
-                      <RankingTeamLink team={team} className="ml-1 hover:text-primary-600 transition-colors">
+                      <RankingTeamLink team={team} className="ml-1 hover:text-link transition-colors">
                         {team.team_name}
                       </RankingTeamLink>
                       <button
                         onClick={() => handleTeamSelection(teamId, false)}
-                        className="ml-1 text-primary-600 hover:text-primary-800"
+                        className="ml-1 text-link hover:text-brand-strong"
                       >
                         ×
                       </button>
@@ -4185,8 +4204,8 @@ const RankingPageNew: React.FC = () => {
                   onClick={() => setAnalysisView('points')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'points'
-                      ? 'bg-primary-100 text-primary-700 border border-slate-200'
-                      : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+                      ? 'bg-brand-subtle text-brand-strong border border-line'
+                      : 'bg-surface-muted text-content-muted border border-line hover:bg-slate-200'
                   }`}
                 >
                   Evolución de Puntos
@@ -4195,8 +4214,8 @@ const RankingPageNew: React.FC = () => {
                   onClick={() => setAnalysisView('positions')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'positions'
-                      ? 'bg-primary-100 text-primary-700 border border-slate-200'
-                      : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+                      ? 'bg-brand-subtle text-brand-strong border border-line'
+                      : 'bg-surface-muted text-content-muted border border-line hover:bg-slate-200'
                   }`}
                 >
                   Evolución de Posiciones
@@ -4207,16 +4226,16 @@ const RankingPageNew: React.FC = () => {
 
           {/* Gráfica */}
           {selectedTeamsForAnalysis.length === 0 ? (
-            <div className="bg-secondary-50 rounded-lg p-8 text-center">
-              <LineChart className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-              <p className="text-slate-500">Selecciona equipos para ver su comparación</p>
-              <p className="text-sm text-slate-400 mt-2">Puedes seleccionar hasta 6 equipos para comparar</p>
+            <div className="bg-surface-muted rounded-lg p-8 text-center">
+              <LineChart className="w-12 h-12 text-content-subtle mx-auto mb-4" />
+              <p className="text-content-subtle">Selecciona equipos para ver su comparación</p>
+              <p className="text-sm text-content-subtle mt-2">Puedes seleccionar hasta 6 equipos para comparar</p>
             </div>
           ) : (
             <div className="space-y-6">
               {/* Gráfica */}
-              <div className="bg-secondary-50 rounded-lg p-4">
-                <h4 className="text-md font-medium text-slate-900 mb-4">
+              <div className="bg-surface-muted rounded-lg p-4">
+                <h4 className="text-md font-medium text-content mb-4">
                   {analysisView === 'points' ? 'Evolución de Puntos por Temporada' : 'Evolución de Posiciones por Temporada'}
                 </h4>
                 <SimpleChart 
@@ -4228,8 +4247,8 @@ const RankingPageNew: React.FC = () => {
               </div>
 
               {/* Leyenda */}
-              <div className="bg-white border border-slate-200 rounded-lg p-4">
-                <h5 className="text-sm font-medium text-slate-900 mb-3">Equipos seleccionados:</h5>
+              <div className="bg-surface border border-line rounded-lg p-4">
+                <h5 className="text-sm font-medium text-content mb-3">Equipos seleccionados:</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {analysisData.map((team, index) => {
                     const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
@@ -4240,10 +4259,10 @@ const RankingPageNew: React.FC = () => {
                           style={{ backgroundColor: colors[index % colors.length] }}
                         />
                         <TeamLogo name={team.team_name} logo={rankingData?.find(t => t.team_id === team.team_id)?.logo} size="sm" />
-                        <RankingTeamLink team={team} className="text-sm text-slate-900 hover:text-primary-600 transition-colors">
+                        <RankingTeamLink team={team} className="text-sm text-content hover:text-link transition-colors">
                           {team.team_name}
                         </RankingTeamLink>
-                        <span className="text-xs text-slate-500">({team.region_name})</span>
+                        <span className="text-xs text-content-subtle">({team.region_name})</span>
                       </div>
                     )
                   })}
@@ -4251,8 +4270,8 @@ const RankingPageNew: React.FC = () => {
               </div>
 
               {/* Resumen estadístico */}
-              <div className="bg-white border border-slate-200 rounded-lg p-4">
-                <h5 className="text-sm font-medium text-slate-900 mb-3">Resumen estadístico:</h5>
+              <div className="bg-surface border border-line rounded-lg p-4">
+                <h5 className="text-sm font-medium text-content mb-3">Resumen estadístico:</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {analysisData.map(team => {
                     const totalPoints = team.data.reduce((sum, d) => sum + d.points, 0)
@@ -4261,14 +4280,14 @@ const RankingPageNew: React.FC = () => {
                     const minPoints = Math.min(...team.data.map(d => d.points))
                     
                     return (
-                      <div key={team.team_id} className="bg-secondary-50 rounded-lg p-3">
+                      <div key={team.team_id} className="bg-surface-muted rounded-lg p-3">
                         <div className="flex items-center mb-2">
                           <TeamLogo name={team.team_name} logo={rankingData?.find(t => t.team_id === team.team_id)?.logo} size="sm" />
-                          <RankingTeamLink team={team} className="ml-2 font-medium text-slate-900 hover:text-primary-600 transition-colors">
+                          <RankingTeamLink team={team} className="ml-2 font-medium text-content hover:text-link transition-colors">
                             {team.team_name}
                           </RankingTeamLink>
                         </div>
-                        <div className="text-sm text-slate-600 space-y-1">
+                        <div className="text-sm text-content-muted space-y-1">
                           <div>Total: {totalPoints.toFixed(1)} pts</div>
                           <div>Promedio: {avgPoints.toFixed(1)} pts</div>
                           <div>Máximo: {maxPoints.toFixed(1)} pts</div>
@@ -4294,7 +4313,7 @@ const RankingPageNew: React.FC = () => {
 
     if (error || !rankingData) {
       return (
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
+        <div className="bg-surface rounded-lg shadow-sm border border-line p-8">
           <div className="text-center text-red-500">
             <p>Error al cargar los datos del ranking</p>
           </div>
@@ -4304,18 +4323,18 @@ const RankingPageNew: React.FC = () => {
 
     return (
       <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+        <div className="bg-surface rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-content mb-4 flex items-center">
             <MapPin className="w-5 h-5 mr-2" />
             Estadísticas Avanzadas
           </h3>
-          <p className="text-slate-600 mb-6">
+          <p className="text-content-muted mb-6">
             Análisis detallado de la distribución geográfica y competitividad del ranking.
           </p>
           
           {/* Estadísticas por región */}
           <div className="mb-6">
-            <h4 className="text-md font-medium text-slate-900 mb-3">Distribución por Región</h4>
+            <h4 className="text-md font-medium text-content mb-3">Distribución por Región</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {rankingData?.reduce((acc: { [key: string]: number }, team) => {
                 const region = team.region_name || 'Sin región'
@@ -4328,10 +4347,10 @@ const RankingPageNew: React.FC = () => {
                   return acc
                 }, {}) || {}
               ).map(([region, count]) => (
-                <div key={region} className="bg-secondary-50 rounded-lg p-4">
+                <div key={region} className="bg-surface-muted rounded-lg p-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-slate-900">{region}</span>
-                    <span className="text-lg font-semibold text-primary-600">{count as number}</span>
+                    <span className="text-sm font-medium text-content">{region}</span>
+                    <span className="text-lg font-semibold text-link">{count as number}</span>
                   </div>
                 </div>
               ))}
@@ -4340,26 +4359,26 @@ const RankingPageNew: React.FC = () => {
 
           {/* Competitividad */}
           <div className="mb-6">
-            <h4 className="text-md font-medium text-slate-900 mb-3">Análisis de Competitividad</h4>
+            <h4 className="text-md font-medium text-content mb-3">Análisis de Competitividad</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-secondary-50 rounded-lg p-4">
-                <div className="text-sm text-slate-600">Diferencia 1º-2º</div>
-                <div className="text-xl font-semibold text-slate-900">
+              <div className="bg-surface-muted rounded-lg p-4">
+                <div className="text-sm text-content-muted">Diferencia 1º-2º</div>
+                <div className="text-xl font-semibold text-content">
                   {rankingData && rankingData.length > 1 
                     ? (rankingData[0].total_points - rankingData[1].total_points).toFixed(1)
                     : '0.0'
                   }
                 </div>
               </div>
-              <div className="bg-secondary-50 rounded-lg p-4">
-                <div className="text-sm text-slate-600">Equipos en Top 10</div>
-                <div className="text-xl font-semibold text-slate-900">
+              <div className="bg-surface-muted rounded-lg p-4">
+                <div className="text-sm text-content-muted">Equipos en Top 10</div>
+                <div className="text-xl font-semibold text-content">
                   {Math.min(10, rankingData?.length || 0)}
                 </div>
               </div>
-              <div className="bg-secondary-50 rounded-lg p-4">
-                <div className="text-sm text-slate-600">Densidad Competitiva</div>
-                <div className="text-xl font-semibold text-slate-900">
+              <div className="bg-surface-muted rounded-lg p-4">
+                <div className="text-sm text-content-muted">Densidad Competitiva</div>
+                <div className="text-xl font-semibold text-content">
                   {rankingData && rankingData.length > 0
                     ? ((rankingData.slice(0, 10).reduce((sum, team) => sum + team.total_points, 0) / 10) / 
                        (rankingData[0].total_points || 1) * 100).toFixed(1) + '%'
@@ -4375,7 +4394,7 @@ const RankingPageNew: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-secondary-50">
+    <div className="min-h-screen bg-surface-muted">
       <RankingPageHeader season={referenceSeason} isLoadingSeason={isLoadingSeason} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
@@ -4383,8 +4402,12 @@ const RankingPageNew: React.FC = () => {
         <RankingTabNav tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
 
         {activeTab !== 'summary' && (
-          <div className="bg-white border-b border-slate-200 px-2 py-2 mb-6 rounded-b-xl shadow-sm">
-            <div className="flex items-center gap-1 overflow-x-auto">
+          <div className="bg-surface border-b border-line px-2 py-1.5 mb-4 rounded-b-xl shadow-sm sm:py-2 sm:mb-6">
+            <div
+              className="flex items-center gap-1 overflow-x-auto snap-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              role="tablist"
+              aria-label="Vista del ranking"
+            >
               {[
                 { id: 'ranking', label: 'Ranking', icon: BarChart3 },
                 { id: 'historical', label: 'Ranking histórico', icon: Star },
@@ -4399,10 +4422,12 @@ const RankingPageNew: React.FC = () => {
                       subTab.id as 'ranking' | 'historical' | 'clubs' | 'analysis' | 'advanced'
                     )
                   }
-                  className={`inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl text-sm font-medium whitespace-nowrap transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                  role="tab"
+                  aria-selected={detailedViewMode === subTab.id}
+                  className={`inline-flex shrink-0 snap-start items-center gap-1.5 px-3 py-2 min-h-[44px] touch-manipulation rounded-xl text-sm font-medium whitespace-nowrap transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                     detailedViewMode === subTab.id
-                      ? 'bg-primary-50 text-primary-700'
-                      : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                      ? 'bg-brand-subtle text-brand-strong'
+                      : 'text-content-muted hover:text-content hover:bg-surface-muted'
                   }`}
                 >
                   <subTab.icon className="w-4 h-4" />

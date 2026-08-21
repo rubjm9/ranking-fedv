@@ -61,15 +61,15 @@ const ShareButton: React.FC<ShareButtonProps> = ({
 
   const sizeClass =
     size === 'sm'
-      ? 'gap-1.5 px-2.5 py-1.5 text-xs rounded-lg'
-      : 'gap-2 px-4 py-2 text-sm rounded-xl'
+      ? 'gap-1.5 px-3 py-1.5 min-h-[44px] touch-manipulation text-xs rounded-lg'
+      : 'gap-2 px-4 py-2 min-h-[44px] touch-manipulation text-sm rounded-xl'
 
   const iconClass = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4'
 
   const triggerClass =
     variant === 'dark'
       ? `flex items-center font-medium text-white border border-white/20 hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 ${sizeClass}`
-      : `btn-outline bg-white shadow-sm flex items-center ${sizeClass}`
+      : `btn-outline bg-surface shadow-sm flex items-center ${sizeClass}`
 
   return (
     <div className={`relative ${className}`}>
@@ -86,16 +86,16 @@ const ShareButton: React.FC<ShareButtonProps> = ({
       {isOpen && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} aria-hidden="true" />
-          <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 z-20">
+          <div className="absolute right-0 mt-2 w-56 bg-surface rounded-xl shadow-lg border border-line z-20">
             <div className="py-1">
               <button
                 onClick={handleCopy}
-                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2 min-h-[44px] touch-manipulation text-sm text-content-muted hover:bg-surface-muted transition-colors"
               >
                 {copied ? (
                   <>
-                    <Check className="h-4 w-4 text-emerald-600" />
-                    <span className="text-emerald-600">¡Copiado!</span>
+                    <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
+                    <span className="text-emerald-600 dark:text-emerald-300">¡Copiado!</span>
                   </>
                 ) : (
                   <>
@@ -104,26 +104,26 @@ const ShareButton: React.FC<ShareButtonProps> = ({
                   </>
                 )}
               </button>
-              <div className="border-t border-slate-200 my-1" />
+              <div className="border-t border-line my-1" />
               <button
                 onClick={() => handleShare('twitter')}
-                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2 min-h-[44px] touch-manipulation text-sm text-content-muted hover:bg-surface-muted transition-colors"
               >
-                <Twitter className="h-4 w-4 text-slate-600" />
+                <Twitter className="h-4 w-4 text-content-muted" />
                 <span>Twitter</span>
               </button>
               <button
                 onClick={() => handleShare('facebook')}
-                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2 min-h-[44px] touch-manipulation text-sm text-content-muted hover:bg-surface-muted transition-colors"
               >
-                <Facebook className="h-4 w-4 text-slate-600" />
+                <Facebook className="h-4 w-4 text-content-muted" />
                 <span>Facebook</span>
               </button>
               <button
                 onClick={() => handleShare('linkedin')}
-                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2 min-h-[44px] touch-manipulation text-sm text-content-muted hover:bg-surface-muted transition-colors"
               >
-                <Linkedin className="h-4 w-4 text-slate-600" />
+                <Linkedin className="h-4 w-4 text-content-muted" />
                 <span>LinkedIn</span>
               </button>
             </div>

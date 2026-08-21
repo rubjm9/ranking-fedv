@@ -41,11 +41,11 @@ const IconGrass: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) 
 
 const RankingMegaMenu: React.FC<RankingMegaMenuProps> = ({ onClose }) => {
   return (
-    <div className="absolute top-full left-0 mt-2 w-[560px] rounded-2xl shadow-lg bg-white border border-slate-100 z-50 overflow-hidden">
-      <div className="grid grid-cols-2 divide-x divide-slate-100">
+    <div className="absolute top-full left-0 mt-2 w-[560px] rounded-2xl shadow-lg bg-surface border border-line z-50 overflow-hidden">
+      <div className="grid grid-cols-2 divide-x divide-line">
         {/* Left column: individual categories */}
         <div className="p-4">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-2">
+          <p className="text-xs font-semibold text-content-subtle uppercase tracking-wider mb-3 px-2">
             Categorías
           </p>
           <ul className="space-y-0.5">
@@ -54,12 +54,12 @@ const RankingMegaMenu: React.FC<RankingMegaMenuProps> = ({ onClose }) => {
                 <Link
                   to={to}
                   onClick={onClose}
-                  className="flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                  className="flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm font-medium text-content-muted hover:bg-surface-muted hover:text-content transition-colors"
                 >
                   {surface === 'beach' ? (
                     <IconBeach className="w-4 h-4 text-primary-500 shrink-0" />
                   ) : (
-                    <IconGrass className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <IconGrass className="w-4 h-4 text-emerald-600 dark:text-emerald-300 shrink-0" />
                   )}
                   {label}
                 </Link>
@@ -70,7 +70,7 @@ const RankingMegaMenu: React.FC<RankingMegaMenuProps> = ({ onClose }) => {
 
         {/* Right column: combined rankings */}
         <div className="p-4">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-2">
+          <p className="text-xs font-semibold text-content-subtle uppercase tracking-wider mb-3 px-2">
             Rankings combinados
           </p>
           <ul className="space-y-0.5">
@@ -79,10 +79,10 @@ const RankingMegaMenu: React.FC<RankingMegaMenuProps> = ({ onClose }) => {
                 <Link
                   to={to}
                   onClick={onClose}
-                  className="flex flex-col px-2 py-2 rounded-lg hover:bg-slate-50 transition-colors group"
+                  className="flex flex-col px-2 py-2 rounded-lg hover:bg-surface-muted transition-colors group"
                 >
-                  <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900">{label}</span>
-                  <span className="text-xs text-slate-400">{desc}</span>
+                  <span className="text-sm font-medium text-content-muted group-hover:text-content">{label}</span>
+                  <span className="text-xs text-content-subtle">{desc}</span>
                 </Link>
               </li>
             ))}
@@ -90,11 +90,11 @@ const RankingMegaMenu: React.FC<RankingMegaMenuProps> = ({ onClose }) => {
         </div>
       </div>
 
-      <div className="border-t border-slate-100 px-4 py-2.5 bg-slate-50">
+      <div className="border-t border-line px-4 py-2.5 bg-surface-muted">
         <Link
           to="/ranking/general"
           onClick={onClose}
-          className="text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors"
+          className="text-xs font-medium text-link hover:text-brand-strong transition-colors"
         >
           Ver todos los rankings →
         </Link>

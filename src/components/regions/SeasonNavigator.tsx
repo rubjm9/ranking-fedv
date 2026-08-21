@@ -44,7 +44,7 @@ const SeasonNavigator: React.FC<SeasonNavigatorProps> = ({
 
   if (!seasons.length) {
     return (
-      <p className="text-sm text-slate-500">No hay temporadas con coeficientes disponibles.</p>
+      <p className="text-sm text-content-subtle">No hay temporadas con coeficientes disponibles.</p>
     )
   }
 
@@ -54,7 +54,7 @@ const SeasonNavigator: React.FC<SeasonNavigatorProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-content-muted">
           {displayCalc && displayApplies ? (
             <>
               Calculado con datos hasta <strong>{displayCalc}</strong> → aplica a regionales{' '}
@@ -69,7 +69,7 @@ const SeasonNavigator: React.FC<SeasonNavigatorProps> = ({
             type="button"
             onClick={goPrev}
             disabled={currentIndex >= seasons.length - 1}
-            className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] touch-manipulation rounded-lg border border-line text-content-muted hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             aria-label="Temporada anterior"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -78,7 +78,7 @@ const SeasonNavigator: React.FC<SeasonNavigatorProps> = ({
             type="button"
             onClick={goNext}
             disabled={currentIndex <= 0}
-            className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] touch-manipulation rounded-lg border border-line text-content-muted hover:bg-surface-muted disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
             aria-label="Temporada siguiente"
           >
             <ChevronRight className="h-4 w-4" />
@@ -92,10 +92,10 @@ const SeasonNavigator: React.FC<SeasonNavigatorProps> = ({
             key={season}
             type="button"
             onClick={() => goToSeason(season)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`inline-flex items-center px-3 py-1.5 min-h-[44px] touch-manipulation rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
               season === selectedSeason
                 ? 'bg-primary-600 text-white'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                : 'bg-surface-muted text-content-muted hover:bg-slate-200'
             }`}
           >
             {season}

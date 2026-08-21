@@ -10,7 +10,7 @@ interface RankingTeamLinkProps {
 
 const RankingTeamLink: React.FC<RankingTeamLinkProps> = ({
   team,
-  className = 'hover:text-primary-600 transition-colors',
+  className = 'hover:text-link transition-colors',
   children,
 }) => {
   if (!team?.team_id && !team?.slug) {

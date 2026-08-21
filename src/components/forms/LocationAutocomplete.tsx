@@ -167,7 +167,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     <div className="relative">
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <MapPin className="h-5 w-5 text-gray-400" />
+          <MapPin className="h-5 w-5 text-content-subtle" />
         </div>
         <input
           ref={inputRef}
@@ -177,7 +177,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
           className={`block w-full pl-10 pr-3 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 shadow-sm ${
-            error ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+            error ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong hover:border-gray-400'
           } ${className}`}
           placeholder={placeholder}
           autoComplete="off"
@@ -186,7 +186,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           <button
             type="button"
             onClick={() => onChange('')}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-content-subtle hover:text-content-muted"
           >
             <X className="h-4 w-4" />
           </button>
@@ -197,7 +197,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       {isOpen && suggestions.length > 0 && (
         <div
           ref={listRef}
-          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto"
+          className="absolute z-50 w-full mt-1 bg-surface border border-line rounded-xl shadow-lg max-h-60 overflow-y-auto"
         >
           {suggestions.map((suggestion, index) => (
             <div
@@ -205,18 +205,18 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
               onClick={() => handleSelect(suggestion)}
               className={`px-4 py-3 cursor-pointer transition-colors ${
                 index === selectedIndex
-                  ? 'bg-blue-50 border-l-4 border-blue-500'
-                  : 'hover:bg-gray-50'
+                  ? 'bg-blue-50 dark:bg-blue-950/40 border-l-4 border-blue-500'
+                  : 'hover:bg-surface-muted'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <MapPin className="h-4 w-4 text-gray-400" />
+                  <MapPin className="h-4 w-4 text-content-subtle" />
                   <div>
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-content">
                       {suggestion.name}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-content-subtle">
                       {suggestion.region && `${suggestion.region}, `}
                       {suggestion.country}
                     </div>
@@ -235,24 +235,24 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       {isOpen && value.trim() === '' && (
         <div
           ref={listRef}
-          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg"
+          className="absolute z-50 w-full mt-1 bg-surface border border-line rounded-xl shadow-lg"
         >
-          <div className="px-4 py-2 text-sm font-medium text-gray-500 border-b border-gray-100">
+          <div className="px-4 py-2 text-sm font-medium text-content-subtle border-b border-line">
             Ubicaciones populares
           </div>
           {LOCATION_DATABASE.slice(0, 6).map((suggestion) => (
             <div
               key={suggestion.id}
               onClick={() => handleSelect(suggestion)}
-              className="px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
+              className="px-4 py-3 cursor-pointer hover:bg-surface-muted transition-colors"
             >
               <div className="flex items-center space-x-3">
-                <MapPin className="h-4 w-4 text-gray-400" />
+                <MapPin className="h-4 w-4 text-content-subtle" />
                 <div>
-                  <div className="font-medium text-gray-900">
+                  <div className="font-medium text-content">
                     {suggestion.name}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-content-subtle">
                     {suggestion.region && `${suggestion.region}, `}
                     {suggestion.country}
                   </div>
@@ -265,7 +265,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
 
       {/* Error message */}
       {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
+        <p className="mt-1 text-sm text-red-600 dark:text-red-300">{error}</p>
       )}
     </div>
   )

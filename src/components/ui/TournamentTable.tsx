@@ -5,6 +5,8 @@ import Pagination from './Pagination'
 import EmptyState from './EmptyState'
 import DataTable from './DataTable'
 import TableColumnFilter from './TableColumnFilter'
+import ViewModeToggle from './ViewModeToggle'
+import { useViewMode } from '@/hooks/useViewMode'
 import { formatPoints } from '@/utils/rankingCalculations'
 
 interface TournamentResult {
@@ -38,7 +40,7 @@ type SortField = keyof Pick<
 > | 'categoryKey'
 
 const filterSelectClass =
-  'h-7 w-full min-w-[5.5rem] rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
+  'h-7 w-full min-w-[5.5rem] rounded-md border border-line bg-surface px-2 text-xs text-content-muted focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
 
 const getCategoryKey = (result: TournamentResult) =>
   `${result.surface}_${result.category}`
@@ -60,7 +62,10 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
-  const [viewMode] = useState<'table' | 'cards'>(initialViewMode || 'table')
+  // Antes era `useState` sin setter, así que la rama de tarjetas nunca se
+  // renderizaba. Ahora el hook arranca en tarjetas por debajo de `md`.
+  const [autoViewMode, setViewMode] = useViewMode()
+  const viewMode = initialViewMode ?? autoViewMode
 
   const seasons = useMemo(
     () => Array.from(new Set(results.map((r) => r.season))).sort().reverse(),
@@ -161,25 +166,28 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-content-subtle">
           {filteredAndSortedResults.length}{' '}
           {filteredAndSortedResults.length === 1 ? 'resultado' : 'resultados'}
         </p>
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="text-xs text-slate-500 hover:text-primary-600 transition-colors"
-          >
-            Limpiar filtros
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex items-center min-h-[44px] touch-manipulation text-xs text-content-subtle hover:text-link transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            >
+              Limpiar filtros
+            </button>
+          )}
+          {!initialViewMode && <ViewModeToggle value={viewMode} onChange={setViewMode} />}
+        </div>
       </div>
 
       {viewMode === 'table' ? (
         <>
           <DataTable caption="Resultados en torneos" darkHeader={false}>
-            <thead className="bg-secondary-50 border-b border-slate-200">
+            <thead className="bg-surface-muted border-b border-line">
               <tr>
                 <TableColumnFilter
                   label="Torneo"
@@ -188,7 +196,7 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                   active={!!searchTerm}
                 >
                   <div className="relative min-w-[10rem]">
-                    <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" />
+                    <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-content-subtle" />
                     <input
                       type="text"
                       placeholder="Buscar..."
@@ -294,33 +302,33 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                 />
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-slate-200">
+            <tbody className="bg-surface divide-y divide-line">
               {paginatedResults.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-slate-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-content-subtle">
                     No hay resultados que coincidan con los filtros aplicados.
                   </td>
                 </tr>
               ) : (
                 paginatedResults.map((result) => (
-                  <tr key={result.id} className="hover:bg-secondary-50 transition-colors duration-150">
+                  <tr key={result.id} className="hover:bg-surface-muted transition-colors duration-150">
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <Link
                         to={`/tournaments/${result.tournamentId}`}
-                        className="flex items-center gap-2 text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                        className="flex items-center gap-2 text-sm font-medium text-content hover:text-link transition-colors"
                       >
                         <span>{result.name}</span>
                         <ExternalLink className="h-3 w-3 opacity-50" />
                       </Link>
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-slate-500">{result.season}</div>
+                      <div className="text-sm text-content-subtle">{result.season}</div>
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <span className="mr-1">{getSurfaceIcon(result.surface)}</span>
                         <span className="mr-1">{getModalityIcon(result.category)}</span>
-                        <span className="text-sm text-slate-500">
+                        <span className="text-sm text-content-subtle">
                           {getCategoryLabel(
                             `${result.surface.toLowerCase()}_${result.category.toLowerCase()}`
                           )}
@@ -328,7 +336,7 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                       </div>
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-slate-500">
+                      <div className="text-sm text-content-subtle">
                         {getTournamentTypeLabel(result.type)}
                       </div>
                     </td>
@@ -340,17 +348,17 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                       </span>
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-slate-900">
+                      <div className="text-sm font-medium text-content">
                         {formatPoints(result.points)}
                       </div>
                       {result.type === 'REGIONAL' &&
                         result.coefficient !== undefined &&
                         result.coefficient !== 1 && (
-                          <div className="text-xs text-slate-500">base {result.basePoints}</div>
+                          <div className="text-xs text-content-subtle">base {result.basePoints}</div>
                         )}
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-slate-500">
+                      <div className="text-sm text-content-subtle">
                         {result.date ? new Date(result.date).toLocaleDateString('es-ES') : 'N/A'}
                       </div>
                     </td>
@@ -379,17 +387,17 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
             <Link
               key={result.id}
               to={`/tournaments/${result.tournamentId}`}
-              className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow border border-slate-200"
+              className="bg-surface rounded-lg shadow p-4 hover:shadow-md transition-shadow border border-line"
             >
               <div className="flex items-start justify-between mb-2">
-                <h4 className="text-sm font-semibold text-slate-900 flex-1">{result.name}</h4>
-                <ExternalLink className="h-4 w-4 text-slate-400 flex-shrink-0 ml-2" />
+                <h4 className="text-sm font-semibold text-content flex-1">{result.name}</h4>
+                <ExternalLink className="h-4 w-4 text-content-subtle flex-shrink-0 ml-2" />
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2">
                   <span>{getSurfaceIcon(result.surface)}</span>
                   <span>{getModalityIcon(result.category)}</span>
-                  <span className="text-slate-600">
+                  <span className="text-content-muted">
                     {getCategoryLabel(
                       `${result.surface.toLowerCase()}_${result.category.toLowerCase()}`
                     )}
@@ -402,15 +410,15 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                     {result.position}º
                   </span>
                   <div className="text-right">
-                    <span className="text-slate-600">{formatPoints(result.points)} puntos</span>
+                    <span className="text-content-muted">{formatPoints(result.points)} puntos</span>
                     {result.type === 'REGIONAL' &&
                       result.coefficient !== undefined &&
                       result.coefficient !== 1 && (
-                        <div className="text-xs text-slate-400">base {result.basePoints}</div>
+                        <div className="text-xs text-content-subtle">base {result.basePoints}</div>
                       )}
                   </div>
                 </div>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-content-subtle">
                   {result.season} •{' '}
                   {result.date ? new Date(result.date).toLocaleDateString('es-ES') : 'N/A'}
                 </div>

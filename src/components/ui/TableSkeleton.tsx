@@ -14,10 +14,10 @@ const TableSkeleton: React.FC<TableSkeletonProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden ${className}`}>
+    <div className={`bg-surface rounded-lg shadow-sm border border-line overflow-hidden ${className}`}>
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200">
-          <thead className="bg-secondary-50">
+        <table className="min-w-full divide-y divide-line">
+          <thead className="bg-surface-muted">
             <tr>
               {Array.from({ length: columns }).map((_, i) => (
                 <th key={i} className="px-6 py-3">
@@ -26,7 +26,7 @@ const TableSkeleton: React.FC<TableSkeletonProps> = ({
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-slate-200">
+          <tbody className="bg-surface divide-y divide-line">
             {Array.from({ length: rows }).map((_, rowIndex) => (
               <tr key={rowIndex}>
                 {Array.from({ length: columns }).map((_, colIndex) => (

@@ -17,8 +17,8 @@ const TeamModalityNames: React.FC<TeamModalityNamesProps> = ({ team, className =
   return (
     <div className={`mt-0.5 space-y-0.5 ${className}`}>
       {entries.map(({ label, name }) => (
-        <div key={label} className="text-xs text-slate-600">
-          <span className="text-slate-500">{label}:</span> {name}
+        <div key={label} className="text-xs text-content-muted">
+          <span className="text-content-subtle">{label}:</span> {name}
         </div>
       ))}
     </div>

@@ -210,15 +210,15 @@ const RegionsPage = () => {
       />
 
       {!isLoadingCoeffs && referenceSeason && (regionalCoefficients?.length ?? 0) === 0 && (
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/40 p-4 text-sm text-amber-900 dark:text-amber-300">
           No hay coeficientes guardados para la temporada {referenceSeason}. Ejecuta{' '}
           <strong>Reconstruir todo el sistema</strong> en Admin → Temporadas (con sesión iniciada)
-          o <code className="bg-amber-100 px-1 rounded">npm run backfill-regional-coefficients</code>.
+          o <code className="bg-amber-100 dark:bg-amber-950/50 px-1 rounded">npm run backfill-regional-coefficients</code>.
         </div>
       )}
 
       <div className="card mb-8">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Histórico de coeficientes</h2>
+        <h2 className="text-lg font-semibold text-content mb-4">Histórico de coeficientes</h2>
         <SeasonNavigator
           seasons={availableSeasons}
           defaultSeason={referenceSeason}
@@ -244,7 +244,7 @@ const RegionsPage = () => {
 
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+          <Loader2 className="w-8 h-8 animate-spin text-link" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
@@ -255,27 +255,27 @@ const RegionsPage = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center">
-                      <MapPin className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
+                      <MapPin className="h-7 w-7 text-link" strokeWidth={1.5} />
                     </div>
                     <div className="ml-3">
-                      <h3 className="text-lg font-semibold text-slate-900 group-hover:text-primary-600 transition-colors">
+                      <h3 className="text-lg font-semibold text-content group-hover:text-link transition-colors">
                         {region.name}
                       </h3>
                     </div>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-primary-600 transition-colors" />
+                  <ChevronRight className="h-5 w-5 text-content-subtle group-hover:text-link transition-colors" />
                 </div>
 
                 <div className="space-y-3 mb-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">Equipos:</span>
-                    <span className="text-sm font-medium text-slate-900">
+                    <span className="text-sm text-content-muted">Equipos:</span>
+                    <span className="text-sm font-medium text-content">
                       {region._count?.teams || region.teams?.length || 0}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">Torneos:</span>
-                    <span className="text-sm font-medium text-slate-900">
+                    <span className="text-sm text-content-muted">Torneos:</span>
+                    <span className="text-sm font-medium text-content">
                       {region._count?.tournaments || region.tournaments?.length || 0}
                     </span>
                   </div>
@@ -283,7 +283,7 @@ const RegionsPage = () => {
 
                 {modCoefs ? (
                   <div>
-                    <p className="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">Coef. por modalidad</p>
+                    <p className="text-xs text-content-subtle mb-2 font-medium uppercase tracking-wide">Coef. por modalidad</p>
                     <div className="grid grid-cols-3 gap-1">
                       {Object.entries(MODALITY_SHORT).map(([mod, short]) => {
                         const coef = modCoefs[mod] ?? 1.0
@@ -301,7 +301,7 @@ const RegionsPage = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-xs text-slate-400 italic">Coeficientes pendientes de cálculo</div>
+                  <div className="text-xs text-content-subtle italic">Coeficientes pendientes de cálculo</div>
                 )}
               </Link>
             )
@@ -315,20 +315,20 @@ const RegionsPage = () => {
           className="w-full flex items-center justify-between text-left"
         >
           <div className="flex items-center gap-2">
-            <Info className="h-5 w-5 text-primary-600" />
-            <h3 className="text-lg font-semibold text-slate-900">Cómo se calcula el coeficiente regional</h3>
+            <Info className="h-5 w-5 text-link" />
+            <h3 className="text-lg font-semibold text-content">Cómo se calcula el coeficiente regional</h3>
           </div>
           {showFormula ? (
-            <ChevronUp className="h-5 w-5 text-slate-400" />
+            <ChevronUp className="h-5 w-5 text-content-subtle" />
           ) : (
-            <ChevronDown className="h-5 w-5 text-slate-400" />
+            <ChevronDown className="h-5 w-5 text-content-subtle" />
           )}
         </button>
 
         {showFormula && (
-          <div className="mt-6 space-y-4 text-sm text-slate-700">
-            <div className="bg-primary-50 rounded-xl p-4">
-              <p className="font-mono text-primary-900 text-center text-base">
+          <div className="mt-6 space-y-4 text-sm text-content-muted">
+            <div className="bg-brand-subtle rounded-xl p-4">
+              <p className="font-mono text-brand-strong text-center text-base">
                 coef = clamp(1.0 + (pts_región − media_nacional) / media_nacional × <strong>0.20</strong>, 0.80, 1.20)
               </p>
             </div>
@@ -356,49 +356,49 @@ const RegionsPage = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-xs border-collapse">
                 <thead>
-                  <tr className="bg-slate-100">
+                  <tr className="bg-surface-muted">
                     <th className="text-left p-2 font-medium">Puntos región</th>
                     <th className="text-left p-2 font-medium">Relación con media</th>
                     <th className="text-left p-2 font-medium">Coeficiente</th>
                     <th className="text-left p-2 font-medium">Efecto</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-line">
                   <tr>
                     <td className="p-2">≥ doble de la media</td>
                     <td className="p-2">+100% o más</td>
-                    <td className="p-2 font-bold text-emerald-700">1.20</td>
+                    <td className="p-2 font-bold text-emerald-700 dark:text-emerald-300">1.20</td>
                     <td className="p-2">+20% en puntos regionales</td>
                   </tr>
-                  <tr className="bg-slate-50">
+                  <tr className="bg-surface-muted">
                     <td className="p-2">50% por encima de la media</td>
                     <td className="p-2">+50%</td>
-                    <td className="p-2 font-bold text-primary-700">1.10</td>
+                    <td className="p-2 font-bold text-brand-strong">1.10</td>
                     <td className="p-2">+10% en puntos regionales</td>
                   </tr>
                   <tr>
                     <td className="p-2">Igual a la media</td>
                     <td className="p-2">0%</td>
-                    <td className="p-2 font-bold text-slate-700">1.00</td>
+                    <td className="p-2 font-bold text-content-muted">1.00</td>
                     <td className="p-2">Sin cambio</td>
                   </tr>
-                  <tr className="bg-slate-50">
+                  <tr className="bg-surface-muted">
                     <td className="p-2">50% por debajo de la media</td>
                     <td className="p-2">−50%</td>
-                    <td className="p-2 font-bold text-amber-700">0.90</td>
+                    <td className="p-2 font-bold text-amber-700 dark:text-amber-300">0.90</td>
                     <td className="p-2">−10% en puntos regionales</td>
                   </tr>
                   <tr>
                     <td className="p-2">Sin puntos</td>
                     <td className="p-2">−100%</td>
-                    <td className="p-2 font-bold text-red-700">0.80</td>
+                    <td className="p-2 font-bold text-red-700 dark:text-red-300">0.80</td>
                     <td className="p-2">−20% en puntos regionales</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+            <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 dark:text-amber-300">
               <strong>Nota:</strong> El coeficiente se calcula por separado para las 6 modalidades
               (playa mixto, playa open, playa femenino, césped mixto, césped open, césped femenino),
               aunque actualmente solo se aplica a las modalidades que tienen torneos regionales.

@@ -66,7 +66,7 @@ const Pagination: React.FC<PaginationProps> = ({
 
   return (
     <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 ${className}`}>
-      <div className="text-sm text-slate-700">
+      <div className="text-sm text-content-muted">
         Mostrando <span className="font-medium">{startItem}</span> -{' '}
         <span className="font-medium">{endItem}</span> de{' '}
         <span className="font-medium">{totalItems}</span> {itemLabel}
@@ -75,7 +75,7 @@ const Pagination: React.FC<PaginationProps> = ({
       <div className="flex items-center gap-4">
         {onItemsPerPageChange && (
           <div className="flex items-center gap-2">
-            <label htmlFor="items-per-page" className="text-sm text-slate-700">
+            <label htmlFor="items-per-page" className="text-sm text-content-muted">
               Por página:
             </label>
             <select
@@ -97,7 +97,7 @@ const Pagination: React.FC<PaginationProps> = ({
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-content-subtle hover:text-content-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             aria-label="Página anterior"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -108,7 +108,7 @@ const Pagination: React.FC<PaginationProps> = ({
               return (
                 <span
                   key={`ellipsis-${index}`}
-                  className="px-2 text-slate-400"
+                  className="px-2 text-content-subtle"
                   aria-hidden="true"
                 >
                   ...
@@ -126,7 +126,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 className={`min-w-[44px] min-h-[44px] px-3 py-1 text-sm font-medium rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                   isActive
                     ? 'bg-primary-600 text-white'
-                    : 'text-slate-700 bg-white border border-slate-300 hover:bg-slate-50'
+                    : 'text-content-muted bg-surface border border-line-strong hover:bg-surface-muted'
                 }`}
                 aria-label={`Ir a página ${pageNum}`}
                 aria-current={isActive ? 'page' : undefined}
@@ -139,7 +139,7 @@ const Pagination: React.FC<PaginationProps> = ({
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-content-subtle hover:text-content-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             aria-label="Página siguiente"
           >
             <ChevronRight className="h-5 w-5" />

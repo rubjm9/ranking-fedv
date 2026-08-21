@@ -127,21 +127,21 @@ const ImportExportPage: React.FC = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="page-header-title">Importar / Exportar Datos</h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-content-muted mt-2">
           Gestiona la importación y exportación de datos del sistema
         </p>
       </div>
 
       {/* Tabs */}
       <div className="mb-8">
-        <div className="border-b border-gray-200">
+        <div className="border-b border-line">
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('tournaments')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'tournaments'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary-500 text-link'
+                  : 'border-transparent text-content-subtle hover:text-content-muted hover:border-line-strong'
               }`}
             >
               <Upload className="h-4 w-4 inline mr-2" />
@@ -151,8 +151,8 @@ const ImportExportPage: React.FC = () => {
               onClick={() => setActiveTab('general')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'general'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary-500 text-link'
+                  : 'border-transparent text-content-subtle hover:text-content-muted hover:border-line-strong'
               }`}
             >
               <Upload className="h-4 w-4 inline mr-2" />
@@ -162,8 +162,8 @@ const ImportExportPage: React.FC = () => {
               onClick={() => setActiveTab('export')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'export'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary-500 text-link'
+                  : 'border-transparent text-content-subtle hover:text-content-muted hover:border-line-strong'
               }`}
             >
               <Download className="h-4 w-4 inline mr-2" />
@@ -181,15 +181,15 @@ const ImportExportPage: React.FC = () => {
       {/* General Import Tab */}
       {activeTab === 'general' && (
         <div className="space-y-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Importación General</h3>
-            <p className="text-gray-600 mb-4">
+          <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
+            <h3 className="text-lg font-medium text-content mb-4">Importación General</h3>
+            <p className="text-content-muted mb-4">
               Esta funcionalidad está en desarrollo. Por ahora, usa la pestaña "Importar Torneos" para importar torneos específicamente.
             </p>
             
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">Próximamente:</h4>
-              <ul className="text-sm text-blue-700 space-y-1">
+            <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">Próximamente:</h4>
+              <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
                 <li>• Importación de equipos</li>
                 <li>• Importación de regiones</li>
                 <li>• Importación masiva de resultados</li>
@@ -204,18 +204,18 @@ const ImportExportPage: React.FC = () => {
       {activeTab === 'export' && (
         <div className="space-y-8">
           {/* Export Options */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Opciones de Exportación</h3>
+          <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
+            <h3 className="text-lg font-medium text-content mb-4">Opciones de Exportación</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-content-muted mb-2">
                   Formato de Archivo
                 </label>
                 <select
                   value={exportOptions.format}
                   onChange={(e) => setExportOptions(prev => ({ ...prev, format: e.target.value as 'excel' | 'csv' | 'json' }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="excel">Excel (.xlsx)</option>
                   <option value="csv">CSV (.csv)</option>
@@ -224,13 +224,13 @@ const ImportExportPage: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-content-muted mb-2">
                   Tipo de Datos
                 </label>
                 <select
                   value={exportOptions.dataType}
                   onChange={(e) => setExportOptions(prev => ({ ...prev, dataType: e.target.value as any }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
                   <option value="all">Todos los datos</option>
                   <option value="teams">Solo equipos</option>
@@ -243,12 +243,12 @@ const ImportExportPage: React.FC = () => {
             </div>
 
             <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-content-muted mb-2">
                 Rango de Fechas
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Desde</label>
+                  <label className="block text-xs text-content-subtle mb-1">Desde</label>
                   <input
                     type="date"
                     value={exportOptions.dateRange.start}
@@ -256,11 +256,11 @@ const ImportExportPage: React.FC = () => {
                       ...prev, 
                       dateRange: { ...prev.dateRange, start: e.target.value }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Hasta</label>
+                  <label className="block text-xs text-content-subtle mb-1">Hasta</label>
                   <input
                     type="date"
                     value={exportOptions.dateRange.end}
@@ -268,7 +268,7 @@ const ImportExportPage: React.FC = () => {
                       ...prev, 
                       dateRange: { ...prev.dateRange, end: e.target.value }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -280,9 +280,9 @@ const ImportExportPage: React.FC = () => {
                   type="checkbox"
                   checked={exportOptions.includeHistory}
                   onChange={(e) => setExportOptions(prev => ({ ...prev, includeHistory: e.target.checked }))}
-                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  className="rounded border-line-strong text-link focus:ring-primary-500"
                 />
-                <span className="ml-2 text-sm text-gray-700">Incluir historial de cambios</span>
+                <span className="ml-2 text-sm text-content-muted">Incluir historial de cambios</span>
               </label>
             </div>
           </div>

@@ -144,11 +144,11 @@ const EditRegionPage: React.FC = () => {
   }
 
   const getCoefficientColor = (coefficient: number | undefined) => {
-    if (typeof coefficient !== 'number') return 'text-gray-600'
-    if (coefficient >= 1.5) return 'text-green-600'
-    if (coefficient >= 1.0) return 'text-blue-600'
-    if (coefficient >= 0.8) return 'text-yellow-600'
-    return 'text-red-600'
+    if (typeof coefficient !== 'number') return 'text-content-muted'
+    if (coefficient >= 1.5) return 'text-green-600 dark:text-green-300'
+    if (coefficient >= 1.0) return 'text-blue-600 dark:text-blue-300'
+    if (coefficient >= 0.8) return 'text-yellow-600 dark:text-yellow-300'
+    return 'text-red-600 dark:text-red-300'
   }
 
   if (isLoading) {
@@ -167,18 +167,18 @@ const EditRegionPage: React.FC = () => {
           <div className="flex items-center">
             <button
               onClick={() => navigate('/admin/regions')}
-              className="mr-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              className="mr-4 p-2 text-content-subtle hover:text-content-muted hover:bg-surface-muted rounded-lg transition-colors duration-200"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
               <h1 className="page-header-title">Editar Región</h1>
-              <p className="text-gray-600">Modificar información de la región</p>
+              <p className="text-content-muted">Modificar información de la región</p>
             </div>
           </div>
           <button
             onClick={() => setShowDeleteModal(true)}
-            className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors flex items-center"
+            className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-300 bg-surface border border-red-300 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors flex items-center"
           >
             <Trash2 className="h-4 w-4 mr-2" />
             Eliminar Región
@@ -188,48 +188,48 @@ const EditRegionPage: React.FC = () => {
 
       {/* Region Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
-              <Users className="h-6 w-6 text-blue-600" />
+              <Users className="h-6 w-6 text-blue-600 dark:text-blue-300" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Equipos</p>
+              <p className="text-sm font-medium text-content-muted">Equipos</p>
               <p className="page-header-title">{formData._count?.teams || 0}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
           <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <MapPin className="h-6 w-6 text-green-600" />
+            <div className="p-2 bg-green-100 dark:bg-green-950/50 rounded-lg">
+              <MapPin className="h-6 w-6 text-green-600 dark:text-green-300" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Torneos</p>
+              <p className="text-sm font-medium text-content-muted">Torneos</p>
               <p className="page-header-title">{formData._count?.tournaments || 0}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
           <div className="flex items-center">
             <div className="p-2 bg-purple-100 rounded-lg">
-              <Calculator className="h-6 w-6 text-purple-600" />
+              <Calculator className="h-6 w-6 text-purple-600 dark:text-purple-300" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Coeficiente</p>
+              <p className="text-sm font-medium text-content-muted">Coeficiente</p>
               <p className={`text-2xl font-bold ${getCoefficientColor(formData.coefficient)}`}>
                 {typeof formData.coefficient === 'number' ? formData.coefficient.toFixed(2) : '1.00'}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
           <div className="flex items-center">
             <div className="p-2 bg-orange-100 rounded-lg">
-              <Calculator className="h-6 w-6 text-orange-600" />
+              <Calculator className="h-6 w-6 text-orange-600 dark:text-orange-300" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Promedio Puntos</p>
+              <p className="text-sm font-medium text-content-muted">Promedio Puntos</p>
               <p className="page-header-title">
                 {formData._count?.teams > 0 ? 'N/A' : '0.0'}
               </p>
@@ -239,21 +239,21 @@ const EditRegionPage: React.FC = () => {
       </div>
 
       {/* Form */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-surface rounded-lg shadow-sm border border-line">
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Basic Information */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Información Básica</h3>
+            <h3 className="text-lg font-medium text-content mb-4">Información Básica</h3>
             
             <div className="grid grid-cols-1 gap-6">
               {/* Region Name */}
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="name" className="block text-sm font-medium text-content-muted mb-2">
                   Nombre de la Región *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400" />
+                    <MapPin className="h-5 w-5 text-content-subtle" />
                   </div>
                   <input
                     type="text"
@@ -261,13 +261,13 @@ const EditRegionPage: React.FC = () => {
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.name ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.name ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                     }`}
                     placeholder="Ej: Madrid"
                   />
                 </div>
                 {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.name}</p>
                 )}
               </div>
 
@@ -276,17 +276,17 @@ const EditRegionPage: React.FC = () => {
 
           {/* Coefficient */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Configuración del Ranking</h3>
+            <h3 className="text-lg font-medium text-content mb-4">Configuración del Ranking</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Coefficient */}
               <div>
-                <label htmlFor="coefficient" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="coefficient" className="block text-sm font-medium text-content-muted mb-2">
                   Coeficiente Regional *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calculator className="h-5 w-5 text-gray-400" />
+                    <Calculator className="h-5 w-5 text-content-subtle" />
                   </div>
                   <input
                     type="number"
@@ -297,37 +297,37 @@ const EditRegionPage: React.FC = () => {
                     min="0.5"
                     max="2.0"
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.coefficient ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.coefficient ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                     }`}
                   />
                 </div>
                 {errors.coefficient && (
-                  <p className="mt-1 text-sm text-red-600">{errors.coefficient}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.coefficient}</p>
                 )}
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-content-subtle">
                   Multiplicador para los puntos de los equipos de esta región (0.5 - 2.0)
                 </p>
               </div>
 
               {/* Coefficient Visual Indicator */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-content-muted mb-2">
                   Indicador Visual
                 </label>
-                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-4 p-4 bg-surface-muted rounded-lg">
                   <div className="flex items-center">
-                    <span className="text-sm font-medium text-gray-600 mr-2">Valor:</span>
+                    <span className="text-sm font-medium text-content-muted mr-2">Valor:</span>
                     <span className={`text-lg font-bold ${getCoefficientColor(formData.coefficient)}`}>
                       {typeof formData.coefficient === 'number' ? formData.coefficient.toFixed(2) : '1.00'}
                     </span>
                   </div>
                   <div className="flex items-center">
-                    <span className="text-sm font-medium text-gray-600 mr-2">Nivel:</span>
+                    <span className="text-sm font-medium text-content-muted mr-2">Nivel:</span>
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      formData.coefficient >= 1.5 ? 'bg-green-100 text-green-800' :
-                      formData.coefficient >= 1.0 ? 'bg-blue-100 text-blue-800' :
-                      formData.coefficient >= 0.8 ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
+                      formData.coefficient >= 1.5 ? 'bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-300' :
+                      formData.coefficient >= 1.0 ? 'bg-blue-100 text-blue-800 dark:text-blue-300' :
+                      formData.coefficient >= 0.8 ? 'bg-yellow-100 dark:bg-yellow-950/50 text-yellow-800 dark:text-yellow-300' :
+                      'bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-300'
                     }`}>
                       {formData.coefficient >= 1.5 ? 'Alto' :
                        formData.coefficient >= 1.0 ? 'Medio' :
@@ -341,10 +341,10 @@ const EditRegionPage: React.FC = () => {
 
           {/* Description */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Descripción</h3>
+            <h3 className="text-lg font-medium text-content mb-4">Descripción</h3>
             
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="description" className="block text-sm font-medium text-content-muted mb-2">
                 Descripción de la Región
               </label>
               <textarea
@@ -352,17 +352,17 @@ const EditRegionPage: React.FC = () => {
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 rows={4}
-                className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                className="block w-full px-3 py-3 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                 placeholder="Descripción opcional de la región, características especiales, etc."
               />
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-content-subtle">
                 Información adicional sobre la región (opcional)
               </p>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-line">
             <button
               type="button"
               onClick={() => navigate('/admin/regions')}
@@ -394,15 +394,15 @@ const EditRegionPage: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-surface">
             <div className="mt-3">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
-                <Trash2 className="h-6 w-6 text-red-600" />
+              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-950/50 rounded-full">
+                <Trash2 className="h-6 w-6 text-red-600 dark:text-red-300" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 text-center mt-4">
+              <h3 className="text-lg font-medium text-content text-center mt-4">
                 Eliminar Región
               </h3>
-              <p className="text-sm text-gray-500 text-center mt-2">
+              <p className="text-sm text-content-subtle text-center mt-2">
                 ¿Estás seguro de que quieres eliminar <strong>{formData.name}</strong>? 
                 Esta acción no se puede deshacer y afectará a todos los equipos de esta región.
               </p>

@@ -68,22 +68,22 @@ const TemporalWeightChart: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-primary-50/40 p-4 shadow-[0_24px_80px_-50px_rgba(15,23,42,0.45)]"
+      className="overflow-hidden rounded-[1.5rem] border border-line bg-gradient-to-br from-white via-slate-50 to-primary-50/40 p-4 shadow-[0_24px_80px_-50px_rgba(15,23,42,0.45)]"
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h4 className="text-lg font-semibold text-slate-900">
+          <h4 className="text-lg font-semibold text-content">
             La temporada reciente pesa más
           </h4>
-          <p className="mt-1 text-sm leading-6 text-slate-600">
+          <p className="mt-1 text-sm leading-6 text-content-muted">
             Si cada temporada aporta {RAW_POINTS} pts brutos: bruto × peso = aportación.
           </p>
         </div>
-        <div className="rounded-xl border border-primary-200 bg-primary-50 px-3 py-2 text-right">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-700">
+        <div className="rounded-xl border border-brand-strong/30 bg-brand-subtle px-3 py-2 text-right">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-strong">
             Total ponderado
           </p>
-          <p className="text-xl font-semibold text-primary-900">{TOTAL_WEIGHTED}</p>
+          <p className="text-xl font-semibold text-brand-strong">{TOTAL_WEIGHTED}</p>
         </div>
       </div>
 
@@ -96,16 +96,16 @@ const TemporalWeightChart: React.FC = () => {
           return (
             <div
               key={season.label}
-              className="rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5"
+              className="rounded-xl border border-line bg-surface/90 px-3 py-2.5"
             >
               <div className="mb-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <p className="text-sm font-semibold text-slate-900">{season.label}</p>
-                  <p className="text-xs text-slate-500">{season.chip}</p>
+                  <p className="text-sm font-semibold text-content">{season.label}</p>
+                  <p className="text-xs text-content-subtle">{season.chip}</p>
                 </div>
-                <p className="font-mono text-sm font-semibold text-slate-800">
+                <p className="font-mono text-sm font-semibold text-content">
                   {RAW_POINTS} × {season.value.toFixed(1)} ={' '}
-                  <span className="text-primary-700">{contribution}</span>
+                  <span className="text-brand-strong">{contribution}</span>
                 </p>
               </div>
 
@@ -121,7 +121,7 @@ const TemporalWeightChart: React.FC = () => {
                 />
               </div>
 
-              <p className="mt-1.5 truncate text-xs text-slate-500" title={season.detail}>
+              <p className="mt-1.5 truncate text-xs text-content-subtle" title={season.detail}>
                 {season.detail}
               </p>
             </div>

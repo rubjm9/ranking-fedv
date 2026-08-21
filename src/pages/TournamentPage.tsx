@@ -182,8 +182,8 @@ const TournamentPage = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Torneo no encontrado</h1>
-          <p className="text-gray-600 mb-4">El torneo que buscas no existe o ha sido eliminado.</p>
+          <h1 className="text-2xl font-bold text-content mb-2">Torneo no encontrado</h1>
+          <p className="text-content-muted mb-4">El torneo que buscas no existe o ha sido eliminado.</p>
           <Link to="/tournaments" className="btn-primary">
             Volver a torneos
           </Link>
@@ -196,13 +196,13 @@ const TournamentPage = () => {
   const getTournamentIcon = (type: TournamentType) => {
     switch (type) {
       case TournamentType.CE1:
-        return <Crown className="h-10 w-10 text-yellow-600" strokeWidth={1.5} />
+        return <Crown className="h-10 w-10 text-yellow-600 dark:text-yellow-300" strokeWidth={1.5} />
       case TournamentType.CE2:
-        return <Medal className="h-10 w-10 text-gray-600" strokeWidth={1.5} />
+        return <Medal className="h-10 w-10 text-content-muted" strokeWidth={1.5} />
       case TournamentType.REGIONAL:
-        return <Award className="h-10 w-10 text-blue-600" strokeWidth={1.5} />
+        return <Award className="h-10 w-10 text-blue-600 dark:text-blue-300" strokeWidth={1.5} />
       default:
-        return <Trophy className="h-10 w-10 text-primary-600" strokeWidth={1.5} />
+        return <Trophy className="h-10 w-10 text-link" strokeWidth={1.5} />
     }
   }
 
@@ -254,7 +254,7 @@ const TournamentPage = () => {
       <div className="mb-6">
         <Link
           to="/tournaments"
-          className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4"
+          className="inline-flex items-center text-link hover:text-brand-strong mb-4"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Volver a torneos
@@ -270,45 +270,45 @@ const TournamentPage = () => {
             <div className="flex-1">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-1">{tournament.name}</h1>
-                  <p className="text-lg text-gray-600">{tournament.year}</p>
+                  <h1 className="text-3xl font-bold text-content mb-1">{tournament.name}</h1>
+                  <p className="text-lg text-content-muted">{tournament.year}</p>
                 </div>
 
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-primary-600">{getTypeLabel(tournament.type)}</div>
-                  <div className="text-sm text-gray-600">Categoría</div>
+                  <div className="text-2xl font-bold text-link">{getTypeLabel(tournament.type)}</div>
+                  <div className="text-sm text-content-muted">Categoría</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="flex items-center space-x-2">
-                  <Calendar className="w-5 h-5 text-gray-400" />
+                  <Calendar className="w-5 h-5 text-content-subtle" />
                   <div>
-                    <div className="text-sm text-gray-600">Año</div>
+                    <div className="text-sm text-content-muted">Año</div>
                     <div className="font-medium">{tournament.year}</div>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Target className="w-5 h-5 text-gray-400" />
+                  <Target className="w-5 h-5 text-content-subtle" />
                   <div>
-                    <div className="text-sm text-gray-600">Superficie</div>
+                    <div className="text-sm text-content-muted">Superficie</div>
                     <div className="font-medium">{getSurfaceLabel(tournament.surface)}</div>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <UsersRound className="w-5 h-5 text-gray-400" />
+                  <UsersRound className="w-5 h-5 text-content-subtle" />
                   <div>
-                    <div className="text-sm text-gray-600">Categoría</div>
+                    <div className="text-sm text-content-muted">Categoría</div>
                     <div className="font-medium">{getCategoryLabel(tournament.category)}</div>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <MapPin className="w-5 h-5 text-gray-400" />
+                  <MapPin className="w-5 h-5 text-content-subtle" />
                   <div>
-                    <div className="text-sm text-gray-600">Ubicación</div>
+                    <div className="text-sm text-content-muted">Ubicación</div>
                     <div className="font-medium">{tournamentStats.location}</div>
                   </div>
                 </div>
@@ -321,31 +321,31 @@ const TournamentPage = () => {
       {/* Estadísticas rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="card text-center">
-          <UsersRound className="w-8 h-8 text-primary-600 mx-auto mb-2" />
-          <h4 className="text-lg font-semibold text-gray-900 mb-1">Equipos</h4>
-          <p className="text-2xl font-bold text-primary-600">{tournamentStats.totalTeams}</p>
-          <p className="text-sm text-gray-600">participantes</p>
+          <UsersRound className="w-8 h-8 text-link mx-auto mb-2" />
+          <h4 className="text-lg font-semibold text-content mb-1">Equipos</h4>
+          <p className="text-2xl font-bold text-link">{tournamentStats.totalTeams}</p>
+          <p className="text-sm text-content-muted">participantes</p>
         </div>
 
         <div className="card text-center">
-          <Trophy className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-          <h4 className="text-lg font-semibold text-gray-900 mb-1">Puntos totales</h4>
-          <p className="text-2xl font-bold text-primary-600">{totalPoints.toLocaleString()}</p>
-          <p className="text-sm text-gray-600">otorgados</p>
+          <Trophy className="w-8 h-8 text-yellow-600 dark:text-yellow-300 mx-auto mb-2" />
+          <h4 className="text-lg font-semibold text-content mb-1">Puntos totales</h4>
+          <p className="text-2xl font-bold text-link">{totalPoints.toLocaleString()}</p>
+          <p className="text-sm text-content-muted">otorgados</p>
         </div>
 
         <div className="card text-center">
-          <MapPin className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-          <h4 className="text-lg font-semibold text-gray-900 mb-1">Regiones</h4>
-          <p className="text-2xl font-bold text-primary-600">{regionsCount}</p>
-          <p className="text-sm text-gray-600">representadas</p>
+          <MapPin className="w-8 h-8 text-blue-600 dark:text-blue-300 mx-auto mb-2" />
+          <h4 className="text-lg font-semibold text-content mb-1">Regiones</h4>
+          <p className="text-2xl font-bold text-link">{regionsCount}</p>
+          <p className="text-sm text-content-muted">representadas</p>
         </div>
 
         <div className="card text-center">
-          <Clock className="w-8 h-8 text-green-600 mx-auto mb-2" />
-          <h4 className="text-lg font-semibold text-gray-900 mb-1">Duración</h4>
-          <p className="text-2xl font-bold text-primary-600">{tournamentStats.duration}</p>
-          <p className="text-sm text-gray-600">de competición</p>
+          <Clock className="w-8 h-8 text-green-600 dark:text-green-300 mx-auto mb-2" />
+          <h4 className="text-lg font-semibold text-content mb-1">Duración</h4>
+          <p className="text-2xl font-bold text-link">{tournamentStats.duration}</p>
+          <p className="text-sm text-content-muted">de competición</p>
         </div>
       </div>
 
@@ -362,8 +362,8 @@ const TournamentPage = () => {
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center space-x-2 px-1 py-2 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary-500 text-link'
+                  : 'border-transparent text-content-subtle hover:text-content-muted hover:border-line-strong'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -378,7 +378,7 @@ const TournamentPage = () => {
         <div className="space-y-6">
           {/* Tabla de posiciones */}
           <div className="card">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">Clasificación Final</h3>
+            <h3 className="text-xl font-semibold text-content mb-6">Clasificación Final</h3>
 
             <div className="space-y-3">
               {positions?.map((position, index) => (
@@ -388,10 +388,10 @@ const TournamentPage = () => {
                     index === 0
                       ? 'bg-yellow-50 border-2 border-yellow-200'
                       : index === 1
-                      ? 'bg-gray-50 border-2 border-gray-200'
+                      ? 'bg-surface-muted border-2 border-line'
                       : index === 2
-                      ? 'bg-orange-50 border-2 border-orange-200'
-                      : 'bg-white border border-gray-200'
+                      ? 'bg-orange-50 dark:bg-orange-950/40 border-2 border-orange-200'
+                      : 'bg-surface border border-line'
                   }`}
                 >
                   <div className="flex items-center space-x-4">
@@ -402,24 +402,24 @@ const TournamentPage = () => {
                         ? 'bg-gray-400 text-white'
                         : index === 2
                         ? 'bg-orange-500 text-white'
-                        : 'bg-primary-100 text-primary-600'
+                        : 'bg-brand-subtle text-link'
                     }`}>
                       #{position.position}
                     </div>
 
                     <div className="flex items-center space-x-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center">
-                        <Trophy className="h-6 w-6 text-primary-600" strokeWidth={1.5} />
+                        <Trophy className="h-6 w-6 text-link" strokeWidth={1.5} />
                       </div>
                       <div>
                         <Link
                           to={getTeamPublicUrl(position.team ?? {})}
-                          className="font-semibold text-gray-900 hover:text-primary-600 transition-colors"
+                          className="font-semibold text-content hover:text-link transition-colors"
                         >
                           {position.team?.name}
                         </Link>
                         {position.team?.region && (
-                          <p className="text-sm text-gray-600 flex items-center">
+                          <p className="text-sm text-content-muted flex items-center">
                             <MapPin className="w-3 h-3 mr-1" />
                             {position.team.region.name}
                           </p>
@@ -429,8 +429,8 @@ const TournamentPage = () => {
                   </div>
 
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-primary-600">{position.points}</div>
-                    <div className="text-sm text-gray-600">puntos</div>
+                    <div className="text-2xl font-bold text-link">{position.points}</div>
+                    <div className="text-sm text-content-muted">puntos</div>
                   </div>
                 </div>
               ))}
@@ -439,17 +439,17 @@ const TournamentPage = () => {
 
           {/* Tabla de puntos del torneo */}
           <div className="card">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            <h3 className="text-xl font-semibold text-content mb-4">
               Tabla de Puntos - {getTypeLabel(tournament.type)}
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-900">Posición</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-900">Puntos</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-900">Posición</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-900">Puntos</th>
+                  <tr className="border-b border-line">
+                    <th className="text-left py-3 px-4 font-semibold text-content">Posición</th>
+                    <th className="text-right py-3 px-4 font-semibold text-content">Puntos</th>
+                    <th className="text-left py-3 px-4 font-semibold text-content">Posición</th>
+                    <th className="text-right py-3 px-4 font-semibold text-content">Puntos</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -459,11 +459,11 @@ const TournamentPage = () => {
                     }
                     return rows
                   }, []).map((row, rowIndex) => (
-                    <tr key={rowIndex} className="border-b border-gray-100">
+                    <tr key={rowIndex} className="border-b border-line">
                       {row.map((point: any, colIndex: number) => (
                         <React.Fragment key={colIndex}>
-                          <td className="py-3 px-4 text-gray-600">#{point.position}</td>
-                          <td className="py-3 px-4 text-right font-semibold text-primary-600">
+                          <td className="py-3 px-4 text-content-muted">#{point.position}</td>
+                          <td className="py-3 px-4 text-right font-semibold text-link">
                             {point.points}
                           </td>
                         </React.Fragment>
@@ -481,7 +481,7 @@ const TournamentPage = () => {
         <div className="space-y-6">
           {/* Lista de equipos participantes */}
           <div className="card">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            <h3 className="text-xl font-semibold text-content mb-4">
               Equipos Participantes ({positions?.length || 0})
             </h3>
 
@@ -490,18 +490,18 @@ const TournamentPage = () => {
                 <Link
                   key={position.team?.id}
                   to={getTeamPublicUrl(position.team ?? {})}
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
+                  className="flex items-center justify-between p-4 border border-line rounded-lg hover:bg-surface-muted transition-colors group"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                      <span className="font-bold text-primary-600">#{position.position}</span>
+                    <div className="w-12 h-12 bg-brand-subtle rounded-lg flex items-center justify-center">
+                      <span className="font-bold text-link">#{position.position}</span>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+                      <h4 className="font-semibold text-content group-hover:text-link transition-colors">
                         {position.team?.name}
                       </h4>
                       {position.team?.region && (
-                        <p className="text-sm text-gray-600 flex items-center">
+                        <p className="text-sm text-content-muted flex items-center">
                           <MapPin className="w-3 h-3 mr-1" />
                           {position.team.region.name} • Coeficiente: {position.team.region.coefficient}x
                         </p>
@@ -510,8 +510,8 @@ const TournamentPage = () => {
                   </div>
 
                   <div className="text-right">
-                    <div className="font-semibold text-primary-600">{position.points} pts</div>
-                    <div className="text-sm text-gray-600">puntos</div>
+                    <div className="font-semibold text-link">{position.points} pts</div>
+                    <div className="text-sm text-content-muted">puntos</div>
                   </div>
                 </Link>
               ))}
@@ -520,7 +520,7 @@ const TournamentPage = () => {
 
           {/* Distribución por regiones */}
           <div className="card">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Equipos por Región</h3>
+            <h3 className="text-xl font-semibold text-content mb-4">Equipos por Región</h3>
             <div className="space-y-3">
               {Object.entries(
                 positions?.reduce((acc: any, pos) => {
@@ -529,13 +529,13 @@ const TournamentPage = () => {
                   return acc
                 }, {}) || {}
               ).map(([region, count]) => (
-                <div key={region} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={region} className="flex items-center justify-between p-3 bg-surface-muted rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <MapPin className="w-5 h-5 text-gray-400" />
+                    <MapPin className="w-5 h-5 text-content-subtle" />
                     <span className="font-medium">{region}</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">{count} equipos</span>
+                    <span className="text-sm text-content-muted">{count} equipos</span>
                     <div className="w-20 bg-gray-200 rounded-full h-2">
                       <div
                         className="bg-primary-600 h-2 rounded-full"
@@ -554,7 +554,7 @@ const TournamentPage = () => {
         <div className="space-y-6">
           {/* Gráfico de distribución de puntos */}
           <div className="card">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Distribución de Puntos</h3>
+            <h3 className="text-xl font-semibold text-content mb-4">Distribución de Puntos</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={positions?.map(pos => ({
@@ -575,25 +575,25 @@ const TournamentPage = () => {
           {/* Estadísticas detalladas */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="card">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Métricas del Torneo</h4>
+              <h4 className="text-lg font-semibold text-content mb-4">Métricas del Torneo</h4>
               <div className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Puntos totales otorgados:</span>
+                  <span className="text-content-muted">Puntos totales otorgados:</span>
                   <span className="font-semibold">{totalPoints.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Puntos promedio por equipo:</span>
+                  <span className="text-content-muted">Puntos promedio por equipo:</span>
                   <span className="font-semibold">{averagePoints}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Mayor puntuación:</span>
-                  <span className="font-semibold text-green-600">
+                  <span className="text-content-muted">Mayor puntuación:</span>
+                  <span className="font-semibold text-green-600 dark:text-green-300">
                     {Math.max(...(positions?.map(p => p.points) || [0]))} pts
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Menor puntuación:</span>
-                  <span className="font-semibold text-red-600">
+                  <span className="text-content-muted">Menor puntuación:</span>
+                  <span className="font-semibold text-red-600 dark:text-red-300">
                     {Math.min(...(positions?.map(p => p.points) || [0]))} pts
                   </span>
                 </div>
@@ -601,22 +601,22 @@ const TournamentPage = () => {
             </div>
 
             <div className="card">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Información del Torneo</h4>
+              <h4 className="text-lg font-semibold text-content mb-4">Información del Torneo</h4>
               <div className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Categoría:</span>
+                  <span className="text-content-muted">Categoría:</span>
                   <span className="font-semibold">{getTypeLabel(tournament.type)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Año:</span>
+                  <span className="text-content-muted">Año:</span>
                   <span className="font-semibold">{tournament.year}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Superficie:</span>
+                  <span className="text-content-muted">Superficie:</span>
                   <span className="font-semibold">{getSurfaceLabel(tournament.surface)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Categoría:</span>
+                  <span className="text-content-muted">Categoría:</span>
                   <span className="font-semibold">{getCategoryLabel(tournament.category)}</span>
                 </div>
               </div>

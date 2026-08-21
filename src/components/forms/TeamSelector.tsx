@@ -110,23 +110,23 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
       >
         <div
           className={`flex items-center justify-between w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-            error ? 'border-red-300 bg-red-50' : 'border-gray-300'
-          } ${disabled ? 'bg-gray-100' : 'bg-white'}`}
+            error ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
+          } ${disabled ? 'bg-surface-muted' : 'bg-surface'}`}
         >
           <div className="flex items-center flex-1 min-w-0">
             {selectedTeam ? (
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900 truncate">
+                <div className="text-sm font-medium text-content truncate">
                   {selectedTeam.name}
                 </div>
                 {selectedTeam.region && (
-                  <div className="text-xs text-gray-500 truncate">
+                  <div className="text-xs text-content-subtle truncate">
                     {selectedTeam.region.name}
                   </div>
                 )}
               </div>
             ) : (
-              <span className="text-gray-500">{placeholder}</span>
+              <span className="text-content-subtle">{placeholder}</span>
             )}
           </div>
           
@@ -137,21 +137,21 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
                   e.stopPropagation()
                   handleClear()
                 }}
-                className="p-1 text-gray-400 hover:text-gray-600 mr-1"
+                className="p-1 text-content-subtle hover:text-content-muted mr-1"
               >
                 <X className="h-4 w-4" />
               </button>
             )}
-            <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`h-4 w-4 text-content-subtle transition-transform ${isOpen ? 'rotate-180' : ''}`} />
           </div>
         </div>
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-hidden">
-          <div className="p-2 border-b border-gray-200">
+        <div className="absolute z-50 w-full mt-1 bg-surface border border-line-strong rounded-lg shadow-lg max-h-60 overflow-hidden">
+          <div className="p-2 border-b border-line">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-content-subtle" />
               <input
                 ref={searchInputRef}
                 type="text"
@@ -159,7 +159,7 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Buscar equipo..."
-                className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full pl-10 pr-3 py-2 text-sm border border-line-strong rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
@@ -167,7 +167,7 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
           
           <div className="max-h-48 overflow-y-auto">
             {filteredTeams.length === 0 ? (
-              <div className="px-3 py-2 text-sm text-gray-500">
+              <div className="px-3 py-2 text-sm text-content-subtle">
                 No se encontraron equipos
               </div>
             ) : (
@@ -176,20 +176,20 @@ const TeamSelector: React.FC<TeamSelectorProps> = ({
                   key={team.id}
                   className={`px-3 py-2 cursor-pointer transition-colors ${
                     index === selectedIndex 
-                      ? 'bg-blue-100 text-blue-900' 
-                      : 'hover:bg-gray-100'
+                      ? 'bg-blue-100 text-blue-900 dark:text-blue-300' 
+                      : 'hover:bg-surface-muted'
                   }`}
                   onClick={() => handleSelect(team, false)}
                   onMouseEnter={() => setSelectedIndex(index)}
                 >
                   <div className={`text-sm font-medium ${
-                    index === selectedIndex ? 'text-blue-900' : 'text-gray-900'
+                    index === selectedIndex ? 'text-blue-900 dark:text-blue-300' : 'text-content'
                   }`}>
                     {team.name}
                   </div>
                   {team.region && (
                     <div className={`text-xs ${
-                      index === selectedIndex ? 'text-blue-700' : 'text-gray-500'
+                      index === selectedIndex ? 'text-blue-700 dark:text-blue-300' : 'text-content-subtle'
                     }`}>
                       {team.region.name}
                     </div>

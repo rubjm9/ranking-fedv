@@ -7,6 +7,7 @@ import { homePageService } from '@/services/homePageService'
 import hybridRankingService from '@/services/hybridRankingService'
 import teamSeasonRankingsService from '@/services/teamSeasonRankingsService'
 import { useDebounce } from '@/hooks/useDebounce'
+import { useViewMode } from '@/hooks/useViewMode'
 import TeamLogo from '@/components/ui/TeamLogo'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import EmptyState from '@/components/ui/EmptyState'
@@ -29,7 +30,7 @@ const TeamsPage = () => {
   const [itemsPerPage, setItemsPerPage] = useState(20)
   const [sortField, setSortField] = useState<keyof any>('name')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table')
+  const [viewMode, setViewMode] = useViewMode()
 
   // Resetear página cuando cambian los filtros
   useEffect(() => {
@@ -173,11 +174,11 @@ const TeamsPage = () => {
   // Función para obtener el icono de ordenamiento
   const getSortIcon = (field: keyof any) => {
     if (sortField !== field) {
-      return <ArrowUpDown className="h-4 w-4 text-slate-400" />
+      return <ArrowUpDown className="h-4 w-4 text-content-subtle" />
     }
     return sortDirection === 'asc' 
-      ? <ChevronUp className="h-4 w-4 text-primary-600" />
-      : <ChevronDown className="h-4 w-4 text-primary-600" />
+      ? <ChevronUp className="h-4 w-4 text-link" />
+      : <ChevronDown className="h-4 w-4 text-link" />
   }
 
   // Función para obtener tooltip de ordenamiento
@@ -244,15 +245,15 @@ const TeamsPage = () => {
       />
 
       {/* Filtros y contador */}
-      <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
+      <div className="mb-6 rounded-xl border border-line bg-surface-muted/70 px-4 py-3">
         <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-content-subtle" />
           <input
             type="text"
             placeholder="Buscar equipos por nombre o ubicación..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400"
+            className="h-9 w-full rounded-lg border border-line bg-surface pl-9 pr-3 text-sm text-content placeholder:text-content-subtle focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400"
             aria-label="Buscar equipos"
           />
         </div>
@@ -266,10 +267,10 @@ const TeamsPage = () => {
             <button
               type="button"
               onClick={() => setSelectedRegion('')}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+              className={`inline-flex items-center rounded-lg px-3 py-1.5 min-h-[44px] touch-manipulation text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                 selectedRegion === ''
-                  ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-200'
-                  : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100'
+                  ? 'bg-brand-subtle text-brand-strong ring-1 ring-brand-strong/30'
+                  : 'bg-surface text-content-muted ring-1 ring-line hover:bg-surface-muted'
               }`}
             >
               Todas las regiones
@@ -279,10 +280,10 @@ const TeamsPage = () => {
                 key={region.id}
                 type="button"
                 onClick={() => setSelectedRegion(region.id)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                className={`inline-flex items-center rounded-lg px-3 py-1.5 min-h-[44px] touch-manipulation text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                   selectedRegion === region.id
-                    ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-200'
-                    : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100'
+                    ? 'bg-brand-subtle text-brand-strong ring-1 ring-brand-strong/30'
+                    : 'bg-surface text-content-muted ring-1 ring-line hover:bg-surface-muted'
                 }`}
               >
                 {region.name}
@@ -292,7 +293,7 @@ const TeamsPage = () => {
 
           <div className="flex shrink-0 items-center gap-3 self-end sm:self-auto">
             {!isLoading && (
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-content-subtle">
                 {filteredAndSortedTeams.length}{' '}
                 {filteredAndSortedTeams.length === 1 ? 'equipo encontrado' : 'equipos encontrados'}
               </p>
@@ -301,7 +302,7 @@ const TeamsPage = () => {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="inline-flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-slate-700"
+                className="inline-flex items-center gap-1 min-h-[44px] touch-manipulation text-xs text-content-muted transition-colors hover:text-content focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 aria-label="Limpiar filtros"
               >
                 <X className="h-3.5 w-3.5" />
@@ -313,8 +314,8 @@ const TeamsPage = () => {
                 <button
                   type="button"
                   onClick={() => setViewMode('table')}
-                  className={`rounded-lg p-1.5 transition-colors ${
-                    viewMode === 'table' ? 'bg-primary-100 text-primary-600' : 'text-slate-400 hover:bg-white'
+                  className={`inline-flex items-center justify-center rounded-lg min-h-[44px] min-w-[44px] touch-manipulation transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                    viewMode === 'table' ? 'bg-brand-subtle text-link' : 'text-content-muted hover:bg-surface'
                   }`}
                   aria-label="Vista de tabla"
                 >
@@ -323,8 +324,8 @@ const TeamsPage = () => {
                 <button
                   type="button"
                   onClick={() => setViewMode('cards')}
-                  className={`rounded-lg p-1.5 transition-colors ${
-                    viewMode === 'cards' ? 'bg-primary-100 text-primary-600' : 'text-slate-400 hover:bg-white'
+                  className={`inline-flex items-center justify-center rounded-lg min-h-[44px] min-w-[44px] touch-manipulation transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                    viewMode === 'cards' ? 'bg-brand-subtle text-link' : 'text-content-muted hover:bg-surface'
                   }`}
                   aria-label="Vista de tarjetas"
                 >
@@ -354,10 +355,10 @@ const TeamsPage = () => {
         <>
           {viewMode === 'table' ? (
             <DataTable caption="Listado de equipos" darkHeader={false}>
-              <thead className="bg-secondary-50">
+              <thead className="bg-surface-muted">
                     <tr>
                       <th 
-                        className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
+                        className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider cursor-pointer hover:bg-surface-muted transition-colors"
                         onClick={() => handleSort('name')}
                         title={getSortTooltip('name')}
                         aria-label="Ordenar por nombre"
@@ -368,7 +369,7 @@ const TeamsPage = () => {
                         </div>
                       </th>
                       <th 
-                        className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
+                        className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider cursor-pointer hover:bg-surface-muted transition-colors"
                         onClick={() => handleSort('region')}
                         title={getSortTooltip('region')}
                         aria-label="Ordenar por región"
@@ -378,11 +379,11 @@ const TeamsPage = () => {
                           {getSortIcon('region')}
                         </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">
                         Ubicación
                       </th>
                       <th 
-                        className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
+                        className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider cursor-pointer hover:bg-surface-muted transition-colors"
                         onClick={() => handleSort('points')}
                         title={getSortTooltip('points')}
                         aria-label="Ordenar por puntos"
@@ -394,11 +395,11 @@ const TeamsPage = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
+                  <tbody className="bg-surface divide-y divide-line">
                     {paginatedTeams.map((team) => (
                     <tr 
                       key={team.id}
-                      className="hover:bg-secondary-50 cursor-pointer transition-colors duration-150 focus-within:bg-primary-50 focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-inset"
+                      className="hover:bg-surface-muted cursor-pointer transition-colors duration-150 focus-within:bg-brand-subtle focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-inset"
                       onClick={() => navigate(getTeamPublicUrl(team))}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -421,13 +422,13 @@ const TeamsPage = () => {
                             <div>
                               <Link
                                 to={getTeamPublicUrl(team)}
-                                className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                                className="text-sm font-medium text-content hover:text-link transition-colors"
                               >
                                 {team.name}
                               </Link>
                               <TeamModalityNames team={team} />
                               {team.isFilial && (
-                                <div className="text-xs text-primary-600">
+                                <div className="text-xs text-link">
                                   Equipo filial
                                 </div>
                               )}
@@ -435,17 +436,17 @@ const TeamsPage = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-900">
+                          <div className="text-sm text-content">
                             {team.region?.name || 'Sin región'}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-slate-900">
+                          <div className="text-sm text-content">
                             {team.location || '-'}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-slate-900">
+                          <div className="text-sm font-medium text-content">
                             {getTeamTotalPoints(team).toFixed(1)}
                           </div>
                         </td>
@@ -477,24 +478,24 @@ const TeamsPage = () => {
                       size="lg"
                     />
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-slate-900 truncate">
+                      <h3 className="text-lg font-semibold text-content truncate">
                         {team.name}
                       </h3>
                       <TeamModalityNames team={team} />
                       {team.isFilial && (
-                        <div className="text-xs text-primary-600 mt-1">
+                        <div className="text-xs text-link mt-1">
                           Equipo filial
                         </div>
                       )}
-                      <div className="text-sm text-slate-600 mt-1">
+                      <div className="text-sm text-content-muted mt-1">
                         {team.region?.name || 'Sin región'}
                       </div>
                       {team.location && (
-                        <div className="text-xs text-slate-500 mt-1">
+                        <div className="text-xs text-content-subtle mt-1">
                           {team.location}
                         </div>
                       )}
-                      <div className="text-sm font-medium text-slate-900 mt-2">
+                      <div className="text-sm font-medium text-content mt-2">
                         {(generalPointsByTeamId.get(team.id) ?? 0).toFixed(1)} puntos
                       </div>
                     </div>

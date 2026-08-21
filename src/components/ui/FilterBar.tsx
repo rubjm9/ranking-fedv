@@ -24,7 +24,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
             <button
               type="button"
               onClick={onClearFilters}
-              className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 transition-colors"
+              className="inline-flex items-center gap-1 text-xs text-content-subtle hover:text-content-muted transition-colors"
             >
               <X className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Limpiar filtros ({activeFiltersCount})</span>
@@ -34,7 +34,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
         {children}
       </div>
       {footer && (
-        <div className="border-t border-slate-100 bg-slate-50/80 px-4 py-2">
+        <div className="border-t border-line bg-surface-muted/80 px-4 py-2">
           {footer}
         </div>
       )}

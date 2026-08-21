@@ -26,29 +26,45 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
   const [isSticky, setIsSticky] = React.useState(false)
 
   React.useEffect(() => {
-    const handleScroll = () => setIsSticky(window.scrollY > 200)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    let frame = 0
+    const handleScroll = () => {
+      if (frame) return
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        setIsSticky(window.scrollY > 200)
+      })
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      if (frame) cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', handleScroll)
+    }
   }, [])
 
   if (!isSticky) return null
 
+  /*
+   * Oculto en móvil: compartía `fixed top-0 z-50` con la navbar y, al ganar por
+   * orden en el DOM, tapaba el botón del menú (un tap sobre el hamburguesa
+   * activaba "Compartir"). Sus tabs son `hidden md:flex`, así que en móvil no
+   * aportaba ninguna función a cambio. En ≥md se sitúa bajo la navbar.
+   */
   return (
-    <div className="nav-bar fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+    <div className="nav-bar hidden md:block fixed top-[4.75rem] left-0 right-0 z-30 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-4 flex-1 min-w-0">
             <TeamLogo logo={teamLogo} name={teamName} size="sm" className="flex-shrink-0" />
             <div className="min-w-0 flex-1">
-              <h2 className="font-display text-lg font-bold text-slate-900 truncate">{teamName}</h2>
-              <div className="flex items-center gap-4 text-xs text-slate-600">
+              <h2 className="font-display text-lg font-bold text-content truncate">{teamName}</h2>
+              <div className="flex items-center gap-4 text-xs text-content-muted">
                 {globalPosition && (
                   <span>
-                    Ranking global: <strong className="text-slate-900">#{globalPosition}</strong>
+                    Ranking global: <strong className="text-content">#{globalPosition}</strong>
                   </span>
                 )}
                 <span>
-                  Puntos: <strong className="text-slate-900">{totalPoints.toFixed(1)}</strong>
+                  Puntos: <strong className="text-content">{totalPoints.toFixed(1)}</strong>
                 </span>
               </div>
             </div>
@@ -74,7 +90,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
                     {tab.badge !== undefined && (
                       <span
                         className={`ml-1 px-1.5 py-0.5 text-xs rounded-full ${
-                          isActive ? 'bg-accent-100 text-accent-800' : 'bg-slate-200 text-slate-600'
+                          isActive ? 'bg-accent-100 dark:bg-accent-950/50 text-accent-800' : 'bg-slate-200 text-content-muted'
                         }`}
                       >
                         {tab.badge}

@@ -9,7 +9,7 @@ const StatsGridSkeleton: React.FC<StatsGridSkeletonProps> = ({ count = 4, classN
   return (
     <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 ${className}`}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="bg-white rounded-2xl shadow-sm p-6 animate-pulse">
+        <div key={i} className="bg-surface rounded-2xl shadow-sm p-6 animate-pulse">
           <div className="flex items-center">
             <div className="h-10 w-10 bg-slate-200 rounded-xl" />
             <div className="ml-4 flex-1 space-y-2">

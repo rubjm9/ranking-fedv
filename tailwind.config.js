@@ -1,12 +1,37 @@
+/** Token semántico respaldado por una variable CSS (ver `:root` en src/index.css). */
+const token = (name) => `rgb(var(--color-${name}) / <alpha-value>)`
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
+        // Tokens semánticos: cambian de valor con el tema, no en el marcado.
+        canvas: token('canvas'),
+        surface: {
+          DEFAULT: token('surface'),
+          muted: token('surface-muted'),
+          raised: token('surface-raised'),
+        },
+        content: {
+          DEFAULT: token('content'),
+          muted: token('content-muted'),
+          subtle: token('content-subtle'),
+        },
+        line: {
+          DEFAULT: token('line'),
+          strong: token('line-strong'),
+        },
+        brand: {
+          subtle: token('brand-subtle'),
+          strong: token('brand-strong'),
+        },
+        link: token('link'),
         primary: {
           50: '#eef2ff',
           100: '#e0e7ff',

@@ -41,7 +41,7 @@ const TeamLegacyRedirect: React.FC = () => {
     <>
       <DetailHeaderSkeleton variant="team" />
       <div className="flex items-center justify-center min-h-[20vh]">
-        <p className="text-slate-500">Redirigiendo...</p>
+        <p className="text-content-subtle">Redirigiendo...</p>
       </div>
     </>
   )

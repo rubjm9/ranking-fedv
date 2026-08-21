@@ -33,7 +33,7 @@ const DashboardSystemPanel: React.FC<DashboardSystemPanelProps> = ({
             <div className="h-6 bg-secondary-200 rounded w-1/2" />
             {Array.from({ length: 4 }).map((__, row) => (
               <div key={row} className="flex justify-between">
-                <div className="h-4 bg-secondary-100 rounded w-1/3" />
+                <div className="h-4 bg-surface-muted rounded w-1/3" />
                 <div className="h-4 bg-secondary-200 rounded w-1/4" />
               </div>
             ))}
@@ -46,21 +46,21 @@ const DashboardSystemPanel: React.FC<DashboardSystemPanelProps> = ({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div className="card">
-        <h3 className="text-lg font-semibold text-secondary-900 mb-4">Estado del sistema</h3>
+        <h3 className="text-lg font-semibold text-content mb-4">Estado del sistema</h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-secondary-600">Base de datos</span>
+            <span className="text-sm text-content-muted">Base de datos</span>
             <span className={health?.dbConnected ? 'badge-success' : 'badge-error'}>
               {health?.dbConnected ? 'Conectado' : 'Desconectado'}
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-secondary-600">Temporada activa</span>
-            <span className="text-sm font-medium text-secondary-900">{health?.currentSeason ?? '—'}</span>
+            <span className="text-sm text-content-muted">Temporada activa</span>
+            <span className="text-sm font-medium text-content">{health?.currentSeason ?? '—'}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-secondary-600">Última actividad de ranking</span>
-            <span className="text-sm text-secondary-900">
+            <span className="text-sm text-content-muted">Última actividad de ranking</span>
+            <span className="text-sm text-content">
               {formatLastUpdate(health?.lastRankingUpdate ?? null)}
             </span>
           </div>
@@ -69,15 +69,15 @@ const DashboardSystemPanel: React.FC<DashboardSystemPanelProps> = ({
             new Date(health.lastPointsUpdate).getTime() >
               new Date(health.lastRankingRebuild).getTime() + 60_000 && (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-secondary-600">Rankings reconstruidos</span>
-                <span className="text-sm text-amber-700">
+                <span className="text-sm text-content-muted">Rankings reconstruidos</span>
+                <span className="text-sm text-amber-700 dark:text-amber-300">
                   {formatLastUpdate(health.lastRankingRebuild)}
                 </span>
               </div>
             )}
           <div className="flex items-center justify-between">
-            <span className="text-sm text-secondary-600">Equipos con puntos en ranking</span>
-            <span className="text-sm text-secondary-900">
+            <span className="text-sm text-content-muted">Equipos con puntos en ranking</span>
+            <span className="text-sm text-content">
               {health?.teamsWithRanking ?? 0} de {health?.totalTeamsInRanking ?? 0} registrados
             </span>
           </div>
@@ -85,9 +85,9 @@ const DashboardSystemPanel: React.FC<DashboardSystemPanelProps> = ({
       </div>
 
       <div className="card">
-        <h3 className="text-lg font-semibold text-secondary-900 mb-4">Próximas acciones</h3>
+        <h3 className="text-lg font-semibold text-content mb-4">Próximas acciones</h3>
         {actions.length === 0 ? (
-          <div className="flex items-center space-x-3 text-emerald-700">
+          <div className="flex items-center space-x-3 text-emerald-700 dark:text-emerald-300">
             <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
             <p className="text-sm font-medium">Todo al día</p>
           </div>
@@ -97,7 +97,7 @@ const DashboardSystemPanel: React.FC<DashboardSystemPanelProps> = ({
               <Link
                 key={`${action.title}-${action.href}`}
                 to={action.href}
-                className="flex items-start space-x-3 rounded-lg p-2 -mx-2 hover:bg-primary-50/50 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                className="flex items-start space-x-3 rounded-lg p-2 -mx-2 hover:bg-brand-subtle/50 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               >
                 <Target
                   className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
@@ -109,8 +109,8 @@ const DashboardSystemPanel: React.FC<DashboardSystemPanelProps> = ({
                   }`}
                 />
                 <div>
-                  <p className="text-sm font-medium text-secondary-900">{action.title}</p>
-                  <p className="text-xs text-secondary-600">{action.description}</p>
+                  <p className="text-sm font-medium text-content">{action.title}</p>
+                  <p className="text-xs text-content-muted">{action.description}</p>
                 </div>
               </Link>
             ))}

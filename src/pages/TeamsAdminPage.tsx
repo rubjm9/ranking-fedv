@@ -11,7 +11,7 @@ import ActionButtonGroup from '@/components/ui/ActionButtonGroup'
 import AdminPageHeader from '@/components/layout/AdminPageHeader'
 
 const filterSelectClass =
-  'h-7 w-full min-w-[5.5rem] rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
+  'h-7 w-full min-w-[5.5rem] rounded-md border border-line bg-surface px-2 text-xs text-content-muted focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
 
 const TeamsAdminPage: React.FC = () => {
   const navigate = useNavigate()
@@ -118,27 +118,27 @@ const TeamsAdminPage: React.FC = () => {
       ) : (
         <>
           <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-content-subtle">
               {filteredTeams.length} equipo{filteredTeams.length !== 1 ? 's' : ''} encontrado{filteredTeams.length !== 1 ? 's' : ''}
             </p>
             {hasActiveFilters && (
               <button
                 type="button"
                 onClick={clearFilters}
-                className="text-xs text-slate-500 hover:text-primary-600 transition-colors"
+                className="text-xs text-content-subtle hover:text-link transition-colors"
               >
                 Limpiar filtros
               </button>
             )}
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-secondary-50 border-b border-slate-200">
+          <div className="bg-surface rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-line">
+            <thead className="bg-surface-muted border-b border-line">
               <tr>
                 <TableColumnFilter label="Equipo" sortIcon="none" active={!!searchTerm}>
                   <div className="relative min-w-[10rem]">
-                    <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" />
+                    <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-content-subtle" />
                     <input
                       type="text"
                       placeholder="Buscar..."
@@ -170,9 +170,9 @@ const TeamsAdminPage: React.FC = () => {
                 <TableColumnFilter label="Acciones" sortIcon="none" className="text-right" />
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-slate-200">
+            <tbody className="bg-surface divide-y divide-line">
               {filteredTeams.map((team) => (
-                <tr key={team.id} className="hover:bg-gray-50">
+                <tr key={team.id} className="hover:bg-surface-muted">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
@@ -185,21 +185,21 @@ const TeamsAdminPage: React.FC = () => {
                       <div className="ml-4">
                         <Link
                           to={`/admin/teams/${team.id}/edit`}
-                          className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                          className="text-sm font-medium text-content hover:text-link transition-colors"
                         >
                           {team.name}
                         </Link>
-                        <div className="text-sm text-gray-500">{team.location || 'Sin ubicación'}</div>
+                        <div className="text-sm text-content-subtle">{team.location || 'Sin ubicación'}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <MapPin className="w-4 h-4 text-gray-400 mr-2" />
-                      <span className="text-sm text-gray-900">{team.region?.name || 'Sin región'}</span>
+                      <MapPin className="w-4 h-4 text-content-subtle mr-2" />
+                      <span className="text-sm text-content">{team.region?.name || 'Sin región'}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-content-subtle">
                     {new Date(team.createdAt).toLocaleDateString('es-ES')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -225,11 +225,11 @@ const TeamsAdminPage: React.FC = () => {
       {/* Modal de confirmación de eliminación */}
       {showDeleteModal && selectedTeam && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+          <div className="bg-surface rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-medium text-content mb-4">
               Confirmar eliminación
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-content-muted mb-6">
               ¿Estás seguro de que quieres eliminar el equipo "{selectedTeam.name}"? 
               Esta acción no se puede deshacer.
             </p>

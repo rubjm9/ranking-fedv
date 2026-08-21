@@ -191,24 +191,24 @@ const NewTeamPage: React.FC = () => {
           <div className="flex items-center">
             <button
               onClick={() => navigate('/admin/teams')}
-              className="mr-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              className="mr-4 p-2 text-content-subtle hover:text-content-muted hover:bg-surface-muted rounded-lg transition-colors duration-200"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
               <h1 className="page-header-title">Nuevo Equipo</h1>
-              <p className="text-gray-600">Registrar un nuevo equipo en el sistema</p>
+              <p className="text-content-muted">Registrar un nuevo equipo en el sistema</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Form */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-surface rounded-lg shadow-sm border border-line">
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Team Type Selection */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Tipo de Equipo</h3>
+            <h3 className="text-lg font-medium text-content mb-4">Tipo de Equipo</h3>
             
             {/* Is Filial */}
             <div className="flex items-center mb-2">
@@ -217,32 +217,32 @@ const NewTeamPage: React.FC = () => {
                 id="isFilial"
                 checked={formData.isFilial}
                 onChange={(e) => handleCheckboxChange('isFilial', e.target.checked)}
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                className="h-4 w-4 text-link focus:ring-primary-500 border-line-strong rounded"
               />
-              <label htmlFor="isFilial" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="isFilial" className="ml-2 block text-sm text-content">
                 Es un equipo filial
               </label>
             </div>
-            <p className="text-xs text-gray-500 mb-4">
+            <p className="text-xs text-content-subtle mb-4">
               Marca esta opción si este equipo es una filial de otro equipo principal
             </p>
 
             {/* Parent Team Selection - Solo si es filial */}
             {formData.isFilial && (
               <div className="mb-4">
-                <label htmlFor="parentTeamId" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="parentTeamId" className="block text-sm font-medium text-content-muted mb-2">
                   Club Principal *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Users className="h-5 w-5 text-gray-400" />
+                    <Users className="h-5 w-5 text-content-subtle" />
                   </div>
                   <select
                     id="parentTeamId"
                     value={formData.parentTeamId}
                     onChange={(e) => handleInputChange('parentTeamId', e.target.value)}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.parentTeamId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.parentTeamId ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                     }`}
                   >
                     <option value="">Seleccionar club principal</option>
@@ -254,9 +254,9 @@ const NewTeamPage: React.FC = () => {
                   </select>
                 </div>
                 {errors.parentTeamId && (
-                  <p className="mt-1 text-sm text-red-600">{errors.parentTeamId}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.parentTeamId}</p>
                 )}
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-content-subtle">
                   Selecciona el club principal del cual es filial este equipo
                 </p>
               </div>
@@ -265,17 +265,17 @@ const NewTeamPage: React.FC = () => {
 
           {/* Basic Information */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Información Básica</h3>
+            <h3 className="text-lg font-medium text-content mb-4">Información Básica</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Team Name */}
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="name" className="block text-sm font-medium text-content-muted mb-2">
                   Nombre del Equipo *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Users className="h-5 w-5 text-gray-400" />
+                    <Users className="h-5 w-5 text-content-subtle" />
                   </div>
                   <input
                     type="text"
@@ -283,32 +283,32 @@ const NewTeamPage: React.FC = () => {
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.name ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.name ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                     }`}
                     placeholder="Ej: Madrid Ultimate Club"
                   />
                 </div>
                 {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.name}</p>
                 )}
               </div>
 
               {/* Region - Solo si NO es filial */}
               {!formData.isFilial && (
                 <div>
-                  <label htmlFor="regionId" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="regionId" className="block text-sm font-medium text-content-muted mb-2">
                     Región *
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <MapPin className="h-5 w-5 text-gray-400" />
+                      <MapPin className="h-5 w-5 text-content-subtle" />
                     </div>
                     <select
                       id="regionId"
                       value={formData.regionId}
                       onChange={(e) => handleInputChange('regionId', e.target.value)}
                       className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                        errors.regionId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        errors.regionId ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                       }`}
                     >
                       <option value="">Seleccionar región</option>
@@ -320,7 +320,7 @@ const NewTeamPage: React.FC = () => {
                     </select>
                   </div>
                   {errors.regionId && (
-                    <p className="mt-1 text-sm text-red-600">{errors.regionId}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.regionId}</p>
                   )}
                 </div>
               )}
@@ -328,21 +328,21 @@ const NewTeamPage: React.FC = () => {
               {/* Region Display - Solo si es filial */}
               {formData.isFilial && formData.regionId && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-content-muted mb-2">
                     Región (heredada del club principal)
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <MapPin className="h-5 w-5 text-gray-400" />
+                      <MapPin className="h-5 w-5 text-content-subtle" />
                     </div>
                     <input
                       type="text"
                       value={regionsData?.data?.find((r: Region) => r.id === formData.regionId)?.name || ''}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                      className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg bg-surface-muted text-content-muted"
                       disabled
                     />
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-content-subtle">
                     La región se hereda automáticamente del club principal
                   </p>
                 </div>
@@ -351,23 +351,23 @@ const NewTeamPage: React.FC = () => {
               {/* Location - Solo si NO es filial */}
               {!formData.isFilial && (
                 <div>
-                  <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="location" className="block text-sm font-medium text-content-muted mb-2">
                     Ubicación
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <MapPin className="h-5 w-5 text-gray-400" />
+                      <MapPin className="h-5 w-5 text-content-subtle" />
                     </div>
                     <input
                       type="text"
                       id="location"
                       value={formData.location}
                       onChange={(e) => handleInputChange('location', e.target.value)}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                      className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                       placeholder="Ej: Madrid, Barcelona, Valencia..."
                     />
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-content-subtle">
                     Ciudad o localidad donde se encuentra el equipo
                   </p>
                 </div>
@@ -376,21 +376,21 @@ const NewTeamPage: React.FC = () => {
               {/* Location Display - Solo si es filial */}
               {formData.isFilial && formData.location && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-content-muted mb-2">
                     Ubicación (heredada del club principal)
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <MapPin className="h-5 w-5 text-gray-400" />
+                      <MapPin className="h-5 w-5 text-content-subtle" />
                     </div>
                     <input
                       type="text"
                       value={formData.location}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                      className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg bg-surface-muted text-content-muted"
                       disabled
                     />
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-content-subtle">
                     La ubicación se hereda automáticamente del club principal
                   </p>
                 </div>
@@ -399,24 +399,24 @@ const NewTeamPage: React.FC = () => {
               {/* Email - Solo si NO es filial */}
               {!formData.isFilial && (
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="email" className="block text-sm font-medium text-content-muted mb-2">
                     Email de Contacto
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-400" />
+                      <Mail className="h-5 w-5 text-content-subtle" />
                     </div>
                     <input
                       type="email"
                       id="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                      className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                       placeholder="equipo@ejemplo.com"
                     />
                   </div>
                   {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.email}</p>
                   )}
                 </div>
               )}
@@ -424,21 +424,21 @@ const NewTeamPage: React.FC = () => {
               {/* Email Display - Solo si es filial */}
               {formData.isFilial && formData.email && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-content-muted mb-2">
                     Email (heredado del club principal)
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-400" />
+                      <Mail className="h-5 w-5 text-content-subtle" />
                     </div>
                     <input
                       type="email"
                       value={formData.email}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                      className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg bg-surface-muted text-content-muted"
                       disabled
                     />
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-content-subtle">
                     El email se hereda automáticamente del club principal
                   </p>
                 </div>
@@ -447,7 +447,7 @@ const NewTeamPage: React.FC = () => {
               {/* Logo URL - Solo si NO es filial */}
               {!formData.isFilial && (
                 <div>
-                  <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="logo" className="block text-sm font-medium text-content-muted mb-2">
                     URL del Logo
                   </label>
                   
@@ -459,10 +459,10 @@ const NewTeamPage: React.FC = () => {
                       size="lg"
                     />
                     <div>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-content-muted">
                         Vista previa del logo
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-content-subtle">
                         Si no hay logo, se mostrará un círculo con la inicial del equipo
                       </p>
                     </div>
@@ -470,14 +470,14 @@ const NewTeamPage: React.FC = () => {
                   
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Image className="h-5 w-5 text-gray-400" />
+                      <Image className="h-5 w-5 text-content-subtle" />
                     </div>
                     <input
                       type="url"
                       id="logo"
                       value={formData.logo}
                       onChange={(e) => handleInputChange('logo', e.target.value)}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                      className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                       placeholder="https://ejemplo.com/logo.png"
                     />
                   </div>
@@ -487,7 +487,7 @@ const NewTeamPage: React.FC = () => {
               {/* Logo Display - Solo si es filial */}
               {formData.isFilial && formData.logo && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-content-muted mb-2">
                     Logo del Equipo (heredado del club principal)
                   </label>
                   
@@ -499,10 +499,10 @@ const NewTeamPage: React.FC = () => {
                       size="lg"
                     />
                     <div>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-content-muted">
                         Logo heredado del club principal
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-content-subtle">
                         Este logo se hereda automáticamente del club principal
                       </p>
                     </div>
@@ -510,12 +510,12 @@ const NewTeamPage: React.FC = () => {
                   
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Image className="h-5 w-5 text-gray-400" />
+                      <Image className="h-5 w-5 text-content-subtle" />
                     </div>
                     <input
                       type="url"
                       value={formData.logo}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                      className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg bg-surface-muted text-content-muted"
                       disabled
                     />
                   </div>
@@ -527,7 +527,7 @@ const NewTeamPage: React.FC = () => {
 
           {/* Different Names */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Nombres Específicos</h3>
+            <h3 className="text-lg font-medium text-content mb-4">Nombres Específicos</h3>
             
             <div className="space-y-4">
               {/* Has Different Names Checkbox */}
@@ -538,11 +538,11 @@ const NewTeamPage: React.FC = () => {
                   className="flex items-center space-x-3 text-left"
                 >
                   {formData.hasDifferentNames ? (
-                    <CheckSquare className="h-5 w-5 text-primary-600" />
+                    <CheckSquare className="h-5 w-5 text-link" />
                   ) : (
-                    <Square className="h-5 w-5 text-gray-400" />
+                    <Square className="h-5 w-5 text-content-subtle" />
                   )}
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-content-muted">
                     Este equipo tiene nombres distintos open/women/mixto
                   </span>
                 </button>
@@ -552,7 +552,7 @@ const NewTeamPage: React.FC = () => {
               {formData.hasDifferentNames && (
                 <div className="ml-8 grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label htmlFor="nameMixed" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="nameMixed" className="block text-sm font-medium text-content-muted mb-2">
                       Nombre Mixed *
                     </label>
                     <input
@@ -561,17 +561,17 @@ const NewTeamPage: React.FC = () => {
                       value={formData.nameMixed}
                       onChange={(e) => handleInputChange('nameMixed', e.target.value)}
                       className={`block w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                        errors.nameMixed ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        errors.nameMixed ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                       }`}
                       placeholder="Ej: Madrid Ultimate Mixed"
                     />
                     {errors.nameMixed && (
-                      <p className="mt-1 text-sm text-red-600">{errors.nameMixed}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.nameMixed}</p>
                     )}
                   </div>
 
                   <div>
-                    <label htmlFor="nameWomen" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="nameWomen" className="block text-sm font-medium text-content-muted mb-2">
                       Nombre Women *
                     </label>
                     <input
@@ -580,17 +580,17 @@ const NewTeamPage: React.FC = () => {
                       value={formData.nameWomen}
                       onChange={(e) => handleInputChange('nameWomen', e.target.value)}
                       className={`block w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                        errors.nameWomen ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        errors.nameWomen ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                       }`}
                       placeholder="Ej: Madrid Ultimate Women"
                     />
                     {errors.nameWomen && (
-                      <p className="mt-1 text-sm text-red-600">{errors.nameWomen}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.nameWomen}</p>
                     )}
                   </div>
 
                   <div>
-                    <label htmlFor="nameOpen" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="nameOpen" className="block text-sm font-medium text-content-muted mb-2">
                       Nombre Open *
                     </label>
                     <input
@@ -599,12 +599,12 @@ const NewTeamPage: React.FC = () => {
                       value={formData.nameOpen}
                       onChange={(e) => handleInputChange('nameOpen', e.target.value)}
                       className={`block w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                        errors.nameOpen ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        errors.nameOpen ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                       }`}
                       placeholder="Ej: Madrid Ultimate Open"
                     />
                     {errors.nameOpen && (
-                      <p className="mt-1 text-sm text-red-600">{errors.nameOpen}</p>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.nameOpen}</p>
                     )}
                   </div>
                 </div>
@@ -613,7 +613,7 @@ const NewTeamPage: React.FC = () => {
           </div>
 
           {/* Form Actions */}
-          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-line">
             <button
               type="button"
               onClick={() => navigate('/admin/teams')}

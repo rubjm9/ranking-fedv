@@ -73,18 +73,18 @@ const TournamentImportPage: React.FC = () => {
     <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Importar torneos</h1>
-        <p className="text-gray-600">Importa múltiples torneos desde un archivo Excel</p>
+        <h1 className="text-2xl font-bold text-content">Importar torneos</h1>
+        <p className="text-content-muted">Importa múltiples torneos desde un archivo Excel</p>
       </div>
 
       {/* Template Download */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+      <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg p-6 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <FileText className="h-5 w-5 text-blue-600 mr-3" />
+            <FileText className="h-5 w-5 text-blue-600 dark:text-blue-300 mr-3" />
             <div>
-              <h3 className="text-sm font-medium text-blue-900">Plantilla de importación</h3>
-              <p className="text-sm text-blue-700">
+              <h3 className="text-sm font-medium text-blue-900 dark:text-blue-300">Plantilla de importación</h3>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
                 Descarga la plantilla Excel con el formato correcto para importar torneos
               </p>
             </div>
@@ -100,10 +100,10 @@ const TournamentImportPage: React.FC = () => {
       </div>
 
       {/* File Upload */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Subir archivo</h3>
+      <div className="bg-surface rounded-lg shadow-sm border border-line p-6 mb-6">
+        <h3 className="text-lg font-medium text-content mb-4">Subir archivo</h3>
         
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+        <div className="border-2 border-dashed border-line-strong rounded-lg p-6 text-center">
           <input
             type="file"
             accept=".xlsx,.xls"
@@ -115,22 +115,22 @@ const TournamentImportPage: React.FC = () => {
             htmlFor="file-upload"
             className="cursor-pointer flex flex-col items-center"
           >
-            <Upload className="h-12 w-12 text-gray-400 mb-4" />
-            <span className="text-lg font-medium text-gray-900 mb-2">
+            <Upload className="h-12 w-12 text-content-subtle mb-4" />
+            <span className="text-lg font-medium text-content mb-2">
               Selecciona un archivo Excel
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-content-subtle">
               Formatos soportados: .xlsx, .xls
             </span>
           </label>
         </div>
 
         {selectedFile && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+          <div className="mt-4 p-3 bg-surface-muted rounded-lg">
             <div className="flex items-center">
-              <FileText className="h-5 w-5 text-gray-400 mr-3" />
-              <span className="text-sm font-medium text-gray-900">{selectedFile.name}</span>
-              <span className="text-sm text-gray-500 ml-2">
+              <FileText className="h-5 w-5 text-content-subtle mr-3" />
+              <span className="text-sm font-medium text-content">{selectedFile.name}</span>
+              <span className="text-sm text-content-subtle ml-2">
                 ({(selectedFile.size / 1024).toFixed(1)} KB)
               </span>
             </div>
@@ -143,18 +143,18 @@ const TournamentImportPage: React.FC = () => {
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <div className="flex items-center">
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-yellow-600 mr-3"></div>
-            <span className="text-sm text-yellow-800">Procesando archivo...</span>
+            <span className="text-sm text-yellow-800 dark:text-yellow-300">Procesando archivo...</span>
           </div>
         </div>
       )}
 
       {/* Validation Results */}
       {validationResult && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Resultado de validación</h3>
+        <div className="bg-surface rounded-lg shadow-sm border border-line p-6 mb-6">
+          <h3 className="text-lg font-medium text-content mb-4">Resultado de validación</h3>
           
           {validationResult.isValid ? (
-            <div className="flex items-center text-green-600">
+            <div className="flex items-center text-green-600 dark:text-green-300">
               <CheckCircle className="h-5 w-5 mr-2" />
               <span className="text-sm font-medium">
                 ✅ Datos válidos - {importData.length} torneo(s) listo(s) para importar
@@ -162,16 +162,16 @@ const TournamentImportPage: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="flex items-center text-red-600">
+              <div className="flex items-center text-red-600 dark:text-red-300">
                 <XCircle className="h-5 w-5 mr-2" />
                 <span className="text-sm font-medium">
                   ❌ Se encontraron {validationResult.errors.length} error(es)
                 </span>
               </div>
               
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-red-900 mb-2">Errores encontrados:</h4>
-                <ul className="text-sm text-red-700 space-y-1">
+              <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-red-900 dark:text-red-300 mb-2">Errores encontrados:</h4>
+                <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
                   {validationResult.errors.map((error, index) => (
                     <li key={index} className="flex items-start">
                       <AlertCircle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
@@ -187,11 +187,11 @@ const TournamentImportPage: React.FC = () => {
 
       {/* Import Button */}
       {validationResult?.isValid && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-surface rounded-lg shadow-sm border border-line p-6 mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-medium text-gray-900">Importar datos</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="text-lg font-medium text-content">Importar datos</h3>
+              <p className="text-sm text-content-muted">
                 Se crearán {importData.length} torneo(s) con sus posiciones
               </p>
             </div>
@@ -218,21 +218,21 @@ const TournamentImportPage: React.FC = () => {
 
       {/* Import Results */}
       {importResult && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Resultado de importación</h3>
+        <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
+          <h3 className="text-lg font-medium text-content mb-4">Resultado de importación</h3>
           
           {importResult.success ? (
             <div className="space-y-4">
-              <div className={`flex items-center ${importResult.data?.errors && importResult.data.errors.length > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+              <div className={`flex items-center ${importResult.data?.errors && importResult.data.errors.length > 0 ? 'text-orange-600 dark:text-orange-300' : 'text-green-600 dark:text-green-300'}`}>
                 <CheckCircle className="h-5 w-5 mr-2" />
                 <span className="text-sm font-medium">
                   {importResult.data?.errors && importResult.data.errors.length > 0 ? '⚠️ Importación completada con advertencias' : '✅ Importación completada exitosamente'}
                 </span>
               </div>
               
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Resumen:</h4>
-                <ul className="text-sm text-gray-700 space-y-1">
+              <div className="bg-surface-muted rounded-lg p-4">
+                <h4 className="text-sm font-medium text-content mb-2">Resumen:</h4>
+                <ul className="text-sm text-content-muted space-y-1">
                   <li>• Torneos creados: {importResult.data?.tournamentsCreated || 0}</li>
                   <li>• Posiciones creadas: {importResult.data?.positionsCreated || 0}</li>
                   {importResult.data?.errors && importResult.data.errors.length > 0 && (
@@ -242,9 +242,9 @@ const TournamentImportPage: React.FC = () => {
               </div>
 
               {importResult.data?.errors && importResult.data.errors.length > 0 && (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-orange-900 mb-2">Advertencias:</h4>
-                  <ul className="text-sm text-orange-700 space-y-1">
+                <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-orange-900 dark:text-orange-300 mb-2">Advertencias:</h4>
+                  <ul className="text-sm text-orange-700 dark:text-orange-300 space-y-1">
                     {importResult.data.errors.map((error: string, index: number) => (
                       <li key={index}>• {error}</li>
                     ))}
@@ -254,14 +254,14 @@ const TournamentImportPage: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center text-red-600">
+              <div className="flex items-center text-red-600 dark:text-red-300">
                 <XCircle className="h-5 w-5 mr-2" />
                 <span className="text-sm font-medium">❌ Error en importación</span>
               </div>
               
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 rounded-lg p-4">
                 <h4 className="text-sm font-medium text-red-900 mb-2">Errores:</h4>
-                <ul className="text-sm text-red-700 space-y-1">
+                <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
                   {importResult.data?.errors?.map((error: string, index: number) => (
                     <li key={index} className="flex items-start">
                       <AlertCircle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
@@ -276,9 +276,9 @@ const TournamentImportPage: React.FC = () => {
       )}
 
       {/* Instructions */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Instrucciones de uso</h3>
-        <div className="text-sm text-gray-700 space-y-2">
+      <div className="bg-surface-muted border border-line rounded-lg p-6 mt-6">
+        <h3 className="text-lg font-medium text-content mb-4">Instrucciones de uso</h3>
+        <div className="text-sm text-content-muted space-y-2">
           <p><strong>1.</strong> Descarga la plantilla Excel</p>
           <p><strong>2.</strong> Completa la información de cada torneo en una fila</p>
           <p><strong>3.</strong> Para las posiciones, escribe el nombre exacto del equipo</p>
@@ -287,9 +287,9 @@ const TournamentImportPage: React.FC = () => {
           <p><strong>6.</strong> Haz clic en "Importar torneos"</p>
         </div>
         
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">Notas importantes:</h4>
-          <ul className="text-sm text-blue-700 space-y-1">
+        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg">
+          <h4 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">Notas importantes:</h4>
+          <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
             <li>• Un torneo por fila</li>
             <li>• Las posiciones se asignan automáticamente según el orden de las columnas</li>
             <li>• Los nombres de equipos deben coincidir exactamente con los registrados</li>

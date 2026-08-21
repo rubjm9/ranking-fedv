@@ -53,24 +53,24 @@ const AdminNotificationBanner: React.FC<AdminNotificationBannerProps> = ({ class
       case 'data_inconsistency':
         return <AlertTriangle className="w-5 h-5 text-yellow-500" />
       case 'ranking_stale':
-        return <AlertTriangle className="w-5 h-5 text-amber-600" />
+        return <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-300" />
       default:
-        return <Info className="w-5 h-5 text-gray-500" />
+        return <Info className="w-5 h-5 text-content-subtle" />
     }
   }
 
   const getBgColor = (type: string) => {
     switch (type) {
       case 'subseason_complete':
-        return 'bg-green-50 border-green-200'
+        return 'bg-green-50 dark:bg-green-950/40 border-green-200'
       case 'season_complete':
-        return 'bg-blue-50 border-blue-200'
+        return 'bg-blue-50 dark:bg-blue-950/40 border-blue-200'
       case 'data_inconsistency':
         return 'bg-yellow-50 border-yellow-200'
       case 'ranking_stale':
-        return 'bg-amber-50 border-amber-300'
+        return 'bg-amber-50 dark:bg-amber-950/40 border-amber-300'
       default:
-        return 'bg-gray-50 border-gray-200'
+        return 'bg-surface-muted border-line'
     }
   }
 
@@ -90,22 +90,22 @@ const AdminNotificationBanner: React.FC<AdminNotificationBannerProps> = ({ class
             {/* Contenido */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h4 className="font-medium text-gray-900 text-sm">
+                <h4 className="font-medium text-content text-sm">
                   {notification.title}
                 </h4>
                 {notification.season && (
-                  <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-gray-200 text-content-muted px-2 py-0.5 rounded">
                     {notification.season}
                   </span>
                 )}
                 {notification.subseason && (
-                  <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-gray-200 text-content-muted px-2 py-0.5 rounded">
                     Subtemporada {notification.subseason}
                   </span>
                 )}
               </div>
               
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-content-muted mt-1">
                 {notification.message}
               </p>
 
@@ -115,7 +115,7 @@ const AdminNotificationBanner: React.FC<AdminNotificationBannerProps> = ({ class
                   <Link
                     to={notification.action_url}
                     onClick={() => markReadMutation.mutate(notification.id)}
-                    className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                    className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 dark:text-blue-300 hover:text-blue-800 transition-colors"
                   >
                     {notification.action_label || 'Ver más'}
                     <ArrowRight className="w-4 h-4" />
@@ -125,7 +125,7 @@ const AdminNotificationBanner: React.FC<AdminNotificationBannerProps> = ({ class
                 {notification.type !== 'ranking_stale' && (
                   <button
                     onClick={() => dismissMutation.mutate(notification.id)}
-                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                    className="text-sm text-content-subtle hover:text-content-muted transition-colors"
                     disabled={dismissMutation.isPending}
                   >
                     Descartar
@@ -138,7 +138,7 @@ const AdminNotificationBanner: React.FC<AdminNotificationBannerProps> = ({ class
             {notification.type !== 'ranking_stale' && (
               <button
                 onClick={() => dismissMutation.mutate(notification.id)}
-                className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                className="flex-shrink-0 p-1 text-content-subtle hover:text-content-muted transition-colors"
                 disabled={dismissMutation.isPending}
               >
                 <X className="w-4 h-4" />
@@ -167,7 +167,7 @@ export const NotificationBadge: React.FC<{ className?: string }> = ({ className 
 
   return (
     <div className={`relative inline-flex ${className}`}>
-      <Bell className="w-5 h-5 text-gray-600" />
+      <Bell className="w-5 h-5 text-content-muted" />
       <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-red-500 rounded-full">
         {count > 9 ? '9+' : count}
       </span>

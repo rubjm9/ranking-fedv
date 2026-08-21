@@ -447,7 +447,7 @@ const RankingPageHybrid: React.FC = () => {
   const getChangeIcon = (change: number) => {
     if (change > 0) return <TrendingUp className="h-4 w-4 text-green-500" />
     if (change < 0) return <TrendingDown className="h-4 w-4 text-red-500" />
-    return <BarChart3 className="h-4 w-4 text-gray-400" />
+    return <BarChart3 className="h-4 w-4 text-content-subtle" />
   }
 
   const getChangeText = (change: number) => {
@@ -498,20 +498,20 @@ const RankingPageHybrid: React.FC = () => {
     <button
       onClick={onClick}
       className={`group flex items-center gap-2 rounded-md border px-3 py-2 text-xs md:text-sm transition-colors ${
-        isSelected ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+        isSelected ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300' : 'border-line bg-surface text-content-muted hover:bg-surface-muted'
       }`}
       title={item.label}
     >
-      <item.Icon className={isSelected ? 'w-4 h-4 text-blue-600' : 'w-4 h-4 text-gray-600 group-hover:text-gray-800'} />
+      <item.Icon className={isSelected ? 'w-4 h-4 text-blue-600 dark:text-blue-300' : 'w-4 h-4 text-content-muted group-hover:text-content'} />
       <span className="truncate">{item.label}</span>
     </button>
   )
 
   const getRankIcon = (position: number) => {
     if (position === 1) return <Trophy className="w-6 h-6 text-yellow-500" />
-    if (position === 2) return <Medal className="w-6 h-6 text-gray-400" />
+    if (position === 2) return <Medal className="w-6 h-6 text-content-subtle" />
     if (position === 3) return <Medal className="w-6 h-6 text-orange-500" />
-    return <span className="text-sm font-semibold text-gray-500">#{position}</span>
+    return <span className="text-sm font-semibold text-content-subtle">#{position}</span>
   }
 
   const renderRankingTab = () => (
@@ -519,12 +519,12 @@ const RankingPageHybrid: React.FC = () => {
       {/* Estadísticas mejoradas con tooltips */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="bg-white rounded-lg shadow p-4 group relative">
+          <div className="bg-surface rounded-lg shadow p-4 group relative">
             <div className="flex items-center">
               <Users className="w-8 h-8 text-blue-500" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Total Equipos</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.total_teams}</p>
+                <p className="text-sm font-medium text-content-subtle">Total Equipos</p>
+                <p className="text-2xl font-semibold text-content">{stats.total_teams}</p>
               </div>
             </div>
             {/* Tooltip */}
@@ -534,12 +534,12 @@ const RankingPageHybrid: React.FC = () => {
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow p-4 group relative">
+          <div className="bg-surface rounded-lg shadow p-4 group relative">
             <div className="flex items-center">
               <BarChart3 className="w-8 h-8 text-purple-500" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Promedio</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.avg_points.toFixed(1)}</p>
+                <p className="text-sm font-medium text-content-subtle">Promedio</p>
+                <p className="text-2xl font-semibold text-content">{stats.avg_points.toFixed(1)}</p>
               </div>
             </div>
             {/* Tooltip */}
@@ -549,12 +549,12 @@ const RankingPageHybrid: React.FC = () => {
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow p-4 group relative">
+          <div className="bg-surface rounded-lg shadow p-4 group relative">
             <div className="flex items-center">
               <TrendingUp className="w-8 h-8 text-green-500" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Equipos Nuevos</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.new_teams}</p>
+                <p className="text-sm font-medium text-content-subtle">Equipos Nuevos</p>
+                <p className="text-2xl font-semibold text-content">{stats.new_teams}</p>
               </div>
             </div>
             {/* Tooltip */}
@@ -564,12 +564,12 @@ const RankingPageHybrid: React.FC = () => {
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow p-4 group relative">
+          <div className="bg-surface rounded-lg shadow p-4 group relative">
             <div className="flex items-center">
               <Trophy className="w-8 h-8 text-yellow-500" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Consistencia</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.consistent_teams}</p>
+                <p className="text-sm font-medium text-content-subtle">Consistencia</p>
+                <p className="text-2xl font-semibold text-content">{stats.consistent_teams}</p>
               </div>
             </div>
             {/* Tooltip */}
@@ -579,12 +579,12 @@ const RankingPageHybrid: React.FC = () => {
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow p-4 group relative">
+          <div className="bg-surface rounded-lg shadow p-4 group relative">
             <div className="flex items-center">
               <Calendar className="w-8 h-8 text-orange-500" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-500">Actividad</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats.avg_activity.toFixed(1)}</p>
+                <p className="text-sm font-medium text-content-subtle">Actividad</p>
+                <p className="text-2xl font-semibold text-content">{stats.avg_activity.toFixed(1)}</p>
               </div>
             </div>
             {/* Tooltip */}
@@ -597,10 +597,10 @@ const RankingPageHybrid: React.FC = () => {
       )}
 
       {/* Ranking */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
+      <div className="bg-surface rounded-lg shadow">
+        <div className="px-6 py-4 border-b border-line">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-content">
               Ranking Actual – {
                 selectedRankingType === 'specific' 
                   ? specificChampionships.find(c => c.value === selectedSurface)?.label
@@ -609,7 +609,7 @@ const RankingPageHybrid: React.FC = () => {
             </h2>
             <button
               onClick={handleRefresh}
-              className="flex items-center space-x-2 text-sm text-gray-500 hover:text-gray-700"
+              className="flex items-center space-x-2 text-sm text-content-subtle hover:text-content-muted"
             >
               <RefreshCw className="w-4 h-4" />
               <span>Actualizar</span>
@@ -620,7 +620,7 @@ const RankingPageHybrid: React.FC = () => {
           {isLoading || isLoadingSeason ? (
             <div className="p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-500">
+              <p className="mt-2 text-content-subtle">
                 {isLoadingSeason ? 'Cargando temporada...' : 'Cargando ranking...'}
               </p>
             </div>
@@ -629,28 +629,28 @@ const RankingPageHybrid: React.FC = () => {
               <p>Error al cargar el ranking</p>
               <button
                 onClick={handleRefresh}
-                className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+                className="mt-2 text-sm text-blue-600 dark:text-blue-300 hover:text-blue-800"
               >
                 Reintentar
               </button>
             </div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50 sticky top-0 z-20 shadow-sm">
+            <table className="min-w-full divide-y divide-line">
+                <thead className="bg-surface-muted sticky top-0 z-20 shadow-sm">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">
                       Posición
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">
                       Cambio
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">
                       Equipo
                     </th>
                     {getLastFourSeasons(rankingData || []).map(season => (
                       <th 
                         key={season} 
-                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                        className="px-6 py-3 text-center text-xs font-medium text-content-subtle uppercase tracking-wider cursor-pointer hover:bg-surface-muted transition-colors"
                         onClick={() => handleSort(season)}
                       >
                         <div className="flex items-center justify-center space-x-1">
@@ -664,7 +664,7 @@ const RankingPageHybrid: React.FC = () => {
                       </th>
                     ))}
                     <th 
-                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      className="px-6 py-3 text-center text-xs font-medium text-content-subtle uppercase tracking-wider cursor-pointer hover:bg-surface-muted transition-colors"
                       onClick={() => handleSort('total')}
                     >
                       <div className="flex items-center justify-center space-x-1">
@@ -678,9 +678,9 @@ const RankingPageHybrid: React.FC = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-surface divide-y divide-line">
                   {sortData(rankingData || []).map((team) => (
-                    <tr key={team.team_id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={team.team_id} className="hover:bg-surface-muted transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {getRankIcon(team.ranking_position)}
@@ -690,8 +690,8 @@ const RankingPageHybrid: React.FC = () => {
                         <div className="flex items-center">
                           {getChangeIcon(team.position_change || 0)}
                           <span className={`ml-1 text-sm font-medium ${
-                            (team.position_change || 0) > 0 ? 'text-green-600' : 
-                            (team.position_change || 0) < 0 ? 'text-red-600' : 'text-gray-500'
+                            (team.position_change || 0) > 0 ? 'text-green-600 dark:text-green-300' : 
+                            (team.position_change || 0) < 0 ? 'text-red-600 dark:text-red-300' : 'text-content-subtle'
                           }`}>
                             {getChangeText(team.position_change || 0)}
                           </span>
@@ -701,10 +701,10 @@ const RankingPageHybrid: React.FC = () => {
                         <div className="flex items-center">
                           <TeamLogo name={team.team_name} size="sm" />
                           <div className="ml-3">
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-content">
                               {team.team_name}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-content-subtle">
                               {team.region_name || 'N/A'}
                             </div>
                           </div>
@@ -712,16 +712,16 @@ const RankingPageHybrid: React.FC = () => {
                       </td>
                       {getLastFourSeasons(rankingData || []).map(season => (
                         <td key={season} className="px-6 py-4 whitespace-nowrap text-center">
-                          <div className="text-sm font-semibold text-gray-900">
+                          <div className="text-sm font-semibold text-content">
                             {team.season_breakdown?.[season]?.weighted_points?.toFixed(1) || '0.0'}
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-content-subtle">
                             (x{team.season_breakdown?.[season]?.coefficient?.toFixed(1) || '0.0'})
                           </div>
                         </td>
                       ))}
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="text-lg font-bold text-gray-900">
+                        <div className="text-lg font-bold text-content">
                           {team.total_points?.toFixed(1) || '0.0'}
                         </div>
                       </td>
@@ -780,7 +780,7 @@ const RankingPageHybrid: React.FC = () => {
 
     return (
       <div className="w-full overflow-x-auto relative">
-        <svg width={width} height={height} className="border border-gray-200 rounded-lg">
+        <svg width={width} height={height} className="border border-line rounded-lg">
           {/* Ejes */}
           <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#E5E7EB" strokeWidth="2" />
           <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#E5E7EB" strokeWidth="2" />
@@ -915,22 +915,22 @@ const RankingPageHybrid: React.FC = () => {
   const renderGeneralTab = () => {
     return (
       <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
+          <h3 className="text-lg font-semibold text-content mb-4">
             Evolución del Ranking General
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-content-muted mb-6">
             Esta gráfica muestra la evolución del ranking general para todos los equipos.
             Los datos se calculan dinámicamente desde team_season_rankings.
           </p>
           
           {activeTab === 'general' && (
-            <div className="text-center py-12 bg-gray-50 rounded-lg">
-              <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h4 className="text-lg font-medium text-gray-900 mb-2">
+            <div className="text-center py-12 bg-surface-muted rounded-lg">
+              <BarChart3 className="w-12 h-12 text-content-subtle mx-auto mb-4" />
+              <h4 className="text-lg font-medium text-content mb-2">
                 Ranking General Dinámico
               </h4>
-              <p className="text-sm text-gray-600 max-w-2xl mx-auto">
+              <p className="text-sm text-content-muted max-w-2xl mx-auto">
                 El ranking general se calcula dinámicamente sumando todas las superficies (playa mixto, open, women + césped mixto, open, women).
                 La gráfica de evolución histórica está disponible en la página de detalle de cada equipo.
               </p>
@@ -938,16 +938,16 @@ const RankingPageHybrid: React.FC = () => {
           )}
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg p-4">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <BarChart3 className="w-5 h-5 text-blue-600 mt-0.5" />
+              <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-300 mt-0.5" />
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-blue-900">
+              <h3 className="text-sm font-medium text-blue-900 dark:text-blue-300">
                 Sistema Dinámico de Ranking Global
               </h3>
-              <div className="mt-2 text-sm text-blue-700">
+              <div className="mt-2 text-sm text-blue-700 dark:text-blue-300">
                 <ul className="list-disc list-inside space-y-1">
                   <li><strong>Cálculo automático:</strong> Se recalcula cada vez que se completa un torneo de 1ª división</li>
                   <li><strong>Coeficientes dinámicos:</strong> Las superficies jugadas tienen coeficiente 1.0, las no jugadas usan la temporada anterior</li>
@@ -959,16 +959,16 @@ const RankingPageHybrid: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 rounded-lg p-4">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <LineChart className="w-5 h-5 text-green-600 mt-0.5" />
+              <LineChart className="w-5 h-5 text-green-600 dark:text-green-300 mt-0.5" />
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-green-900">
+              <h3 className="text-sm font-medium text-green-900 dark:text-green-300">
                 Ejemplo de Funcionamiento
               </h3>
-              <div className="mt-2 text-sm text-green-700">
+              <div className="mt-2 text-sm text-green-700 dark:text-green-300">
                 <p><strong>Ejemplo de funcionamiento:</strong></p>
                 <ul className="list-disc list-inside space-y-1 ml-4">
                   <li>Las superficies ya jugadas en la temporada actual tienen coeficiente 1.0</li>
@@ -989,22 +989,22 @@ const RankingPageHybrid: React.FC = () => {
 
     return (
       <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <div className="bg-surface rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-content mb-4 flex items-center">
             <LineChart className="w-5 h-5 mr-2" />
             Análisis de Equipos
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-content-muted mb-6">
             Selecciona equipos para comparar su evolución de puntos y posiciones a lo largo del tiempo.
           </p>
           
           {/* Selector de equipos múltiple */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-content-muted">
                 Seleccionar equipos para análisis:
               </label>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-content-subtle">
                 {selectedTeamsForAnalysis.length} equipos seleccionados
               </span>
             </div>
@@ -1016,7 +1016,7 @@ const RankingPageHybrid: React.FC = () => {
                 placeholder="Buscar equipos..."
                 value={teamSearchTerm}
                 onChange={(e) => setTeamSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-line-strong rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             
@@ -1026,19 +1026,19 @@ const RankingPageHybrid: React.FC = () => {
                 onClick={() => setShowAllTeams(!showAllTeams)}
                 className={`px-3 py-1 rounded-lg text-sm font-medium ${
                   showAllTeams
-                    ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                    : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                    ? 'bg-blue-100 text-blue-700 dark:text-blue-300 border border-blue-200'
+                    : 'bg-surface-muted text-content-muted border border-line hover:bg-gray-200'
                 }`}
               >
                 {showAllTeams ? 'Mostrar solo top 20' : 'Mostrar todos los equipos'}
               </button>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-content-subtle">
                 {rankingData?.length || 0} equipos disponibles
               </span>
             </div>
             
             {/* Lista de equipos */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto border border-line rounded-lg p-3">
               {rankingData
                 ?.filter(team => 
                   team.team_name.toLowerCase().includes(teamSearchTerm.toLowerCase()) ||
@@ -1046,12 +1046,12 @@ const RankingPageHybrid: React.FC = () => {
                 )
                 ?.slice(0, showAllTeams ? undefined : 20)
                 ?.map((team) => (
-                <label key={team.team_id} className="flex items-center space-x-2 text-sm hover:bg-gray-50 p-1 rounded">
+                <label key={team.team_id} className="flex items-center space-x-2 text-sm hover:bg-surface-muted p-1 rounded">
                   <input
                     type="checkbox"
                     checked={selectedTeamsForAnalysis.includes(team.team_id)}
                     onChange={(e) => handleTeamSelection(team.team_id, e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-line-strong text-blue-600 dark:text-blue-300 focus:ring-blue-500"
                   />
                   <TeamLogo name={team.team_name} size="sm" />
                   <span className="truncate">{team.team_name}</span>
@@ -1064,7 +1064,7 @@ const RankingPageHybrid: React.FC = () => {
               team.team_name.toLowerCase().includes(teamSearchTerm.toLowerCase()) ||
               team.region_name?.toLowerCase().includes(teamSearchTerm.toLowerCase())
             )?.length === 0 && teamSearchTerm && (
-              <div className="text-center py-4 text-gray-500">
+              <div className="text-center py-4 text-content-subtle">
                 No se encontraron equipos que coincidan con "{teamSearchTerm}"
               </div>
             )}
@@ -1073,12 +1073,12 @@ const RankingPageHybrid: React.FC = () => {
                 {selectedTeamsForAnalysis.map(teamId => {
                   const team = rankingData?.find(t => t.team_id === teamId)
                   return team ? (
-                    <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                    <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 dark:text-blue-300">
                       <TeamLogo name={team.team_name} size="sm" />
                       <span className="ml-1">{team.team_name}</span>
                       <button
                         onClick={() => handleTeamSelection(teamId, false)}
-                        className="ml-1 text-blue-600 hover:text-blue-800"
+                        className="ml-1 text-blue-600 dark:text-blue-300 hover:text-blue-800"
                       >
                         ×
                       </button>
@@ -1097,8 +1097,8 @@ const RankingPageHybrid: React.FC = () => {
                   onClick={() => setAnalysisView('points')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'points'
-                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                      : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                      ? 'bg-blue-100 text-blue-700 dark:text-blue-300 border border-blue-200'
+                      : 'bg-surface-muted text-content-muted border border-line hover:bg-gray-200'
                   }`}
                 >
                   Evolución de Puntos
@@ -1107,8 +1107,8 @@ const RankingPageHybrid: React.FC = () => {
                   onClick={() => setAnalysisView('positions')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'positions'
-                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                      : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                      ? 'bg-blue-100 text-blue-700 dark:text-blue-300 border border-blue-200'
+                      : 'bg-surface-muted text-content-muted border border-line hover:bg-gray-200'
                   }`}
                 >
                   Evolución de Posiciones
@@ -1119,16 +1119,16 @@ const RankingPageHybrid: React.FC = () => {
 
           {/* Gráfica */}
           {selectedTeamsForAnalysis.length === 0 ? (
-            <div className="bg-gray-50 rounded-lg p-8 text-center">
-              <LineChart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Selecciona equipos para ver su comparación</p>
-              <p className="text-sm text-gray-400 mt-2">Puedes seleccionar hasta 6 equipos para comparar</p>
+            <div className="bg-surface-muted rounded-lg p-8 text-center">
+              <LineChart className="w-12 h-12 text-content-subtle mx-auto mb-4" />
+              <p className="text-content-subtle">Selecciona equipos para ver su comparación</p>
+              <p className="text-sm text-content-subtle mt-2">Puedes seleccionar hasta 6 equipos para comparar</p>
             </div>
           ) : (
             <div className="space-y-6">
               {/* Gráfica */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="text-md font-medium text-gray-900 mb-4">
+              <div className="bg-surface-muted rounded-lg p-4">
+                <h4 className="text-md font-medium text-content mb-4">
                   {analysisView === 'points' ? 'Evolución de Puntos por Temporada' : 'Evolución de Posiciones por Temporada'}
                 </h4>
                 <SimpleChart 
@@ -1138,8 +1138,8 @@ const RankingPageHybrid: React.FC = () => {
               </div>
 
               {/* Leyenda */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h5 className="text-sm font-medium text-gray-900 mb-3">Equipos seleccionados:</h5>
+              <div className="bg-surface border border-line rounded-lg p-4">
+                <h5 className="text-sm font-medium text-content mb-3">Equipos seleccionados:</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {analysisData.map((team, index) => {
                     const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
@@ -1150,8 +1150,8 @@ const RankingPageHybrid: React.FC = () => {
                           style={{ backgroundColor: colors[index % colors.length] }}
                         />
                         <TeamLogo name={team.team_name} size="sm" />
-                        <span className="text-sm text-gray-900">{team.team_name}</span>
-                        <span className="text-xs text-gray-500">({team.region_name})</span>
+                        <span className="text-sm text-content">{team.team_name}</span>
+                        <span className="text-xs text-content-subtle">({team.region_name})</span>
                       </div>
                     )
                   })}
@@ -1159,8 +1159,8 @@ const RankingPageHybrid: React.FC = () => {
               </div>
 
               {/* Resumen estadístico */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h5 className="text-sm font-medium text-gray-900 mb-3">Resumen estadístico:</h5>
+              <div className="bg-surface border border-line rounded-lg p-4">
+                <h5 className="text-sm font-medium text-content mb-3">Resumen estadístico:</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {analysisData.map(team => {
                     const totalPoints = team.data.reduce((sum, d) => sum + d.points, 0)
@@ -1169,12 +1169,12 @@ const RankingPageHybrid: React.FC = () => {
                     const minPoints = Math.min(...team.data.map(d => d.points))
                     
                     return (
-                      <div key={team.team_id} className="bg-gray-50 rounded-lg p-3">
+                      <div key={team.team_id} className="bg-surface-muted rounded-lg p-3">
                         <div className="flex items-center mb-2">
                           <TeamLogo name={team.team_name} size="sm" />
-                          <span className="ml-2 font-medium text-gray-900">{team.team_name}</span>
+                          <span className="ml-2 font-medium text-content">{team.team_name}</span>
                         </div>
-                        <div className="text-sm text-gray-600 space-y-1">
+                        <div className="text-sm text-content-muted space-y-1">
                           <div>Total: {totalPoints.toFixed(1)} pts</div>
                           <div>Promedio: {avgPoints.toFixed(1)} pts</div>
                           <div>Máximo: {maxPoints.toFixed(1)} pts</div>
@@ -1200,24 +1200,24 @@ const RankingPageHybrid: React.FC = () => {
 
     return (
       <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <div className="bg-surface rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-content mb-4 flex items-center">
             <Star className="w-5 h-5 mr-2" />
             Top Performers
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-content-muted mb-6">
             Descubre los equipos más destacados por diferentes criterios de rendimiento.
           </p>
           
           {/* Tabs internos para diferentes tipos de performers */}
-          <div className="border-b border-gray-200 mb-6">
+          <div className="border-b border-line mb-6">
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setPerformersTab('season')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   performersTab === 'season'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-300'
+                    : 'border-transparent text-content-subtle hover:text-content-muted'
                 }`}
               >
                 Mejores por Temporada
@@ -1226,8 +1226,8 @@ const RankingPageHybrid: React.FC = () => {
                 onClick={() => setPerformersTab('growth')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   performersTab === 'growth'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-300'
+                    : 'border-transparent text-content-subtle hover:text-content-muted'
                 }`}
               >
                 Mayor Crecimiento
@@ -1236,8 +1236,8 @@ const RankingPageHybrid: React.FC = () => {
                 onClick={() => setPerformersTab('consistent')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   performersTab === 'consistent'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-300'
+                    : 'border-transparent text-content-subtle hover:text-content-muted'
                 }`}
               >
                 Más Consistentes
@@ -1248,26 +1248,26 @@ const RankingPageHybrid: React.FC = () => {
           {/* Contenido según tab seleccionado */}
           {performersTab === 'season' && (
             <div className="space-y-6">
-              <h4 className="text-md font-medium text-gray-900">Top 3 por Temporada</h4>
+              <h4 className="text-md font-medium text-content">Top 3 por Temporada</h4>
               {Object.entries(seasonPerformers).map(([season, performers]) => (
-                <div key={season} className="bg-gray-50 rounded-lg p-4">
-                  <h5 className="text-sm font-semibold text-gray-700 mb-3">{season}</h5>
+                <div key={season} className="bg-surface-muted rounded-lg p-4">
+                  <h5 className="text-sm font-semibold text-content-muted mb-3">{season}</h5>
                   <div className="space-y-2">
                     {performers.map((performer, index) => (
-                      <div key={performer.team_id} className="flex items-center justify-between bg-white rounded-lg p-3">
+                      <div key={performer.team_id} className="flex items-center justify-between bg-surface rounded-lg p-3">
                         <div className="flex items-center">
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-semibold text-sm mr-3">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 dark:text-blue-300 font-semibold text-sm mr-3">
                             {index + 1}
                           </div>
                           <TeamLogo name={performer.team_name} size="sm" />
                           <div className="ml-3">
-                            <div className="text-sm font-medium text-gray-900">{performer.team_name}</div>
-                            <div className="text-xs text-gray-500">{performer.region_name}</div>
+                            <div className="text-sm font-medium text-content">{performer.team_name}</div>
+                            <div className="text-xs text-content-subtle">{performer.region_name}</div>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm font-semibold text-gray-900">{performer.points.toFixed(1)} pts</div>
-                          <div className="text-xs text-gray-500">({performer.weighted_points.toFixed(1)} ponderados)</div>
+                          <div className="text-sm font-semibold text-content">{performer.points.toFixed(1)} pts</div>
+                          <div className="text-xs text-content-subtle">({performer.weighted_points.toFixed(1)} ponderados)</div>
                         </div>
                       </div>
                     ))}
@@ -1279,23 +1279,23 @@ const RankingPageHybrid: React.FC = () => {
 
           {performersTab === 'growth' && (
             <div className="space-y-4">
-              <h4 className="text-md font-medium text-gray-900">Top 10 Mayor Crecimiento Promedio</h4>
+              <h4 className="text-md font-medium text-content">Top 10 Mayor Crecimiento Promedio</h4>
               <div className="space-y-2">
                 {growthPerformers.map((performer, index) => (
-                  <div key={performer.team_id} className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+                  <div key={performer.team_id} className="flex items-center justify-between bg-surface-muted rounded-lg p-4">
                     <div className="flex items-center">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600 font-semibold text-sm mr-3">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 dark:bg-green-950/50 text-green-600 dark:text-green-300 font-semibold text-sm mr-3">
                         {index + 1}
                       </div>
                       <TeamLogo name={performer.team_name} size="sm" />
                       <div className="ml-3">
-                        <div className="text-sm font-medium text-gray-900">{performer.team_name}</div>
-                        <div className="text-xs text-gray-500">{performer.region_name}</div>
+                        <div className="text-sm font-medium text-content">{performer.team_name}</div>
+                        <div className="text-xs text-content-subtle">{performer.region_name}</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-semibold text-green-600">+{performer.avg_growth.toFixed(1)} pts/año</div>
-                      <div className="text-xs text-gray-500">{performer.seasons_compared} temporadas</div>
+                      <div className="text-sm font-semibold text-green-600 dark:text-green-300">+{performer.avg_growth.toFixed(1)} pts/año</div>
+                      <div className="text-xs text-content-subtle">{performer.seasons_compared} temporadas</div>
                     </div>
                   </div>
                 ))}
@@ -1305,26 +1305,26 @@ const RankingPageHybrid: React.FC = () => {
 
           {performersTab === 'consistent' && (
             <div className="space-y-4">
-              <h4 className="text-md font-medium text-gray-900">Top 10 Más Consistentes</h4>
-              <p className="text-sm text-gray-600">Equipos con menor variabilidad en sus puntos (coeficiente de variación más bajo)</p>
+              <h4 className="text-md font-medium text-content">Top 10 Más Consistentes</h4>
+              <p className="text-sm text-content-muted">Equipos con menor variabilidad en sus puntos (coeficiente de variación más bajo)</p>
               <div className="space-y-2">
                 {consistentPerformers.map((performer, index) => {
                   if (!performer) return null
                   return (
-                    <div key={performer.team_id} className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+                    <div key={performer.team_id} className="flex items-center justify-between bg-surface-muted rounded-lg p-4">
                       <div className="flex items-center">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-100 text-yellow-600 font-semibold text-sm mr-3">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-950/50 text-yellow-600 dark:text-yellow-300 font-semibold text-sm mr-3">
                           {index + 1}
                         </div>
                         <TeamLogo name={performer.team_name} size="sm" />
                         <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">{performer.team_name}</div>
-                          <div className="text-xs text-gray-500">{performer.region_name}</div>
+                          <div className="text-sm font-medium text-content">{performer.team_name}</div>
+                          <div className="text-xs text-content-subtle">{performer.region_name}</div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-semibold text-gray-900">{performer.avg_points.toFixed(1)} pts promedio</div>
-                        <div className="text-xs text-gray-500">CV: {(performer.coefficient_variation * 100).toFixed(1)}%</div>
+                        <div className="text-sm font-semibold text-content">{performer.avg_points.toFixed(1)} pts promedio</div>
+                        <div className="text-xs text-content-subtle">CV: {(performer.coefficient_variation * 100).toFixed(1)}%</div>
                       </div>
                     </div>
                   )
@@ -1340,18 +1340,18 @@ const RankingPageHybrid: React.FC = () => {
   // Renderizar pestaña de Estadísticas Avanzadas
   const renderAdvancedTab = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+      <div className="bg-surface rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-content mb-4 flex items-center">
           <MapPin className="w-5 h-5 mr-2" />
           Estadísticas Avanzadas
         </h3>
-        <p className="text-gray-600 mb-6">
+        <p className="text-content-muted mb-6">
           Análisis detallado de la distribución geográfica y competitividad del ranking.
         </p>
         
         {/* Estadísticas por región */}
         <div className="mb-6">
-          <h4 className="text-md font-medium text-gray-900 mb-3">Distribución por Región</h4>
+          <h4 className="text-md font-medium text-content mb-3">Distribución por Región</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {rankingData?.reduce((acc: { [key: string]: number }, team) => {
               const region = team.region_name || 'Sin región'
@@ -1364,10 +1364,10 @@ const RankingPageHybrid: React.FC = () => {
                 return acc
               }, {}) || {}
             ).map(([region, count]) => (
-              <div key={region} className="bg-gray-50 rounded-lg p-4">
+              <div key={region} className="bg-surface-muted rounded-lg p-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-900">{region}</span>
-                  <span className="text-lg font-semibold text-blue-600">{count}</span>
+                  <span className="text-sm font-medium text-content">{region}</span>
+                  <span className="text-lg font-semibold text-blue-600 dark:text-blue-300">{count}</span>
                 </div>
               </div>
             ))}
@@ -1376,26 +1376,26 @@ const RankingPageHybrid: React.FC = () => {
 
         {/* Competitividad */}
         <div className="mb-6">
-          <h4 className="text-md font-medium text-gray-900 mb-3">Análisis de Competitividad</h4>
+          <h4 className="text-md font-medium text-content mb-3">Análisis de Competitividad</h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="text-sm text-gray-600">Diferencia 1º-2º</div>
-              <div className="text-xl font-semibold text-gray-900">
+            <div className="bg-surface-muted rounded-lg p-4">
+              <div className="text-sm text-content-muted">Diferencia 1º-2º</div>
+              <div className="text-xl font-semibold text-content">
                 {rankingData && rankingData.length > 1 
                   ? (rankingData[0].total_points - rankingData[1].total_points).toFixed(1)
                   : '0.0'
                 }
               </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="text-sm text-gray-600">Equipos en Top 10</div>
-              <div className="text-xl font-semibold text-gray-900">
+            <div className="bg-surface-muted rounded-lg p-4">
+              <div className="text-sm text-content-muted">Equipos en Top 10</div>
+              <div className="text-xl font-semibold text-content">
                 {Math.min(10, rankingData?.length || 0)}
               </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="text-sm text-gray-600">Densidad Competitiva</div>
-              <div className="text-xl font-semibold text-gray-900">
+            <div className="bg-surface-muted rounded-lg p-4">
+              <div className="text-sm text-content-muted">Densidad Competitiva</div>
+              <div className="text-xl font-semibold text-content">
                 {rankingData && rankingData.length > 0
                   ? ((rankingData.slice(0, 10).reduce((sum, team) => sum + team.total_points, 0) / 10) / 
                      (rankingData[0].total_points || 1) * 100).toFixed(1) + '%'
@@ -1410,18 +1410,18 @@ const RankingPageHybrid: React.FC = () => {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Ranking</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-content">Ranking</h1>
+          <p className="mt-2 text-content-muted">
             Clasificación oficial de equipos por superficie y temporada. Selecciona una superficie para ver el ranking específico, o alguno de los rankings combinados.
           </p>
         </div>
 
         {/* Selector de Rankings (compacto) */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+        <div className="bg-surface rounded-lg border border-line p-4 mb-6">
           {/* Fila 1: Campeonatos Específicos */}
           <div className="flex flex-wrap items-center gap-2">
             {specificChampionships.map((championship) => (
@@ -1438,7 +1438,7 @@ const RankingPageHybrid: React.FC = () => {
           </div>
 
           {/* Separador sutil */}
-          <div className="my-3 h-px bg-gray-100" />
+          <div className="my-3 h-px bg-surface-muted" />
 
           {/* Fila 2: Rankings Combinados */}
           <div className="flex flex-wrap items-center gap-2">
@@ -1458,16 +1458,16 @@ const RankingPageHybrid: React.FC = () => {
 
         {/* Explicación del ranking seleccionado */}
         {selectedSurface && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg p-4 mb-6">
             <div className="flex items-start">
               <div className="flex-shrink-0">
-                <Trophy className="w-5 h-5 text-blue-600 mt-0.5" />
+                <Trophy className="w-5 h-5 text-blue-600 dark:text-blue-300 mt-0.5" />
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-blue-900">
+                <h3 className="text-sm font-medium text-blue-900 dark:text-blue-300">
                   {getRankingExplanation(selectedSurface, selectedRankingType).title}
                 </h3>
-                <p className="mt-1 text-sm text-blue-700">
+                <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
                   {getRankingExplanation(selectedSurface, selectedRankingType).explanation}
                 </p>
               </div>
@@ -1476,15 +1476,15 @@ const RankingPageHybrid: React.FC = () => {
         )}
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="border-b border-gray-200">
+        <div className="bg-surface rounded-lg shadow">
+          <div className="border-b border-line">
             <nav className="-mb-px flex space-x-8 px-6">
               <button
                 onClick={() => setActiveTab('ranking')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'ranking'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-300'
+                    : 'border-transparent text-content-subtle hover:text-content-muted hover:border-line-strong'
                 }`}
               >
                 <Trophy className="w-4 h-4 inline mr-2" />
@@ -1494,8 +1494,8 @@ const RankingPageHybrid: React.FC = () => {
                 onClick={() => setActiveTab('analysis')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'analysis'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-300'
+                    : 'border-transparent text-content-subtle hover:text-content-muted hover:border-line-strong'
                 }`}
               >
                 <LineChart className="w-4 h-4 inline mr-2" />
@@ -1505,8 +1505,8 @@ const RankingPageHybrid: React.FC = () => {
                 onClick={() => setActiveTab('general')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'general'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-300'
+                    : 'border-transparent text-content-subtle hover:text-content-muted hover:border-line-strong'
                 }`}
               >
                 <BarChart3 className="w-4 h-4 inline mr-2" />
@@ -1516,8 +1516,8 @@ const RankingPageHybrid: React.FC = () => {
                 onClick={() => setActiveTab('performers')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'performers'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-300'
+                    : 'border-transparent text-content-subtle hover:text-content-muted hover:border-line-strong'
                 }`}
               >
                 <Star className="w-4 h-4 inline mr-2" />
@@ -1527,8 +1527,8 @@ const RankingPageHybrid: React.FC = () => {
                 onClick={() => setActiveTab('advanced')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'advanced'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-300'
+                    : 'border-transparent text-content-subtle hover:text-content-muted hover:border-line-strong'
                 }`}
               >
                 <MapPin className="w-4 h-4 inline mr-2" />

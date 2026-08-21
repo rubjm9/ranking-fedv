@@ -124,8 +124,8 @@ const RegionPage = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Región no encontrada</h1>
-          <p className="text-gray-600 mb-4">La región que buscas no existe o ha sido eliminada.</p>
+          <h1 className="text-2xl font-bold text-content mb-2">Región no encontrada</h1>
+          <p className="text-content-muted mb-4">La región que buscas no existe o ha sido eliminada.</p>
           <Link to="/regiones" className="btn-primary">
             Volver a regiones
           </Link>
@@ -146,7 +146,7 @@ const RegionPage = () => {
       <div className="mb-6">
         <Link
           to="/regiones"
-          className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4"
+          className="inline-flex items-center text-link hover:text-brand-strong mb-4"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Volver a regiones
@@ -156,51 +156,51 @@ const RegionPage = () => {
         <div className="card">
           <div className="flex items-start space-x-6">
             <div className="flex h-20 w-20 shrink-0 items-center justify-center">
-              <MapPin className="h-10 w-10 text-primary-600" strokeWidth={1.5} />
+              <MapPin className="h-10 w-10 text-link" strokeWidth={1.5} />
             </div>
 
             <div className="flex-1">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-1">{region.name}</h1>
-                  <p className="text-lg text-gray-600">Región de España</p>
+                  <h1 className="text-3xl font-bold text-content mb-1">{region.name}</h1>
+                  <p className="text-lg text-content-muted">Región de España</p>
                 </div>
 
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-primary-600">{region.coefficient}x</div>
-                  <div className="text-sm text-gray-600">Coeficiente actual</div>
+                  <div className="text-2xl font-bold text-link">{region.coefficient}x</div>
+                  <div className="text-sm text-content-muted">Coeficiente actual</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="flex items-center space-x-2">
-                  <UsersRound className="w-5 h-5 text-gray-400" />
+                  <UsersRound className="w-5 h-5 text-content-subtle" />
                   <div>
-                    <div className="text-sm text-gray-600">Equipos activos</div>
+                    <div className="text-sm text-content-muted">Equipos activos</div>
                     <div className="font-medium">{totalTeams}</div>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Trophy className="w-5 h-5 text-gray-400" />
+                  <Trophy className="w-5 h-5 text-content-subtle" />
                   <div>
-                    <div className="text-sm text-gray-600">Puntos totales</div>
+                    <div className="text-sm text-content-muted">Puntos totales</div>
                     <div className="font-medium">{totalPoints.toLocaleString()}</div>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Target className="w-5 h-5 text-gray-400" />
+                  <Target className="w-5 h-5 text-content-subtle" />
                   <div>
-                    <div className="text-sm text-gray-600">Puntos promedio</div>
+                    <div className="text-sm text-content-muted">Puntos promedio</div>
                     <div className="font-medium">{Math.round(averagePoints).toLocaleString()}</div>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Award className="w-5 h-5 text-gray-400" />
+                  <Award className="w-5 h-5 text-content-subtle" />
                   <div>
-                    <div className="text-sm text-gray-600">Equipo destacado</div>
+                    <div className="text-sm text-content-muted">Equipo destacado</div>
                     <div className="font-medium">{topTeam?.name.split(' ')[0]}...</div>
                   </div>
                 </div>
@@ -223,8 +223,8 @@ const RegionPage = () => {
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center space-x-2 px-1 py-2 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary-500 text-link'
+                  : 'border-transparent text-content-subtle hover:text-content-muted hover:border-line-strong'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -239,24 +239,24 @@ const RegionPage = () => {
         <div className="space-y-6">
           {/* Coeficiente regional detallado */}
           <div className="card">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Coeficiente Regional</h3>
+            <h3 className="text-xl font-semibold text-content mb-4">Coeficiente Regional</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <div className="space-y-4">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Coeficiente actual:</span>
-                    <span className="font-semibold text-primary-600 text-lg">{region.coefficient}x</span>
+                    <span className="text-content-muted">Coeficiente actual:</span>
+                    <span className="font-semibold text-link text-lg">{region.coefficient}x</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Suelo mínimo:</span>
+                    <span className="text-content-muted">Suelo mínimo:</span>
                     <span className="font-medium">0.80x</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Techo máximo:</span>
+                    <span className="text-content-muted">Techo máximo:</span>
                     <span className="font-medium">1.20x</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Incremento:</span>
+                    <span className="text-content-muted">Incremento:</span>
                     <span className="font-medium">0.01 por cada 100 puntos</span>
                   </div>
                 </div>
@@ -274,14 +274,14 @@ const RegionPage = () => {
                       style={{ width: `${Math.min(100, ((region.coefficient - 0.8) / 0.4) * 100)}%` }}
                     ></div>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-content-subtle mt-1">
                     <span>0.80x</span>
                     <span>1.20x</span>
                   </div>
                 </div>
 
-                <div className="mt-4 p-3 bg-primary-50 rounded-lg">
-                  <p className="text-sm text-primary-800">
+                <div className="mt-4 p-3 bg-brand-subtle rounded-lg">
+                  <p className="text-sm text-brand-strong">
                     <strong>¿Cómo se calcula?</strong><br />
                     El coeficiente se basa en el rendimiento colectivo de todos los equipos
                     de la región en los Campeonatos de España de las últimas temporadas.
@@ -293,7 +293,7 @@ const RegionPage = () => {
 
           {/* Evolución del coeficiente */}
           <div className="card">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Evolución del Coeficiente</h3>
+            <h3 className="text-xl font-semibold text-content mb-4">Evolución del Coeficiente</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={coefficientEvolution}>
@@ -315,7 +315,7 @@ const RegionPage = () => {
 
           {/* Distribución de puntos */}
           <div className="card">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Distribución de Puntos por Categoría</h3>
+            <h3 className="text-xl font-semibold text-content mb-4">Distribución de Puntos por Categoría</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
@@ -361,7 +361,7 @@ const RegionPage = () => {
         <div className="space-y-6">
           {/* Lista de equipos de la región */}
           <div className="card">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            <h3 className="text-xl font-semibold text-content mb-4">
               Equipos de {region.name} ({totalTeams})
             </h3>
 
@@ -370,28 +370,28 @@ const RegionPage = () => {
                 <Link
                   key={team.id}
                   to={getTeamPublicUrl(team)}
-                  className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
+                  className="flex items-center justify-between p-4 border border-line rounded-lg hover:bg-surface-muted transition-colors group"
                 >
                   <div className="flex items-center space-x-4">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center">
-                      <Trophy className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
+                      <Trophy className="h-7 w-7 text-link" strokeWidth={1.5} />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+                      <h4 className="font-semibold text-content group-hover:text-link transition-colors">
                         {team.name}
                       </h4>
                       {team.club && (
-                        <p className="text-sm text-gray-600">{team.club}</p>
+                        <p className="text-sm text-content-muted">{team.club}</p>
                       )}
                     </div>
                   </div>
 
                   <div className="flex items-center space-x-2">
                     <div className="text-right">
-                      <div className="text-sm text-gray-600">Coeficiente regional</div>
-                      <div className="font-semibold text-primary-600">{region.coefficient}x</div>
+                      <div className="text-sm text-content-muted">Coeficiente regional</div>
+                      <div className="font-semibold text-link">{region.coefficient}x</div>
                     </div>
-                    <ChevronLeft className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors transform rotate-180" />
+                    <ChevronLeft className="w-5 h-5 text-content-subtle group-hover:text-link transition-colors transform rotate-180" />
                   </div>
                 </Link>
               ))}
@@ -401,26 +401,26 @@ const RegionPage = () => {
           {/* Estadísticas de equipos */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="card text-center">
-              <Crown className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-              <h4 className="text-lg font-semibold text-gray-900 mb-1">Equipos Elite</h4>
-              <p className="text-2xl font-bold text-primary-600">
+              <Crown className="w-8 h-8 text-yellow-600 dark:text-yellow-300 mx-auto mb-2" />
+              <h4 className="text-lg font-semibold text-content mb-1">Equipos Elite</h4>
+              <p className="text-2xl font-bold text-link">
                 {teams?.filter(team => team.club?.includes('Club')).length || 0}
               </p>
-              <p className="text-sm text-gray-600">clubes principales</p>
+              <p className="text-sm text-content-muted">clubes principales</p>
             </div>
 
             <div className="card text-center">
-              <Medal className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-              <h4 className="text-lg font-semibold text-gray-900 mb-1">Equipos Activos</h4>
-              <p className="text-2xl font-bold text-primary-600">{totalTeams}</p>
-              <p className="text-sm text-gray-600">en competición</p>
+              <Medal className="w-8 h-8 text-content-muted mx-auto mb-2" />
+              <h4 className="text-lg font-semibold text-content mb-1">Equipos Activos</h4>
+              <p className="text-2xl font-bold text-link">{totalTeams}</p>
+              <p className="text-sm text-content-muted">en competición</p>
             </div>
 
             <div className="card text-center">
-              <Award className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <h4 className="text-lg font-semibold text-gray-900 mb-1">Promedio Regional</h4>
-              <p className="text-2xl font-bold text-primary-600">#{Math.floor(Math.random() * 10) + 1}</p>
-              <p className="text-sm text-gray-600">posición media</p>
+              <Award className="w-8 h-8 text-blue-600 dark:text-blue-300 mx-auto mb-2" />
+              <h4 className="text-lg font-semibold text-content mb-1">Promedio Regional</h4>
+              <p className="text-2xl font-bold text-link">#{Math.floor(Math.random() * 10) + 1}</p>
+              <p className="text-sm text-content-muted">posición media</p>
             </div>
           </div>
         </div>
@@ -431,17 +431,17 @@ const RegionPage = () => {
           {/* Estadísticas históricas */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="card">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Rendimiento por Año</h4>
+              <h4 className="text-lg font-semibold text-content mb-4">Rendimiento por Año</h4>
               <div className="space-y-3">
                 {coefficientEvolution.map(year => (
-                  <div key={year.year} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={year.year} className="flex items-center justify-between p-3 bg-surface-muted rounded-lg">
                     <div>
                       <div className="font-medium">{year.year}</div>
-                      <div className="text-sm text-gray-600">{year.points.toLocaleString()} puntos</div>
+                      <div className="text-sm text-content-muted">{year.points.toLocaleString()} puntos</div>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold text-primary-600">{year.coefficient}x</div>
-                      <div className="text-sm text-gray-600">coeficiente</div>
+                      <div className="font-semibold text-link">{year.coefficient}x</div>
+                      <div className="text-sm text-content-muted">coeficiente</div>
                     </div>
                   </div>
                 ))}
@@ -449,25 +449,25 @@ const RegionPage = () => {
             </div>
 
             <div className="card">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Métricas Clave</h4>
+              <h4 className="text-lg font-semibold text-content mb-4">Métricas Clave</h4>
               <div className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Puntos totales acumulados:</span>
+                  <span className="text-content-muted">Puntos totales acumulados:</span>
                   <span className="font-semibold">{totalPoints.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Promedio anual:</span>
+                  <span className="text-content-muted">Promedio anual:</span>
                   <span className="font-semibold">{Math.round(averagePoints).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Mejor coeficiente:</span>
-                  <span className="font-semibold text-green-600">
+                  <span className="text-content-muted">Mejor coeficiente:</span>
+                  <span className="font-semibold text-green-600 dark:text-green-300">
                     {Math.max(...coefficientEvolution.map(y => y.coefficient))}x
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Crecimiento último año:</span>
-                  <span className="font-semibold text-blue-600">
+                  <span className="text-content-muted">Crecimiento último año:</span>
+                  <span className="font-semibold text-blue-600 dark:text-blue-300">
                     +{(region.coefficient - coefficientEvolution[coefficientEvolution.length - 2].coefficient).toFixed(2)}x
                   </span>
                 </div>
@@ -477,8 +477,8 @@ const RegionPage = () => {
 
           {/* Información adicional */}
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Sobre el Sistema Regional</h3>
-            <div className="prose prose-sm max-w-none text-gray-600">
+            <h3 className="text-lg font-semibold text-content mb-4">Sobre el Sistema Regional</h3>
+            <div className="prose prose-sm max-w-none text-content-muted">
               <p>
                 El sistema de coeficientes regionales está diseñado para fomentar el desarrollo del ultimate frisbee
                 en todas las comunidades autónomas de España. Las regiones con mejor rendimiento colectivo reciben

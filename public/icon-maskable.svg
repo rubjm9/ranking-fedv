@@ -1,0 +1,9 @@
+<!--
+  Variante maskable: fondo a sangre y marca dentro de la zona segura (círculo
+  interior del 80%), para que sobreviva al recorte circular de Android.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" fill="#4f46e5"/>
+  <circle cx="256" cy="256" r="112" stroke="#f97316" stroke-width="40" fill="none"/>
+  <circle cx="256" cy="256" r="32" fill="#f97316"/>
+</svg>

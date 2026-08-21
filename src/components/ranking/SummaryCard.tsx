@@ -65,24 +65,24 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
   })
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div className="bg-surface rounded-2xl shadow-sm border border-line overflow-hidden">
       <div className="px-4 py-3 bg-slate-900 flex items-center justify-between">
         <h3 className="text-white font-semibold text-sm">{title}</h3>
         {getCategoryBadge(category)}
       </div>
       <div className="data-table-wrapper">
-        <table className="min-w-full divide-y divide-slate-200">
-          <thead className="bg-secondary-50">
+        <table className="min-w-full divide-y divide-line">
+          <thead className="bg-surface-muted">
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Pos</th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Cambio</th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Equipo</th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-slate-500 uppercase">Pts</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-content-subtle uppercase">Pos</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-content-subtle uppercase">Cambio</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-content-subtle uppercase">Equipo</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-content-subtle uppercase">Pts</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-slate-200">
+          <tbody className="bg-surface divide-y divide-line">
             {dataWithChanges.map((team, index) => (
-              <tr key={team.team_id} className="hover:bg-secondary-50">
+              <tr key={team.team_id} className="hover:bg-surface-muted">
                 <td className="px-3 py-2 whitespace-nowrap">
                   <div className="flex items-center">{getRankIcon(index + 1)}</div>
                 </td>
@@ -92,10 +92,10 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
                     <span
                       className={`ml-1 text-sm font-medium ${
                         team.change > 0
-                          ? 'text-green-600'
+                          ? 'text-green-600 dark:text-green-300'
                           : team.change < 0
-                            ? 'text-red-600'
-                            : 'text-slate-500'
+                            ? 'text-red-600 dark:text-red-300'
+                            : 'text-content-subtle'
                       }`}
                     >
                       {getChangeText(team.change)}
@@ -108,16 +108,16 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
                     <div className="ml-2">
                       <RankingTeamLink
                         team={team}
-                        className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                        className="text-sm font-medium text-content hover:text-link transition-colors"
                       >
                         {team.team_name}
                       </RankingTeamLink>
-                      <div className="text-xs text-slate-500">{team.region_name || 'N/A'}</div>
+                      <div className="text-xs text-content-subtle">{team.region_name || 'N/A'}</div>
                     </div>
                   </div>
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap">
-                  <span className="text-sm font-medium text-slate-900">
+                  <span className="text-sm font-medium text-content">
                     {team.total_points?.toFixed(1) || '0.0'}
                   </span>
                 </td>
@@ -126,11 +126,11 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
           </tbody>
         </table>
       </div>
-      <div className="px-4 py-2 bg-secondary-50 border-t border-slate-200">
+      <div className="px-4 bg-surface-muted border-t border-line">
         <button
           type="button"
           onClick={() => onViewFull(category)}
-          className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+          className="inline-flex items-center min-h-[44px] touch-manipulation text-xs text-link hover:text-brand-strong font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         >
           Ver ranking completo →
         </button>

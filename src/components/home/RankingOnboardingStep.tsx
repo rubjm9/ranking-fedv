@@ -53,12 +53,12 @@ const RankingOnboardingStep: React.FC<RankingOnboardingStepProps> = ({
       <div className="absolute left-0 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-sm font-bold text-white shadow-sm ring-4 ring-secondary-50">
         {step}
       </div>
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
+      <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
         <div className="mb-3 flex items-center gap-2">
-          <div className="rounded-full bg-primary-50 p-2 text-primary-600" aria-hidden>
+          <div className="rounded-full bg-brand-subtle p-2 text-link" aria-hidden>
             {icon}
           </div>
-          <h3 className="text-2xl font-bold text-slate-900">{title}</h3>
+          <h3 className="text-2xl font-bold text-content">{title}</h3>
         </div>
         {children}
       </div>

@@ -170,8 +170,8 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg">
-        <div className="text-center text-gray-500">
+      <div className="flex items-center justify-center h-64 bg-surface-muted rounded-lg">
+        <div className="text-center text-content-subtle">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p>Cargando datos del ranking global...</p>
         </div>
@@ -181,8 +181,8 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
 
   if (!chartData || chartData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg">
-        <div className="text-center text-gray-500">
+      <div className="flex items-center justify-center h-64 bg-surface-muted rounded-lg">
+        <div className="text-center text-content-subtle">
           <p>No hay datos históricos disponibles</p>
           <p className="text-sm mt-1">
             {useDynamicData 
@@ -204,10 +204,10 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
     if (!active || !payload?.length) return null
     const dataPoint = payload[0]?.payload
     return (
-      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg min-w-[160px]">
-        <p className="font-medium text-gray-900 mb-2">{label}</p>
+      <div className="bg-surface p-3 border border-line rounded-lg shadow-lg min-w-[160px]">
+        <p className="font-medium text-content mb-2">{label}</p>
         {dataPoint?.subseasonLabel && (
-          <p className="text-xs text-gray-500 mb-2">{dataPoint.subseasonLabel}</p>
+          <p className="text-xs text-content-subtle mb-2">{dataPoint.subseasonLabel}</p>
         )}
         {payload.map((entry: any, index: number) => {
           if (entry.value == null && entry.dataKey !== compareDataKey) return null
@@ -218,7 +218,7 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
           return (
             <div key={index} className="flex items-center gap-2 text-sm mb-1">
               <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-              <span className="text-gray-600 truncate">{labelText}:</span>
+              <span className="text-content-muted truncate">{labelText}:</span>
               {metric === 'position' ? (
                 <span className="font-medium">#{value}</span>
               ) : (
@@ -235,8 +235,8 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
     <div className="w-full">
       {teamName && (
         <div className="mb-4">
-          <h4 className="text-lg font-medium text-gray-900">Evolución del Ranking Global</h4>
-          <p className="text-sm text-gray-600">Equipo: {teamName}</p>
+          <h4 className="text-lg font-medium text-content">Evolución del Ranking Global</h4>
+          <p className="text-sm text-content-muted">Equipo: {teamName}</p>
         </div>
       )}
       
@@ -384,7 +384,7 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
         </LineChart>
       </ResponsiveContainer>
       
-      <div className="mt-4 text-xs text-gray-500 text-center">
+      <div className="mt-4 text-xs text-content-subtle text-center">
         {metric === 'position' ? (
           <p>Posición: 1 arriba (mejor), últimas posiciones abajo</p>
         ) : (

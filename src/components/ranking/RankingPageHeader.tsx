@@ -20,7 +20,7 @@ const RankingPageHeader: React.FC<RankingPageHeaderProps> = ({
             <h1 className="font-display text-2xl font-bold tracking-tight text-white md:text-3xl">
               Ranking <span className="text-accent-400">FEDV</span>
             </h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-400 md:text-base">
+            <p className="mt-2 max-w-2xl text-sm text-content-subtle md:text-base">
               Clasificación oficial de equipos de ultimate frisbee en España
             </p>
           </div>
@@ -32,11 +32,11 @@ const RankingPageHeader: React.FC<RankingPageHeaderProps> = ({
         </div>
       </PageHeroShell>
       <div className="mx-auto mt-4 max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-start gap-2 rounded-xl border border-slate-200 bg-secondary-50 p-3 text-sm text-slate-600">
-          <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-600" />
+        <div className="flex items-start gap-2 rounded-xl border border-line bg-surface-muted p-3 text-sm text-content-muted">
+          <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-link" />
           <p>
             Los puntos se calculan según la metodología oficial FEDV.{' '}
-            <Link to="/como-funciona" className="font-medium text-primary-600 hover:text-primary-700">
+            <Link to="/como-funciona" className="font-medium text-link hover:text-brand-strong">
               Ver metodología
             </Link>
           </p>

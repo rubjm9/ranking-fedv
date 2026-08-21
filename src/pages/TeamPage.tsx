@@ -87,8 +87,8 @@ const TeamPage = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Equipo no encontrado</h1>
-          <p className="text-gray-600 mb-4">El equipo que buscas no existe o ha sido eliminado.</p>
+          <h1 className="text-2xl font-bold text-content mb-2">Equipo no encontrado</h1>
+          <p className="text-content-muted mb-4">El equipo que buscas no existe o ha sido eliminado.</p>
           <Link to="/teams" className="btn-primary">
             Volver a equipos
           </Link>
@@ -114,7 +114,7 @@ const TeamPage = () => {
       <div className="mb-6">
         <Link
           to="/teams"
-          className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4"
+          className="inline-flex items-center text-link hover:text-brand-strong mb-4"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Volver a equipos
@@ -124,53 +124,53 @@ const TeamPage = () => {
         <div className="card">
           <div className="flex items-start space-x-6">
             <div className="flex h-20 w-20 shrink-0 items-center justify-center">
-              <Trophy className="h-10 w-10 text-primary-600" strokeWidth={1.5} />
+              <Trophy className="h-10 w-10 text-link" strokeWidth={1.5} />
             </div>
 
             <div className="flex-1">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-1">{team.name}</h1>
+                  <h1 className="text-3xl font-bold text-content mb-1">{team.name}</h1>
                   {team.club && (
-                    <p className="text-lg text-gray-600">{team.club}</p>
+                    <p className="text-lg text-content-muted">{team.club}</p>
                   )}
                 </div>
 
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-primary-600">#{averagePosition}</div>
-                  <div className="text-sm text-gray-600">Posición media</div>
+                  <div className="text-2xl font-bold text-link">#{averagePosition}</div>
+                  <div className="text-sm text-content-muted">Posición media</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="flex items-center space-x-2">
-                  <MapPin className="w-5 h-5 text-gray-400" />
+                  <MapPin className="w-5 h-5 text-content-subtle" />
                   <div>
-                    <div className="text-sm text-gray-600">Región</div>
+                    <div className="text-sm text-content-muted">Región</div>
                     <div className="font-medium">{team.region?.name}</div>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Mail className="w-5 h-5 text-gray-400" />
+                  <Mail className="w-5 h-5 text-content-subtle" />
                   <div>
-                    <div className="text-sm text-gray-600">Contacto</div>
+                    <div className="text-sm text-content-muted">Contacto</div>
                     <div className="font-medium">{team.email}</div>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Calendar className="w-5 h-5 text-gray-400" />
+                  <Calendar className="w-5 h-5 text-content-subtle" />
                   <div>
-                    <div className="text-sm text-gray-600">Torneos jugados</div>
+                    <div className="text-sm text-content-muted">Torneos jugados</div>
                     <div className="font-medium">{tournamentsPlayed}</div>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Award className="w-5 h-5 text-gray-400" />
+                  <Award className="w-5 h-5 text-content-subtle" />
                   <div>
-                    <div className="text-sm text-gray-600">Mejor posición</div>
+                    <div className="text-sm text-content-muted">Mejor posición</div>
                     <div className="font-medium">#{bestPosition}</div>
                   </div>
                 </div>
@@ -193,8 +193,8 @@ const TeamPage = () => {
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center space-x-2 px-1 py-2 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary-500 text-link'
+                  : 'border-transparent text-content-subtle hover:text-content-muted hover:border-line-strong'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -209,7 +209,7 @@ const TeamPage = () => {
         <div className="space-y-6">
           {/* Gráfico de evolución */}
           <div className="card">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Evolución de puntos acumulados</h3>
+            <h3 className="text-xl font-semibold text-content mb-4">Evolución de puntos acumulados</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={evolutionData}>
@@ -232,24 +232,24 @@ const TeamPage = () => {
           {/* Estadísticas rápidas */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="card text-center">
-              <Crown className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-              <h4 className="text-lg font-semibold text-gray-900 mb-1">CE 1ª División</h4>
-              <p className="text-2xl font-bold text-primary-600">{ce1Positions.length}</p>
-              <p className="text-sm text-gray-600">torneos jugados</p>
+              <Crown className="w-8 h-8 text-yellow-600 dark:text-yellow-300 mx-auto mb-2" />
+              <h4 className="text-lg font-semibold text-content mb-1">CE 1ª División</h4>
+              <p className="text-2xl font-bold text-link">{ce1Positions.length}</p>
+              <p className="text-sm text-content-muted">torneos jugados</p>
             </div>
 
             <div className="card text-center">
-              <Medal className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-              <h4 className="text-lg font-semibold text-gray-900 mb-1">CE 2ª División</h4>
-              <p className="text-2xl font-bold text-primary-600">{ce2Positions.length}</p>
-              <p className="text-sm text-gray-600">torneos jugados</p>
+              <Medal className="w-8 h-8 text-content-muted mx-auto mb-2" />
+              <h4 className="text-lg font-semibold text-content mb-1">CE 2ª División</h4>
+              <p className="text-2xl font-bold text-link">{ce2Positions.length}</p>
+              <p className="text-sm text-content-muted">torneos jugados</p>
             </div>
 
             <div className="card text-center">
-              <Trophy className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <h4 className="text-lg font-semibold text-gray-900 mb-1">Torneos Regionales</h4>
-              <p className="text-2xl font-bold text-primary-600">{regionalPositions.length}</p>
-              <p className="text-sm text-gray-600">torneos jugados</p>
+              <Trophy className="w-8 h-8 text-blue-600 dark:text-blue-300 mx-auto mb-2" />
+              <h4 className="text-lg font-semibold text-content mb-1">Torneos Regionales</h4>
+              <p className="text-2xl font-bold text-link">{regionalPositions.length}</p>
+              <p className="text-sm text-content-muted">torneos jugados</p>
             </div>
           </div>
         </div>
@@ -268,22 +268,22 @@ const TeamPage = () => {
             }, {} as Record<number, Position[]>) || {}
           ).map(([year, yearPositions]) => (
             <div key={year} className="card">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">{year}</h3>
+              <h3 className="text-xl font-semibold text-content mb-4">{year}</h3>
               <div className="space-y-3">
                 {yearPositions.map(position => (
-                  <div key={position.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={position.id} className="flex items-center justify-between p-3 bg-surface-muted rounded-lg">
                     <div className="flex items-center space-x-4">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center">
-                        <Trophy className="h-5 w-5 text-primary-600" strokeWidth={1.5} />
+                        <Trophy className="h-5 w-5 text-link" strokeWidth={1.5} />
                       </div>
                       <div>
                         <div className="font-medium">Torneo {position.tournamentId}</div>
-                        <div className="text-sm text-gray-600">Posición #{position.position}</div>
+                        <div className="text-sm text-content-muted">Posición #{position.position}</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold text-primary-600">{position.points} pts</div>
-                      <div className="text-sm text-gray-600">puntos</div>
+                      <div className="font-semibold text-link">{position.points} pts</div>
+                      <div className="text-sm text-content-muted">puntos</div>
                     </div>
                   </div>
                 ))}
@@ -297,7 +297,7 @@ const TeamPage = () => {
         <div className="space-y-6">
           {/* Gráfico de posiciones por año */}
           <div className="card">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Posiciones por año</h3>
+            <h3 className="text-xl font-semibold text-content mb-4">Posiciones por año</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={evolutionData}>
@@ -309,7 +309,7 @@ const TeamPage = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <p className="text-sm text-gray-600 mt-2">
+            <p className="text-sm text-content-muted mt-2">
               * Escala invertida: posición 1 es la mejor
             </p>
           </div>
@@ -317,37 +317,37 @@ const TeamPage = () => {
           {/* Estadísticas detalladas */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="card">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Resumen de rendimiento</h4>
+              <h4 className="text-lg font-semibold text-content mb-4">Resumen de rendimiento</h4>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Total de puntos:</span>
+                  <span className="text-content-muted">Total de puntos:</span>
                   <span className="font-semibold">{totalPoints}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Torneos jugados:</span>
+                  <span className="text-content-muted">Torneos jugados:</span>
                   <span className="font-semibold">{tournamentsPlayed}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Mejor posición:</span>
+                  <span className="text-content-muted">Mejor posición:</span>
                   <span className="font-semibold">#{bestPosition}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Posición media:</span>
+                  <span className="text-content-muted">Posición media:</span>
                   <span className="font-semibold">#{averagePosition}</span>
                 </div>
               </div>
             </div>
 
             <div className="card">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Coeficiente regional</h4>
+              <h4 className="text-lg font-semibold text-content mb-4">Coeficiente regional</h4>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Región:</span>
+                  <span className="text-content-muted">Región:</span>
                   <span className="font-semibold">{team.region?.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Coeficiente:</span>
-                  <span className="font-semibold text-primary-600">{team.region?.coefficient}x</span>
+                  <span className="text-content-muted">Coeficiente:</span>
+                  <span className="font-semibold text-link">{team.region?.coefficient}x</span>
                 </div>
                 <div>
                   <div className="flex justify-between text-sm mb-1">
@@ -360,7 +360,7 @@ const TeamPage = () => {
                       style={{ width: `${Math.min(100, ((team.region?.coefficient || 0) / 1.2) * 100)}%` }}
                     ></div>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs text-content-subtle mt-1">
                     <span>0.80x</span>
                     <span>1.20x</span>
                   </div>

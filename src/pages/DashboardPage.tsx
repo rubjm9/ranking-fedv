@@ -53,14 +53,14 @@ const DashboardPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Dashboard</h1>
-          <p className="text-secondary-600">Bienvenido al panel de administración FEDV</p>
+          <h1 className="text-2xl font-bold text-content">Dashboard</h1>
+          <p className="text-content-muted">Bienvenido al panel de administración FEDV</p>
         </div>
       </div>
 
       {hasError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 flex items-center justify-between">
-          <p className="text-sm text-red-700">
+        <div className="rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/40 p-4 flex items-center justify-between">
+          <p className="text-sm text-red-700 dark:text-red-300">
             No se pudieron cargar algunos datos del dashboard. Comprueba la conexión e inténtalo de nuevo.
           </p>
           <button

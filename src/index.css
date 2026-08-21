@@ -2,13 +2,91 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Tokens semánticos de color.
+ *
+ * Se guardan como canales RGB sueltos para que Tailwind pueda aplicar
+ * modificadores de opacidad (`bg-surface/70`) sobre ellos. Los nombres
+ * describen la función, no el color, de modo que el tema oscuro solo
+ * redefina estas variables sin tocar el marcado.
+ */
+:root {
+  --color-canvas: 248 250 252; /* slate-50   */
+  --color-surface: 255 255 255;
+  --color-surface-muted: 248 250 252;
+  --color-surface-raised: 255 255 255;
+  --color-content: 15 23 42; /* slate-900  */
+  --color-content-muted: 71 85 105; /* slate-600  */
+  --color-content-subtle: 85 99 119; /* slate-500 oscurecido: 4,5:1 también sobre surface-muted */
+  --color-line: 226 232 240; /* slate-200  */
+  --color-line-strong: 203 213 225; /* slate-300  */
+  /* Superficie y texto de los estados de marca (seleccionado, activo). */
+  --color-brand-subtle: 238 242 255; /* primary-50  */
+  --color-brand-strong: 67 56 202; /* primary-700 */
+  --color-link: 79 70 229; /* primary-600, 6,3:1 sobre blanco */
+}
+
+.dark,
+/*
+ * Superficies oscuras por diseño en ambos temas (heroes y footer). Redefinir
+ * aquí los tokens hace que cualquier clase tokenizada dentro de ellas se pinte
+ * en claro sin necesidad de excepciones en el marcado.
+ */
+.page-header-hero,
+[data-nav-hero],
+.footer-pattern {
+  --color-canvas: 11 17 32;
+  --color-surface: 17 26 46;
+  --color-surface-muted: 22 32 58;
+  --color-surface-raised: 26 37 64;
+  --color-content: 248 250 252;
+  --color-content-muted: 203 213 225; /* 10,5:1 sobre surface */
+  --color-content-subtle: 148 163 184; /* 6,3:1  sobre surface */
+  --color-line: 51 65 85; /* slate-700  */
+  --color-line-strong: 71 85 105; /* slate-600  */
+  --color-brand-subtle: 39 35 96; /* 7,25:1 con brand-strong */
+  --color-brand-strong: 165 180 252; /* primary-300 */
+  --color-link: 165 180 252; /* primary-300, 8,6:1 sobre surface */
+}
+
 @layer base {
   html {
     font-family: 'DM Sans', system-ui, sans-serif;
+    -webkit-text-size-adjust: 100%;
+    /* La navbar es fija: evita que los anclajes queden bajo ella. */
+    scroll-padding-top: 6rem;
   }
 
   body {
-    @apply bg-secondary-50 text-secondary-900;
+    @apply bg-canvas text-content;
+  }
+
+  /* Elimina el destello gris nativo al tocar enlaces y botones. */
+  a,
+  button,
+  [role='button'] {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/*
+ * iOS Safari hace zoom automático al enfocar cualquier control por debajo de
+ * 16px, lo que descoloca el layout y obliga al usuario a volver atrás con un
+ * pinch. Se fuerza el mínimo solo en dispositivos táctiles para no alterar el
+ * diseño de escritorio. Va con !important porque las utilidades de Tailwind
+ * (`text-sm`, `text-xs`) tienen más especificidad que un selector de elemento.
+ */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* Objetivo táctil mínimo para los controles de una sola línea. */
+  input:not([type='checkbox']):not([type='radio']),
+  select {
+    min-height: 44px;
   }
 }
 
@@ -18,27 +96,27 @@
   }
 
   .btn-secondary {
-    @apply bg-secondary-200 hover:bg-secondary-300 text-secondary-800 font-medium py-2 px-4 rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2;
+    @apply bg-surface-muted hover:bg-line text-content font-medium py-2 px-4 rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2;
   }
 
   .btn-outline {
-    @apply border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium py-2 px-4 rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    @apply border border-line-strong hover:bg-surface-muted text-content-muted font-medium py-2 px-4 rounded-xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
   }
 
   .input-field {
-    @apply w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors duration-200;
+    @apply w-full px-3 py-2 bg-surface text-content border border-line-strong rounded-lg placeholder:text-content-subtle focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors duration-200;
   }
 
   .card {
-    @apply bg-white rounded-2xl shadow-sm p-6;
+    @apply bg-surface border border-line/60 rounded-2xl shadow-sm p-6;
   }
 
   .card-hover {
-    @apply bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow duration-200 cursor-pointer;
+    @apply bg-surface border border-line/60 rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow duration-200 cursor-pointer;
   }
 
   .section-title {
-    @apply font-display text-3xl font-bold text-slate-900;
+    @apply font-display text-3xl font-bold text-content;
   }
 
   .badge {
@@ -46,11 +124,11 @@
   }
 
   .badge-primary {
-    @apply bg-primary-100 text-primary-800;
+    @apply bg-brand-subtle text-brand-strong;
   }
 
   .badge-secondary {
-    @apply bg-secondary-100 text-secondary-800;
+    @apply bg-surface-muted text-content;
   }
 
   .badge-success {
@@ -92,11 +170,11 @@
   }
 
   .page-header-title {
-    @apply font-display text-3xl font-bold text-slate-900;
+    @apply font-display text-3xl font-bold text-content;
   }
 
   .page-header-subtitle {
-    @apply mt-2 text-lg text-slate-600;
+    @apply mt-2 text-lg text-content-muted;
   }
 
   .hero-stats-bar-divider {
@@ -105,6 +183,19 @@
 
   .hero-stats-bar {
     @apply flex gap-6 overflow-x-auto pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] md:grid md:grid-cols-4 md:overflow-visible md:pb-0 [&::-webkit-scrollbar]:hidden;
+    @apply overscroll-x-contain;
+    /*
+     * La scrollbar está oculta y en móvil quedaban ~247px de estadísticas fuera
+     * de pantalla sin ninguna señal. Este degradado en el borde derecho indica
+     * que la fila continúa; desaparece en `md`, donde pasa a rejilla.
+     */
+    mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+  }
+
+  @screen md {
+    .hero-stats-bar {
+      mask-image: none;
+    }
   }
 
   .hero-stats-bar__item {
@@ -137,10 +228,22 @@
 
   .data-table-wrapper {
     @apply overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0;
+    /* Contiene el scroll horizontal para que no arrastre la página entera. */
+    overscroll-behavior-x: contain;
+  }
+
+  /*
+   * Fija la columna de posición al desplazar en horizontal: sin ella se perdía
+   * el contexto de la fila al llegar a los puntos. `bg-inherit` hereda el fondo
+   * alterno que aplica cada `tr`.
+   */
+  .ranking-table-sticky th:first-child,
+  .ranking-table-sticky td:first-child {
+    @apply sticky left-0 z-10 bg-inherit;
   }
 
   .surface-badge-beach {
-    @apply badge bg-primary-100 text-primary-800;
+    @apply badge bg-brand-subtle text-brand-strong;
   }
 
   .surface-badge-grass {
@@ -152,7 +255,7 @@
   }
 
   .nav-bar {
-    @apply relative bg-white/70 backdrop-blur-xl border border-white/60 shadow-lg shadow-slate-900/5 rounded-2xl;
+    @apply relative bg-surface/70 backdrop-blur-xl border border-line/60 shadow-lg shadow-slate-900/5 rounded-2xl;
   }
 
   .nav-bar--over-hero {
@@ -185,7 +288,7 @@
   }
 
   .nav-tabs-bar {
-    @apply bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm;
+    @apply bg-surface/95 backdrop-blur-md border-b border-line shadow-sm;
     position: relative;
   }
 
@@ -202,11 +305,11 @@
   }
 
   .nav-link {
-    @apply relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-slate-500 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
+    @apply relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-content-muted transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
   }
 
   .nav-link:hover:not(.nav-link--active):not(.nav-link--mobile-active) {
-    @apply text-slate-800 bg-slate-50/80;
+    @apply text-content bg-surface-muted/80;
   }
 
   .nav-link::after {
@@ -230,7 +333,7 @@
   }
 
   .nav-link--active {
-    @apply font-semibold text-primary-700 bg-gradient-to-br from-primary-50 to-accent-50/50;
+    @apply font-semibold text-brand-strong bg-brand-subtle;
   }
 
   .nav-link--active::after {
@@ -239,7 +342,7 @@
   }
 
   .nav-link__icon {
-    @apply text-slate-400 transition-colors duration-200;
+    @apply text-content-subtle transition-colors duration-200;
   }
 
   .nav-link:hover:not(.nav-link--active):not(.nav-link--mobile-active) .nav-link__icon {
@@ -251,8 +354,22 @@
     @apply text-accent-500;
   }
 
+  /* Enlace del menú móvil: objetivo táctil de 44px (WCAG 2.5.8 / Apple HIG). */
+  .nav-link--mobile {
+    @apply min-h-[44px] py-2 touch-manipulation;
+  }
+
   .nav-link--mobile-active {
-    @apply font-semibold text-primary-700 bg-gradient-to-r from-primary-50 to-accent-50/50 border-l-[3px] border-accent-500;
+    @apply font-semibold text-brand-strong bg-brand-subtle border-l-[3px] border-accent-500;
+  }
+
+  /*
+   * Sobre un hero oscuro el panel es oscuro, así que el item activo no puede
+   * usar el gradiente claro: `.nav-bar--over-hero .nav-link` gana el color por
+   * especificidad (0,2,0 vs 0,1,0) y dejaba texto slate-300 sobre indigo-50 (1,35:1).
+   */
+  .nav-bar--over-hero .nav-link--mobile-active {
+    @apply text-white bg-none bg-white/15 border-accent-400;
   }
 
   .nav-link--mobile-active::after {
@@ -260,7 +377,11 @@
   }
 
   .nav-mobile-panel {
-    @apply animate-slide-up bg-white/95 backdrop-blur-xl border-t border-slate-100/80 rounded-b-2xl;
+    @apply animate-slide-up bg-surface/95 backdrop-blur-xl border-t border-line/80 rounded-b-2xl;
+    /* El panel vive en un <nav> fijo: sin scroll propio, su contenido queda inalcanzable. */
+    @apply overflow-y-auto overscroll-contain;
+    max-height: calc(100vh - 5.5rem); /* fallback para navegadores sin dvh */
+    max-height: calc(100dvh - 5.5rem);
     background-image: radial-gradient(circle, rgba(79, 70, 229, 0.06) 1px, transparent 1px);
     background-size: 20px 20px;
   }
@@ -268,6 +389,42 @@
   .nav-mobile-panel--over-hero {
     @apply bg-slate-900/90 border-white/10;
     background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  }
+
+  /* Barra inferior: navegación primaria en la zona alcanzable con el pulgar. */
+  .bottom-nav {
+    @apply fixed bottom-0 inset-x-0 z-40 border-t border-line bg-surface/95 backdrop-blur-xl shadow-[0_-1px_12px_rgba(15,23,42,0.06)];
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .bottom-nav__link {
+    @apply flex min-h-[56px] flex-col items-center justify-center gap-1 px-1 py-2 text-content-muted touch-manipulation transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500;
+  }
+
+  .bottom-nav__link:hover {
+    @apply text-content;
+  }
+
+  .bottom-nav__link--active {
+    @apply text-brand-strong;
+  }
+
+  .bottom-nav__link--active svg {
+    @apply text-accent-500;
+  }
+
+  /*
+   * Reserva sitio para la barra inferior: sin esto el final del footer y de las
+   * tablas queda tapado en móvil.
+   */
+  .has-bottom-nav {
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+
+  @screen md {
+    .has-bottom-nav {
+      padding-bottom: 0;
+    }
   }
 }
 
@@ -393,19 +550,20 @@
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: rgb(var(--color-surface-muted));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgb(var(--color-line-strong));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgb(var(--color-content-subtle));
 }
 
 /* Keyframes */
@@ -468,27 +626,27 @@
 
 /* Tables */
 .table-container {
-  @apply overflow-x-auto rounded-lg border border-slate-200;
+  @apply overflow-x-auto rounded-lg border border-line;
 }
 
 .table {
-  @apply min-w-full divide-y divide-slate-200;
+  @apply min-w-full divide-y divide-line;
 }
 
 .table thead {
-  @apply bg-slate-50;
+  @apply bg-surface-muted;
 }
 
 .table th {
-  @apply px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider;
+  @apply px-6 py-3 text-left text-xs font-medium text-content-muted uppercase tracking-wider;
 }
 
 .table td {
-  @apply px-6 py-4 whitespace-nowrap text-sm text-slate-900;
+  @apply px-6 py-4 whitespace-nowrap text-sm text-content;
 }
 
 .table tbody tr {
-  @apply bg-white hover:bg-primary-50/50 transition-colors duration-150;
+  @apply bg-surface hover:bg-surface-muted transition-colors duration-150;
 }
 
 /* Forms */
@@ -497,7 +655,7 @@
 }
 
 .form-label {
-  @apply block text-sm font-medium text-slate-700;
+  @apply block text-sm font-medium text-content-muted;
 }
 
 .form-error {
@@ -505,7 +663,7 @@
 }
 
 .form-help {
-  @apply text-sm text-slate-500;
+  @apply text-sm text-content-subtle;
 }
 
 /* Modals */
@@ -514,7 +672,7 @@
 }
 
 .modal-content {
-  @apply bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto;
+  @apply bg-surface border border-line/60 rounded-2xl shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto;
 }
 
 /* Loading */
@@ -527,7 +685,7 @@
 }
 
 .loading-dots > div {
-  @apply w-2 h-2 bg-slate-400 rounded-full animate-bounce;
+  @apply w-2 h-2 bg-content-subtle rounded-full animate-bounce;
 }
 
 .loading-dots > div:nth-child(2) {

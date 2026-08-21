@@ -636,15 +636,15 @@ const EditTournamentPage: React.FC = () => {
       <div
         ref={setNodeRef}
         style={style}
-        className={`grid grid-cols-12 gap-4 items-center py-2 border-b border-gray-200 last:border-b-0 ${
-          isDragging ? 'bg-blue-50 shadow-md' : ''
+        className={`grid grid-cols-12 gap-4 items-center py-2 border-b border-line last:border-b-0 ${
+          isDragging ? 'bg-blue-50 dark:bg-blue-950/40 shadow-md' : ''
         }`}
       >
         <div className="col-span-1 flex items-center justify-center">
           <div 
             {...attributes} 
             {...listeners}
-            className="text-gray-400 hover:text-gray-600 cursor-grab"
+            className="text-content-subtle hover:text-content-muted cursor-grab"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
@@ -652,7 +652,7 @@ const EditTournamentPage: React.FC = () => {
           </div>
         </div>
         <div className="col-span-2">
-          <div className="text-sm font-medium text-gray-900">
+          <div className="text-sm font-medium text-content">
             {position.position}º
           </div>
         </div>
@@ -676,7 +676,7 @@ const EditTournamentPage: React.FC = () => {
           />
         </div>
         <div className="col-span-2">
-          <div className="text-sm font-medium text-gray-900">
+          <div className="text-sm font-medium text-content">
             {position.points}
           </div>
         </div>
@@ -684,7 +684,7 @@ const EditTournamentPage: React.FC = () => {
           <button
             type="button"
             onClick={() => removePosition(index)}
-            className="text-red-600 hover:text-red-800"
+            className="text-red-600 dark:text-red-300 hover:text-red-800"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -710,13 +710,13 @@ const EditTournamentPage: React.FC = () => {
           <div className="flex items-center">
             <button
               onClick={() => navigate('/admin/tournaments')}
-              className="mr-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              className="mr-4 p-2 text-content-subtle hover:text-content-muted hover:bg-surface-muted rounded-lg transition-colors duration-200"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
               <h1 className="page-header-title">Editar Torneo</h1>
-              <p className="text-gray-600">Modificar información del torneo</p>
+              <p className="text-content-muted">Modificar información del torneo</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
@@ -729,7 +729,7 @@ const EditTournamentPage: React.FC = () => {
             </button>
           <button
             onClick={() => setShowDeleteModal(true)}
-            className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors flex items-center"
+            className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-300 bg-surface border border-red-300 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors flex items-center"
           >
             <Trash2 className="h-4 w-4 mr-2" />
             Eliminar Torneo
@@ -740,36 +740,36 @@ const EditTournamentPage: React.FC = () => {
 
 
       {/* Form */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-surface rounded-lg shadow-sm border border-line">
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Generated Name Preview */}
           {generatedName && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-blue-900 mb-2">Nombre del torneo:</h3>
-              <p className="text-lg font-semibold text-blue-800">{generatedName}</p>
+            <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">Nombre del torneo:</h3>
+              <p className="text-lg font-semibold text-blue-800 dark:text-blue-300">{generatedName}</p>
             </div>
           )}
 
           {/* Basic Information */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Información Básica</h3>
+            <h3 className="text-lg font-medium text-content mb-4">Información Básica</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Tournament Type */}
               <div>
-                <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="type" className="block text-sm font-medium text-content-muted mb-2">
                   Tipo de Torneo *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Trophy className="h-5 w-5 text-gray-400" />
+                    <Trophy className="h-5 w-5 text-content-subtle" />
                   </div>
                   <select
                     id="type"
                     value={formData.type}
                     onChange={(e) => handleInputChange('type', e.target.value)}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.type ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.type ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                     }`}
                   >
                     <option value="">Seleccionar tipo</option>
@@ -781,25 +781,25 @@ const EditTournamentPage: React.FC = () => {
                   </select>
                 </div>
                 {errors.type && (
-                  <p className="mt-1 text-sm text-red-600">{errors.type}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.type}</p>
                 )}
               </div>
 
               {/* Season */}
               <div>
-                <label htmlFor="season" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="season" className="block text-sm font-medium text-content-muted mb-2">
                   Temporada *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calendar className="h-5 w-5 text-gray-400" />
+                    <Calendar className="h-5 w-5 text-content-subtle" />
                   </div>
                   <select
                     id="season"
                     value={formData.season}
                     onChange={(e) => handleInputChange('season', e.target.value)}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.season ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.season ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                     }`}
                   >
                     <option value="">Seleccionar temporada</option>
@@ -811,26 +811,26 @@ const EditTournamentPage: React.FC = () => {
                   </select>
                 </div>
                 {errors.season && (
-                  <p className="mt-1 text-sm text-red-600">{errors.season}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.season}</p>
                 )}
               </div>
 
               {/* Region (only for Regional tournaments) */}
               {formData.type === 'REGIONAL' && (
                 <div>
-                  <label htmlFor="regionId" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="regionId" className="block text-sm font-medium text-content-muted mb-2">
                     Región *
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <MapPin className="h-5 w-5 text-gray-400" />
+                      <MapPin className="h-5 w-5 text-content-subtle" />
                     </div>
                     <select
                       id="regionId"
                       value={formData.regionId}
                       onChange={(e) => handleInputChange('regionId', e.target.value)}
                       className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                        errors.regionId ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        errors.regionId ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                       }`}
                     >
                       <option value="">Seleccionar región</option>
@@ -842,7 +842,7 @@ const EditTournamentPage: React.FC = () => {
                     </select>
                   </div>
                   {errors.regionId && (
-                    <p className="mt-1 text-sm text-red-600">{errors.regionId}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.regionId}</p>
                   )}
                 </div>
               )}
@@ -851,24 +851,24 @@ const EditTournamentPage: React.FC = () => {
 
           {/* Tournament Details */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Detalles del Torneo</h3>
+            <h3 className="text-lg font-medium text-content mb-4">Detalles del Torneo</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Surface */}
               <div>
-                <label htmlFor="surface" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="surface" className="block text-sm font-medium text-content-muted mb-2">
                   Superficie *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400" />
+                    <MapPin className="h-5 w-5 text-content-subtle" />
                   </div>
                   <select
                     id="surface"
                     value={formData.surface}
                     onChange={(e) => handleInputChange('surface', e.target.value)}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.surface ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.surface ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                     }`}
                   >
                     <option value="">Seleccionar superficie</option>
@@ -880,25 +880,25 @@ const EditTournamentPage: React.FC = () => {
                   </select>
                 </div>
                 {errors.surface && (
-                  <p className="mt-1 text-sm text-red-600">{errors.surface}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.surface}</p>
                 )}
               </div>
 
               {/* Category */}
               <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="category" className="block text-sm font-medium text-content-muted mb-2">
                   Categoría *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Users className="h-5 w-5 text-gray-400" />
+                    <Users className="h-5 w-5 text-content-subtle" />
                   </div>
                   <select
                     id="category"
                     value={formData.category}
                     onChange={(e) => handleInputChange('category', e.target.value)}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.category ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.category ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                     }`}
                   >
                     <option value="">Seleccionar categoría</option>
@@ -910,34 +910,34 @@ const EditTournamentPage: React.FC = () => {
                   </select>
                 </div>
                 {errors.category && (
-                  <p className="mt-1 text-sm text-red-600">{errors.category}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.category}</p>
                 )}
               </div>
 
               {/* Tamaño de división (CE1) u offset (CE2) */}
               {(formData.type === 'CE1' || formData.type === 'CE2') && (
                 <div>
-                  <label htmlFor="divisionSize" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="divisionSize" className="block text-sm font-medium text-content-muted mb-2">
                     {formData.type === 'CE2' ? 'Offset en curva (equipos en 1ª)' : 'Tamaño de división'}
                   </label>
                   {formData.type === 'CE2' && formData.parentTournamentId ? (
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Users className="h-5 w-5 text-gray-400" />
+                        <Users className="h-5 w-5 text-content-subtle" />
                       </div>
                       <input
                         type="number"
                         id="divisionSize"
                         readOnly
                         value={formData.divisionSize ?? ''}
-                        className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                        className="block w-full pl-10 pr-3 py-3 border border-line rounded-lg bg-surface-muted text-content-muted cursor-not-allowed"
                       />
                     </div>
                   ) : (
                     <div className="flex gap-2">
                       <div className="relative flex-1">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Users className="h-5 w-5 text-gray-400" />
+                          <Users className="h-5 w-5 text-content-subtle" />
                         </div>
                         <input
                           type="number"
@@ -957,7 +957,7 @@ const EditTournamentPage: React.FC = () => {
                               }))
                             }
                           }}
-                          className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                          className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                         />
                       </div>
                       <select
@@ -974,7 +974,7 @@ const EditTournamentPage: React.FC = () => {
                             setFormData(prev => ({ ...prev, divisionSize: value }))
                           }
                         }}
-                        className="w-28 py-3 px-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors text-sm"
+                        className="w-28 py-3 px-2 border border-line-strong rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors text-sm"
                       >
                         <option value="" disabled>
                           Valores
@@ -987,7 +987,7 @@ const EditTournamentPage: React.FC = () => {
                       </select>
                     </div>
                   )}
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-content-subtle">
                     {formData.type === 'CE2' && formData.parentTournamentId
                       ? 'Calculado automáticamente desde el CE1 asociado. La 2ª continúa la curva en el puesto siguiente.'
                       : formData.type === 'CE2'
@@ -995,7 +995,7 @@ const EditTournamentPage: React.FC = () => {
                         : `Nº total de equipos en la 1ª división (no el nº de resultados introducidos). Entre ${DIVISION_SIZE_MIN} y ${DIVISION_SIZE_MAX}.`}
                   </p>
                   {errors.divisionSize && (
-                    <p className="mt-1 text-sm text-red-600">{errors.divisionSize}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.divisionSize}</p>
                   )}
                 </div>
               )}
@@ -1003,18 +1003,18 @@ const EditTournamentPage: React.FC = () => {
               {/* Campeonato de 1ª asociado (solo CE2) */}
               {formData.type === 'CE2' && (
                 <div>
-                  <label htmlFor="parentTournamentId" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="parentTournamentId" className="block text-sm font-medium text-content-muted mb-2">
                     Campeonato de 1ª asociado
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Trophy className="h-5 w-5 text-gray-400" />
+                      <Trophy className="h-5 w-5 text-content-subtle" />
                     </div>
                     <select
                       id="parentTournamentId"
                       value={formData.parentTournamentId ?? ''}
                       onChange={(e) => handleParentChange(e.target.value)}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                      className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
                     >
                       <option value="">Seleccionar 1ª división</option>
                       {ce1Options.map((t: { id: string; name: string; divisionSize?: number | null; positionCount?: number }) => (
@@ -1024,7 +1024,7 @@ const EditTournamentPage: React.FC = () => {
                       ))}
                     </select>
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-content-subtle">
                     {ce1Options.length === 0
                       ? 'No hay CE1 de esta modalidad/temporada; se usará el tamaño indicado arriba.'
                       : 'Define dónde continúa la 2ª en la curva nacional.'}
@@ -1036,17 +1036,17 @@ const EditTournamentPage: React.FC = () => {
 
           {/* Tournament Dates and Location */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Fechas y Ubicación</h3>
+            <h3 className="text-lg font-medium text-content mb-4">Fechas y Ubicación</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Start Date */}
               <div>
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="startDate" className="block text-sm font-medium text-content-muted mb-2">
                   Fecha de inicio *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calendar className="h-5 w-5 text-gray-400" />
+                    <Calendar className="h-5 w-5 text-content-subtle" />
                   </div>
                   <input
                     type="date"
@@ -1054,23 +1054,23 @@ const EditTournamentPage: React.FC = () => {
                     value={formData.startDate}
                     onChange={(e) => handleInputChange('startDate', e.target.value)}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.startDate ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.startDate ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                     }`}
                   />
                 </div>
                 {errors.startDate && (
-                  <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.startDate}</p>
                 )}
               </div>
 
               {/* End Date */}
               <div>
-                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="endDate" className="block text-sm font-medium text-content-muted mb-2">
                   Fecha de fin *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calendar className="h-5 w-5 text-gray-400" />
+                    <Calendar className="h-5 w-5 text-content-subtle" />
                   </div>
                   <input
                     type="date"
@@ -1078,18 +1078,18 @@ const EditTournamentPage: React.FC = () => {
                     value={formData.endDate}
                     onChange={(e) => handleInputChange('endDate', e.target.value)}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.endDate ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.endDate ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                     }`}
                   />
                 </div>
                 {errors.endDate && (
-                  <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.endDate}</p>
                 )}
               </div>
 
               {/* Location */}
               <div>
-                <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="location" className="block text-sm font-medium text-content-muted mb-2">
                   Ubicación *
                 </label>
                 <LocationAutocomplete
@@ -1104,18 +1104,18 @@ const EditTournamentPage: React.FC = () => {
 
           {/* Positions Section - Solo si el torneo ya terminó */}
           {isTournamentFinished() && (
-            <div className="border-t border-gray-200 pt-6">
+            <div className="border-t border-line pt-6">
               <div className="mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Posiciones del Torneo</h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <h3 className="text-lg font-medium text-content">Posiciones del Torneo</h3>
+                <p className="text-sm text-content-muted mt-1">
                   Configura las posiciones finales del torneo
                 </p>
               </div>
             
             <div className="space-y-4">
               {positions.length > 0 && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="grid grid-cols-12 gap-4 mb-3 text-sm font-medium text-gray-700">
+                <div className="bg-surface-muted rounded-lg p-4">
+                  <div className="grid grid-cols-12 gap-4 mb-3 text-sm font-medium text-content-muted">
                     <div className="col-span-1">Orden</div>
                     <div className="col-span-2">Posición</div>
                     <div className="col-span-6">Equipo</div>
@@ -1165,8 +1165,8 @@ const EditTournamentPage: React.FC = () => {
 
           {/* Mensaje cuando el torneo no ha terminado */}
           {!isTournamentFinished() && formData.endDate && (
-            <div className="border-t border-gray-200 pt-6">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="border-t border-line pt-6">
+              <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
@@ -1174,7 +1174,7 @@ const EditTournamentPage: React.FC = () => {
                     </svg>
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm text-blue-700">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
                       Las posiciones del torneo estarán disponibles a partir del {new Date(formData.endDate).toLocaleDateString('es-ES')}.
                     </p>
                   </div>
@@ -1184,7 +1184,7 @@ const EditTournamentPage: React.FC = () => {
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-line">
             <button
               type="button"
               onClick={() => navigate('/admin/tournaments')}
@@ -1216,25 +1216,25 @@ const EditTournamentPage: React.FC = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-          <div className="relative bg-white rounded-lg shadow-xl p-8 w-full max-w-md mx-auto">
-            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 rounded-full mb-6">
-              <Trash2 className="h-8 w-8 text-red-600" />
+          <div className="relative bg-surface rounded-lg shadow-xl p-8 w-full max-w-md mx-auto">
+            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 dark:bg-red-950/50 rounded-full mb-6">
+              <Trash2 className="h-8 w-8 text-red-600 dark:text-red-300" />
               </div>
             
             <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              <h3 className="text-2xl font-bold text-content mb-2">
                 Eliminar Torneo
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-content-muted mb-4">
                 ¿Estás seguro de que quieres eliminar este torneo?
               </p>
               
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 rounded-lg p-4 mb-4">
                 <div className="flex items-center justify-center space-x-2 mb-2">
-                  <Trophy className="h-5 w-5 text-red-600" />
-                  <span className="font-semibold text-red-800">{generatedName}</span>
+                  <Trophy className="h-5 w-5 text-red-600 dark:text-red-300" />
+                  <span className="font-semibold text-red-800 dark:text-red-300">{generatedName}</span>
                 </div>
-                <div className="text-sm text-red-700 space-y-1">
+                <div className="text-sm text-red-700 dark:text-red-300 space-y-1">
                   <p><strong>Tipo:</strong> {tournamentTypes.find(t => t.value === formData.type)?.label}</p>
                   <p><strong>Temporada:</strong> {formData.season}</p>
                   <p><strong>Ubicación:</strong> {formData.location}</p>
@@ -1246,15 +1246,15 @@ const EditTournamentPage: React.FC = () => {
               
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div className="flex items-center justify-center space-x-2 mb-2">
-                  <svg className="h-5 w-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="h-5 w-5 text-yellow-600 dark:text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  <span className="font-semibold text-yellow-800">Advertencia</span>
+                  <span className="font-semibold text-yellow-800 dark:text-yellow-300">Advertencia</span>
                 </div>
-                <p className="text-sm text-yellow-700">
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
                   Esta acción <strong>no se puede deshacer</strong>. Se eliminarán permanentemente:
                 </p>
-                <ul className="text-sm text-yellow-700 mt-2 text-left list-disc list-inside">
+                <ul className="text-sm text-yellow-700 dark:text-yellow-300 mt-2 text-left list-disc list-inside">
                   <li>El torneo y toda su información</li>
                   <li>Todas las posiciones y resultados</li>
                   <li>Los puntos de ranking asociados</li>

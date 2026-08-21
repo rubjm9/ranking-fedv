@@ -15,8 +15,8 @@ const DataTable: React.FC<DataTableProps> = ({
 }) => {
   return (
     <div className="data-table-wrapper">
-      <div className={`overflow-hidden rounded-2xl border border-slate-200 shadow-sm ${className}`}>
-        <table className="min-w-full divide-y divide-slate-200">
+      <div className={`overflow-hidden rounded-2xl border border-line shadow-sm ${className}`}>
+        <table className="min-w-full divide-y divide-line">
           {caption && <caption className="sr-only">{caption}</caption>}
           {darkHeader
             ? React.Children.map(children, (child) => {
@@ -67,7 +67,7 @@ interface DataTableBodyProps {
 }
 
 export const DataTableBody: React.FC<DataTableBodyProps> = ({ children, className = '' }) => (
-  <tbody className={`bg-white divide-y divide-slate-100 ${className}`}>{children}</tbody>
+  <tbody className={`bg-surface divide-y divide-line ${className}`}>{children}</tbody>
 )
 
 interface DataTableRowProps {
@@ -82,7 +82,7 @@ export const DataTableRow: React.FC<DataTableRowProps> = ({
   onClick,
 }) => (
   <tr
-    className={`hover:bg-secondary-50 transition-colors duration-150 ${onClick ? 'cursor-pointer' : ''} ${className}`}
+    className={`hover:bg-surface-muted transition-colors duration-150 ${onClick ? 'cursor-pointer' : ''} ${className}`}
     onClick={onClick}
   >
     {children}
@@ -95,7 +95,7 @@ interface DataTableCellProps {
 }
 
 export const DataTableCell: React.FC<DataTableCellProps> = ({ children, className = '' }) => (
-  <td className={`px-4 py-3 text-sm text-slate-900 whitespace-nowrap ${className}`}>
+  <td className={`px-4 py-3 text-sm text-content whitespace-nowrap ${className}`}>
     {children}
   </td>
 )

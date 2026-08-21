@@ -16,7 +16,7 @@ type SortField = 'name' | 'year' | 'type' | 'surface' | 'category' | 'region'
 type SortDirection = 'asc' | 'desc'
 
 const filterSelectClass =
-  'h-7 w-full min-w-[5.5rem] rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
+  'h-7 w-full min-w-[5.5rem] rounded-md border border-line bg-surface px-2 text-xs text-content-muted focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
 
 const TournamentsPage = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -245,14 +245,14 @@ const TournamentsPage = () => {
       ) : (
         <>
           <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-content-subtle">
               {sortedTournaments.length} torneo{sortedTournaments.length !== 1 ? 's' : ''} encontrado{sortedTournaments.length !== 1 ? 's' : ''}
             </p>
             {hasActiveFilters && (
               <button
                 type="button"
                 onClick={clearFilters}
-                className="text-xs text-slate-500 hover:text-primary-600 transition-colors"
+                className="text-xs text-content-subtle hover:text-link transition-colors"
               >
                 Limpiar filtros
               </button>
@@ -260,7 +260,7 @@ const TournamentsPage = () => {
           </div>
 
           <DataTable caption="Listado de torneos" darkHeader={false}>
-            <thead className="bg-secondary-50 border-b border-slate-200">
+            <thead className="bg-surface-muted border-b border-line">
               <tr>
                 <TableColumnFilter
                   label="Torneo"
@@ -269,7 +269,7 @@ const TournamentsPage = () => {
                   active={!!searchTerm}
                 >
                   <div className="relative min-w-[10rem]">
-                    <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" />
+                    <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-content-subtle" />
                     <input
                       type="text"
                       placeholder="Buscar..."
@@ -384,10 +384,10 @@ const TournamentsPage = () => {
                 <TableColumnFilter label="Acción" sortIcon="none" />
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-slate-200">
+            <tbody className="bg-surface divide-y divide-line">
               {sortedTournaments.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-slate-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-content-subtle">
                     No hay torneos que coincidan con los filtros aplicados.
                   </td>
                 </tr>
@@ -395,7 +395,7 @@ const TournamentsPage = () => {
                 sortedTournaments.map((tournament) => (
                   <tr
                     key={tournament.id}
-                    className="hover:bg-secondary-50 transition-colors"
+                    className="hover:bg-surface-muted transition-colors"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center">
@@ -403,7 +403,7 @@ const TournamentsPage = () => {
                         <div className="ml-3">
                           <Link
                             to={`/tournaments/${tournament.id}`}
-                            className="text-sm font-medium text-slate-900 hover:text-primary-600 transition-colors"
+                            className="text-sm font-medium text-content hover:text-link transition-colors"
                           >
                             {tournament.name}
                           </Link>
@@ -411,42 +411,42 @@ const TournamentsPage = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center text-sm text-slate-900">
-                        <Calendar className="h-4 w-4 text-slate-400 mr-2" />
+                      <div className="flex items-center text-sm text-content">
+                        <Calendar className="h-4 w-4 text-content-subtle mr-2" />
                         {formatSeason(tournament.year)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         tournament.type === 'CE1'
-                          ? 'bg-yellow-100 text-yellow-800'
+                          ? 'bg-yellow-100 dark:bg-yellow-950/50 text-yellow-800 dark:text-yellow-300'
                           : tournament.type === 'CE2'
-                          ? 'bg-slate-100 text-slate-800'
-                          : 'bg-primary-100 text-primary-800'
+                          ? 'bg-surface-muted text-content'
+                          : 'bg-brand-subtle text-brand-strong'
                       }`}>
                         {getTypeLabel(tournament.type)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-content">
                       {getSurfaceLabel(tournament.surface)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-content">
                       {tournament.category ? getCategoryLabel(tournament.category) : '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-content">
                       {tournament.region ? (
                         <div className="flex items-center">
-                          <MapPin className="h-4 w-4 text-slate-400 mr-1" />
+                          <MapPin className="h-4 w-4 text-content-subtle mr-1" />
                           {tournament.region.name}
                         </div>
                       ) : (
-                        <span className="text-slate-400">Nacional</span>
+                        <span className="text-content-subtle">Nacional</span>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <Link
                         to={`/tournaments/${tournament.id}`}
-                        className="inline-flex items-center justify-center w-8 h-8 text-slate-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                        className="inline-flex items-center justify-center w-8 h-8 text-content-muted hover:text-link hover:bg-brand-subtle rounded-lg transition-colors"
                         title="Ver detalles"
                       >
                         <Eye className="h-5 w-5" />

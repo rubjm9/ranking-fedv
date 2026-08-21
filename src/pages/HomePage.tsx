@@ -116,15 +116,15 @@ const HomePage: React.FC = () => {
 
   const getRankIcon = (position: number) => {
     if (position === 1) return <Trophy className="w-6 h-6 text-yellow-500" />
-    if (position === 2) return <Medal className="w-6 h-6 text-slate-400" />
+    if (position === 2) return <Medal className="w-6 h-6 text-content-subtle" />
     if (position === 3) return <Medal className="w-6 h-6 text-orange-500" />
-    return <span className="text-sm font-semibold text-slate-500">#{position}</span>
+    return <span className="text-sm font-semibold text-content-subtle">#{position}</span>
   }
 
   const getChangeIcon = (change: number) => {
     if (change > 0) return <TrendingUp className="h-4 w-4 text-green-500" />
     if (change < 0) return <TrendingDown className="h-4 w-4 text-red-500" />
-    return <BarChart3 className="h-4 w-4 text-slate-400" />
+    return <BarChart3 className="h-4 w-4 text-content-subtle" />
   }
 
   const getChangeText = (change: number) => {
@@ -162,23 +162,23 @@ const HomePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-secondary-50">
+    <div className="min-h-screen bg-surface-muted">
       {isLoading ? (
         <div className="flex items-center justify-center min-h-[50vh] pt-[4.75rem]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-          <span className="ml-3 text-slate-600">Cargando datos...</span>
+          <span className="ml-3 text-content-muted">Cargando datos...</span>
         </div>
       ) : (
         <>
       {/* Hero Section */}
-      <div className="relative bg-slate-900 text-white overflow-hidden">
+      <div data-nav-hero className="relative bg-slate-900 text-white overflow-hidden">
         <div className="absolute inset-0 hero-dots"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20 md:pt-32 md:pb-24">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12 sm:pt-28 sm:pb-16 md:pt-32 md:pb-24">
           <div className="text-center">
-            <h1 className="font-display text-5xl md:text-7xl font-bold mb-6 tracking-tight">
+            <h1 className="font-display text-4xl sm:text-5xl md:text-7xl font-bold mb-5 sm:mb-6 tracking-tight">
               Ranking <span className="text-accent-400">FEDV</span>
             </h1>
-            <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-content-subtle max-w-2xl mx-auto">
               Propuesta de sistema de ranking de equipos, pendiente de aprobación en su formato definitivo
             </p>
             <p className="mt-3 mb-10">
@@ -200,19 +200,19 @@ const HomePage: React.FC = () => {
             <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-slate-800 pt-10">
               <div className="text-center">
                 <div className="font-display text-3xl font-bold text-white">{mainStats.totalTeams}</div>
-                <div className="text-sm text-slate-400 mt-1">Equipos Activos</div>
+                <div className="text-sm text-content-subtle mt-1">Equipos Activos</div>
               </div>
               <div className="text-center">
                 <div className="font-display text-3xl font-bold text-white">{mainStats.totalTournaments}</div>
-                <div className="text-sm text-slate-400 mt-1">Torneos</div>
+                <div className="text-sm text-content-subtle mt-1">Torneos</div>
               </div>
               <div className="text-center">
                 <div className="font-display text-3xl font-bold text-white">{mainStats.totalRegions}</div>
-                <div className="text-sm text-slate-400 mt-1">Regiones</div>
+                <div className="text-sm text-content-subtle mt-1">Regiones</div>
               </div>
               <div className="text-center">
                 <div className="font-display text-3xl font-bold text-white">{mainStats.averagePoints.toLocaleString()}</div>
-                <div className="text-sm text-slate-400 mt-1">Puntos Promedio</div>
+                <div className="text-sm text-content-subtle mt-1">Puntos Promedio</div>
               </div>
             </div>
           </div>
@@ -224,15 +224,15 @@ const HomePage: React.FC = () => {
 
         {/* Banner próximo torneo */}
         {upcomingTournaments[0] && (
-          <div className="mb-8 bg-primary-50 border border-primary-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="mb-8 bg-brand-subtle border border-brand-strong/30 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center">
-                <Calendar className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
+                <Calendar className="h-7 w-7 text-link" strokeWidth={1.5} />
               </div>
               <div>
-                <span className="text-xs font-semibold text-primary-600 uppercase tracking-wide">Próximo torneo</span>
-                <p className="font-semibold text-slate-900">{upcomingTournaments[0].name}</p>
-                <p className="text-sm text-slate-500">
+                <span className="text-xs font-semibold text-link uppercase tracking-wide">Próximo torneo</span>
+                <p className="font-semibold text-content">{upcomingTournaments[0].name}</p>
+                <p className="text-sm text-content-subtle">
                   {getTournamentTypeLabel(upcomingTournaments[0].type)}
                   {' · '}
                   {new Date(upcomingTournaments[0].startDate).toLocaleDateString('es-ES', {
@@ -256,13 +256,13 @@ const HomePage: React.FC = () => {
               <h2 className="section-title mb-0">Ranking actual</h2>
               <Link
                 to="/ranking/resumen"
-                className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
+                className="text-link hover:text-brand-strong font-medium flex items-center"
               >
               Ver ranking completo
                 <Eye className="h-4 w-4 ml-1" />
               </Link>
           </div>
-          <p className="text-sm text-slate-500 mb-6">Temporada {currentSeason}</p>
+          <p className="text-sm text-content-subtle mb-6">Temporada {currentSeason}</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <SummaryCard
@@ -325,39 +325,39 @@ const HomePage: React.FC = () => {
         {/* Torneos */}
         <div className="text-center mb-12">
           <h2 className="section-title mb-2">Torneos</h2>
-          <p className="text-lg text-slate-600">Consulta los torneos próximos y pasados</p>
+          <p className="text-lg text-content-muted">Consulta los torneos próximos y pasados</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Próximos torneos */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">Próximos torneos</h3>
-            <div className="divide-y divide-slate-100">
+          <div className="bg-surface rounded-2xl shadow-sm p-6 border border-line">
+            <h3 className="text-lg font-semibold text-content mb-4">Próximos torneos</h3>
+            <div className="divide-y divide-line">
               {upcomingTournaments.length === 0 && (
-                <p className="text-slate-500 text-sm py-2">No hay torneos próximos programados.</p>
+                <p className="text-content-subtle text-sm py-2">No hay torneos próximos programados.</p>
               )}
               {upcomingTournaments.map((tournament) => (
                 <Link
                   key={tournament.id}
                   to={`/tournaments/${tournament.id}`}
-                  className="flex items-center justify-between py-4 -mx-2 px-2 rounded-lg hover:bg-secondary-50 transition-colors"
+                  className="flex items-center justify-between py-4 -mx-2 px-2 rounded-lg hover:bg-surface-muted transition-colors"
                 >
                   <div className="flex items-center">
                     <div className="mr-4 flex h-12 w-12 shrink-0 items-center justify-center">
-                      <Calendar className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
+                      <Calendar className="h-7 w-7 text-link" strokeWidth={1.5} />
                     </div>
                     <div>
-                      <h4 className="font-medium text-slate-900">{tournament.name}</h4>
-                      <p className="text-sm text-slate-500">
+                      <h4 className="font-medium text-content">{tournament.name}</h4>
+                      <p className="text-sm text-content-subtle">
                         {getTournamentTypeLabel(tournament.type)} • {tournament.teams} equipos
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-primary-100 text-primary-700">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-brand-subtle text-brand-strong">
                       Próximo
                     </span>
-                    <p className="text-sm text-slate-500 mt-1">
+                    <p className="text-sm text-content-subtle mt-1">
                       {new Date(tournament.startDate).toLocaleDateString('es-ES', {
                         day: '2-digit',
                         month: '2-digit',
@@ -371,7 +371,7 @@ const HomePage: React.FC = () => {
             <div className="mt-4 text-center">
               <Link
                 to="/tournaments"
-                className="text-primary-600 hover:text-primary-700 font-medium"
+                className="text-link hover:text-brand-strong font-medium"
               >
                 Ver todos los torneos
               </Link>
@@ -379,31 +379,31 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Torneos pasados */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">Torneos pasados</h3>
-            <div className="divide-y divide-slate-100">
+          <div className="bg-surface rounded-2xl shadow-sm p-6 border border-line">
+            <h3 className="text-lg font-semibold text-content mb-4">Torneos pasados</h3>
+            <div className="divide-y divide-line">
               {completedTournaments.map((tournament) => (
                 <Link
                   key={tournament.id}
                   to={`/tournaments/${tournament.id}`}
-                  className="flex items-center justify-between py-4 -mx-2 px-2 rounded-lg hover:bg-secondary-50 transition-colors"
+                  className="flex items-center justify-between py-4 -mx-2 px-2 rounded-lg hover:bg-surface-muted transition-colors"
                 >
                   <div className="flex items-center">
                     <div className="mr-4 flex h-12 w-12 shrink-0 items-center justify-center">
-                      <Trophy className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
+                      <Trophy className="h-7 w-7 text-link" strokeWidth={1.5} />
                     </div>
                     <div>
-                      <h4 className="font-medium text-slate-900">{tournament.name}</h4>
-                      <p className="text-sm text-slate-500">
+                      <h4 className="font-medium text-content">{tournament.name}</h4>
+                      <p className="text-sm text-content-subtle">
                         {getTournamentTypeLabel(tournament.type)} • {tournament.teams} equipos
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-600">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-surface-muted text-content-muted">
                       Finalizado
                     </span>
-                    <p className="text-sm text-slate-500 mt-1">
+                    <p className="text-sm text-content-subtle mt-1">
                       {new Date(tournament.startDate).toLocaleDateString('es-ES', {
                         day: '2-digit',
                         month: '2-digit',
@@ -417,7 +417,7 @@ const HomePage: React.FC = () => {
             <div className="mt-4 text-center">
               <Link
                 to="/tournaments"
-                className="text-primary-600 hover:text-primary-700 font-medium"
+                className="text-link hover:text-brand-strong font-medium"
               >
                 Ver todos los torneos
               </Link>
@@ -431,43 +431,43 @@ const HomePage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link
             to="/equipos"
-            className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-slate-100"
+            className="bg-surface rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-line"
           >
             <div className="flex items-center">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center">
-                <UsersRound className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
+                <UsersRound className="h-7 w-7 text-link" strokeWidth={1.5} />
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-slate-900">Equipos</h3>
-                <p className="text-slate-600">Explora todos los equipos participantes</p>
+                <h3 className="text-lg font-medium text-content">Equipos</h3>
+                <p className="text-content-muted">Explora todos los equipos participantes</p>
               </div>
             </div>
           </Link>
           <Link
             to="/tournaments"
-            className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-slate-100"
+            className="bg-surface rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-line"
           >
             <div className="flex items-center">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center">
-                <Trophy className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
+                <Trophy className="h-7 w-7 text-link" strokeWidth={1.5} />
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-slate-900">Torneos</h3>
-                <p className="text-slate-600">Consulta resultados y calendario</p>
+                <h3 className="text-lg font-medium text-content">Torneos</h3>
+                <p className="text-content-muted">Consulta resultados y calendario</p>
               </div>
             </div>
           </Link>
           <Link
             to="/regiones"
-            className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-slate-100"
+            className="bg-surface rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-line"
           >
             <div className="flex items-center">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center">
-                <MapPin className="h-7 w-7 text-primary-600" strokeWidth={1.5} />
+                <MapPin className="h-7 w-7 text-link" strokeWidth={1.5} />
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-slate-900">Regiones</h3>
-                <p className="text-slate-600">Descubre las regiones participantes</p>
+                <h3 className="text-lg font-medium text-content">Regiones</h3>
+                <p className="text-content-muted">Descubre las regiones participantes</p>
               </div>
             </div>
           </Link>

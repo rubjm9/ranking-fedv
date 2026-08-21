@@ -5,7 +5,7 @@ const RankingSummarySkeleton: React.FC = () => {
     <div className="space-y-8 animate-pulse">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-4">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-lg border border-slate-200 shadow-sm p-4 h-28">
+          <div key={i} className="bg-surface rounded-lg border border-line shadow-sm p-4 h-28">
             <div className="h-3 bg-slate-200 rounded w-20 mb-3" />
             <div className="h-5 bg-slate-200 rounded w-full mb-2" />
             <div className="h-3 bg-slate-200 rounded w-16" />
@@ -15,7 +15,7 @@ const RankingSummarySkeleton: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div key={i} className="bg-surface rounded-xl border border-line shadow-sm overflow-hidden">
             <div className="bg-slate-800 px-4 py-3 flex items-center justify-between">
               <div className="h-5 bg-slate-600 rounded w-32" />
               <div className="h-6 bg-slate-600 rounded-full w-16" />

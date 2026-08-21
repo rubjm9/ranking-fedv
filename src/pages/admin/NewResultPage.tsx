@@ -117,17 +117,17 @@ const NewResultPage: React.FC = () => {
 
   if (teamsLoading || tournamentsLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-surface-muted flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
+          <p className="mt-4 text-content-muted">Cargando...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-muted">
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -135,7 +135,7 @@ const NewResultPage: React.FC = () => {
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleCancel}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+                className="flex items-center space-x-2 text-content-muted hover:text-content transition-colors"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span>Volver</span>
@@ -146,22 +146,22 @@ const NewResultPage: React.FC = () => {
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Información del Resultado</h2>
+        <div className="bg-surface rounded-lg shadow-sm border border-line">
+          <div className="px-6 py-4 border-b border-line">
+            <h2 className="text-lg font-semibold text-content">Información del Resultado</h2>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Error general */}
             {errors.general && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                <p className="text-red-800">{errors.general}</p>
+              <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 rounded-md p-4">
+                <p className="text-red-800 dark:text-red-300">{errors.general}</p>
               </div>
             )}
 
             {/* Torneo */}
             <div>
-              <label htmlFor="tournamentId" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="tournamentId" className="block text-sm font-medium text-content-muted mb-2">
                 Torneo *
               </label>
               <select
@@ -170,7 +170,7 @@ const NewResultPage: React.FC = () => {
                 value={formData.tournamentId}
                 onChange={handleInputChange}
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.tournamentId ? 'border-red-300' : 'border-gray-300'
+                  errors.tournamentId ? 'border-red-300' : 'border-line-strong'
                 }`}
                 disabled={!!tournamentId} // Si viene de un torneo específico, no permitir cambiar
               >
@@ -182,13 +182,13 @@ const NewResultPage: React.FC = () => {
                 ))}
               </select>
               {errors.tournamentId && (
-                <p className="mt-1 text-sm text-red-600">{errors.tournamentId}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.tournamentId}</p>
               )}
             </div>
 
             {/* Equipo */}
             <div>
-              <label htmlFor="teamId" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="teamId" className="block text-sm font-medium text-content-muted mb-2">
                 Equipo *
               </label>
               <select
@@ -197,7 +197,7 @@ const NewResultPage: React.FC = () => {
                 value={formData.teamId}
                 onChange={handleInputChange}
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.teamId ? 'border-red-300' : 'border-gray-300'
+                  errors.teamId ? 'border-red-300' : 'border-line-strong'
                 }`}
               >
                 <option value="">Selecciona un equipo</option>
@@ -208,13 +208,13 @@ const NewResultPage: React.FC = () => {
                 ))}
               </select>
               {errors.teamId && (
-                <p className="mt-1 text-sm text-red-600">{errors.teamId}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.teamId}</p>
               )}
             </div>
 
             {/* Posición */}
             <div>
-              <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="position" className="block text-sm font-medium text-content-muted mb-2">
                 Posición Final *
               </label>
               <input
@@ -225,24 +225,24 @@ const NewResultPage: React.FC = () => {
                 onChange={handleInputChange}
                 min="1"
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.position ? 'border-red-300' : 'border-gray-300'
+                  errors.position ? 'border-red-300' : 'border-line-strong'
                 }`}
                 placeholder="Ej: 1"
               />
               {errors.position && (
-                <p className="mt-1 text-sm text-red-600">{errors.position}</p>
+                <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.position}</p>
               )}
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-content-subtle">
                 Ingresa la posición final del equipo en el torneo (1 = primer lugar)
               </p>
             </div>
 
             {/* Botones */}
-            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+            <div className="flex justify-end space-x-4 pt-6 border-t border-line">
               <button
                 type="button"
                 onClick={handleCancel}
-                className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="flex items-center space-x-2 px-4 py-2 border border-line-strong rounded-md text-content-muted hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 <X className="h-4 w-4" />
                 <span>Cancelar</span>

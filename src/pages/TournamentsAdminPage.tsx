@@ -19,7 +19,7 @@ import AdminPageHeader from '@/components/layout/AdminPageHeader'
 import { generateSeasons } from '../utils/tournamentUtils'
 
 const filterSelectClass =
-  'h-7 w-full min-w-[5.5rem] rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
+  'h-7 w-full min-w-[5.5rem] rounded-md border border-line bg-surface px-2 text-xs text-content-muted focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
 
 interface Tournament {
   id: string
@@ -284,8 +284,8 @@ const TournamentsAdminPage: React.FC = () => {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay torneos</h3>
-            <p className="text-gray-600 mb-4">
+            <h3 className="text-lg font-medium text-content mb-2">No hay torneos</h3>
+            <p className="text-content-muted mb-4">
               {searchTerm || selectedType !== 'all' || selectedYear !== 'all' || selectedSurface !== 'all' || selectedCategory !== 'all'
                 ? 'No se encontraron torneos con los filtros aplicados.' 
                 : 'Aún no se han creado torneos en el sistema.'}
@@ -302,34 +302,34 @@ const TournamentsAdminPage: React.FC = () => {
       ) : (
         <>
           <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-content-subtle">
               {filteredAndSortedTournaments.length} torneo{filteredAndSortedTournaments.length !== 1 ? 's' : ''} encontrado{filteredAndSortedTournaments.length !== 1 ? 's' : ''}
             </p>
             {hasActiveFilters && (
               <button
                 type="button"
                 onClick={clearFilters}
-                className="text-xs text-slate-500 hover:text-primary-600 transition-colors"
+                className="text-xs text-content-subtle hover:text-link transition-colors"
               >
                 Limpiar filtros
               </button>
             )}
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-surface rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-secondary-50 border-b border-slate-200">
+            <table className="min-w-full divide-y divide-line">
+              <thead className="bg-surface-muted border-b border-line">
                 <tr>
                   <TableColumnFilter
                     label="Torneo"
                     sortIcon={getSortState('name')}
                     onSort={() => handleSort('name')}
                     active={!!searchTerm}
-                    className="sticky left-0 bg-secondary-50 z-10 border-r border-slate-200"
+                    className="sticky left-0 bg-surface-muted z-10 border-r border-line"
                   >
                     <div className="relative min-w-[10rem]">
-                      <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" />
+                      <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-content-subtle" />
                       <input
                         type="text"
                         placeholder="Buscar..."
@@ -428,49 +428,49 @@ const TournamentsAdminPage: React.FC = () => {
                   <TableColumnFilter label="Acciones" sortIcon="none" className="text-right" />
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-slate-200">
+              <tbody className="bg-surface divide-y divide-line">
                 {filteredAndSortedTournaments.map((tournament: Tournament) => (
-                  <tr key={tournament.id} className="hover:bg-gray-50 group">
-                    <td className="sticky left-0 bg-white group-hover:bg-gray-50 px-6 py-4 whitespace-nowrap border-r border-gray-200">
+                  <tr key={tournament.id} className="hover:bg-surface-muted group">
+                    <td className="sticky left-0 bg-surface group-hover:bg-surface-muted px-6 py-4 whitespace-nowrap border-r border-line">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
                           <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
                             tournament.hasResults 
-                              ? 'bg-green-100' 
+                              ? 'bg-green-100 dark:bg-green-950/50' 
                               : 'bg-blue-100'
                           }`}>
                             {tournament.hasResults ? (
-                              <Trophy className="h-5 w-5 text-green-600" />
+                              <Trophy className="h-5 w-5 text-green-600 dark:text-green-300" />
                             ) : (
-                              <Clock className="h-5 w-5 text-blue-600" />
+                              <Clock className="h-5 w-5 text-blue-600 dark:text-blue-300" />
                             )}
                           </div>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{tournament.name}</div>
+                          <div className="text-sm font-medium text-content">{tournament.name}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-content">
                       {tournament.type}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-content">
                       {formatSeason(tournament.year)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-content">
                       {tournament.surface === 'GRASS' ? 'Césped' : 
                        tournament.surface === 'BEACH' ? 'Playa' : 
                        tournament.surface === 'INDOOR' ? 'Indoor' : tournament.surface}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-content">
                       {tournament.category === 'OPEN' ? 'Open' : 
                        tournament.category === 'WOMEN' ? 'Women' : 
                        tournament.category === 'MIXED' ? 'Mixto' : tournament.category || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <MapPin className="w-4 h-4 text-gray-400 mr-2" />
-                        <span className="text-sm text-gray-900">
+                        <MapPin className="w-4 h-4 text-content-subtle mr-2" />
+                        <span className="text-sm text-content">
                           {tournament.type === 'REGIONAL' 
                             ? (tournament.region?.name || 'Sin región')
                             : 'Nacional'
@@ -502,11 +502,11 @@ const TournamentsAdminPage: React.FC = () => {
       {/* Modal de confirmación de eliminación */}
       {showDeleteModal && selectedTournament && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+          <div className="bg-surface rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-medium text-content mb-4">
               Confirmar eliminación
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-content-muted mb-6">
               ¿Estás seguro de que quieres eliminar el torneo "{selectedTournament.name}"? 
               Esta acción no se puede deshacer.
             </p>
@@ -536,11 +536,11 @@ const TournamentsAdminPage: React.FC = () => {
       {/* Modal de confirmación de eliminación de posiciones */}
       {showDeletePositionsModal && selectedTournament && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+          <div className="bg-surface rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-medium text-content mb-4">
               Eliminar posiciones del torneo
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-content-muted mb-6">
               El torneo "{selectedTournament.name}" tiene posiciones asociadas que impiden su eliminación. 
               ¿Quieres eliminar todas las posiciones del torneo para poder eliminarlo después?
             </p>

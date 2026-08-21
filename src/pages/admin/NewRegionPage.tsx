@@ -76,34 +76,34 @@ const NewRegionPage: React.FC = () => {
           <div className="flex items-center">
             <button
               onClick={() => navigate('/admin/regions')}
-              className="mr-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              className="mr-4 p-2 text-content-subtle hover:text-content-muted hover:bg-surface-muted rounded-lg transition-colors duration-200"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
               <h1 className="page-header-title">Nueva Región</h1>
-              <p className="text-gray-600">Registrar una nueva región en el sistema</p>
+              <p className="text-content-muted">Registrar una nueva región en el sistema</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Form */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-surface rounded-lg shadow-sm border border-line">
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Basic Information */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Información Básica</h3>
+            <h3 className="text-lg font-medium text-content mb-4">Información Básica</h3>
             
             <div className="grid grid-cols-1 gap-6">
               {/* Region Name */}
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="name" className="block text-sm font-medium text-content-muted mb-2">
                   Nombre de la Región *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MapPin className="h-5 w-5 text-gray-400" />
+                    <MapPin className="h-5 w-5 text-content-subtle" />
                   </div>
                   <input
                     type="text"
@@ -111,13 +111,13 @@ const NewRegionPage: React.FC = () => {
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.name ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.name ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                     }`}
                     placeholder="Ej: centro, canarias, nordeste, norte, sur"
                   />
                 </div>
                 {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.name}</p>
                 )}
               </div>
             </div>
@@ -125,16 +125,16 @@ const NewRegionPage: React.FC = () => {
 
           {/* Coefficient */}
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Configuración del Ranking</h3>
+            <h3 className="text-lg font-medium text-content mb-4">Configuración del Ranking</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="coefficient" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="coefficient" className="block text-sm font-medium text-content-muted mb-2">
                   Coeficiente Regional *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calculator className="h-5 w-5 text-gray-400" />
+                    <Calculator className="h-5 w-5 text-content-subtle" />
                   </div>
                   <input
                     type="number"
@@ -145,24 +145,24 @@ const NewRegionPage: React.FC = () => {
                     max="2.0"
                     step="0.01"
                     className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors ${
-                      errors.coefficient ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.coefficient ? 'border-red-300 bg-red-50 dark:bg-red-950/40' : 'border-line-strong'
                     }`}
                   />
                 </div>
                 {errors.coefficient && (
-                  <p className="mt-1 text-sm text-red-600">{errors.coefficient}</p>
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.coefficient}</p>
                 )}
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-content-subtle">
                   Multiplicador para ajustar la dificultad regional (0.5 - 2.0)
                 </p>
               </div>
 
               <div className="flex items-center justify-center">
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-center p-4 bg-surface-muted rounded-lg">
                   <div className="page-header-title">
                     {formData.coefficient.toFixed(2)}
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-content-muted">
                     {formData.coefficient < 1.0 ? 'Dificultad reducida' : 
                      formData.coefficient > 1.0 ? 'Dificultad aumentada' : 
                      'Dificultad estándar'}
@@ -174,7 +174,7 @@ const NewRegionPage: React.FC = () => {
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="description" className="block text-sm font-medium text-content-muted mb-2">
               Descripción
             </label>
             <textarea
@@ -182,16 +182,16 @@ const NewRegionPage: React.FC = () => {
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
               rows={4}
-              className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              className="block w-full px-3 py-3 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
               placeholder="Descripción opcional de la región..."
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-content-subtle">
               Información adicional sobre la región (opcional)
             </p>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-line">
             <button
               type="button"
               onClick={() => navigate('/admin/regions')}

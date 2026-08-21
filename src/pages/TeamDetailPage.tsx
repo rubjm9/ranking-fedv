@@ -25,7 +25,7 @@ const renderHistoricalGlobalPositionValue = (
   position: number,
   season?: string,
   date?: string,
-  whenClassName = 'text-xs text-slate-400 ml-1'
+  whenClassName = 'text-xs text-content-subtle ml-1'
 ) => {
   if (position <= 0) return 'N/A'
 
@@ -41,7 +41,7 @@ const renderHistoricalGlobalPositionValue = (
 
 const renderBestHistoricalPositionValue = (
   statistics: Pick<TeamStatistics, 'bestPosition' | 'bestPositionSeason' | 'bestPositionDate'>,
-  whenClassName = 'text-xs text-slate-400 ml-1'
+  whenClassName = 'text-xs text-content-subtle ml-1'
 ) =>
   renderHistoricalGlobalPositionValue(
     statistics.bestPosition,
@@ -52,7 +52,7 @@ const renderBestHistoricalPositionValue = (
 
 const renderWorstHistoricalPositionValue = (
   statistics: Pick<TeamStatistics, 'worstPosition' | 'worstPositionSeason' | 'worstPositionDate'>,
-  whenClassName = 'text-xs text-slate-400 ml-1'
+  whenClassName = 'text-xs text-content-subtle ml-1'
 ) =>
   renderHistoricalGlobalPositionValue(
     statistics.worstPosition,
@@ -207,28 +207,28 @@ const TeamDetailPage: React.FC = () => {
   }
 
   const getPositionColor = (position: number) => {
-    if (position === 1) return 'bg-yellow-100 text-yellow-800'
-    if (position === 2) return 'bg-slate-100 text-slate-800'
-    if (position === 3) return 'bg-orange-100 text-orange-800'
-    return 'bg-primary-100 text-primary-800'
+    if (position === 1) return 'bg-yellow-100 dark:bg-yellow-950/50 text-yellow-800 dark:text-yellow-300'
+    if (position === 2) return 'bg-surface-muted text-content'
+    if (position === 3) return 'bg-orange-100 text-orange-800 dark:text-orange-300'
+    return 'bg-brand-subtle text-brand-strong'
   }
 
   const getSurfaceIcon = (surface: string) => {
     return surface === 'BEACH'
-      ? <Sun className="w-4 h-4 text-primary-600 inline" />
-      : <Leaf className="w-4 h-4 text-emerald-600 inline" />
+      ? <Sun className="w-4 h-4 text-link inline" />
+      : <Leaf className="w-4 h-4 text-emerald-600 dark:text-emerald-300 inline" />
   }
 
   const getModalityIcon = (modality: string) => {
     switch (modality) {
       case 'OPEN':
-        return <UsersRound className="w-4 h-4 text-slate-600 inline" />
+        return <UsersRound className="w-4 h-4 text-content-muted inline" />
       case 'WOMEN':
-        return <UserRound className="w-4 h-4 text-slate-600 inline" />
+        return <UserRound className="w-4 h-4 text-content-muted inline" />
       case 'MIXED':
-        return <UsersRound className="w-4 h-4 text-primary-600 inline" />
+        return <UsersRound className="w-4 h-4 text-link inline" />
       default:
-        return <UsersRound className="w-4 h-4 text-slate-600 inline" />
+        return <UsersRound className="w-4 h-4 text-content-muted inline" />
     }
   }
 
@@ -282,30 +282,30 @@ const TeamDetailPage: React.FC = () => {
         <div className="space-y-6">
           {/* Team Info */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h3 className="text-xl font-semibold text-slate-900 mb-4">Información del equipo</h3>
+            <div className="bg-surface rounded-xl shadow-sm border border-line p-6">
+              <h3 className="text-xl font-semibold text-content mb-4">Información del equipo</h3>
               <div className="space-y-3">
                 {team.isFilial && (
                   <div className="flex items-center">
-                    <UsersRound className="h-4 w-4 text-slate-400 mr-3" />
-                    <span className="text-slate-600">Tipo:</span>
+                    <UsersRound className="h-4 w-4 text-content-subtle mr-3" />
+                    <span className="text-content-muted">Tipo:</span>
                     <span className="ml-2 font-medium">Equipo filial</span>
                   </div>
                 )}
                 
                 {team.location && (
                   <div className="flex items-center">
-                    <MapPin className="h-4 w-4 text-slate-400 mr-3" />
-                    <span className="text-slate-600">Ubicación:</span>
+                    <MapPin className="h-4 w-4 text-content-subtle mr-3" />
+                    <span className="text-content-muted">Ubicación:</span>
                     <span className="ml-2 font-medium">{team.location}</span>
                   </div>
                 )}
                 
                 {team.email && (
                   <div className="flex items-center">
-                    <Mail className="h-4 w-4 text-slate-400 mr-3" />
-                    <span className="text-slate-600">Email:</span>
-                    <a href={`mailto:${team.email}`} className="ml-2 font-medium text-primary-600 hover:text-primary-700">
+                    <Mail className="h-4 w-4 text-content-subtle mr-3" />
+                    <span className="text-content-muted">Email:</span>
+                    <a href={`mailto:${team.email}`} className="ml-2 font-medium text-link hover:text-brand-strong">
                       {team.email}
                     </a>
                   </div>
@@ -313,68 +313,68 @@ const TeamDetailPage: React.FC = () => {
                 
                 {team.hasDifferentNames && (
                   <div className="mt-4">
-                    <h4 className="text-sm font-medium text-slate-700 mb-2">Nombres por Categoría:</h4>
+                    <h4 className="text-sm font-medium text-content-muted mb-2">Nombres por Categoría:</h4>
                     <div className="space-y-1 text-sm">
-                      {team.nameOpen && <div><span className="text-slate-600">Open:</span> {team.nameOpen}</div>}
-                      {team.nameWomen && <div><span className="text-slate-600">Women:</span> {team.nameWomen}</div>}
-                      {team.nameMixed && <div><span className="text-slate-600">Mixed:</span> {team.nameMixed}</div>}
+                      {team.nameOpen && <div><span className="text-content-muted">Open:</span> {team.nameOpen}</div>}
+                      {team.nameWomen && <div><span className="text-content-muted">Women:</span> {team.nameWomen}</div>}
+                      {team.nameMixed && <div><span className="text-content-muted">Mixed:</span> {team.nameMixed}</div>}
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h3 className="text-xl font-semibold text-slate-900 mb-4">Estadísticas detalladas</h3>
+            <div className="bg-surface rounded-xl shadow-sm border border-line p-6">
+              <h3 className="text-xl font-semibold text-content mb-4">Estadísticas detalladas</h3>
               <div className="space-y-4">
-                <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-sm text-slate-600 font-medium">Mejor posición histórica:</span>
-                  <span className="text-sm font-semibold text-slate-900">
-                    {renderBestHistoricalPositionValue(statistics, 'text-xs text-slate-500 ml-1 font-normal')}
+                <div className="flex justify-between items-center py-2 border-b border-line">
+                  <span className="text-sm text-content-muted font-medium">Mejor posición histórica:</span>
+                  <span className="text-sm font-semibold text-content">
+                    {renderBestHistoricalPositionValue(statistics, 'text-xs text-content-subtle ml-1 font-normal')}
                   </span>
                 </div>
-                <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-sm text-slate-600 font-medium">Peor posición histórica:</span>
-                  <span className="text-sm font-semibold text-slate-900">
-                    {renderWorstHistoricalPositionValue(statistics, 'text-xs text-slate-500 ml-1 font-normal')}
+                <div className="flex justify-between items-center py-2 border-b border-line">
+                  <span className="text-sm text-content-muted font-medium">Peor posición histórica:</span>
+                  <span className="text-sm font-semibold text-content">
+                    {renderWorstHistoricalPositionValue(statistics, 'text-xs text-content-subtle ml-1 font-normal')}
                   </span>
                 </div>
-                <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-sm text-slate-600 font-medium">Acumulación histórica:</span>
-                  <span className="text-sm font-semibold text-slate-900">{statistics.totalPoints.toFixed(1)}</span>
+                <div className="flex justify-between items-center py-2 border-b border-line">
+                  <span className="text-sm text-content-muted font-medium">Acumulación histórica:</span>
+                  <span className="text-sm font-semibold text-content">{statistics.totalPoints.toFixed(1)}</span>
                 </div>
-                <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-sm text-slate-600 font-medium">Temporadas activas:</span>
-                  <span className="text-sm font-semibold text-slate-900">{statistics.seasonsActive}</span>
+                <div className="flex justify-between items-center py-2 border-b border-line">
+                  <span className="text-sm text-content-muted font-medium">Temporadas activas:</span>
+                  <span className="text-sm font-semibold text-content">{statistics.seasonsActive}</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-slate-600 font-medium">Categorías jugadas:</span>
-                  <span className="text-sm font-semibold text-slate-900">{statistics.categoriesPlayed.length}</span>
+                  <span className="text-sm text-content-muted font-medium">Categorías jugadas:</span>
+                  <span className="text-sm font-semibold text-content">{statistics.categoriesPlayed.length}</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h3 className="text-xl font-semibold text-slate-900 mb-4">Posición por modalidad</h3>
+            <div className="bg-surface rounded-xl shadow-sm border border-line p-6">
+              <h3 className="text-xl font-semibold text-content mb-4">Posición por modalidad</h3>
               <TeamRankingRadarChart currentRankings={currentRankings} />
             </div>
           </div>
 
           {/* Related Teams */}
           {relatedTeams.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h3 className="text-xl font-semibold text-slate-900 mb-4">Equipos Relacionados</h3>
+            <div className="bg-surface rounded-xl shadow-sm border border-line p-6">
+              <h3 className="text-xl font-semibold text-content mb-4">Equipos Relacionados</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {relatedTeams.map((relatedTeam) => (
                   <Link
                     key={relatedTeam.id}
                     to={getTeamPublicUrl(relatedTeam)}
-                    className="flex items-center p-3 border border-slate-200 rounded-lg hover:bg-secondary-50 transition-colors"
+                    className="flex items-center p-3 border border-line rounded-lg hover:bg-surface-muted transition-colors"
                   >
                     <TeamLogo name={relatedTeam.name} size="sm" />
                     <div className="ml-3">
-                      <div className="text-sm font-medium text-slate-900">{relatedTeam.name}</div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-sm font-medium text-content">{relatedTeam.name}</div>
+                      <div className="text-xs text-content-subtle">
                         {relatedTeam.isFilial ? 'Filial' : 'Principal'}
                       </div>
                     </div>
@@ -392,8 +392,8 @@ const TeamDetailPage: React.FC = () => {
       icon: Trophy,
       badge: Object.keys(currentRankings).length,
       content: (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h3 className="text-xl font-semibold text-slate-900 mb-6">Rankings por Superficie</h3>
+        <div className="bg-surface rounded-xl shadow-sm border border-line p-6">
+          <h3 className="text-xl font-semibold text-content mb-6">Rankings por Superficie</h3>
           {Object.keys(currentRankings).length === 0 ? (
             <EmptyState
               icon={Trophy}
@@ -402,24 +402,24 @@ const TeamDetailPage: React.FC = () => {
             />
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-secondary-50">
+              <table className="min-w-full divide-y divide-line">
+                <thead className="bg-surface-muted">
                   <tr>
-                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">
                       Categoría
                     </th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">
                       Posición
                     </th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">
                       Puntos
                     </th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">
                       Cambio
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-slate-200">
+                <tbody className="bg-surface divide-y divide-line">
                   {Object.entries(currentRankings)
                     .sort(([, a], [, b]) => a.position - b.position)
                     .map(([category, ranking]) => (
@@ -428,24 +428,24 @@ const TeamDetailPage: React.FC = () => {
                         <div className="flex items-center">
                           <span className="mr-2">{getSurfaceIcon(category.split('_')[0])}</span>
                           <span className="mr-2">{getModalityIcon(category.split('_')[1])}</span>
-                          <span className="text-sm font-medium text-slate-900">
+                          <span className="text-sm font-medium text-content">
                             {getCategoryLabel(category)}
                           </span>
                         </div>
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-medium text-slate-900">#{ranking.position}</span>
+                        <span className="text-sm font-medium text-content">#{ranking.position}</span>
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-slate-900">{ranking.points.toFixed(1)}</span>
+                        <span className="text-sm text-content">{ranking.points.toFixed(1)}</span>
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                         {ranking.change !== 0 ? (
-                          <span className={`text-sm font-medium ${ranking.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <span className={`text-sm font-medium ${ranking.change > 0 ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-300'}`}>
                             {ranking.change > 0 ? '+' : ''}{ranking.change}
                           </span>
                         ) : (
-                          <span className="text-sm text-slate-400">-</span>
+                          <span className="text-sm text-content-subtle">-</span>
                         )}
                       </td>
                     </tr>
@@ -463,7 +463,7 @@ const TeamDetailPage: React.FC = () => {
       icon: Calendar,
       badge: tournamentResults.length,
       content: (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="bg-surface rounded-xl shadow-sm border border-line p-6">
           <TournamentTable
             results={tournamentResults}
             getCategoryLabel={getCategoryLabel}
@@ -471,7 +471,6 @@ const TeamDetailPage: React.FC = () => {
             getPositionColor={getPositionColor}
             getSurfaceIcon={getSurfaceIcon}
             getModalityIcon={getModalityIcon}
-            viewMode="table"
           />
         </div>
       )
@@ -482,18 +481,18 @@ const TeamDetailPage: React.FC = () => {
       icon: TrendingUp,
       content: (
         <div className="space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="bg-surface rounded-xl shadow-sm border border-line p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-slate-700">Ver por:</span>
-                <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-secondary-50">
+                <span className="text-sm font-medium text-content-muted">Ver por:</span>
+                <div className="inline-flex rounded-lg border border-line p-0.5 bg-surface-muted">
                   <button
                     type="button"
                     onClick={() => setChartMetric('position')}
                     className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                       chartMetric === 'position'
-                        ? 'bg-white text-primary-600 shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-surface text-link shadow-sm'
+                        : 'text-content-muted hover:text-content'
                     }`}
                   >
                     Posición
@@ -503,8 +502,8 @@ const TeamDetailPage: React.FC = () => {
                     onClick={() => setChartMetric('points')}
                     className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                       chartMetric === 'points'
-                        ? 'bg-white text-primary-600 shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-surface text-link shadow-sm'
+                        : 'text-content-muted hover:text-content'
                     }`}
                   >
                     Puntos
@@ -512,7 +511,7 @@ const TeamDetailPage: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <label htmlFor="compare-team" className="text-sm font-medium text-slate-700 whitespace-nowrap">
+                <label htmlFor="compare-team" className="text-sm font-medium text-content-muted whitespace-nowrap">
                   Comparar con:
                 </label>
                 <select
@@ -533,7 +532,7 @@ const TeamDetailPage: React.FC = () => {
               </div>
             </div>
             {!compareWithTeamId && (
-              <p className="text-sm text-slate-500 mb-4">
+              <p className="text-sm text-content-subtle mb-4">
                 Selecciona un equipo para comparar su evolución en el ranking.
               </p>
             )}
@@ -584,15 +583,15 @@ const TeamDetailPage: React.FC = () => {
           )
         )
         return (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h3 className="text-xl font-semibold text-slate-900 mb-4">Posición del equipo por torneo y temporada</h3>
-            <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <div className="bg-surface rounded-xl shadow-sm border border-line p-6">
+            <h3 className="text-xl font-semibold text-content mb-4">Posición del equipo por torneo y temporada</h3>
+            <div className="overflow-x-auto rounded-lg border border-line">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-secondary-50">
-                    <th className="px-4 py-3 text-left font-medium text-slate-700 border-r border-slate-200 w-48">Competición</th>
+                  <tr className="border-b border-line bg-surface-muted">
+                    <th className="px-4 py-3 text-left font-medium text-content-muted border-r border-line w-48">Competición</th>
                     {seasons.map((year: number) => (
-                      <th key={year} className="px-3 py-3 text-center font-medium text-slate-700 border-r border-slate-200 last:border-r-0 min-w-[4rem]">
+                      <th key={year} className="px-3 py-3 text-center font-medium text-content-muted border-r border-line last:border-r-0 min-w-[4rem]">
                         {formatSeason(year)}
                       </th>
                     ))}
@@ -601,28 +600,28 @@ const TeamDetailPage: React.FC = () => {
                 <tbody>
                   {seasons.length === 0 ? (
                     <tr>
-                      <td colSpan={2} className="px-4 py-8 text-center text-slate-500">No hay datos de torneos.</td>
+                      <td colSpan={2} className="px-4 py-8 text-center text-content-subtle">No hay datos de torneos.</td>
                     </tr>
                   ) : rowKeys.map(({ surface, modality, type }) => (
-                    <tr key={`${surface}-${modality}-${type}`} className="border-b border-slate-100 hover:bg-secondary-50">
-                      <td className="px-4 py-2 font-medium text-slate-900 border-r border-slate-200 whitespace-nowrap">
+                    <tr key={`${surface}-${modality}-${type}`} className="border-b border-line hover:bg-surface-muted">
+                      <td className="px-4 py-2 font-medium text-content border-r border-line whitespace-nowrap">
                         {SURFACE_LABEL[surface]} – {MODALITY_LABEL[modality]} – {TYPE_LABEL[type]}
                       </td>
                       {seasons.map((year: number) => {
                         const cell = getCell(year, surface, modality, type)
                         return (
-                          <td key={year} className="px-3 py-2 text-center border-r border-slate-100 last:border-r-0">
+                          <td key={year} className="px-3 py-2 text-center border-r border-line last:border-r-0">
                             {cell === '✕' ? (
-                              <span className="text-slate-400 font-medium" title="El torneo no se disputó">✕</span>
+                              <span className="text-content-subtle font-medium" title="El torneo no se disputó">✕</span>
                             ) : cell === 'No p.' ? (
-                              <span className="text-slate-500 text-xs" title="El equipo no participó">No p.</span>
+                              <span className="text-content-subtle text-xs" title="El equipo no participó">No p.</span>
                             ) : typeof cell === 'number' && cell <= 3 ? (
                               <span
                                 className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border ${
                                   cell === 1
-                                    ? 'bg-amber-400 text-slate-900 border-amber-500'
+                                    ? 'bg-amber-400 text-content border-amber-500'
                                     : cell === 2
-                                    ? 'bg-slate-300 text-slate-800 border-slate-400'
+                                    ? 'bg-slate-300 text-content border-slate-400'
                                     : 'bg-amber-700 text-white border-amber-800'
                                 }`}
                                 title={`${cell}º puesto`}
@@ -630,7 +629,7 @@ const TeamDetailPage: React.FC = () => {
                                 {cell}
                               </span>
                             ) : (
-                              <span className="font-medium text-slate-900">{cell}º</span>
+                              <span className="font-medium text-content">{cell}º</span>
                             )}
                           </td>
                         )
@@ -640,8 +639,8 @@ const TeamDetailPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
-            <div className="mt-4 pt-4 border-t border-slate-200 text-sm text-slate-600 space-y-1">
-              <p className="font-medium text-slate-700">Leyenda:</p>
+            <div className="mt-4 pt-4 border-t border-line text-sm text-content-muted space-y-1">
+              <p className="font-medium text-content-muted">Leyenda:</p>
               <ul className="list-disc list-inside space-y-0.5">
                 <li><strong>Círculo dorado (1), plateado (2) o bronce (3):</strong> medalla (1º, 2º o 3º puesto).</li>
                 <li><strong>Número (4º en adelante):</strong> posición en la que quedó este equipo en ese torneo.</li>
@@ -659,8 +658,8 @@ const TeamDetailPage: React.FC = () => {
       icon: Calendar,
       badge: seasonBreakdown.length,
       content: (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
-          <h3 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-6">Desglose por Temporadas</h3>
+        <div className="bg-surface rounded-xl shadow-sm border border-line p-4 sm:p-6">
+          <h3 className="text-xl sm:text-2xl font-semibold text-content mb-6">Desglose por Temporadas</h3>
           {seasonBreakdown.length === 0 ? (
             <EmptyState
               icon={Calendar}
@@ -670,25 +669,25 @@ const TeamDetailPage: React.FC = () => {
           ) : (
             <div className="space-y-4">
               {seasonBreakdown.map((season) => (
-                <div key={season.season} className="border border-slate-200 rounded-lg p-4">
+                <div key={season.season} className="border border-line rounded-lg p-4">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
-                    <h4 className="text-md font-medium text-slate-900">{season.season}</h4>
-                    <span className="text-sm font-medium text-slate-600">
+                    <h4 className="text-md font-medium text-content">{season.season}</h4>
+                    <span className="text-sm font-medium text-content-muted">
                       {season.totalPoints.toFixed(1)} puntos totales
                     </span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {Object.entries(season.categories).map(([category, data]) => (
-                      <div key={category} className="bg-secondary-50 rounded p-3">
+                      <div key={category} className="bg-surface-muted rounded p-3">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium text-slate-700">
+                          <span className="text-sm font-medium text-content-muted">
                             {getCategoryLabel(category)}
                           </span>
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-content-subtle">
                             {getSurfaceIcon(category.split('_')[0])} {getModalityIcon(category.split('_')[1])}
                           </span>
                         </div>
-                        <div className="text-sm text-slate-600">
+                        <div className="text-sm text-content-muted">
                           <div>{data.points.toFixed(1)} puntos</div>
                           <div>{data.tournaments} torneos</div>
                           <div>Mejor: {data.bestPosition}º</div>
@@ -715,15 +714,16 @@ const TeamDetailPage: React.FC = () => {
   const globalRankingPoints = Object.values(currentRankings).reduce((sum, ranking) => sum + ranking.points, 0)
   const heroPoints = globalRankingPoints > 0 ? globalRankingPoints : statistics.totalPoints
 
-  const shareButton = (
-    <ShareButton
-      url={getTeamPublicUrl(team)}
-      title={`${team.name} - Ranking FEDV`}
-      description={`Consulta las estadísticas y resultados de ${team.name} en el Ranking FEDV`}
-      variant="dark"
-      size="sm"
-    />
-  )
+  const shareProps = {
+    url: getTeamPublicUrl(team),
+    title: `${team.name} - Ranking FEDV`,
+    description: `Consulta las estadísticas y resultados de ${team.name} en el Ranking FEDV`,
+    size: 'sm' as const,
+  }
+
+  // El hero es oscuro; la barra pegajosa es clara, así que necesita la variante clara.
+  const shareButton = <ShareButton {...shareProps} variant="dark" />
+  const stickyShareButton = <ShareButton {...shareProps} variant="light" />
 
   return (
     <>
@@ -736,7 +736,7 @@ const TeamDetailPage: React.FC = () => {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         tabs={tabsForSticky}
-        actions={shareButton}
+        actions={stickyShareButton}
       />
 
       <PageHeroShell className="mb-0 border-b border-slate-800" innerClassName="pb-6">
@@ -763,7 +763,7 @@ const TeamDetailPage: React.FC = () => {
             </div>
             <div className="flex-1 text-center sm:text-left">
               <h1 className="mb-2 font-display text-3xl font-bold text-white sm:text-4xl">{team.name}</h1>
-              <p className="mb-1 text-base text-slate-400 sm:text-lg">
+              <p className="mb-1 text-base text-content-subtle sm:text-lg">
                 {team.isFilial && team.parentTeam ? (
                   <>
                     {team.location || team.region?.name ? (
@@ -779,12 +779,12 @@ const TeamDetailPage: React.FC = () => {
                 )}
               </p>
               {team.region && (
-                <p className="text-base text-slate-500 sm:text-lg">Región: {team.region.name}</p>
+                <p className="text-base text-content-subtle sm:text-lg">Región: {team.region.name}</p>
               )}
             </div>
             <div className="flex flex-shrink-0 gap-6 sm:gap-10">
               <div className="text-center sm:text-right">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-400">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-content-subtle">
                   Puntos
                 </p>
                 <AnimatedPoints
@@ -794,7 +794,7 @@ const TeamDetailPage: React.FC = () => {
                 />
               </div>
               <div className="text-center sm:text-right">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-400">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-content-subtle">
                   Ranking global
                 </p>
                 <p className="font-display text-4xl font-bold text-white sm:text-5xl">
