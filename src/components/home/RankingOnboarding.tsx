@@ -45,7 +45,7 @@ const RankingOnboarding: React.FC = () => {
   const [pointsTablesExpanded, setPointsTablesExpanded] = useState(false)
 
   return (
-    <section className="mb-8 rounded-[2rem] border border-line bg-gradient-to-b from-white to-secondary-50/70 px-4 py-10 shadow-sm sm:px-6 lg:px-8">
+    <section className="mb-8 rounded-[2rem] border border-line bg-gradient-to-b from-surface to-surface-muted px-4 py-10 shadow-sm sm:px-6 lg:px-8">
       <div className="mb-12 text-center">
         <span className="mb-4 inline-flex items-center rounded-full border border-brand-strong/30 bg-brand-subtle px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-strong">
           Onboarding del ranking
@@ -57,9 +57,28 @@ const RankingOnboarding: React.FC = () => {
         </p>
       </div>
 
+      <div className="mb-12 mx-auto max-w-4xl">
+        <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+          <div className="relative aspect-video w-full bg-slate-900">
+            <iframe
+              className="absolute inset-0 h-full w-full"
+              src="https://www.youtube-nocookie.com/embed/eagu5JHvdSQ"
+              title="Recorrido por la web del ranking FEDV y sus funcionalidades"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+          </div>
+        </div>
+        <p className="mt-3 text-center text-sm text-content-muted">
+          Vídeo de sobrevuelo de la web: un vistazo a todas sus funcionalidades.
+        </p>
+      </div>
+
       <div className="relative">
         <div
-          className="absolute bottom-3 left-[15px] top-3 hidden w-px bg-gradient-to-b from-primary-200 via-primary-300 to-primary-100 sm:block"
+          className="absolute bottom-3 left-[15px] top-3 hidden w-px bg-gradient-to-b from-primary-200 via-primary-300 to-primary-100 dark:from-primary-800 dark:via-primary-700 dark:to-primary-900 sm:block"
           aria-hidden
         />
 
@@ -196,7 +215,7 @@ const RankingOnboarding: React.FC = () => {
               ))}
             </div>
 
-            <div className="rounded-xl border border-primary-100 bg-brand-subtle/80 px-4 py-3 text-sm leading-6 text-content-muted">
+            <div className="rounded-xl border border-brand-strong/20 bg-brand-subtle/80 px-4 py-3 text-sm leading-6 text-content-muted">
               Durante la temporada, el ranking global se actualiza por subtemporadas para reflejar qué
               modalidades ya se han disputado, sin esperar al cierre completo del año.
             </div>

@@ -21,8 +21,8 @@ const buildUnequalPoints = (count: number): number[] => {
 }
 
 const coefficientTone = (coefficient: number) => {
-  if (coefficient > 1) return 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 ring-emerald-200'
-  if (coefficient < 1) return 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 ring-amber-200'
+  if (coefficient > 1) return 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 ring-emerald-200 dark:ring-emerald-800'
+  if (coefficient < 1) return 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 ring-amber-200 dark:ring-amber-800'
   return 'bg-surface-muted text-content-muted ring-line'
 }
 
@@ -113,7 +113,7 @@ const RegionalCoeffExplainer: React.FC = () => {
         luego traslada ese ajuste a los torneos regionales de la siguiente temporada.
       </p>
 
-      <div className="overflow-hidden rounded-[1.75rem] border border-line bg-gradient-to-br from-white via-slate-50 to-primary-50/40 p-5 shadow-[0_24px_80px_-50px_rgba(15,23,42,0.45)]">
+      <div className="overflow-hidden rounded-[1.75rem] border border-line bg-gradient-to-br from-surface via-surface-muted to-brand-subtle/40 p-5 shadow-[0_24px_80px_-50px_rgba(15,23,42,0.45)]">
         <div className="mb-5">
           <p className="text-sm font-semibold tracking-[0.08em] text-brand-strong">Calculadora</p>
           <h4 className="mt-1 text-lg font-semibold text-content">
@@ -198,7 +198,7 @@ const RegionalCoeffExplainer: React.FC = () => {
                       value={row.points}
                       disabled={inputsDisabled}
                       onChange={(event) => updatePoints(row.id, event.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-base text-content focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:bg-surface-muted"
+                      className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-base text-content focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 disabled:bg-surface-muted"
                       aria-label={`Puntos nacionales de ${row.name}`}
                     />
                   </label>
@@ -239,7 +239,7 @@ const RegionalCoeffExplainer: React.FC = () => {
                           value={row.points}
                           disabled={inputsDisabled}
                           onChange={(event) => updatePoints(row.id, event.target.value)}
-                          className="w-32 rounded-xl border border-line bg-surface px-3 py-2 text-base text-content focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100 disabled:bg-surface-muted"
+                          className="w-32 rounded-xl border border-line bg-surface px-3 py-2 text-base text-content focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 disabled:bg-surface-muted"
                           aria-label={`Puntos nacionales de ${row.name}`}
                         />
                       </td>

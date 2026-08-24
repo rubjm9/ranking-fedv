@@ -13,7 +13,7 @@ const NotFoundPage: React.FC = () => {
           </div>
         </div>
 
-        <h1 className="font-display text-6xl font-bold text-slate-300 mb-4">404</h1>
+        <h1 className="font-display text-6xl font-bold text-content-subtle mb-4">404</h1>
 
         <h2 className="font-display text-2xl font-semibold text-content mb-4">
           Página no encontrada

@@ -12,6 +12,7 @@ import {
 } from 'recharts'
 import { nationalCurvePoints, regionalCurvePoints } from '@/utils/tournamentUtils'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
+import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/utils/cn'
 
 const baseNodeClass =
@@ -134,9 +135,9 @@ const SceneFrame: React.FC<{
   className?: string
 }> = ({ title, description, children, className = '' }) => (
   <div
-    className={`relative overflow-hidden rounded-[1.75rem] border border-line bg-gradient-to-br from-white via-slate-50 to-primary-50/50 p-5 shadow-[0_25px_80px_-45px_rgba(15,23,42,0.35)] ${className}`}
+    className={`relative overflow-hidden rounded-[1.75rem] border border-line bg-gradient-to-br from-surface via-surface-muted to-brand-subtle/40 p-5 shadow-[0_25px_80px_-45px_rgba(15,23,42,0.35)] ${className}`}
   >
-    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.12),_transparent_42%),linear-gradient(rgba(148,163,184,0.14)_1px,_transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.14)_1px,_transparent_1px)] bg-[size:auto,24px_24px,24px_24px]" />
+    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.12),_transparent_42%),linear-gradient(rgba(148,163,184,0.14)_1px,_transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.14)_1px,_transparent_1px)] bg-[size:auto,24px_24px,24px_24px] dark:bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.16),_transparent_42%),linear-gradient(rgba(51,65,85,0.45)_1px,_transparent_1px),linear-gradient(90deg,rgba(51,65,85,0.45)_1px,_transparent_1px)]" />
     <div className="relative">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <h4 className="text-lg font-semibold text-content">{title}</h4>
@@ -150,7 +151,7 @@ const SceneFrame: React.FC<{
 const toneClasses: Record<string, string> = {
   slate: 'bg-surface-muted text-content-muted ring-line',
   primary: 'bg-brand-subtle text-brand-strong ring-brand-strong/30',
-  emerald: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-emerald-200',
+  emerald: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-emerald-200 dark:ring-emerald-800',
 }
 
 type SeasonPhase = 'idle' | 'incoming' | 'committed' | 'hold'
@@ -243,7 +244,7 @@ export const TournamentFlowScene: React.FC = () => {
       description="Un resultado suma solo en su columna. Dos torneos de playa mixto se apilan juntos; un CE de césped open abre otro ranking."
     >
       <div
-        className="relative overflow-hidden rounded-[1.5rem] border border-white/80 bg-slate-950/[0.02] p-4"
+        className="relative overflow-hidden rounded-[1.5rem] border border-line bg-surface-muted/60 p-4"
         role="img"
         aria-label="Acumulado animado donde cada torneo suma puntos solo en la modalidad correspondiente"
       >
@@ -286,7 +287,7 @@ export const TournamentFlowScene: React.FC = () => {
                 className={cn(
                   baseNodeClass,
                   'flex min-h-[10.5rem] flex-col transition-all duration-300',
-                  isActive && 'border-primary-300 ring-2 ring-primary-100',
+                  isActive && 'border-primary-300 ring-2 ring-primary-100 dark:border-primary-400 dark:ring-primary-900',
                   isBumping && 'onboarding-ledger-bump'
                 )}
               >
@@ -381,6 +382,12 @@ const CurveTooltip: React.FC<CurveTooltipProps> = ({ active, payload, label }) =
 
 export const PositionCurveScene: React.FC = () => {
   const prefersReducedMotion = usePrefersReducedMotion()
+  const { resolved } = useTheme()
+  const isDark = resolved === 'dark'
+  const axis = isDark ? '#94a3b8' : '#64748b'
+  const axisLine = isDark ? '#475569' : '#cbd5e1'
+  const grid = isDark ? '#334155' : '#e2e8f0'
+  const reference = isDark ? '#64748b' : '#94a3b8'
 
   return (
     <SceneFrame
@@ -407,26 +414,26 @@ export const PositionCurveScene: React.FC = () => {
         <div className="h-[260px] w-full sm:h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={curveChartData} margin={{ top: 12, right: 16, left: 0, bottom: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke={grid} />
               <XAxis
                 type="number"
                 dataKey="position"
                 domain={[1, CURVE_MAX_POSITION]}
                 ticks={[1, 4, 8, 12, 16, 20]}
-                tick={{ fontSize: 11, fill: '#64748b' }}
+                tick={{ fontSize: 11, fill: axis }}
                 tickLine={false}
-                axisLine={{ stroke: '#cbd5e1' }}
+                axisLine={{ stroke: axisLine }}
                 label={{
                   value: 'Puesto',
                   position: 'insideBottom',
                   offset: -2,
-                  style: { fill: '#64748b', fontSize: 12 },
+                  style: { fill: axis, fontSize: 12 },
                 }}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: '#64748b' }}
+                tick={{ fontSize: 11, fill: axis }}
                 tickLine={false}
-                axisLine={{ stroke: '#cbd5e1' }}
+                axisLine={{ stroke: axisLine }}
                 width={42}
               />
               <Tooltip content={<CurveTooltip />} />
@@ -443,12 +450,12 @@ export const PositionCurveScene: React.FC = () => {
               />
               <ReferenceLine
                 x={8.5}
-                stroke="#94a3b8"
+                stroke={reference}
                 strokeDasharray="4 4"
                 label={{
                   value: 'Cambio 8.º→9.º',
                   position: 'insideTopRight',
-                  fill: '#64748b',
+                  fill: axis,
                   fontSize: 11,
                 }}
               />

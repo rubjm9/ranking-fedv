@@ -68,7 +68,7 @@ const TemporalWeightChart: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="overflow-hidden rounded-[1.5rem] border border-line bg-gradient-to-br from-white via-slate-50 to-primary-50/40 p-4 shadow-[0_24px_80px_-50px_rgba(15,23,42,0.45)]"
+      className="overflow-hidden rounded-[1.5rem] border border-line bg-gradient-to-br from-surface via-surface-muted to-brand-subtle/40 p-4 shadow-[0_24px_80px_-50px_rgba(15,23,42,0.45)]"
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -109,7 +109,7 @@ const TemporalWeightChart: React.FC = () => {
                 </p>
               </div>
 
-              <div className="h-2 overflow-hidden rounded-full bg-slate-200/90">
+              <div className="h-2 overflow-hidden rounded-full bg-line">
                 <div
                   className={`h-2 rounded-full bg-gradient-to-r ${season.tone} ${
                     prefersReducedMotion ? '' : 'transition-[width] duration-700 ease-out'

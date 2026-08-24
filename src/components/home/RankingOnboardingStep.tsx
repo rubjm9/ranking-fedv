@@ -50,7 +50,7 @@ const RankingOnboardingStep: React.FC<RankingOnboardingStepProps> = ({
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       } ${className}`}
     >
-      <div className="absolute left-0 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-sm font-bold text-white shadow-sm ring-4 ring-secondary-50">
+      <div className="absolute left-0 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-sm font-bold text-white shadow-sm ring-4 ring-surface-muted">
         {step}
       </div>
       <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm transition-shadow duration-300 hover:shadow-md">
