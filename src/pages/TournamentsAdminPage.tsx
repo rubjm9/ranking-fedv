@@ -437,7 +437,7 @@ const TournamentsAdminPage: React.FC = () => {
                           <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
                             tournament.hasResults 
                               ? 'bg-green-100 dark:bg-green-950/50' 
-                              : 'bg-blue-100'
+                              : 'bg-blue-100 dark:bg-blue-950/50'
                           }`}>
                             {tournament.hasResults ? (
                               <Trophy className="h-5 w-5 text-green-600 dark:text-green-300" />

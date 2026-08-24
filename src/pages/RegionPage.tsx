@@ -268,7 +268,7 @@ const RegionPage = () => {
                     <span>Coeficiente</span>
                     <span>{region.coefficient}x</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3 mt-1">
+                  <div className="w-full bg-line rounded-full h-3 mt-1">
                     <div
                       className="bg-primary-600 h-3 rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(100, ((region.coefficient - 0.8) / 0.4) * 100)}%` }}

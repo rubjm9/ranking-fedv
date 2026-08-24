@@ -15,10 +15,10 @@ const DashboardSubseasonWidget: React.FC<DashboardSubseasonWidgetProps> = ({
   if (isLoading) {
     return (
       <div className="card animate-pulse" aria-busy="true" aria-label="Cargando subtemporadas">
-        <div className="mb-4 h-5 w-48 rounded bg-secondary-200" />
+        <div className="mb-4 h-5 w-48 rounded bg-line" />
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="h-16 rounded-xl bg-secondary-200" />
+            <div key={index} className="h-16 rounded-xl bg-line" />
           ))}
         </div>
       </div>

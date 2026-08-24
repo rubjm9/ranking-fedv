@@ -94,12 +94,12 @@ const AdminNotificationBanner: React.FC<AdminNotificationBannerProps> = ({ class
                   {notification.title}
                 </h4>
                 {notification.season && (
-                  <span className="text-xs bg-gray-200 text-content-muted px-2 py-0.5 rounded">
+                  <span className="text-xs bg-line text-content-muted px-2 py-0.5 rounded">
                     {notification.season}
                   </span>
                 )}
                 {notification.subseason && (
-                  <span className="text-xs bg-gray-200 text-content-muted px-2 py-0.5 rounded">
+                  <span className="text-xs bg-line text-content-muted px-2 py-0.5 rounded">
                     Subtemporada {notification.subseason}
                   </span>
                 )}

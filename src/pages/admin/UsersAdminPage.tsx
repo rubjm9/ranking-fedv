@@ -243,7 +243,7 @@ const UsersAdminPage: React.FC = () => {
                             <span
                               className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
                                 user.role === 'admin'
-                                  ? 'bg-purple-100 text-purple-800 dark:text-purple-300'
+                                  ? 'bg-purple-100 dark:bg-purple-950/50 text-purple-800 dark:text-purple-300'
                                   : 'bg-surface-muted text-content-muted'
                               }`}
                             >

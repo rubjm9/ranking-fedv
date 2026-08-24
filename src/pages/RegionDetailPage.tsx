@@ -43,7 +43,7 @@ const CoefProgressBar: React.FC<{ pct: number; barClass: string }> = ({ pct, bar
   }, [targetWidth])
 
   return (
-    <div className="h-2 bg-slate-200 rounded-full overflow-hidden mb-1">
+    <div className="h-2 bg-line rounded-full overflow-hidden mb-1">
       <div
         className={`h-full rounded-full transition-[width] duration-700 ease-out ${barClass}`}
         style={{ width: `${width}%` }}
@@ -549,7 +549,7 @@ const RegionDetailPage: React.FC = () => {
               <div key={key} className="bg-surface-muted rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-content-muted">{label}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${surface === 'GRASS' ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300' : 'bg-blue-100 text-blue-700 dark:text-blue-300'}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${surface === 'GRASS' ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300' : 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300'}`}>
                     {surface === 'GRASS' ? 'Césped' : 'Playa'}
                   </span>
                 </div>
@@ -582,7 +582,11 @@ const RegionDetailPage: React.FC = () => {
               <XAxis dataKey="season" tick={{ fontSize: 11 }} />
               <YAxis domain={[0.75, 1.25]} tick={{ fontSize: 11 }} />
               <Tooltip formatter={(v: number) => v.toFixed(2)} />
-              <Legend />
+              <Legend
+                /* Sin formatter la etiqueta hereda el color de la serie, que sobre
+                   fondo oscuro caía a 2,76:1. */
+                formatter={(value) => <span className="text-content-muted">{value}</span>}
+              />
               {MODALITIES.map((mod, i) => (
                 <Line
                   key={mod}
@@ -615,10 +619,10 @@ const RegionDetailPage: React.FC = () => {
           <div className="flex flex-wrap gap-2 mb-4">
             <button
               onClick={() => handleRankingViewChange('global')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`inline-flex items-center px-3 py-1.5 min-h-[44px] touch-manipulation rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                 isGlobalView
                   ? 'bg-primary-600 text-white'
-                  : 'bg-surface-muted text-content-muted hover:bg-slate-200'
+                  : 'bg-surface-muted text-content-muted hover:bg-line'
               }`}
             >
               Ranking global
@@ -627,10 +631,10 @@ const RegionDetailPage: React.FC = () => {
               <button
                 key={m}
                 onClick={() => handleRankingViewChange(m)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`inline-flex items-center px-3 py-1.5 min-h-[44px] touch-manipulation rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
                   activeRankingView === m
                     ? 'bg-primary-600 text-white'
-                    : 'bg-surface-muted text-content-muted hover:bg-slate-200'
+                    : 'bg-surface-muted text-content-muted hover:bg-line'
                 }`}
               >
                 {MODALITY_LABELS[m]}
@@ -667,7 +671,7 @@ const RegionDetailPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleTeamSort('nationalPosition')}
-                        className="inline-flex items-center gap-1.5 hover:text-white/90 transition-colors"
+                        className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                       >
                         Posición nacional
                         {getTeamSortIcon('nationalPosition')}
@@ -678,7 +682,7 @@ const RegionDetailPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleTeamSort('name')}
-                      className="inline-flex items-center gap-1.5 hover:text-white/90 transition-colors"
+                      className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                     >
                       Equipo
                       {getTeamSortIcon('name')}
@@ -688,7 +692,7 @@ const RegionDetailPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleTeamSort(isGlobalView ? 'currentPoints' : 'modalityPoints')}
-                      className="inline-flex items-center gap-1.5 hover:text-white/90 transition-colors"
+                      className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                     >
                       {isGlobalView ? 'Ranking general actual' : 'Puntos'}
                       {getTeamSortIcon(isGlobalView ? 'currentPoints' : 'modalityPoints')}
@@ -698,7 +702,7 @@ const RegionDetailPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleTeamSort('historicalPoints')}
-                      className="inline-flex items-center gap-1.5 hover:text-white/90 transition-colors"
+                      className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                     >
                       Puntuación histórica
                       {getTeamSortIcon('historicalPoints')}
@@ -709,7 +713,7 @@ const RegionDetailPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleTeamSort('tournaments')}
-                        className="inline-flex items-center gap-1.5 hover:text-white/90 transition-colors"
+                        className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                       >
                         Torneos
                         {getTeamSortIcon('tournaments')}

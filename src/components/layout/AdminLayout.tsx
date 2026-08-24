@@ -228,7 +228,7 @@ const AdminLayout: React.FC = () => {
                 Sitio público
               </Link>
               
-              <div className="hidden sm:block w-px h-6 bg-gray-300"></div>
+              <div className="hidden sm:block w-px h-6 bg-line-strong"></div>
               
               <div className="flex items-center text-sm text-content-muted">
                 <span className="hidden sm:inline">Bienvenido,</span>

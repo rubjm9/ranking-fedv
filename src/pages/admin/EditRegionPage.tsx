@@ -190,7 +190,7 @@ const EditRegionPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
           <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
+            <div className="p-2 bg-blue-100 dark:bg-blue-950/50 rounded-lg">
               <Users className="h-6 w-6 text-blue-600 dark:text-blue-300" />
             </div>
             <div className="ml-4">
@@ -212,7 +212,7 @@ const EditRegionPage: React.FC = () => {
         </div>
         <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
           <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
+            <div className="p-2 bg-purple-100 dark:bg-purple-950/50 rounded-lg">
               <Calculator className="h-6 w-6 text-purple-600 dark:text-purple-300" />
             </div>
             <div className="ml-4">
@@ -225,7 +225,7 @@ const EditRegionPage: React.FC = () => {
         </div>
         <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
           <div className="flex items-center">
-            <div className="p-2 bg-orange-100 rounded-lg">
+            <div className="p-2 bg-orange-100 dark:bg-orange-950/50 rounded-lg">
               <Calculator className="h-6 w-6 text-orange-600 dark:text-orange-300" />
             </div>
             <div className="ml-4">
@@ -325,7 +325,7 @@ const EditRegionPage: React.FC = () => {
                     <span className="text-sm font-medium text-content-muted mr-2">Nivel:</span>
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       formData.coefficient >= 1.5 ? 'bg-green-100 dark:bg-green-950/50 text-green-800 dark:text-green-300' :
-                      formData.coefficient >= 1.0 ? 'bg-blue-100 text-blue-800 dark:text-blue-300' :
+                      formData.coefficient >= 1.0 ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300' :
                       formData.coefficient >= 0.8 ? 'bg-yellow-100 dark:bg-yellow-950/50 text-yellow-800 dark:text-yellow-300' :
                       'bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-300'
                     }`}>

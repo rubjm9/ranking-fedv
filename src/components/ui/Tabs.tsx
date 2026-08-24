@@ -91,7 +91,7 @@ const Tabs: React.FC<TabsProps> = ({
                     className={`ml-1 px-2 py-0.5 text-xs rounded-full ${
                       isActive
                         ? 'bg-brand-subtle text-brand-strong'
-                        : 'bg-slate-200 text-content-muted'
+                        : 'bg-line text-content-muted'
                     }`}
                   >
                     {item.badge}

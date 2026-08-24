@@ -87,7 +87,7 @@ const RegionalCoefficientBreakdown: React.FC<RegionalCoefficientBreakdownProps> 
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   activeModality === mod
                     ? 'bg-primary-600 text-white'
-                    : 'bg-surface-muted text-content-muted hover:bg-slate-200'
+                    : 'bg-surface-muted text-content-muted hover:bg-line'
                 }`}
               >
                 {MODALITY_LABELS[mod]}

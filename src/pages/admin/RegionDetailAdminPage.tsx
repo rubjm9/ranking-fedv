@@ -126,7 +126,7 @@ const RegionDetailAdminPage: React.FC = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-3">
+                <div className="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-950/50 rounded-lg mx-auto mb-3">
                   <Users className="h-6 w-6 text-blue-600 dark:text-blue-300" />
                 </div>
                 <div className="page-header-title">{region._count?.teams || region.teams?.length || 0}</div>
@@ -142,7 +142,7 @@ const RegionDetailAdminPage: React.FC = () => {
               </div>
               
               <div className="text-center">
-                <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mx-auto mb-3">
+                <div className="flex items-center justify-center w-12 h-12 bg-purple-100 dark:bg-purple-950/50 rounded-lg mx-auto mb-3">
                   <BarChart3 className="h-6 w-6 text-purple-600 dark:text-purple-300" />
                 </div>
                 <div className="page-header-title">

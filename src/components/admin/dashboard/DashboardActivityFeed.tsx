@@ -44,9 +44,9 @@ const DashboardActivityFeed: React.FC<DashboardActivityFeedProps> = ({ items, is
               key={index}
               className="flex items-start space-x-3 p-3 bg-surface rounded-lg border border-line animate-pulse"
             >
-              <div className="w-8 h-8 bg-secondary-200 rounded-full flex-shrink-0" />
+              <div className="w-8 h-8 bg-line rounded-full flex-shrink-0" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 bg-secondary-200 rounded w-3/4" />
+                <div className="h-4 bg-line rounded w-3/4" />
                 <div className="h-3 bg-surface-muted rounded w-full" />
                 <div className="h-3 bg-surface-muted rounded w-1/3" />
               </div>

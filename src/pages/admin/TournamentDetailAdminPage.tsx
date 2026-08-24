@@ -283,7 +283,7 @@ const TournamentDetailAdminPage: React.FC = () => {
               <div className="flex justify-center space-x-4 mt-4">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="px-4 py-2 bg-gray-300 text-content-muted rounded-md hover:bg-gray-400 transition-colors"
+                  className="px-4 py-2 bg-line-strong text-content-muted rounded-md hover:bg-gray-400 transition-colors"
                 >
                   Cancelar
                 </button>

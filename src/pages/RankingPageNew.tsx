@@ -3339,7 +3339,7 @@ const RankingPageNew: React.FC = () => {
                 className={`px-3 py-1 rounded-lg text-sm font-medium ${
                   showAllTeams
                     ? 'bg-brand-subtle text-brand-strong border border-line'
-                    : 'bg-surface-muted text-content-muted border border-line hover:bg-slate-200'
+                    : 'bg-surface-muted text-content-muted border border-line hover:bg-line'
                 }`}
               >
                 {showAllTeams ? 'Mostrar solo top 20' : 'Mostrar todos los equipos'}
@@ -3412,7 +3412,7 @@ const RankingPageNew: React.FC = () => {
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'points'
                       ? 'bg-brand-subtle text-brand-strong border border-line'
-                      : 'bg-surface-muted text-content-muted border border-line hover:bg-slate-200'
+                      : 'bg-surface-muted text-content-muted border border-line hover:bg-line'
                   }`}
                 >
                   Evolución de Puntos
@@ -3422,7 +3422,7 @@ const RankingPageNew: React.FC = () => {
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'positions'
                       ? 'bg-brand-subtle text-brand-strong border border-line'
-                      : 'bg-surface-muted text-content-muted border border-line hover:bg-slate-200'
+                      : 'bg-surface-muted text-content-muted border border-line hover:bg-line'
                   }`}
                 >
                   Evolución de Posiciones
@@ -4132,7 +4132,7 @@ const RankingPageNew: React.FC = () => {
                 className={`px-3 py-1 rounded-lg text-sm font-medium ${
                   showAllTeams
                     ? 'bg-brand-subtle text-brand-strong border border-line'
-                    : 'bg-surface-muted text-content-muted border border-line hover:bg-slate-200'
+                    : 'bg-surface-muted text-content-muted border border-line hover:bg-line'
                 }`}
               >
                 {showAllTeams ? 'Mostrar solo top 20' : 'Mostrar todos los equipos'}
@@ -4205,7 +4205,7 @@ const RankingPageNew: React.FC = () => {
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'points'
                       ? 'bg-brand-subtle text-brand-strong border border-line'
-                      : 'bg-surface-muted text-content-muted border border-line hover:bg-slate-200'
+                      : 'bg-surface-muted text-content-muted border border-line hover:bg-line'
                   }`}
                 >
                   Evolución de Puntos
@@ -4215,7 +4215,7 @@ const RankingPageNew: React.FC = () => {
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'positions'
                       ? 'bg-brand-subtle text-brand-strong border border-line'
-                      : 'bg-surface-muted text-content-muted border border-line hover:bg-slate-200'
+                      : 'bg-surface-muted text-content-muted border border-line hover:bg-line'
                   }`}
                 >
                   Evolución de Posiciones

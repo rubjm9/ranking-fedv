@@ -11,10 +11,10 @@ const StatsGridSkeleton: React.FC<StatsGridSkeletonProps> = ({ count = 4, classN
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="bg-surface rounded-2xl shadow-sm p-6 animate-pulse">
           <div className="flex items-center">
-            <div className="h-10 w-10 bg-slate-200 rounded-xl" />
+            <div className="h-10 w-10 bg-line rounded-xl" />
             <div className="ml-4 flex-1 space-y-2">
-              <div className="h-3 bg-slate-200 rounded w-20" />
-              <div className="h-7 bg-slate-200 rounded w-16" />
+              <div className="h-3 bg-line rounded w-20" />
+              <div className="h-7 bg-line rounded w-16" />
             </div>
           </div>
         </div>

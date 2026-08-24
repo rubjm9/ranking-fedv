@@ -95,7 +95,7 @@ const SeasonNavigator: React.FC<SeasonNavigatorProps> = ({
             className={`inline-flex items-center px-3 py-1.5 min-h-[44px] touch-manipulation rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
               season === selectedSeason
                 ? 'bg-primary-600 text-white'
-                : 'bg-surface-muted text-content-muted hover:bg-slate-200'
+                : 'bg-surface-muted text-content-muted hover:bg-line'
             }`}
           >
             {season}

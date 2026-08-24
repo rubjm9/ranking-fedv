@@ -30,11 +30,11 @@ const DashboardSystemPanel: React.FC<DashboardSystemPanelProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {Array.from({ length: 2 }).map((_, index) => (
           <div key={index} className="card animate-pulse space-y-3">
-            <div className="h-6 bg-secondary-200 rounded w-1/2" />
+            <div className="h-6 bg-line rounded w-1/2" />
             {Array.from({ length: 4 }).map((__, row) => (
               <div key={row} className="flex justify-between">
                 <div className="h-4 bg-surface-muted rounded w-1/3" />
-                <div className="h-4 bg-secondary-200 rounded w-1/4" />
+                <div className="h-4 bg-line rounded w-1/4" />
               </div>
             ))}
           </div>

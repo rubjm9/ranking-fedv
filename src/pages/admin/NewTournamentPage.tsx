@@ -679,10 +679,10 @@ const NewTournamentPage: React.FC = () => {
             {/* Progress Indicator */}
             <div className="flex items-center space-x-2">
               <div className="flex items-center space-x-1">
-                <div className={`w-2 h-2 rounded-full ${formData.type ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                <div className={`w-2 h-2 rounded-full ${formData.season && formData.surface && formData.category ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                <div className={`w-2 h-2 rounded-full ${formData.startDate && formData.endDate && formData.location ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                <div className={`w-2 h-2 rounded-full ${positions.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${formData.type ? 'bg-green-500' : 'bg-line-strong'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${formData.season && formData.surface && formData.category ? 'bg-green-500' : 'bg-line-strong'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${formData.startDate && formData.endDate && formData.location ? 'bg-green-500' : 'bg-line-strong'}`}></div>
+                <div className={`w-2 h-2 rounded-full ${positions.length > 0 ? 'bg-green-500' : 'bg-line-strong'}`}></div>
               </div>
               <span className="text-sm text-content-subtle">Progreso</span>
           </div>

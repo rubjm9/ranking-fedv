@@ -259,7 +259,11 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
             domain={metric === 'position' ? ['dataMin - 1', 'dataMax + 1'] : [0, 'auto']}
           />
           <Tooltip content={<CustomTooltip />} />
-          {isComparing && <Legend />}
+          {isComparing && (
+            <Legend
+              formatter={(value) => <span className="text-content-muted">{value}</span>}
+            />
+          )}
           
           {useDynamicData ? (
             <>

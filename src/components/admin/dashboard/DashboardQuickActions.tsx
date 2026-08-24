@@ -22,7 +22,7 @@ const quickActions = [
     description: 'Subir resultados desde CSV/Excel',
     icon: Upload,
     href: '/admin/import-export',
-    iconClass: 'bg-accent-100 dark:bg-accent-950/50 text-accent-700',
+    iconClass: 'bg-accent-100 dark:bg-accent-950/50 text-accent-700 dark:text-accent-300',
   },
   {
     name: 'Configuración',

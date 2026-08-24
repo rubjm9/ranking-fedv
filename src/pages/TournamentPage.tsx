@@ -536,7 +536,7 @@ const TournamentPage = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-content-muted">{count} equipos</span>
-                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                    <div className="w-20 bg-line rounded-full h-2">
                       <div
                         className="bg-primary-600 h-2 rounded-full"
                         style={{ width: `${(count as number / (positions?.length || 1)) * 100}%` }}

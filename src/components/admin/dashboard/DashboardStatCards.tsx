@@ -30,11 +30,11 @@ const DashboardStatCards: React.FC<DashboardStatCardsProps> = ({ items, isLoadin
           <div key={index} className="card animate-pulse">
             <div className="flex items-center justify-between">
               <div className="flex-1 space-y-2">
-                <div className="h-4 bg-secondary-200 rounded w-2/3" />
-                <div className="h-8 bg-secondary-200 rounded w-1/2" />
+                <div className="h-4 bg-line rounded w-2/3" />
+                <div className="h-8 bg-line rounded w-1/2" />
                 <div className="h-3 bg-surface-muted rounded w-3/4" />
               </div>
-              <div className="w-12 h-12 bg-secondary-200 rounded-lg" />
+              <div className="w-12 h-12 bg-line rounded-lg" />
             </div>
           </div>
         ))}

@@ -21,7 +21,7 @@ const TableSkeleton: React.FC<TableSkeletonProps> = ({
             <tr>
               {Array.from({ length: columns }).map((_, i) => (
                 <th key={i} className="px-6 py-3">
-                  <div className="h-4 bg-slate-200 rounded w-24 animate-pulse" />
+                  <div className="h-4 bg-line rounded w-24 animate-pulse" />
                 </th>
               ))}
             </tr>
@@ -33,11 +33,11 @@ const TableSkeleton: React.FC<TableSkeletonProps> = ({
                   <td key={colIndex} className="px-6 py-4">
                     {showLeadingAvatar && colIndex === 0 ? (
                       <div className="flex items-center gap-3 animate-pulse">
-                        <div className="h-8 w-8 bg-slate-200 rounded-full flex-shrink-0" />
-                        <div className="h-4 bg-slate-200 rounded w-40" />
+                        <div className="h-8 w-8 bg-line rounded-full flex-shrink-0" />
+                        <div className="h-4 bg-line rounded w-40" />
                       </div>
                     ) : (
-                      <div className="h-4 bg-slate-200 rounded w-full animate-pulse" />
+                      <div className="h-4 bg-line rounded w-full animate-pulse" />
                     )}
                   </td>
                 ))}

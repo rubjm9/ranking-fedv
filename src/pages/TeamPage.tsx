@@ -354,7 +354,7 @@ const TeamPage = () => {
                     <span>Coeficiente</span>
                     <span>{team.region?.coefficient}x</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-line rounded-full h-2">
                     <div
                       className="bg-primary-600 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(100, ((team.region?.coefficient || 0) / 1.2) * 100)}%` }}

@@ -29,7 +29,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
         <div className="ml-4">
           <p className="text-sm font-medium text-content-muted">{label}</p>
           {isLoading ? (
-            <div className="h-8 w-16 bg-slate-200 rounded animate-pulse mt-1" />
+            <div className="h-8 w-16 bg-line rounded animate-pulse mt-1" />
           ) : (
             <>
               <p className="text-2xl font-bold text-content">{value}</p>

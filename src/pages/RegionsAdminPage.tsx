@@ -274,7 +274,7 @@ const RegionsAdminPage: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap border-r border-line">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center">
                           <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-300" />
                         </div>
                       </div>

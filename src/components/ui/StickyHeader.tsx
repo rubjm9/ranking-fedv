@@ -90,7 +90,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
                     {tab.badge !== undefined && (
                       <span
                         className={`ml-1 px-1.5 py-0.5 text-xs rounded-full ${
-                          isActive ? 'bg-accent-100 dark:bg-accent-950/50 text-accent-800' : 'bg-slate-200 text-content-muted'
+                          isActive ? 'bg-accent-100 dark:bg-accent-950/50 text-accent-800 dark:text-accent-300' : 'bg-line text-content-muted'
                         }`}
                       >
                         {tab.badge}

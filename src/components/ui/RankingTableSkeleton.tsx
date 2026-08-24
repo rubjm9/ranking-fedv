@@ -16,21 +16,21 @@ const RankingTableSkeleton: React.FC<RankingTableSkeletonProps> = ({
           <thead className="bg-surface-muted">
             <tr>
               <th className="px-4 py-3 w-16">
-                <div className="h-3 bg-slate-200 rounded w-12" />
+                <div className="h-3 bg-line rounded w-12" />
               </th>
               <th className="px-4 py-3 w-16">
-                <div className="h-3 bg-slate-200 rounded w-12" />
+                <div className="h-3 bg-line rounded w-12" />
               </th>
               <th className="px-4 py-3">
-                <div className="h-3 bg-slate-200 rounded w-16" />
+                <div className="h-3 bg-line rounded w-16" />
               </th>
               {Array.from({ length: seasonColumns }).map((_, i) => (
                 <th key={i} className="px-4 py-3 w-20">
-                  <div className="h-3 bg-slate-200 rounded w-14 ml-auto" />
+                  <div className="h-3 bg-line rounded w-14 ml-auto" />
                 </th>
               ))}
               <th className="px-4 py-3 w-20">
-                <div className="h-3 bg-slate-200 rounded w-12 ml-auto" />
+                <div className="h-3 bg-line rounded w-12 ml-auto" />
               </th>
             </tr>
           </thead>
@@ -38,24 +38,24 @@ const RankingTableSkeleton: React.FC<RankingTableSkeletonProps> = ({
             {Array.from({ length: rows }).map((_, rowIndex) => (
               <tr key={rowIndex}>
                 <td className="px-4 py-3">
-                  <div className="h-4 bg-slate-200 rounded w-6" />
+                  <div className="h-4 bg-line rounded w-6" />
                 </td>
                 <td className="px-4 py-3">
-                  <div className="h-4 bg-slate-200 rounded w-8" />
+                  <div className="h-4 bg-line rounded w-8" />
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-slate-200 rounded-full flex-shrink-0" />
-                    <div className="h-4 bg-slate-200 rounded w-32" />
+                    <div className="h-8 w-8 bg-line rounded-full flex-shrink-0" />
+                    <div className="h-4 bg-line rounded w-32" />
                   </div>
                 </td>
                 {Array.from({ length: seasonColumns }).map((_, colIndex) => (
                   <td key={colIndex} className="px-4 py-3">
-                    <div className="h-4 bg-slate-200 rounded w-10 ml-auto" />
+                    <div className="h-4 bg-line rounded w-10 ml-auto" />
                   </td>
                 ))}
                 <td className="px-4 py-3">
-                  <div className="h-4 bg-slate-200 rounded w-12 ml-auto" />
+                  <div className="h-4 bg-line rounded w-12 ml-auto" />
                 </td>
               </tr>
             ))}

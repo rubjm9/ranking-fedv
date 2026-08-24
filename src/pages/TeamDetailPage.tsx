@@ -209,7 +209,7 @@ const TeamDetailPage: React.FC = () => {
   const getPositionColor = (position: number) => {
     if (position === 1) return 'bg-yellow-100 dark:bg-yellow-950/50 text-yellow-800 dark:text-yellow-300'
     if (position === 2) return 'bg-surface-muted text-content'
-    if (position === 3) return 'bg-orange-100 text-orange-800 dark:text-orange-300'
+    if (position === 3) return 'bg-orange-100 dark:bg-orange-950/50 text-orange-800 dark:text-orange-300'
     return 'bg-brand-subtle text-brand-strong'
   }
 
@@ -621,7 +621,7 @@ const TeamDetailPage: React.FC = () => {
                                   cell === 1
                                     ? 'bg-amber-400 text-content border-amber-500'
                                     : cell === 2
-                                    ? 'bg-slate-300 text-content border-slate-400'
+                                    ? 'bg-line-strong text-content border-slate-400'
                                     : 'bg-amber-700 text-white border-amber-800'
                                 }`}
                                 title={`${cell}º puesto`}

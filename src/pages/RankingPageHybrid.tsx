@@ -1026,8 +1026,8 @@ const RankingPageHybrid: React.FC = () => {
                 onClick={() => setShowAllTeams(!showAllTeams)}
                 className={`px-3 py-1 rounded-lg text-sm font-medium ${
                   showAllTeams
-                    ? 'bg-blue-100 text-blue-700 dark:text-blue-300 border border-blue-200'
-                    : 'bg-surface-muted text-content-muted border border-line hover:bg-gray-200'
+                    ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200'
+                    : 'bg-surface-muted text-content-muted border border-line hover:bg-line'
                 }`}
               >
                 {showAllTeams ? 'Mostrar solo top 20' : 'Mostrar todos los equipos'}
@@ -1073,7 +1073,7 @@ const RankingPageHybrid: React.FC = () => {
                 {selectedTeamsForAnalysis.map(teamId => {
                   const team = rankingData?.find(t => t.team_id === teamId)
                   return team ? (
-                    <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 dark:text-blue-300">
+                    <span key={teamId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300">
                       <TeamLogo name={team.team_name} size="sm" />
                       <span className="ml-1">{team.team_name}</span>
                       <button
@@ -1097,8 +1097,8 @@ const RankingPageHybrid: React.FC = () => {
                   onClick={() => setAnalysisView('points')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'points'
-                      ? 'bg-blue-100 text-blue-700 dark:text-blue-300 border border-blue-200'
-                      : 'bg-surface-muted text-content-muted border border-line hover:bg-gray-200'
+                      ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200'
+                      : 'bg-surface-muted text-content-muted border border-line hover:bg-line'
                   }`}
                 >
                   Evolución de Puntos
@@ -1107,8 +1107,8 @@ const RankingPageHybrid: React.FC = () => {
                   onClick={() => setAnalysisView('positions')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium ${
                     analysisView === 'positions'
-                      ? 'bg-blue-100 text-blue-700 dark:text-blue-300 border border-blue-200'
-                      : 'bg-surface-muted text-content-muted border border-line hover:bg-gray-200'
+                      ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200'
+                      : 'bg-surface-muted text-content-muted border border-line hover:bg-line'
                   }`}
                 >
                   Evolución de Posiciones
@@ -1256,7 +1256,7 @@ const RankingPageHybrid: React.FC = () => {
                     {performers.map((performer, index) => (
                       <div key={performer.team_id} className="flex items-center justify-between bg-surface rounded-lg p-3">
                         <div className="flex items-center">
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 dark:text-blue-300 font-semibold text-sm mr-3">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-600 dark:text-blue-300 font-semibold text-sm mr-3">
                             {index + 1}
                           </div>
                           <TeamLogo name={performer.team_name} size="sm" />

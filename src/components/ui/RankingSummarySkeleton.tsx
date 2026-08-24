@@ -6,9 +6,9 @@ const RankingSummarySkeleton: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-4">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="bg-surface rounded-lg border border-line shadow-sm p-4 h-28">
-            <div className="h-3 bg-slate-200 rounded w-20 mb-3" />
-            <div className="h-5 bg-slate-200 rounded w-full mb-2" />
-            <div className="h-3 bg-slate-200 rounded w-16" />
+            <div className="h-3 bg-line rounded w-20 mb-3" />
+            <div className="h-5 bg-line rounded w-full mb-2" />
+            <div className="h-3 bg-line rounded w-16" />
           </div>
         ))}
       </div>
@@ -23,10 +23,10 @@ const RankingSummarySkeleton: React.FC = () => {
             <div className="p-4 space-y-3">
               {Array.from({ length: 5 }).map((_, j) => (
                 <div key={j} className="flex items-center gap-3">
-                  <div className="h-6 w-6 bg-slate-200 rounded-full" />
-                  <div className="h-8 w-8 bg-slate-200 rounded-full" />
-                  <div className="flex-1 h-4 bg-slate-200 rounded" />
-                  <div className="h-4 bg-slate-200 rounded w-12" />
+                  <div className="h-6 w-6 bg-line rounded-full" />
+                  <div className="h-8 w-8 bg-line rounded-full" />
+                  <div className="flex-1 h-4 bg-line rounded" />
+                  <div className="h-4 bg-line rounded w-12" />
                 </div>
               ))}
             </div>
