@@ -197,7 +197,7 @@ const AdminLayout: React.FC = () => {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 lg:ml-0">
+      <div className="min-w-0 flex-1 lg:ml-0">
         {/* Top header */}
         <div className="sticky top-0 z-10 bg-surface shadow-sm border-b border-line">
           <div className="flex h-16 items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">

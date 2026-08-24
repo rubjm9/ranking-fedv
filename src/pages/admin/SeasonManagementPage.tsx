@@ -401,7 +401,7 @@ const SeasonManagementPage: React.FC = () => {
           <button
             onClick={handleCloseSeason}
             disabled={isLoading || !selectedSeason}
-            className="flex items-center justify-center space-x-2 px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="flex items-center justify-center space-x-2 px-4 py-3 bg-orange-700 text-white rounded-lg hover:bg-orange-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             <Lock className="w-4 h-4" />
             <span>Cerrar temporada</span>

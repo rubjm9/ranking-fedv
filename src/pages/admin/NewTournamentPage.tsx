@@ -1058,11 +1058,11 @@ const NewTournamentPage: React.FC = () => {
             <h3 className="text-lg font-medium text-content mb-4">Posiciones del Torneo</h3>
             
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm text-content-muted">
                   Usa los botones para agregar posiciones individualmente o pegar un listado completo
                 </p>
-                <div className="flex items-center space-x-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => setShowPasteModal(true)}
@@ -1074,7 +1074,7 @@ const NewTournamentPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={addPosition}
-                    className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                    className="inline-flex min-h-[44px] touch-manipulation items-center gap-2 rounded-xl bg-green-700 px-4 py-2 text-white shadow-sm transition-all duration-200 hover:bg-green-800 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-green-600"
                   >
                     <Plus className="h-4 w-4" />
                     <span>Agregar Posición</span>

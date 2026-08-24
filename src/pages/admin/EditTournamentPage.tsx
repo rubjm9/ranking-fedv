@@ -720,10 +720,10 @@ const EditTournamentPage: React.FC = () => {
               <p className="text-content-muted">Modificar información del torneo</p>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
               onClick={handleDuplicateTournament}
-              className="flex items-center space-x-2 px-4 py-2 text-sm text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 text-sm text-white bg-green-700 rounded-md hover:bg-green-800 transition-colors"
             >
               <Copy className="h-4 w-4" />
               <span>Duplicar</span>
@@ -1155,7 +1155,7 @@ const EditTournamentPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={addPosition}
-                  className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  className="flex items-center space-x-2 px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Agregar Posición</span>

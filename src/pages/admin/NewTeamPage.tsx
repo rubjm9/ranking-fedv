@@ -538,7 +538,8 @@ const NewTeamPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleCheckboxChange('hasDifferentNames', !formData.hasDifferentNames)}
-                  className="flex items-center space-x-3 text-left"
+                  aria-pressed={formData.hasDifferentNames}
+                  className="flex min-h-[44px] touch-manipulation items-center space-x-3 rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 >
                   {formData.hasDifferentNames ? (
                     <CheckSquare className="h-5 w-5 text-link" />

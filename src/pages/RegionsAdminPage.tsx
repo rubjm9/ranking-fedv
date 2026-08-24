@@ -177,7 +177,7 @@ const RegionsAdminPage: React.FC = () => {
             <button
               onClick={handleRecalculateCoefficients}
               disabled={isRecalculating}
-              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 disabled:opacity-50 transition-colors"
             >
               {isRecalculating ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
