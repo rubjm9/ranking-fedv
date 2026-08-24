@@ -16,7 +16,7 @@ import EmptyState from '@/components/ui/EmptyState'
 import RankingTableSkeleton from '@/components/ui/RankingTableSkeleton'
 import dynamicRankingService from '@/services/dynamicRankingService'
 import teamSeasonRankingsService from '@/services/teamSeasonRankingsService'
-import RankingCardList from '@/components/ranking/RankingCardList'
+import RankingTable from '@/components/ranking/RankingTable'
 import ViewModeToggle from '@/components/ui/ViewModeToggle'
 import { useMostRecentSeasons } from '@/hooks/useMostRecentSeasons'
 import { useViewMode } from '@/hooks/useViewMode'
@@ -211,6 +211,16 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
 const VALID_CATEGORY_TABS = ['beach_mixed', 'beach_open', 'beach_women', 'grass_mixed', 'grass_open', 'grass_women'] as const
 
 type CombinedType = 'all' | 'beach' | 'grass' | 'mixed' | 'open' | 'women'
+
+/** Las seis modalidades que suma el ranking global. */
+const TODAS_LAS_MODALIDADES = [
+  'beach_mixed',
+  'beach_open',
+  'beach_women',
+  'grass_mixed',
+  'grass_open',
+  'grass_women',
+]
 
 const SLUG_TO_TAB: Record<string, string> = {
   'resumen': 'summary',
@@ -2931,6 +2941,12 @@ const RankingPageNew: React.FC = () => {
     const getSeasonPoints = (team: any, season: string) =>
       getSeasonPointsForRanking(team, season, rankingTypeToUse)
 
+    // El desglose por torneo debe cubrir exactamente lo que suma la celda.
+    const modalidadesDeLaVistaGlobal =
+      selectedCombinedType === 'all'
+        ? TODAS_LAS_MODALIDADES
+        : COMBINED_SURFACES[selectedCombinedType]
+
     const rankingDataWithRecalculatedPoints = rankingTypeToUse === 'current'
       ? applyPositionChangesAfterSort(
           recalculateRankingPoints(finalRankingData || [], currentReferenceSeason, 'current'),
@@ -3163,103 +3179,18 @@ const RankingPageNew: React.FC = () => {
             style={{ maxHeight: rankingTableMaxHeight }}
             onTransitionEnd={() => { if (isCollapsing) setIsCollapsing(false) }}
           >
-            {rankingViewMode === 'cards' ? (
-              <RankingCardList
-                teams={rankingDataWithRecalculatedPoints?.slice(0, (showAllResults || isCollapsing) ? undefined : 10) || []}
-                seasons={seasons}
-                getSeasonPoints={getSeasonPoints}
-                getRankIcon={getRankIcon}
-                getChangeIcon={getChangeIcon}
-                getChangeText={getChangeText}
-                showCoefficients={rankingTypeToUse !== 'historical'}
-                showTeamsCount={rankingTypeToUse === 'clubs'}
-              />
-            ) : (
-            <div className="data-table-wrapper">
-            <table className="ranking-table-sticky w-full">
-            <thead className="bg-surface-muted">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">Posición</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">Cambio</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">Equipo</th>
-                {seasons.map((season, index) => {
-                  const coefficients = [1.0, 0.8, 0.5, 0.2]
-                  const year1 = season.split('-')[0]
-                  const year2 = season.split('-')[1]
-                  const coefficient = coefficients[index] || 0
-                  
-                  return (
-                    <th key={season} className="px-4 py-3 text-right text-xs font-medium text-content-subtle uppercase tracking-wider">
-                      <div className="flex flex-col">
-                        <span>{year1}/{year2}</span>
-                        {rankingTypeToUse !== 'historical' && (
-                          <span className="text-xs text-content-subtle font-normal">{coefficient}</span>
-                        )}
-                      </div>
-                    </th>
-                  )
-                })}
-                <th className="px-4 py-3 text-right text-xs font-medium text-content-subtle uppercase tracking-wider">
-                  Pts <span className="text-primary-500">?</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-surface divide-y divide-line">
-              {rankingDataWithRecalculatedPoints?.slice(0, (showAllResults || isCollapsing) ? undefined : 10).map((team, index) => {
-                const isEvenRow = index % 2 === 1
-                
-                return (
-                  <tr key={team.team_id} className={`hover:bg-surface-muted ${isEvenRow ? 'bg-surface-muted' : 'bg-surface'}`}>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-content">
-                      <div className="flex items-center">
-                        {getRankIcon(index + 1)}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        {getChangeIcon(team.position_change || 0)}
-                        <span className={`ml-1 text-sm font-medium ${
-                          (team.position_change || 0) > 0 ? 'text-green-600 dark:text-green-300' : 
-                          (team.position_change || 0) < 0 ? 'text-red-600 dark:text-red-300' : 'text-content-subtle'
-                        }`}>
-                          {getChangeText(team.position_change || 0)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
-                        <div className="ml-3">
-                          <RankingTeamLink
-                            team={team}
-                            className="text-sm font-medium text-content hover:text-link transition-colors"
-                          >
-                            {team.team_name}
-                          </RankingTeamLink>
-                          {team.region_name && (
-                            <div className="text-xs text-content-subtle">{team.region_name}</div>
-                          )}
-                          {rankingTypeToUse === 'clubs' && team.teams_count && team.teams_count > 1 && (
-                            <div className="text-xs text-link">{team.teams_count} equipos</div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                      {seasons.map((season) => (
-                        <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-content text-right">
-                          {(getSeasonPoints(team, season) || 0).toFixed(2)}
-                        </td>
-                      ))}
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-content text-right">
-                        {team.total_points?.toFixed(2) || '0.00'}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-            </div>
-            )}
+            <RankingTable
+              teams={rankingDataWithRecalculatedPoints?.slice(0, (showAllResults || isCollapsing) ? undefined : 10) || []}
+              seasons={seasons}
+              coefficients={RANKING_COEFFICIENTS}
+              getSeasonPoints={getSeasonPoints}
+              getRankIcon={getRankIcon}
+              getChangeIcon={getChangeIcon}
+              getChangeText={getChangeText}
+              rankingType={rankingTypeToUse}
+              viewMode={rankingViewMode}
+              modalities={modalidadesDeLaVistaGlobal}
+            />
           </div>
 
         {/* Footer estilo UEFA */}
@@ -3882,7 +3813,8 @@ const RankingPageNew: React.FC = () => {
             </div>
           
             {/* Controles de tabla estilo UEFA */}
-            <div className="flex items-center justify-end">
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              <ViewModeToggle value={rankingViewMode} onChange={setRankingViewMode} />
                 <div className="flex items-center space-x-2">
                 <label className="text-sm font-medium text-content-muted">Temporada:</label>
                   <select 
@@ -3908,141 +3840,18 @@ const RankingPageNew: React.FC = () => {
           style={{ maxHeight: rankingTableMaxHeight }}
           onTransitionEnd={() => { if (isCollapsing) setIsCollapsing(false) }}
         >
-          <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-surface-muted">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">Posición</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">Cambio</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">Equipo</th>
-                {seasons.map((season, index) => {
-                  const year1 = season.split('-')[0]
-                  const year2 = season.split('-')[1]
-                  const coefficient = coefficients[index] || 0
-                  
-                  return (
-                    <th key={season} className="px-4 py-3 text-right text-xs font-medium text-content-subtle uppercase tracking-wider">
-                      <div className="flex flex-col">
-                        <span>{year1}/{year2}</span>
-                        {rankingTypeToUse !== 'historical' && (
-                          <span className="text-xs text-content-subtle font-normal">{coefficient}</span>
-                        )}
-                      </div>
-                    </th>
-                  )
-                })}
-                <th className="px-4 py-3 text-right text-xs font-medium text-content-subtle uppercase tracking-wider">
-                  Pts <span className="text-primary-500">?</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-surface divide-y divide-line">
-              {rankedTeamsWithPoints.slice(0, (showAllResults || isCollapsing) ? undefined : 10).map((team, index) => {
-                const isEvenRow = index % 2 === 1
-                
-                return (
-                  <tr key={team.team_id} className={`hover:bg-surface-muted ${isEvenRow ? 'bg-surface-muted' : 'bg-surface'}`}>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-content">
-                      <div className="flex items-center">
-                        {getRankIcon(index + 1)}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        {getChangeIcon(team.position_change || 0)}
-                        <span className={`ml-1 text-sm font-medium ${
-                          (team.position_change || 0) > 0 ? 'text-green-600 dark:text-green-300' : 
-                          (team.position_change || 0) < 0 ? 'text-red-600 dark:text-red-300' : 'text-content-subtle'
-                        }`}>
-                          {getChangeText(team.position_change || 0)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
-                        <div className="ml-3">
-                          <RankingTeamLink
-                            team={team}
-                            className="text-sm font-medium text-content hover:text-link transition-colors"
-                          >
-                            {team.team_name}
-                          </RankingTeamLink>
-                          {team.region_name && (
-                            <div className="text-xs text-content-subtle">{team.region_name}</div>
-                          )}
-                          {rankingTypeToUse === 'clubs' && team.teams_count && team.teams_count > 1 && (
-                            <div className="text-xs text-link">{team.teams_count} equipos</div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    {seasons.map((season) => (
-                      <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-content text-right">
-                        {getSeasonPoints(team, season).toFixed(2)}
-                      </td>
-                    ))}
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-content text-right">
-                      {team.total_points?.toFixed(2) || '0.00'}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-            {showOutOfRanking && (
-              <tbody className="bg-surface divide-y divide-line">
-                <tr className="bg-surface-muted">
-                  <td
-                    colSpan={3 + seasons.length + 1}
-                    className="px-4 py-3 border-t border-line"
-                  >
-                    <p className="text-sm font-medium text-content-muted italic">Fuera del ranking</p>
-                    <p className="text-xs text-content-subtle mt-1">
-                      Equipos que obtuvieron puntos en esta categoría, pero ya no suman porque sus torneos quedan fuera de la ventana de 4 temporadas.
-                    </p>
-                  </td>
-                </tr>
-                {(showAllResults || isCollapsing ? outOfRankingTeamsForView : outOfRankingTeamsForView.slice(0, 10)).map((team, index) => {
-                  const isEvenRow = index % 2 === 1
-
-                  return (
-                    <tr key={team.team_id} className={`hover:bg-surface-muted ${isEvenRow ? 'bg-surface-muted' : 'bg-surface'}`}>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-content-subtle">—</td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-content-subtle">—</td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <TeamLogo name={team.team_name} logo={team.logo} size="sm" />
-                          <div className="ml-3">
-                            <RankingTeamLink
-                            team={team}
-                            className="text-sm font-medium text-content hover:text-link transition-colors"
-                          >
-                            {team.team_name}
-                          </RankingTeamLink>
-                            {team.region_name && (
-                              <div className="text-xs text-content-subtle">{team.region_name}</div>
-                            )}
-                            <div className="text-xs text-content-subtle">
-                              Última temporada con puntos: {formatSeasonDisplay(team.last_active_season)}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      {seasons.map((season) => (
-                        <td key={season} className="px-4 py-4 whitespace-nowrap text-sm text-content-subtle text-right">
-                          0.00
-                        </td>
-                      ))}
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-content-subtle text-right">
-                        0.00
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            )}
-          </table>
-          </div>
+          <RankingTable
+            teams={rankedTeamsWithPoints.slice(0, (showAllResults || isCollapsing) ? undefined : 10)}
+            seasons={seasons}
+            coefficients={coefficients}
+            getSeasonPoints={getSeasonPoints}
+            getRankIcon={getRankIcon}
+            getChangeIcon={getChangeIcon}
+            getChangeText={getChangeText}
+            rankingType={rankingTypeToUse}
+            viewMode={rankingViewMode}
+            modalities={[activeTab]}
+          />
         </div>
 
         {/* Footer estilo UEFA */}

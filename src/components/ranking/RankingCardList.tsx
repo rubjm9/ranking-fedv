@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import TeamLogo from '@/components/ui/TeamLogo'
 import RankingTeamLink from '@/components/ranking/RankingTeamLink'
+import PointsBreakdown from '@/components/ranking/PointsBreakdown'
 import { cn } from '@/utils/cn'
 
 interface RankingCardListProps {
@@ -15,6 +16,8 @@ interface RankingCardListProps {
   /** En histórico no se muestran los coeficientes por temporada. */
   showCoefficients?: boolean
   showTeamsCount?: boolean
+  /** Modalidades que suma cada temporada, para el desglose por torneo. */
+  modalities?: string[]
 }
 
 const COEFFICIENTS = [1.0, 0.8, 0.5, 0.2]
@@ -41,6 +44,7 @@ const RankingCardList: React.FC<RankingCardListProps> = ({
   getChangeText,
   showCoefficients = true,
   showTeamsCount = false,
+  modalities = [],
 }) => {
   const [expanded, setExpanded] = useState<string | null>(null)
 
@@ -123,7 +127,19 @@ const RankingCardList: React.FC<RankingCardListProps> = ({
                       )}
                     </dt>
                     <dd className="text-sm tabular-nums text-content">
-                      {(getSeasonPoints(team, season) || 0).toFixed(2)}
+                      {modalities.length > 0 ? (
+                        <PointsBreakdown
+                          teamId={team.team_id}
+                          teamName={team.team_name}
+                          season={season}
+                          modalities={modalities}
+                          regionId={team.region_id}
+                          value={getSeasonPoints(team, season) || 0}
+                          className="justify-start"
+                        />
+                      ) : (
+                        (getSeasonPoints(team, season) || 0).toFixed(2)
+                      )}
                     </dd>
                   </div>
                 ))}
