@@ -457,6 +457,9 @@ const RegionDetailPage: React.FC = () => {
     return (
       <PageContainer>
         <DetailHeaderSkeleton />
+        <div className="sr-only" role="status">
+          Cargando región
+        </div>
       </PageContainer>
     )
   }
@@ -475,9 +478,11 @@ const RegionDetailPage: React.FC = () => {
 
   if (isLoading || !region) {
     return (
-      <PageContainer className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-link" />
-        <span className="ml-3 text-content-muted">Cargando región...</span>
+      <PageContainer>
+        <DetailHeaderSkeleton />
+        <div className="sr-only" role="status">
+          Cargando región
+        </div>
       </PageContainer>
     )
   }

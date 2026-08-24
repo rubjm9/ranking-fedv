@@ -244,7 +244,7 @@ const TeamDetailPage: React.FC = () => {
       <>
         <DetailHeaderSkeleton variant="team" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-          <TabsSkeleton count={5} />
+          <TabsSkeleton count={6} />
           <TableSkeleton rows={6} columns={5} showLeadingAvatar />
         </div>
       </>

@@ -2,7 +2,7 @@ import React from 'react'
 
 const ContentGridSkeleton: React.FC = () => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 animate-pulse">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 animate-pulse" role="status" aria-busy="true" aria-label="Cargando contenido">
       <div className="lg:col-span-2 bg-surface rounded-lg shadow-sm border border-line p-6 space-y-4">
         <div className="h-6 bg-line rounded w-40" />
         <div className="h-4 bg-line rounded w-full" />

@@ -14,8 +14,13 @@ const TableSkeleton: React.FC<TableSkeletonProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`bg-surface rounded-lg shadow-sm border border-line overflow-hidden ${className}`}>
-      <div className="overflow-x-auto">
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label="Cargando tabla"
+      className={`bg-surface rounded-lg shadow-sm border border-line overflow-hidden ${className}`}
+    >
+      <div className="data-table-wrapper">
         <table className="min-w-full divide-y divide-line">
           <thead className="bg-surface-muted">
             <tr>

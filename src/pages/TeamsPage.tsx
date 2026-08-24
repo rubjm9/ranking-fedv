@@ -339,7 +339,7 @@ const TeamsPage = () => {
 
       {/* Contenido: Tabla o Cards */}
       {isLoading ? (
-        viewMode === 'table' ? <TableSkeleton rows={5} columns={4} /> : <CardSkeleton count={6} />
+        viewMode === 'table' ? <TableSkeleton rows={10} columns={4} /> : <CardSkeleton count={10} />
       ) : filteredAndSortedTeams.length === 0 ? (
         <EmptyState
           icon={UsersRound}

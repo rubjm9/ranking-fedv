@@ -2,7 +2,7 @@ import React from 'react'
 
 const RankingSummarySkeleton: React.FC = () => {
   return (
-    <div className="space-y-8 animate-pulse">
+    <div className="space-y-8 animate-pulse" role="status" aria-busy="true" aria-label="Cargando resumen del ranking">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-4">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="bg-surface rounded-lg border border-line shadow-sm p-4 h-28">
@@ -13,7 +13,7 @@ const RankingSummarySkeleton: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="bg-surface rounded-xl border border-line shadow-sm overflow-hidden">
             <div className="bg-slate-800 px-4 py-3 flex items-center justify-between">

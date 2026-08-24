@@ -10,7 +10,7 @@ const RankingTableSkeleton: React.FC<RankingTableSkeletonProps> = ({
   seasonColumns = 4,
 }) => {
   return (
-    <div className="bg-surface rounded-lg shadow-sm border border-line overflow-hidden animate-pulse">
+    <div className="bg-surface rounded-lg shadow-sm border border-line overflow-hidden animate-pulse" role="status" aria-busy="true" aria-label="Cargando ranking">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-line">
           <thead className="bg-surface-muted">

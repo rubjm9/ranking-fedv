@@ -7,7 +7,7 @@ interface FormSkeletonProps {
 
 const FormSkeleton: React.FC<FormSkeletonProps> = ({ fields = 6, className = '' }) => {
   return (
-    <div className={`space-y-6 animate-pulse ${className}`}>
+    <div className={`space-y-6 animate-pulse ${className}`} role="status" aria-busy="true" aria-label="Cargando formulario">
       {Array.from({ length: fields }).map((_, i) => (
         <div key={i} className="space-y-2">
           <div className="h-4 bg-line rounded w-24" />

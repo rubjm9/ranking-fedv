@@ -27,7 +27,7 @@ const DetailHeaderSkeleton: React.FC<DetailHeaderSkeletonProps> = ({ variant = '
   if (variant === 'team') {
     return (
       <PageHeroShell className="mb-0 border-b border-slate-800" innerClassName="pb-6">
-        <div className="animate-pulse">
+        <div className="animate-pulse" role="status" aria-busy="true" aria-label="Cargando información">
           <div className="mb-6 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <div className="h-4 w-16 rounded bg-white/10" />
@@ -62,7 +62,7 @@ const DetailHeaderSkeleton: React.FC<DetailHeaderSkeletonProps> = ({ variant = '
 
   return (
     <PageHeroShell innerClassName="pb-6">
-      <div className="animate-pulse">
+      <div className="animate-pulse" role="status" aria-busy="true" aria-label="Cargando información">
         <div className="mb-3 flex items-center gap-2">
           <div className="h-4 w-16 rounded bg-white/10" />
           <div className="h-4 w-4 rounded bg-white/10" />

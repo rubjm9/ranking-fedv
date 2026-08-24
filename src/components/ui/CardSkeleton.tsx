@@ -6,7 +6,7 @@ interface CardSkeletonProps {
 
 const CardSkeleton: React.FC<CardSkeletonProps> = ({ count = 3 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" role="status" aria-busy="true" aria-label="Cargando tarjetas">
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="bg-surface rounded-lg shadow p-6 animate-pulse">
           <div className="flex items-center space-x-4">
