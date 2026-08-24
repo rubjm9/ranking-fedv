@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { Mail, MapPin } from 'lucide-react'
 import { useAuth } from '@/contexts/SimpleAuthContext'
+import { isAnalyticsConfigured, openCookieNotice } from '@/lib/analytics'
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear()
@@ -106,6 +107,15 @@ const Footer: React.FC = () => {
                   {label}
                 </Link>
               ))}
+              {isAnalyticsConfigured() && (
+                <button
+                  type="button"
+                  onClick={openCookieNotice}
+                  className="inline-flex items-center min-h-[44px] touch-manipulation text-slate-300 hover:text-white text-sm transition-colors duration-200"
+                >
+                  Cookies
+                </button>
+              )}
             </div>
           </div>
         </div>

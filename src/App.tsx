@@ -52,6 +52,7 @@ import RegionLegacyRedirect from '@/pages/RegionLegacyRedirect'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import AdminOnlyRoute from '@/components/auth/AdminOnlyRoute'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
+import AnalyticsRoot from '@/components/layout/AnalyticsRoot'
 
 // Configurar React Query
 const queryClient = new QueryClient({
@@ -70,6 +71,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
         <AuthProvider>
+          <AnalyticsRoot />
           <Routes>
             {/* Rutas públicas */}
             <Route path="/" element={<PublicLayout />}>

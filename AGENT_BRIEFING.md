@@ -51,7 +51,9 @@ npm test               # Vitest (no corre en CI, ver §10)
 ```
 
 Variables de entorno (ver `.env.example`): credenciales de Supabase
-(`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, etc.). Scripts de mantenimiento
+(`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, etc.) y, opcionalmente,
+`VITE_GA_MEASUREMENT_ID` para Google Analytics 4 (carga al navegar, con aviso
+informativo; ver `src/lib/analytics.ts`). Scripts de mantenimiento
 puntual leen `.env.local`:
 
 ```bash

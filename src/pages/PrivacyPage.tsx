@@ -23,6 +23,16 @@ const PrivacyPage: React.FC = () => {
           restringido al personal autorizado.
         </p>
         <h2 className="font-display text-xl font-semibold text-content mt-6 mb-3">
+          Cookies y analítica
+        </h2>
+        <p className="text-content-muted">
+          Este sitio usa Google Analytics 4 para elaborar estadísticas de uso
+          de las páginas públicas (por ejemplo, ranking, equipos o torneos).
+          La navegación implica la aceptación de estas cookies, que se usan
+          únicamente con ese fin. Las rutas del panel de administración no
+          se envían a Analytics.
+        </p>
+        <h2 className="font-display text-xl font-semibold text-content mt-6 mb-3">
           Contacto
         </h2>
         <p className="text-content-muted">
