@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/contexts/SimpleAuthContext'
@@ -7,46 +8,52 @@ import AdminLayout from '@/components/layout/AdminLayout'
 // Páginas públicas
 import HomePage from '@/pages/HomePage'
 import RankingPageNew from '@/pages/RankingPageNew'
-import RankingPageHybrid from '@/pages/RankingPageHybrid'
 import TeamsPage from '@/pages/TeamsPage'
 import RegionsPage from '@/pages/RegionsPage'
 import TournamentsPage from '@/pages/TournamentsPage'
-import AboutPage from '@/pages/AboutPage'
-import NotFoundPage from '@/pages/NotFoundPage'
-import PrivacyPage from '@/pages/PrivacyPage'
-import TermsPage from '@/pages/TermsPage'
-import DiscGolfPage from '@/pages/DiscGolfPage'
 
 // Páginas de autenticación
-import LoginPage from '@/pages/LoginPage'
 
 // Páginas de administración
-import DashboardPage from '@/pages/DashboardPage'
-import TeamsAdminPage from '@/pages/TeamsAdminPage'
-import RegionsAdminPage from '@/pages/RegionsAdminPage'
-import TournamentsAdminPage from '@/pages/TournamentsAdminPage'
-import ConfigurationPage from '@/pages/admin/ConfigurationPage'
-import ImportExportPage from '@/pages/admin/ImportExportPage'
-import SeasonManagementPage from '@/pages/admin/SeasonManagementPage'
-import RankingAdminPageHybrid from '@/pages/admin/RankingAdminPageHybrid'
-import NewTeamPage from '@/pages/admin/NewTeamPage'
-import NewTournamentPage from '@/pages/admin/NewTournamentPage'
-import NewRegionPage from '@/pages/admin/NewRegionPage'
-import NewResultPage from '@/pages/admin/NewResultPage'
-import EditResultPage from '@/pages/admin/EditResultPage'
-import TournamentDetailAdminPage from '@/pages/admin/TournamentDetailAdminPage'
-import ImportResultsPage from '@/pages/admin/ImportResultsPage'
-import EditTeamPage from '@/pages/admin/EditTeamPage'
-import EditTournamentPage from '@/pages/admin/EditTournamentPage'
-import EditRegionPage from '@/pages/admin/EditRegionPage'
-import RegionDetailAdminPage from '@/pages/admin/RegionDetailAdminPage'
-import HistoricoPage from '@/pages/admin/HistoricoPage'
-import UsersAdminPage from '@/pages/admin/UsersAdminPage'
-import TeamDetailPage from '@/pages/TeamDetailPage'
 import TeamLegacyRedirect from '@/pages/TeamLegacyRedirect'
-import TournamentDetailPage from '@/pages/TournamentDetailPage'
-import RegionDetailPage from '@/pages/RegionDetailPage'
 import RegionLegacyRedirect from '@/pages/RegionLegacyRedirect'
+
+
+/*
+ * Carga bajo demanda. El panel completo (con exceljs y @dnd-kit) y las páginas
+ * de detalle salían en el chunk inicial, así que cualquier visita anónima
+ * descargaba el editor de torneos para ver una clasificación.
+ */
+const TeamDetailPage = lazy(() => import('@/pages/TeamDetailPage'))
+const RegionDetailPage = lazy(() => import('@/pages/RegionDetailPage'))
+const TournamentDetailPage = lazy(() => import('@/pages/TournamentDetailPage'))
+const AboutPage = lazy(() => import('@/pages/AboutPage'))
+const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'))
+const TermsPage = lazy(() => import('@/pages/TermsPage'))
+const DiscGolfPage = lazy(() => import('@/pages/DiscGolfPage'))
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
+const LoginPage = lazy(() => import('@/pages/LoginPage'))
+const DashboardPage = lazy(() => import('@/pages/DashboardPage'))
+const TeamsAdminPage = lazy(() => import('@/pages/TeamsAdminPage'))
+const RegionsAdminPage = lazy(() => import('@/pages/RegionsAdminPage'))
+const TournamentsAdminPage = lazy(() => import('@/pages/TournamentsAdminPage'))
+const ConfigurationPage = lazy(() => import('@/pages/admin/ConfigurationPage'))
+const ImportExportPage = lazy(() => import('@/pages/admin/ImportExportPage'))
+const SeasonManagementPage = lazy(() => import('@/pages/admin/SeasonManagementPage'))
+const RankingAdminPageHybrid = lazy(() => import('@/pages/admin/RankingAdminPageHybrid'))
+const NewTeamPage = lazy(() => import('@/pages/admin/NewTeamPage'))
+const NewTournamentPage = lazy(() => import('@/pages/admin/NewTournamentPage'))
+const NewRegionPage = lazy(() => import('@/pages/admin/NewRegionPage'))
+const NewResultPage = lazy(() => import('@/pages/admin/NewResultPage'))
+const EditResultPage = lazy(() => import('@/pages/admin/EditResultPage'))
+const TournamentDetailAdminPage = lazy(() => import('@/pages/admin/TournamentDetailAdminPage'))
+const ImportResultsPage = lazy(() => import('@/pages/admin/ImportResultsPage'))
+const EditTeamPage = lazy(() => import('@/pages/admin/EditTeamPage'))
+const EditTournamentPage = lazy(() => import('@/pages/admin/EditTournamentPage'))
+const EditRegionPage = lazy(() => import('@/pages/admin/EditRegionPage'))
+const RegionDetailAdminPage = lazy(() => import('@/pages/admin/RegionDetailAdminPage'))
+const HistoricoPage = lazy(() => import('@/pages/admin/HistoricoPage'))
+const UsersAdminPage = lazy(() => import('@/pages/admin/UsersAdminPage'))
 
 // Componentes
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
@@ -66,12 +73,26 @@ const queryClient = new QueryClient({
   },
 })
 
+
+/** Reserva alto mientras llega el chunk de la ruta, para no colapsar el layout. */
+const CargandoRuta = () => (
+  <div
+    role="status"
+    aria-busy="true"
+    aria-label="Cargando página"
+    className="flex min-h-[60vh] items-center justify-center"
+  >
+    <div className="h-8 w-8 animate-spin rounded-full border-2 border-line border-t-primary-600" />
+  </div>
+)
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
         <AuthProvider>
           <AnalyticsRoot />
+          <Suspense fallback={<CargandoRuta />}>
           <Routes>
             {/* Rutas públicas */}
             <Route path="/" element={<PublicLayout />}>
@@ -143,6 +164,7 @@ function App() {
               />
             </Route>
           </Routes>
+          </Suspense>
         </AuthProvider>
       </ErrorBoundary>
     </QueryClientProvider>

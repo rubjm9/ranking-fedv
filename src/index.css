@@ -59,6 +59,13 @@
 
   body {
     @apply bg-canvas text-content;
+    /*
+     * El hero a sangre usa `w-screen`, y 100vw incluye el ancho de la scrollbar,
+     * así que en escritorio sobraban unos 4-8px. Se usa `clip` y no `hidden`
+     * porque `hidden` crearía un contenedor de scroll y rompería los `sticky`
+     * de las cabeceras de pestañas y de la primera columna de la tabla.
+     */
+    overflow-x: clip;
   }
 
   /* Elimina el destello gris nativo al tocar enlaces y botones. */

@@ -21,7 +21,8 @@ export default defineConfig({
     },
   },
   build: {
-    // Configuración para ignorar errores de TypeScript
+    // El chunk único rondaba los 2,5 MB; se avisa a partir de 600 kB.
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       onwarn(warning, warn) {
         // Ignorar warnings de TypeScript
@@ -29,6 +30,21 @@ export default defineConfig({
           return;
         }
         warn(warning);
+      },
+      output: {
+        /*
+         * Separa las dependencias grandes en chunks propios: cambian mucho menos
+         * que el código de la app, así que el navegador las reutiliza entre
+         * despliegues en lugar de volver a descargarlas.
+         */
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          if (id.includes('exceljs')) return 'exceljs'
+          if (id.includes('@dnd-kit')) return 'dnd'
+          if (id.includes('@supabase')) return 'supabase'
+          if (id.includes('react-dom') || id.includes('/react/') || id.includes('react-router')) return 'react'
+          if (id.includes('@tanstack')) return 'query'
+        },
       },
     },
   },

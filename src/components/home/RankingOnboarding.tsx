@@ -1,12 +1,33 @@
-import React, { useState } from 'react'
+import React, { Suspense, lazy, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Award, Calculator, ChevronDown, Layers3, MapPin, Timer, Trophy } from 'lucide-react'
 import PointsCurveTable from '@/components/about/PointsCurveTable'
 import RankingOnboardingStep from '@/components/home/RankingOnboardingStep'
-import {
-  PositionCurveScene,
-  TournamentFlowScene,
-} from '@/components/home/RankingOnboardingVisuals'
+import WhenVisible from '@/components/ui/WhenVisible'
+/*
+ * Estas dos escenas arrastran recharts (~109 kB gzip) y viven muy por debajo del
+ * pliegue, así que la home no debería pagarlas en la carga inicial.
+ */
+const TournamentFlowScene = lazy(() =>
+  import('@/components/home/RankingOnboardingVisuals').then((m) => ({
+    default: m.TournamentFlowScene,
+  }))
+)
+const PositionCurveScene = lazy(() =>
+  import('@/components/home/RankingOnboardingVisuals').then((m) => ({
+    default: m.PositionCurveScene,
+  }))
+)
+
+/** Reserva el alto de la escena para que no salte el layout al llegar el chunk. */
+const EscenaCargando = () => (
+  <div
+    className="h-64 animate-pulse rounded-2xl bg-surface-muted"
+    role="status"
+    aria-busy="true"
+    aria-label="Cargando ilustración"
+  />
+)
 import TemporalWeightChart from '@/components/home/TemporalWeightChart'
 import RegionalCoeffExplainer from '@/components/home/RegionalCoeffExplainer'
 import {
@@ -91,7 +112,11 @@ const RankingOnboarding: React.FC = () => {
             </p>
 
             <div className="mb-6">
-              <TournamentFlowScene />
+              <WhenVisible placeholder={<EscenaCargando />}>
+                <Suspense fallback={<EscenaCargando />}>
+                  <TournamentFlowScene />
+                </Suspense>
+              </WhenVisible>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -132,7 +157,11 @@ const RankingOnboarding: React.FC = () => {
             </p>
 
             <div className="mb-6">
-              <PositionCurveScene />
+              <WhenVisible placeholder={<EscenaCargando />}>
+                <Suspense fallback={<EscenaCargando />}>
+                  <PositionCurveScene />
+                </Suspense>
+              </WhenVisible>
             </div>
 
             <div className="mb-4 grid grid-cols-1 gap-6 md:grid-cols-2">

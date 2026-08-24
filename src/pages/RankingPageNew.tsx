@@ -5,7 +5,6 @@ import { Trophy, Medal, TrendingUp, TrendingDown, UsersRound, Shield, Calendar, 
 import hybridRankingService from '@/services/hybridRankingService'
 import { supabase } from '@/services/supabaseService'
 import TeamLogo from '@/components/ui/TeamLogo'
-import GeneralRankingChart from '@/components/charts/GeneralRankingChart'
 import RankingTabNav from '@/components/ranking/RankingTabNav'
 import RankingPageHeader from '@/components/ranking/RankingPageHeader'
 import StatsBlock from '@/components/ranking/StatsBlock'
