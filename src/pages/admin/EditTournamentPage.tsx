@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Trash2, Plus, Eye, Clipboard, Copy } from 'lucide-react'
+import { ArrowLeft, Save, Calendar, MapPin, Trophy, Users, Trash2, Plus, Eye, Clipboard, Copy, AlertTriangle } from 'lucide-react'
 import subseasonDetectionService from '@/services/subseasonDetectionService'
 import { markRankingDirtyAfterEdit } from '@/services/rankingStateService'
 import FormSkeleton from '@/components/ui/FormSkeleton'
@@ -24,6 +24,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import toast from 'react-hot-toast'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import TeamSelector from '@/components/forms/TeamSelector'
 import PastePositionsModal from '@/components/forms/PastePositionsModal'
 import LocationAutocomplete from '@/components/forms/LocationAutocomplete'
@@ -1093,7 +1094,8 @@ const EditTournamentPage: React.FC = () => {
                   Ubicación *
                 </label>
                 <LocationAutocomplete
-                    value={formData.location}
+                  id="location"
+                  value={formData.location}
                   onChange={(value) => handleInputChange('location', value)}
                     placeholder="Ej: Madrid, España"
                   error={errors.location}
@@ -1214,83 +1216,62 @@ const EditTournamentPage: React.FC = () => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-          <div className="relative bg-surface rounded-lg shadow-xl p-8 w-full max-w-md mx-auto">
-            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 dark:bg-red-950/50 rounded-full mb-6">
-              <Trash2 className="h-8 w-8 text-red-600 dark:text-red-300" />
-              </div>
-            
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-content mb-2">
-                Eliminar Torneo
-              </h3>
-              <p className="text-content-muted mb-4">
-                ¿Estás seguro de que quieres eliminar este torneo?
-              </p>
-              
-              <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 rounded-lg p-4 mb-4">
-                <div className="flex items-center justify-center space-x-2 mb-2">
-                  <Trophy className="h-5 w-5 text-red-600 dark:text-red-300" />
-                  <span className="font-semibold text-red-800 dark:text-red-300">{generatedName}</span>
-                </div>
-                <div className="text-sm text-red-700 dark:text-red-300 space-y-1">
-                  <p><strong>Tipo:</strong> {tournamentTypes.find(t => t.value === formData.type)?.label}</p>
-                  <p><strong>Temporada:</strong> {formData.season}</p>
-                  <p><strong>Ubicación:</strong> {formData.location}</p>
-                  {positions.length > 0 && (
-                    <p><strong>Posiciones:</strong> {positions.length} equipos</p>
-                  )}
-                </div>
-              </div>
-              
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-center justify-center space-x-2 mb-2">
-                  <svg className="h-5 w-5 text-yellow-600 dark:text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  <span className="font-semibold text-yellow-800 dark:text-yellow-300">Advertencia</span>
-                </div>
-                <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                  Esta acción <strong>no se puede deshacer</strong>. Se eliminarán permanentemente:
-                </p>
-                <ul className="text-sm text-yellow-700 dark:text-yellow-300 mt-2 text-left list-disc list-inside">
-                  <li>El torneo y toda su información</li>
-                  <li>Todas las posiciones y resultados</li>
-                  <li>Los puntos de ranking asociados</li>
-                </ul>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-center space-x-4">
-                <button
-                  onClick={() => setShowDeleteModal(false)}
-                className="btn-outline px-6 py-3"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={isDeleting || deleteTournamentMutation.isPending}
-                className="px-6 py-3 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-              >
-                {isDeleting || deleteTournamentMutation.isPending ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Eliminando...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Eliminar Definitivamente
-                  </>
-                )}
-                </button>
-            </div>
+      <ConfirmDialog
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="Eliminar torneo"
+        confirmLabel="Eliminar definitivamente"
+        isPending={isDeleting || deleteTournamentMutation.isPending}
+      >
+        <p>¿Estás seguro de que quieres eliminar este torneo?</p>
+
+        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-left dark:border-red-900/50 dark:bg-red-950/40">
+          <div className="mb-2 flex items-center gap-2">
+            <Trophy className="h-5 w-5 shrink-0 text-red-600 dark:text-red-300" aria-hidden="true" />
+            <span className="font-semibold text-red-800 dark:text-red-300">{generatedName}</span>
           </div>
+          <dl className="space-y-1 text-sm text-red-700 dark:text-red-300">
+            <div>
+              <dt className="inline font-semibold">Tipo: </dt>
+              <dd className="inline">{tournamentTypes.find((t) => t.value === formData.type)?.label}</dd>
+            </div>
+            <div>
+              <dt className="inline font-semibold">Temporada: </dt>
+              <dd className="inline">{formData.season}</dd>
+            </div>
+            <div>
+              <dt className="inline font-semibold">Ubicación: </dt>
+              <dd className="inline">{formData.location}</dd>
+            </div>
+            {positions.length > 0 && (
+              <div>
+                <dt className="inline font-semibold">Posiciones: </dt>
+                <dd className="inline">{positions.length} equipos</dd>
+              </div>
+            )}
+          </dl>
         </div>
-      )}
-      
+
+        <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-left dark:border-yellow-900/50 dark:bg-yellow-950/40">
+          <div className="mb-2 flex items-center gap-2">
+            <AlertTriangle
+              className="h-5 w-5 shrink-0 text-yellow-600 dark:text-yellow-300"
+              aria-hidden="true"
+            />
+            <span className="font-semibold text-yellow-800 dark:text-yellow-300">Advertencia</span>
+          </div>
+          <p className="text-sm text-yellow-700 dark:text-yellow-300">
+            Esta acción <strong>no se puede deshacer</strong>. Se eliminarán permanentemente:
+          </p>
+          <ul className="mt-2 list-inside list-disc text-sm text-yellow-700 dark:text-yellow-300">
+            <li>El torneo y toda su información</li>
+            <li>Todas las posiciones y resultados</li>
+            <li>Los puntos de ranking asociados</li>
+          </ul>
+        </div>
+      </ConfirmDialog>
+
       {/* Paste Positions Modal */}
       <PastePositionsModal
         isOpen={showPasteModal}

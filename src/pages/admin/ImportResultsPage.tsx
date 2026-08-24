@@ -207,7 +207,7 @@ Equipo C,3,725`
         {showPreview && previewData.length > 0 && (
           <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
             <h3 className="text-lg font-medium text-content mb-4">Vista Previa</h3>
-            <div className="overflow-x-auto">
+            <div className="data-table-wrapper">
               <table className="min-w-full divide-y divide-line">
                 <thead className="bg-surface-muted">
                   <tr>

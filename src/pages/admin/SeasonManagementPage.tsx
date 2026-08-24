@@ -260,8 +260,9 @@ const SeasonManagementPage: React.FC = () => {
       <div className="bg-surface shadow rounded-lg p-6">
         <div className="flex flex-wrap items-end gap-4">
           <div>
-            <label className="block text-sm font-medium text-content-muted mb-1">Temporada</label>
+            <label htmlFor="temporada-select" className="block text-sm font-medium text-content-muted mb-1">Temporada</label>
             <select
+              id="temporada-select"
               value={selectedSeason}
               onChange={e => {
                 setSelectedSeason(e.target.value)
@@ -296,7 +297,7 @@ const SeasonManagementPage: React.FC = () => {
           {loadingMonitor ? (
             <p className="text-content-subtle py-4">Cargando datos...</p>
           ) : monitorData ? (
-            <div className="overflow-x-auto rounded-lg border border-line bg-surface">
+            <div className="data-table-wrapper rounded-lg border border-line bg-surface">
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="border-b border-line bg-surface-muted">

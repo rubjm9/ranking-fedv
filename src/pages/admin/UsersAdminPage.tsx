@@ -1,16 +1,8 @@
 import React, { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  KeyRound,
-  Plus,
-  Search,
-  ShieldOff,
-  ShieldCheck,
-  Trash2,
-  UserCog,
-  X,
-} from 'lucide-react'
+import { KeyRound, Plus, Search, ShieldOff, ShieldCheck, Trash2, UserCog } from 'lucide-react'
 import toast from 'react-hot-toast'
+import Modal from '@/components/ui/Modal'
 import AdminPageHeader from '@/components/layout/AdminPageHeader'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import { useAuth } from '@/contexts/SimpleAuthContext'
@@ -26,6 +18,14 @@ const emptyCreateForm = {
   email: '',
   password: '',
   role: 'editor' as AppUserRole,
+}
+
+/** El nombre accesible del diálogo depende de la acción en curso. */
+const MODAL_TITLES: Record<string, string> = {
+  create: 'Nuevo usuario',
+  edit: 'Editar usuario',
+  password: 'Resetear contraseña',
+  delete: 'Eliminar usuario',
 }
 
 const UsersAdminPage: React.FC = () => {
@@ -197,7 +197,7 @@ const UsersAdminPage: React.FC = () => {
           </div>
 
           <div className="bg-surface rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="data-table-wrapper">
               <table className="min-w-full divide-y divide-line">
                 <thead className="bg-surface-muted">
                   <tr>
@@ -325,17 +325,13 @@ const UsersAdminPage: React.FC = () => {
         </>
       )}
 
-      {modalMode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={closeModal} />
-          <div className="relative bg-surface rounded-lg shadow-xl w-full max-w-md p-6">
-            <button
-              type="button"
-              onClick={closeModal}
-              className="absolute right-3 top-3 p-1 text-content-subtle hover:text-content-muted"
-            >
-              <X className="h-5 w-5" />
-            </button>
+      <Modal
+        open={!!modalMode}
+        onClose={closeModal}
+        title={MODAL_TITLES[modalMode ?? 'create']}
+        size="md"
+      >
+        <div>
 
             {modalMode === 'create' && (
               <form
@@ -345,10 +341,10 @@ const UsersAdminPage: React.FC = () => {
                   createMutation.mutate()
                 }}
               >
-                <h3 className="text-lg font-semibold text-content">Nuevo usuario</h3>
                 <div>
-                  <label className="block text-sm font-medium text-content-muted mb-1">Email</label>
+                  <label htmlFor="crear-email" className="block text-sm font-medium text-content-muted mb-1">Email</label>
                   <input
+                    id="crear-email"
                     type="email"
                     required
                     value={createForm.email}
@@ -357,8 +353,9 @@ const UsersAdminPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-content-muted mb-1">Contraseña</label>
+                  <label htmlFor="crear-password" className="block text-sm font-medium text-content-muted mb-1">Contraseña</label>
                   <input
+                    id="crear-password"
                     type="password"
                     required
                     minLength={6}
@@ -368,8 +365,9 @@ const UsersAdminPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-content-muted mb-1">Rol</label>
+                  <label htmlFor="crear-rol" className="block text-sm font-medium text-content-muted mb-1">Rol</label>
                   <select
+                    id="crear-rol"
                     value={createForm.role}
                     onChange={(e) =>
                       setCreateForm((f) => ({ ...f, role: e.target.value as AppUserRole }))
@@ -403,10 +401,10 @@ const UsersAdminPage: React.FC = () => {
                   updateMutation.mutate()
                 }}
               >
-                <h3 className="text-lg font-semibold text-content">Editar usuario</h3>
                 <div>
-                  <label className="block text-sm font-medium text-content-muted mb-1">Email</label>
+                  <label htmlFor="editar-email" className="block text-sm font-medium text-content-muted mb-1">Email</label>
                   <input
+                    id="editar-email"
                     type="email"
                     required
                     value={editForm.email}
@@ -415,8 +413,9 @@ const UsersAdminPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-content-muted mb-1">Rol</label>
+                  <label htmlFor="editar-rol" className="block text-sm font-medium text-content-muted mb-1">Rol</label>
                   <select
+                    id="editar-rol"
                     value={editForm.role}
                     onChange={(e) =>
                       setEditForm((f) => ({ ...f, role: e.target.value as AppUserRole }))
@@ -450,13 +449,13 @@ const UsersAdminPage: React.FC = () => {
                   passwordMutation.mutate()
                 }}
               >
-                <h3 className="text-lg font-semibold text-content">Resetear contraseña</h3>
                 <p className="text-sm text-content-muted">{selectedUser.email}</p>
                 <div>
-                  <label className="block text-sm font-medium text-content-muted mb-1">
+                  <label htmlFor="nueva-password" className="block text-sm font-medium text-content-muted mb-1">
                     Nueva contraseña
                   </label>
                   <input
+                    id="nueva-password"
                     type="password"
                     required
                     minLength={6}
@@ -482,7 +481,6 @@ const UsersAdminPage: React.FC = () => {
 
             {modalMode === 'delete' && selectedUser && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-content">Eliminar usuario</h3>
                 <p className="text-sm text-content-muted">
                   ¿Seguro que quieres eliminar a <strong>{selectedUser.email}</strong>? Esta
                   acción no se puede deshacer.
@@ -502,9 +500,8 @@ const UsersAdminPage: React.FC = () => {
                 </div>
               </div>
             )}
-          </div>
         </div>
-      )}
+      </Modal>
     </div>
   )
 }

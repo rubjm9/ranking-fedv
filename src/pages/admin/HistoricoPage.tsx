@@ -73,7 +73,7 @@ export default function HistoricoPage() {
           <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-300" />
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-line bg-surface">
+        <div className="data-table-wrapper rounded-lg border border-line bg-surface">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-line bg-surface-muted">

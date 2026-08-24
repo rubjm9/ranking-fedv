@@ -326,10 +326,10 @@ const AboutPage: React.FC = () => {
           </p>
           <div className="flex justify-center space-x-4">
             <a
-              href="mailto:info@fedv.es"
+              href="mailto:comitedeportivo@fedv.es"
               className="text-link hover:text-primary-500 font-medium"
             >
-              info@fedv.es
+              comitedeportivo@fedv.es
             </a>
             <span className="text-content-subtle">|</span>
             <a

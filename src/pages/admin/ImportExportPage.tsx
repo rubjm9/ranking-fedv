@@ -209,10 +209,11 @@ const ImportExportPage: React.FC = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-content-muted mb-2">
+                <label htmlFor="export-formato" className="block text-sm font-medium text-content-muted mb-2">
                   Formato de Archivo
                 </label>
                 <select
+                  id="export-formato"
                   value={exportOptions.format}
                   onChange={(e) => setExportOptions(prev => ({ ...prev, format: e.target.value as 'excel' | 'csv' | 'json' }))}
                   className="w-full px-3 py-2 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -224,10 +225,11 @@ const ImportExportPage: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-content-muted mb-2">
+                <label htmlFor="export-tipo" className="block text-sm font-medium text-content-muted mb-2">
                   Tipo de Datos
                 </label>
                 <select
+                  id="export-tipo"
                   value={exportOptions.dataType}
                   onChange={(e) => setExportOptions(prev => ({ ...prev, dataType: e.target.value as any }))}
                   className="w-full px-3 py-2 border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -243,13 +245,14 @@ const ImportExportPage: React.FC = () => {
             </div>
 
             <div className="mt-6">
-              <label className="block text-sm font-medium text-content-muted mb-2">
+              <span className="block text-sm font-medium text-content-muted mb-2" id="export-rango-label">
                 Rango de Fechas
-              </label>
+              </span>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-content-subtle mb-1">Desde</label>
+                  <label htmlFor="export-desde" className="block text-xs text-content-subtle mb-1">Desde</label>
                   <input
+                    id="export-desde"
                     type="date"
                     value={exportOptions.dateRange.start}
                     onChange={(e) => setExportOptions(prev => ({ 
@@ -260,8 +263,9 @@ const ImportExportPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-content-subtle mb-1">Hasta</label>
+                  <label htmlFor="export-hasta" className="block text-xs text-content-subtle mb-1">Hasta</label>
                   <input
+                    id="export-hasta"
                     type="date"
                     value={exportOptions.dateRange.end}
                     onChange={(e) => setExportOptions(prev => ({ 

@@ -148,7 +148,7 @@ const RankingAdminPageHybrid: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="data-table-wrapper">
             <table className="min-w-full divide-y divide-line">
               <thead className="bg-surface-muted">
                 <tr>

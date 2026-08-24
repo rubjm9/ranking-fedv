@@ -13,6 +13,7 @@ import {
 import toast from 'react-hot-toast'
 import { tournamentsService, supabase } from '../services/apiService'
 import ActionButtonGroup from '../components/ui/ActionButtonGroup'
+import Modal from '@/components/ui/Modal'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import TableColumnFilter from '@/components/ui/TableColumnFilter'
 import AdminPageHeader from '@/components/layout/AdminPageHeader'
@@ -317,7 +318,7 @@ const TournamentsAdminPage: React.FC = () => {
           </div>
 
           <div className="bg-surface rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="data-table-wrapper">
             <table className="min-w-full divide-y divide-line">
               <thead className="bg-surface-muted border-b border-line">
                 <tr>
@@ -500,72 +501,64 @@ const TournamentsAdminPage: React.FC = () => {
       )}
 
       {/* Modal de confirmación de eliminación */}
-      {showDeleteModal && selectedTournament && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-surface rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-medium text-content mb-4">
-              Confirmar eliminación
-            </h3>
-            <p className="text-content-muted mb-6">
-              ¿Estás seguro de que quieres eliminar el torneo "{selectedTournament.name}"? 
-              Esta acción no se puede deshacer.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="btn-outline"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={deleteTournamentMutation.isPending}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-              >
-                {deleteTournamentMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  'Eliminar'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        open={showDeleteModal && !!selectedTournament}
+        onClose={() => setShowDeleteModal(false)}
+        title="Confirmar eliminación"
+        size="md"
+        footer={
+          <>
+            <button onClick={() => setShowDeleteModal(false)} className="btn-outline min-h-[44px]">
+              Cancelar
+            </button>
+            <button
+              onClick={confirmDelete}
+              disabled={deleteTournamentMutation.isPending}
+              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+            >
+              {deleteTournamentMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              Eliminar
+            </button>
+          </>
+        }
+      >
+        <p className="text-content-muted">
+          ¿Estás seguro de que quieres eliminar el torneo &quot;{selectedTournament?.name}&quot;?
+          Esta acción no se puede deshacer.
+        </p>
+      </Modal>
 
       {/* Modal de confirmación de eliminación de posiciones */}
-      {showDeletePositionsModal && selectedTournament && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-surface rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-medium text-content mb-4">
-              Eliminar posiciones del torneo
-            </h3>
-            <p className="text-content-muted mb-6">
-              El torneo "{selectedTournament.name}" tiene posiciones asociadas que impiden su eliminación. 
-              ¿Quieres eliminar todas las posiciones del torneo para poder eliminarlo después?
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeletePositionsModal(false)}
-                className="btn-outline"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmDeletePositions}
-                disabled={deletePositionsMutation.isPending}
-                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50"
-              >
-                {deletePositionsMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  'Eliminar posiciones'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        open={showDeletePositionsModal && !!selectedTournament}
+        onClose={() => setShowDeletePositionsModal(false)}
+        title="Eliminar posiciones del torneo"
+        size="md"
+        footer={
+          <>
+            <button
+              onClick={() => setShowDeletePositionsModal(false)}
+              className="btn-outline min-h-[44px]"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={confirmDeletePositions}
+              disabled={deletePositionsMutation.isPending}
+              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-2 font-medium text-white transition-colors hover:bg-orange-700 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+            >
+              {deletePositionsMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              Eliminar posiciones
+            </button>
+          </>
+        }
+      >
+        <p className="text-content-muted">
+          El torneo &quot;{selectedTournament?.name}&quot; tiene posiciones asociadas que impiden su
+          eliminación. ¿Quieres eliminar todas las posiciones del torneo para poder eliminarlo
+          después?
+        </p>
+      </Modal>
     </div>
   )
 }

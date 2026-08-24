@@ -37,8 +37,8 @@ const PrivacyPage: React.FC = () => {
         </h2>
         <p className="text-content-muted">
           Para consultas sobre privacidad, contacta en{' '}
-          <a href="mailto:info@fedv.es" className="text-link hover:text-brand-strong">
-            info@fedv.es
+          <a href="mailto:comitedeportivo@fedv.es" className="text-link hover:text-brand-strong">
+            comitedeportivo@fedv.es
           </a>
           .
         </p>

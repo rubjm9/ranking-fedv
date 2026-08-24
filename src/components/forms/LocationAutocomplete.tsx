@@ -14,6 +14,8 @@ interface LocationAutocompleteProps {
   placeholder?: string
   className?: string
   error?: string
+  /** Necesario para que el <label> del formulario pueda asociarse al campo. */
+  id?: string
 }
 
 // Base de datos de ubicaciones comunes para torneos de Ultimate Frisbee en España
@@ -79,7 +81,8 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   onChange,
   placeholder = "Ej: Madrid, España",
   className = "",
-  error
+  error,
+  id
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([])
@@ -171,7 +174,15 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         </div>
         <input
           ref={inputRef}
+          id={id}
           type="text"
+          role="combobox"
+          aria-expanded={isOpen && suggestions.length > 0}
+          aria-controls={id ? `${id}-listbox` : undefined}
+          aria-activedescendant={
+            selectedIndex >= 0 && id ? `${id}-opcion-${selectedIndex}` : undefined
+          }
+          aria-autocomplete="list"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => setIsOpen(true)}
@@ -186,7 +197,8 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           <button
             type="button"
             onClick={() => onChange('')}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center text-content-subtle hover:text-content-muted"
+            aria-label="Borrar ubicación"
+            className="absolute inset-y-0 right-0 flex min-h-[44px] min-w-[44px] items-center justify-center touch-manipulation text-content-subtle hover:text-content focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <X className="h-4 w-4" />
           </button>
@@ -197,11 +209,16 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       {isOpen && suggestions.length > 0 && (
         <div
           ref={listRef}
+          id={id ? `${id}-listbox` : undefined}
+          role="listbox"
           className="absolute z-50 w-full mt-1 bg-surface border border-line rounded-xl shadow-lg max-h-60 overflow-y-auto"
         >
           {suggestions.map((suggestion, index) => (
             <div
               key={suggestion.id}
+              id={id ? `${id}-opcion-${index}` : undefined}
+              role="option"
+              aria-selected={index === selectedIndex}
               onClick={() => handleSelect(suggestion)}
               className={`px-4 py-3 cursor-pointer transition-colors ${
                 index === selectedIndex

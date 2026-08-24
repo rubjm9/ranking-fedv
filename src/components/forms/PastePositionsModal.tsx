@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { X, Clipboard, AlertCircle, CheckCircle, Users } from 'lucide-react'
+import Modal from '@/components/ui/Modal'
+import { AlertCircle, CheckCircle, Users } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface PastePositionsModalProps {
@@ -91,28 +92,32 @@ const PastePositionsModal: React.FC<PastePositionsModalProps> = ({
     onClose()
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-surface">
-        <div className="mt-3">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center">
-              <Clipboard className="h-6 w-6 text-blue-600 dark:text-blue-300 mr-2" />
-              <h3 className="text-lg font-medium text-content">
-                Pegar listado de posiciones
-              </h3>
-            </div>
-            <button
-              onClick={handleClose}
-              aria-label="Cerrar"
-              className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg touch-manipulation text-content-muted hover:text-content hover:bg-surface-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
+    <Modal
+      open={isOpen}
+      onClose={handleClose}
+      title="Pegar listado de posiciones"
+      size="lg"
+      footer={
+        <>
+          <button
+            onClick={handleClose}
+            className="btn-outline min-h-[44px]"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleApply}
+            disabled={parsedPositions.length === 0 || validationErrors.length > 0}
+            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            <Users className="h-4 w-4" />
+            Aplicar {parsedPositions.length > 0 ? `(${parsedPositions.length} posiciones)` : ''}
+          </button>
+        </>
+      }
+    >
+      <div>
 
           {/* Instructions */}
           <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg">
@@ -191,26 +196,8 @@ const PastePositionsModal: React.FC<PastePositionsModalProps> = ({
             </div>
           )}
 
-          {/* Actions */}
-          <div className="flex items-center justify-end space-x-3">
-            <button
-              onClick={handleClose}
-              className="px-4 py-2 text-sm font-medium text-content-muted bg-surface border border-line-strong rounded-lg hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleApply}
-              disabled={parsedPositions.length === 0 || validationErrors.length > 0}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Aplicar {parsedPositions.length > 0 ? `(${parsedPositions.length} posiciones)` : ''}
-            </button>
-          </div>
-        </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 

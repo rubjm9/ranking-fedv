@@ -197,8 +197,8 @@ const AdminLayout: React.FC = () => {
       <div className="flex-1 lg:ml-0">
         {/* Top header */}
         <div className="sticky top-0 z-10 bg-surface shadow-sm border-b border-line">
-          <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center">
+          <div className="flex h-16 items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
+            <div className="flex min-w-0 items-center">
               <button
                 ref={sidebarToggleRef}
                 onClick={() => setSidebarOpen(true)}
@@ -210,31 +210,31 @@ const AdminLayout: React.FC = () => {
               </button>
               
               {currentSection && (
-                <p className="ml-4 lg:ml-0 font-display text-lg font-semibold text-content-muted">
+                <p className="ml-2 truncate font-display text-base font-semibold text-content-muted sm:ml-4 sm:text-lg lg:ml-0">
                   {currentSection}
                 </p>
               )}
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-4">
               {/* Badge de notificaciones */}
               <NotificationBadge />
-              
+
               <Link
                 to="/"
-                className="flex items-center text-sm text-content-muted hover:text-content transition-colors duration-200"
+                className="inline-flex min-h-[44px] shrink-0 items-center gap-1 touch-manipulation rounded-lg px-1 text-sm text-content-muted transition-colors duration-200 hover:text-content focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               >
-                <Home className="h-4 w-4 mr-1" />
-                Sitio público
+                <Home className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Sitio público</span>
+                <span className="sr-only sm:hidden">Ir al sitio público</span>
               </Link>
-              
-              <div className="hidden sm:block w-px h-6 bg-line-strong"></div>
-              
-              <div className="flex items-center text-sm text-content-muted">
-                <span className="hidden sm:inline">Bienvenido,</span>
-                <span className="font-medium text-content ml-1">
-                  {user?.email}
-                </span>
+
+              <div className="hidden sm:block w-px h-6 bg-line-strong" aria-hidden="true"></div>
+
+              {/* El email se trunca: completo desbordaba la cabecera en móvil. */}
+              <div className="hidden min-w-0 items-center text-sm text-content-muted sm:flex">
+                <span className="shrink-0">Bienvenido,</span>
+                <span className="ml-1 truncate font-medium text-content">{user?.email}</span>
               </div>
             </div>
           </div>

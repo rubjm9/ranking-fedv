@@ -89,13 +89,13 @@ const RegionDetailAdminPage: React.FC = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-content-muted mb-2">Nombre</label>
+                <span className="block text-sm font-medium text-content-muted mb-2">Nombre</span>
                 <p className="text-lg font-medium text-content">{region.name}</p>
               </div>
               
               
               <div>
-                <label className="block text-sm font-medium text-content-muted mb-2">Coeficiente</label>
+                <span className="block text-sm font-medium text-content-muted mb-2">Coeficiente</span>
                 <div className="flex items-center">
                   <span className={`text-lg font-bold ${getCoefficientColor(region.coefficient)}`}>
                     {region.coefficient.toFixed(2)}
@@ -105,7 +105,7 @@ const RegionDetailAdminPage: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-content-muted mb-2">Fecha de Creación</label>
+                <span className="block text-sm font-medium text-content-muted mb-2">Fecha de Creación</span>
                 <p className="text-sm text-content">
                   {new Date(region.createdAt).toLocaleDateString('es-ES')}
                 </p>
@@ -114,7 +114,7 @@ const RegionDetailAdminPage: React.FC = () => {
 
             {region.description && (
               <div className="mt-6">
-                <label className="block text-sm font-medium text-content-muted mb-2">Descripción</label>
+                <span className="block text-sm font-medium text-content-muted mb-2">Descripción</span>
                 <p className="text-content">{region.description}</p>
               </div>
             )}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Save, MapPin, Calculator, Users, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { regionsService } from '@/services/apiService'
 import { Region } from '@/types'
 import FormSkeleton from '@/components/ui/FormSkeleton'
@@ -311,9 +312,9 @@ const EditRegionPage: React.FC = () => {
 
               {/* Coefficient Visual Indicator */}
               <div>
-                <label className="block text-sm font-medium text-content-muted mb-2">
+                <span className="block text-sm font-medium text-content-muted mb-2">
                   Indicador Visual
-                </label>
+                </span>
                 <div className="flex items-center space-x-4 p-4 bg-surface-muted rounded-lg">
                   <div className="flex items-center">
                     <span className="text-sm font-medium text-content-muted mr-2">Valor:</span>
@@ -392,40 +393,16 @@ const EditRegionPage: React.FC = () => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-surface">
-            <div className="mt-3">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-950/50 rounded-full">
-                <Trash2 className="h-6 w-6 text-red-600 dark:text-red-300" />
-              </div>
-              <h3 className="text-lg font-medium text-content text-center mt-4">
-                Eliminar Región
-              </h3>
-              <p className="text-sm text-content-subtle text-center mt-2">
-                ¿Estás seguro de que quieres eliminar <strong>{formData.name}</strong>? 
-                Esta acción no se puede deshacer y afectará a todos los equipos de esta región.
-              </p>
-              
-              <div className="flex items-center justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowDeleteModal(false)}
-                  className="btn-outline"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isDeleting ? 'Eliminando...' : 'Eliminar'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="Eliminar región"
+        isPending={isDeleting}
+      >
+        ¿Estás seguro de que quieres eliminar <strong>{formData.name}</strong>? Esta acción no se
+        puede deshacer y afectará a todos los equipos de esta región.
+      </ConfirmDialog>
     </div>
   )
 }

@@ -328,7 +328,7 @@ const NewTeamPage: React.FC = () => {
               {/* Region Display - Solo si es filial */}
               {formData.isFilial && formData.regionId && (
                 <div>
-                  <label className="block text-sm font-medium text-content-muted mb-2">
+                  <label htmlFor="nuevo-equipo-region" className="block text-sm font-medium text-content-muted mb-2">
                     Región (heredada del club principal)
                   </label>
                   <div className="relative">
@@ -336,6 +336,7 @@ const NewTeamPage: React.FC = () => {
                       <MapPin className="h-5 w-5 text-content-subtle" />
                     </div>
                     <input
+                      id="nuevo-equipo-region"
                       type="text"
                       value={regionsData?.data?.find((r: Region) => r.id === formData.regionId)?.name || ''}
                       className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg bg-surface-muted text-content-muted"
@@ -376,7 +377,7 @@ const NewTeamPage: React.FC = () => {
               {/* Location Display - Solo si es filial */}
               {formData.isFilial && formData.location && (
                 <div>
-                  <label className="block text-sm font-medium text-content-muted mb-2">
+                  <label htmlFor="nuevo-equipo-ubicacion" className="block text-sm font-medium text-content-muted mb-2">
                     Ubicación (heredada del club principal)
                   </label>
                   <div className="relative">
@@ -384,6 +385,7 @@ const NewTeamPage: React.FC = () => {
                       <MapPin className="h-5 w-5 text-content-subtle" />
                     </div>
                     <input
+                      id="nuevo-equipo-ubicacion"
                       type="text"
                       value={formData.location}
                       className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg bg-surface-muted text-content-muted"
@@ -424,7 +426,7 @@ const NewTeamPage: React.FC = () => {
               {/* Email Display - Solo si es filial */}
               {formData.isFilial && formData.email && (
                 <div>
-                  <label className="block text-sm font-medium text-content-muted mb-2">
+                  <label htmlFor="nuevo-equipo-email" className="block text-sm font-medium text-content-muted mb-2">
                     Email (heredado del club principal)
                   </label>
                   <div className="relative">
@@ -432,6 +434,7 @@ const NewTeamPage: React.FC = () => {
                       <Mail className="h-5 w-5 text-content-subtle" />
                     </div>
                     <input
+                      id="nuevo-equipo-email"
                       type="email"
                       value={formData.email}
                       className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg bg-surface-muted text-content-muted"
@@ -487,9 +490,9 @@ const NewTeamPage: React.FC = () => {
               {/* Logo Display - Solo si es filial */}
               {formData.isFilial && formData.logo && (
                 <div>
-                  <label className="block text-sm font-medium text-content-muted mb-2">
+                  <span className="block text-sm font-medium text-content-muted mb-2">
                     Logo del Equipo (heredado del club principal)
-                  </label>
+                  </span>
                   
                   {/* Preview del logo heredado */}
                   <div className="mb-4 flex items-center space-x-4">

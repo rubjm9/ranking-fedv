@@ -9,6 +9,7 @@ import {
   Trophy,
   Award
 } from 'lucide-react'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { tournamentsService, positionsService, Position } from '@/services/apiService'
 import { markRankingDirtyAfterEdit } from '@/services/rankingStateService'
 import { translateSurface, translateModality, translateTournamentType, getStatusLabel, getStatusColor } from '@/utils/translations'
@@ -148,32 +149,32 @@ const TournamentDetailAdminPage: React.FC = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-content-muted">Año</label>
+              <span className="block text-sm font-medium text-content-muted">Año</span>
               <p className="text-content">{tournament.year}</p>
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-content-muted">Tipo</label>
+              <span className="block text-sm font-medium text-content-muted">Tipo</span>
               <p className="text-content">{translateTournamentType(tournament.type)}</p>
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-content-muted">Superficie</label>
+              <span className="block text-sm font-medium text-content-muted">Superficie</span>
               <p className="text-content">{translateSurface(tournament.surface)}</p>
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-content-muted">Categoría</label>
+              <span className="block text-sm font-medium text-content-muted">Categoría</span>
               <p className="text-content">{translateModality(tournament.category)}</p>
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-content-muted">Región</label>
+              <span className="block text-sm font-medium text-content-muted">Región</span>
               <p className="text-content">{tournament.region?.name || 'Sin región'}</p>
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-content-muted">Estado</label>
+              <span className="block text-sm font-medium text-content-muted">Estado</span>
               <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(tournament.is_finished)}`}>
                 {getStatusLabel(tournament.is_finished)}
               </span>
@@ -213,7 +214,7 @@ const TournamentDetailAdminPage: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="data-table-wrapper">
               <table className="min-w-full divide-y divide-line">
                 <thead className="bg-surface-muted">
                   <tr>
@@ -267,38 +268,15 @@ const TournamentDetailAdminPage: React.FC = () => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-surface">
-            <div className="mt-3 text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-950/50">
-                <Trash2 className="h-6 w-6 text-red-600 dark:text-red-300" />
-              </div>
-              <h3 className="text-lg font-medium text-content mt-4">Eliminar torneo</h3>
-              <div className="mt-2 px-7 py-3">
-                <p className="text-sm text-content-subtle">
-                  ¿Estás seguro de que quieres eliminar este torneo? Esta acción no se puede deshacer.
-                </p>
-              </div>
-              <div className="flex justify-center space-x-4 mt-4">
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="px-4 py-2 bg-line-strong text-content-muted rounded-md hover:bg-gray-400 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleDeleteTournament}
-                  disabled={deleteTournamentMutation.isPending}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
-                >
-                  {deleteTournamentMutation.isPending ? 'Eliminando...' : 'Eliminar'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteTournament}
+        title="Eliminar torneo"
+        isPending={deleteTournamentMutation.isPending}
+      >
+        ¿Estás seguro de que quieres eliminar este torneo? Esta acción no se puede deshacer.
+      </ConfirmDialog>
     </div>
   )
 }

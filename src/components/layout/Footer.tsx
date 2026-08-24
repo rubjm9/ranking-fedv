@@ -26,8 +26,8 @@ const Footer: React.FC = () => {
             </p>
             <div className="flex space-x-4">
               <a
-                href="mailto:info@fedv.es"
-                aria-label="Enviar correo a info@fedv.es"
+                href="mailto:comitedeportivo@fedv.es"
+                aria-label="Enviar correo a comitedeportivo@fedv.es"
                 className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg touch-manipulation text-slate-300 hover:text-white hover:bg-white/10 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
               >
                 <Mail className="w-5 h-5" />
@@ -78,8 +78,8 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-slate-500" />
-                <a href="mailto:info@fedv.es" className="inline-flex items-center min-h-[44px] touch-manipulation text-slate-300 text-sm hover:text-white transition-colors">
-                  info@fedv.es
+                <a href="mailto:comitedeportivo@fedv.es" className="inline-flex items-center min-h-[44px] touch-manipulation text-slate-300 text-sm hover:text-white transition-colors">
+                  comitedeportivo@fedv.es
                 </a>
               </div>
             </div>

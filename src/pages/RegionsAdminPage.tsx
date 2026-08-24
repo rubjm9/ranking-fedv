@@ -5,10 +5,12 @@ import {
   Plus, 
   MapPin, 
   Calculator, 
-  Loader2
+  Loader2,
+  AlertTriangle
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import TableSkeleton from '@/components/ui/TableSkeleton'
+import Modal from '@/components/ui/Modal'
 import { regionsService, Region } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
 import seasonService from '@/services/seasonService'
@@ -223,7 +225,7 @@ const RegionsAdminPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-surface rounded-lg shadow overflow-x-auto">
+          <div className="data-table-wrapper bg-surface rounded-lg shadow">
           <table className="min-w-full divide-y divide-line">
             <thead className="bg-surface-muted border-b border-line">
               <tr>
@@ -323,75 +325,73 @@ const RegionsAdminPage: React.FC = () => {
       )}
 
       {/* Modal de confirmación de eliminación */}
-      {showDeleteModal && selectedRegion && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-surface rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-medium text-content mb-4">
-              Confirmar eliminación
-            </h3>
-            
-            {/* Información de datos asociados */}
-            {(selectedRegion._count?.teams > 0 || selectedRegion._count?.tournaments > 0) && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
-                      Datos asociados encontrados
-                    </h3>
-                    <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
-                      <ul className="list-disc list-inside space-y-1">
-                        {selectedRegion._count?.teams > 0 && (
-                          <li>{selectedRegion._count.teams} equipo(s) asociado(s)</li>
-                        )}
-                        {selectedRegion._count?.tournaments > 0 && (
-                          <li>{selectedRegion._count.tournaments} torneo(s) asociado(s)</li>
-                        )}
-                      </ul>
-                    </div>
-                    <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
-                      <strong>Nota:</strong> No se puede eliminar una región que tiene equipos o torneos asociados.
-                    </div>
-                  </div>
-                </div>
+      <Modal
+        open={showDeleteModal && !!selectedRegion}
+        onClose={() => setShowDeleteModal(false)}
+        title="Confirmar eliminación"
+        size="md"
+        footer={
+          <>
+            <button onClick={() => setShowDeleteModal(false)} className="btn-outline min-h-[44px]">
+              Cancelar
+            </button>
+            <button
+              onClick={confirmDelete}
+              disabled={
+                deleteRegionMutation.isPending ||
+                (selectedRegion?._count?.teams ?? 0) > 0 ||
+                (selectedRegion?._count?.tournaments ?? 0) > 0
+              }
+              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+            >
+              {deleteRegionMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              Eliminar
+            </button>
+          </>
+        }
+      >
+        {((selectedRegion?._count?.teams ?? 0) > 0 ||
+          (selectedRegion?._count?.tournaments ?? 0) > 0) && (
+          <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900/50 dark:bg-yellow-950/40">
+            <div className="flex gap-3">
+              <AlertTriangle
+                className="h-5 w-5 flex-shrink-0 text-yellow-600 dark:text-yellow-300"
+                aria-hidden="true"
+              />
+              <div>
+                <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                  Datos asociados encontrados
+                </h3>
+                <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-yellow-700 dark:text-yellow-300">
+                  {(selectedRegion?._count?.teams ?? 0) > 0 && (
+                    <li>{selectedRegion?._count?.teams} equipo(s) asociado(s)</li>
+                  )}
+                  {(selectedRegion?._count?.tournaments ?? 0) > 0 && (
+                    <li>{selectedRegion?._count?.tournaments} torneo(s) asociado(s)</li>
+                  )}
+                </ul>
+                <p className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                  <strong>Nota:</strong> No se puede eliminar una región que tiene equipos o
+                  torneos asociados.
+                </p>
               </div>
-            )}
-            
-            <p className="text-content-muted mb-6">
-              ¿Estás seguro de que quieres eliminar la región "{selectedRegion.name}"? 
-              {selectedRegion._count?.teams > 0 || selectedRegion._count?.tournaments > 0 ? (
-                <span className="text-red-600 dark:text-red-300 font-medium"> Esta acción no se puede realizar mientras tenga datos asociados.</span>
-              ) : (
-                <span> Esta acción no se puede deshacer.</span>
-              )}
-            </p>
-            
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="btn-outline"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={deleteRegionMutation.isPending || (selectedRegion._count?.teams > 0 || selectedRegion._count?.tournaments > 0)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {deleteRegionMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  'Eliminar'
-                )}
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        <p className="text-content-muted">
+          ¿Estás seguro de que quieres eliminar la región &quot;{selectedRegion?.name}&quot;?
+          {(selectedRegion?._count?.teams ?? 0) > 0 ||
+          (selectedRegion?._count?.tournaments ?? 0) > 0 ? (
+            <span className="font-medium text-red-600 dark:text-red-300">
+              {' '}
+              Esta acción no se puede realizar mientras tenga datos asociados.
+            </span>
+          ) : (
+            <span> Esta acción no se puede deshacer.</span>
+          )}
+        </p>
+      </Modal>
     </div>
   )
 }

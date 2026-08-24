@@ -1043,6 +1043,7 @@ const NewTournamentPage: React.FC = () => {
                   Ubicación *
                 </label>
                 <LocationAutocomplete
+                  id="location"
                   value={formData.location}
                   onChange={(value) => handleInputChange('location', value)}
                   placeholder="Ej: Madrid, España"

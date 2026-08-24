@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Save, Users, MapPin, Mail, Image, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { teamsService, regionsService } from '@/services/apiService'
 import TeamLogo from '@/components/ui/TeamLogo'
 import FormSkeleton from '@/components/ui/FormSkeleton'
@@ -384,7 +385,7 @@ const EditTeamPage: React.FC = () => {
               {/* Region Display - Solo si es filial */}
               {formData.isFilial && formData.regionId && (
                 <div>
-                  <label className="block text-sm font-medium text-content-muted mb-2">
+                  <label htmlFor="editar-equipo-region" className="block text-sm font-medium text-content-muted mb-2">
                     Región (heredada del club principal)
                   </label>
                   <div className="relative">
@@ -392,6 +393,7 @@ const EditTeamPage: React.FC = () => {
                       <MapPin className="h-5 w-5 text-content-subtle" />
                     </div>
                     <input
+                      id="editar-equipo-region"
                       type="text"
                       value={regions.find(r => r.id === formData.regionId)?.name || ''}
                       className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg bg-surface-muted text-content-muted"
@@ -432,7 +434,7 @@ const EditTeamPage: React.FC = () => {
               {/* Location Display - Solo si es filial */}
               {formData.isFilial && formData.location && (
                 <div>
-                  <label className="block text-sm font-medium text-content-muted mb-2">
+                  <label htmlFor="editar-equipo-ubicacion" className="block text-sm font-medium text-content-muted mb-2">
                     Ubicación (heredada del club principal)
                   </label>
                   <div className="relative">
@@ -440,6 +442,7 @@ const EditTeamPage: React.FC = () => {
                       <MapPin className="h-5 w-5 text-content-subtle" />
                     </div>
                     <input
+                      id="editar-equipo-ubicacion"
                       type="text"
                       value={formData.location}
                       className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg bg-surface-muted text-content-muted"
@@ -482,7 +485,7 @@ const EditTeamPage: React.FC = () => {
               {/* Email Display - Solo si es filial */}
               {formData.isFilial && formData.email && (
                 <div>
-                  <label className="block text-sm font-medium text-content-muted mb-2">
+                  <label htmlFor="editar-equipo-email" className="block text-sm font-medium text-content-muted mb-2">
                     Email de Contacto (heredado del club principal)
                   </label>
                   <div className="relative">
@@ -490,6 +493,7 @@ const EditTeamPage: React.FC = () => {
                       <Mail className="h-5 w-5 text-content-subtle" />
                     </div>
                     <input
+                      id="editar-equipo-email"
                       type="email"
                       value={formData.email}
                       className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-lg bg-surface-muted text-content-muted"
@@ -550,9 +554,9 @@ const EditTeamPage: React.FC = () => {
           {/* Logo Display - Solo si es filial */}
           {formData.isFilial && (
             <div>
-              <label className="block text-sm font-medium text-content-muted mb-2">
+              <span className="block text-sm font-medium text-content-muted mb-2">
                 Logo del Equipo (heredado del club principal)
-              </label>
+              </span>
               
               {/* Preview del logo heredado */}
               <div className="mb-4 flex items-center space-x-4">
@@ -690,40 +694,16 @@ const EditTeamPage: React.FC = () => {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-surface">
-            <div className="mt-3">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-950/50 rounded-full">
-                <Trash2 className="h-6 w-6 text-red-600 dark:text-red-300" />
-              </div>
-              <h3 className="text-lg font-medium text-content text-center mt-4">
-                Eliminar Equipo
-              </h3>
-              <p className="text-sm text-content-subtle text-center mt-2">
-                ¿Estás seguro de que quieres eliminar <strong>{formData.name}</strong>? 
-                Esta acción no se puede deshacer.
-              </p>
-              
-              <div className="flex items-center justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowDeleteModal(false)}
-                  className="btn-outline"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isDeleting ? 'Eliminando...' : 'Eliminar'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        title="Eliminar equipo"
+        isPending={isDeleting}
+      >
+        ¿Estás seguro de que quieres eliminar <strong>{formData.name}</strong>? Esta acción no se
+        puede deshacer.
+      </ConfirmDialog>
     </div>
   )
 }

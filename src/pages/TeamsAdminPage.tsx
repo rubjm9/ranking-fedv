@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search, MapPin, Loader2 } from 'lucide-react'
+import Modal from '@/components/ui/Modal'
 import toast from 'react-hot-toast'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import TableColumnFilter from '@/components/ui/TableColumnFilter'
@@ -223,38 +224,32 @@ const TeamsAdminPage: React.FC = () => {
       )}
 
       {/* Modal de confirmación de eliminación */}
-      {showDeleteModal && selectedTeam && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-surface rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-medium text-content mb-4">
-              Confirmar eliminación
-            </h3>
-            <p className="text-content-muted mb-6">
-              ¿Estás seguro de que quieres eliminar el equipo "{selectedTeam.name}"? 
-              Esta acción no se puede deshacer.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="btn-outline"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={deleteTeamMutation.isPending}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-              >
-                {deleteTeamMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  'Eliminar'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        open={showDeleteModal && !!selectedTeam}
+        onClose={() => setShowDeleteModal(false)}
+        title="Confirmar eliminación"
+        size="md"
+        footer={
+          <>
+            <button onClick={() => setShowDeleteModal(false)} className="btn-outline min-h-[44px]">
+              Cancelar
+            </button>
+            <button
+              onClick={confirmDelete}
+              disabled={deleteTeamMutation.isPending}
+              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+            >
+              {deleteTeamMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              Eliminar
+            </button>
+          </>
+        }
+      >
+        <p className="text-content-muted">
+          ¿Estás seguro de que quieres eliminar el equipo &quot;{selectedTeam?.name}&quot;? Esta
+          acción no se puede deshacer.
+        </p>
+      </Modal>
     </div>
   )
 }
