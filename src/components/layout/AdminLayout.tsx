@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import AdminNotificationBanner, { NotificationBadge } from '@/components/admin/AdminNotificationBanner'
+import { useInertBackground } from '@/hooks/useInertBackground'
 
 const AdminLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -70,6 +71,8 @@ const AdminLayout: React.FC = () => {
   }
 
   const currentSection = getCurrentSection()
+  // El drawer móvil también debe aislar el contenido de detrás.
+  useInertBackground(sidebarOpen)
 
   // Drawer móvil: bloquea el scroll del fondo y permite cerrar con Escape.
   useEffect(() => {

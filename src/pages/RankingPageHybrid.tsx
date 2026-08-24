@@ -528,7 +528,7 @@ const RankingPageHybrid: React.FC = () => {
               </div>
             </div>
             {/* Tooltip */}
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-max max-w-[min(16rem,calc(100vw-2rem))] whitespace-normal text-center z-10">
               Número total de equipos registrados en este ranking
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
             </div>
@@ -543,7 +543,7 @@ const RankingPageHybrid: React.FC = () => {
               </div>
             </div>
             {/* Tooltip */}
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-max max-w-[min(16rem,calc(100vw-2rem))] whitespace-normal text-center z-10">
               Promedio de puntos por equipo en este ranking
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
             </div>
@@ -558,7 +558,7 @@ const RankingPageHybrid: React.FC = () => {
               </div>
             </div>
             {/* Tooltip */}
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-max max-w-[min(16rem,calc(100vw-2rem))] whitespace-normal text-center z-10">
               Equipos que solo tienen puntos en la temporada actual{referenceSeason ? ` (${referenceSeason})` : ''}
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
             </div>
@@ -573,7 +573,7 @@ const RankingPageHybrid: React.FC = () => {
               </div>
             </div>
             {/* Tooltip */}
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-max max-w-[min(16rem,calc(100vw-2rem))] whitespace-normal text-center z-10">
               Equipos que han estado en top 10 en al menos 2 temporadas
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
             </div>
@@ -588,7 +588,7 @@ const RankingPageHybrid: React.FC = () => {
               </div>
             </div>
             {/* Tooltip */}
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-max max-w-[min(16rem,calc(100vw-2rem))] whitespace-normal text-center z-10">
               Promedio de temporadas activas por equipo
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
             </div>

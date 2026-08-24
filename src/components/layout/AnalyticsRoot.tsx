@@ -50,7 +50,7 @@ const AnalyticsRoot: React.FC = () => {
       aria-labelledby="cookie-notice-title"
       aria-describedby="cookie-notice-desc"
     >
-      <div className="rounded-2xl border border-line bg-surface/95 backdrop-blur-xl shadow-lg p-4 sm:p-5">
+      <div className="max-h-[70dvh] overflow-y-auto overscroll-contain rounded-2xl border border-line bg-surface/95 p-4 shadow-lg backdrop-blur-xl sm:p-5">
         <h2 id="cookie-notice-title" className="font-display text-base font-semibold text-content">
           Cookies de analítica
         </h2>
@@ -61,8 +61,12 @@ const AnalyticsRoot: React.FC = () => {
             Más información
           </Link>
         </p>
-        <div className="mt-4 flex justify-end">
-          <button type="button" className="btn-primary min-h-[44px]" onClick={dismiss}>
+        <div className="mt-4 flex justify-stretch sm:justify-end">
+          <button
+            type="button"
+            className="btn-primary min-h-[44px] w-full touch-manipulation sm:w-auto"
+            onClick={dismiss}
+          >
             Aceptar
           </button>
         </div>

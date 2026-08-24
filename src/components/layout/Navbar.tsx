@@ -8,6 +8,7 @@ import RegionsMenu from './RegionsMenu'
 import ThemeToggle from './ThemeToggle'
 import { buildRegionPublicSlugById, getRegionPublicUrl, regionsService } from '@/services/apiService'
 import { useNavOverHero } from '@/hooks/useNavOverHero'
+import { useInertBackground } from '@/hooks/useInertBackground'
 
 const megamenuItems = [
   { label: 'Playa Mixto', to: '/ranking/beach-mixed' },
@@ -83,6 +84,8 @@ const Navbar: React.FC = () => {
   }
 
   const isOverHero = useNavOverHero(location.pathname)
+  // Con el menú abierto, el fondo deja de ser tabulable y de anunciarse.
+  useInertBackground(isMenuOpen)
   const isRankingActive = location.pathname.startsWith('/ranking')
   const isRegionsActive = location.pathname === '/regiones' || location.pathname.startsWith('/regiones/')
 

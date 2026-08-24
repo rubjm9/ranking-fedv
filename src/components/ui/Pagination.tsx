@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface PaginationProps {
@@ -13,6 +13,20 @@ interface PaginationProps {
   className?: string
 }
 
+/** `true` por debajo de 380px, donde la paginación completa no cabe. */
+function useEstrecho() {
+  const [estrecho, setEstrecho] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 379px)').matches
+  )
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 379px)')
+    const onChange = () => setEstrecho(media.matches)
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
+  }, [])
+  return estrecho
+}
+
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
@@ -24,12 +38,15 @@ const Pagination: React.FC<PaginationProps> = ({
   itemLabel = 'elementos',
   className = '',
 }) => {
+  const esEstrecho = useEstrecho()
   const startItem = (currentPage - 1) * itemsPerPage + 1
   const endItem = Math.min(currentPage * itemsPerPage, totalItems)
 
   const getPageNumbers = () => {
     const pages: (number | string)[] = []
-    const maxVisible = 7
+    // 7 botones de 44px más flechas y elipsis piden ~400px: en pantallas
+    // estrechas se reduce la ventana en lugar de desbordar la página.
+    const maxVisible = esEstrecho ? 5 : 7
 
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
@@ -65,14 +82,14 @@ const Pagination: React.FC<PaginationProps> = ({
   const pageNumbers = getPageNumbers()
 
   return (
-    <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 ${className}`}>
+    <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 ${className}`}>
       <div className="text-sm text-content-muted">
         Mostrando <span className="font-medium">{startItem}</span> -{' '}
         <span className="font-medium">{endItem}</span> de{' '}
         <span className="font-medium">{totalItems}</span> {itemLabel}
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
         {onItemsPerPageChange && (
           <div className="flex items-center gap-2">
             <label htmlFor="items-per-page" className="text-sm text-content-muted">
@@ -93,7 +110,7 @@ const Pagination: React.FC<PaginationProps> = ({
           </div>
         )}
 
-        <nav className="flex items-center space-x-1" aria-label="Paginación">
+        <nav className="flex flex-wrap items-center justify-center gap-1" aria-label="Paginación">
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
