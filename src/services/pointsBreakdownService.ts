@@ -15,6 +15,8 @@ export interface BreakdownEntry {
   points: number
   /** Modalidad del torneo, en formato `superficie_categoría`. */
   modality: string
+  /** Equipo que consiguió el resultado; relevante en el ranking de clubes. */
+  teamId: string
 }
 
 export interface SeasonBreakdown {
@@ -32,7 +34,11 @@ export interface SeasonBreakdown {
  * número que muestra la tabla. Si se cambia una, hay que cambiar la otra.
  */
 export async function getSeasonBreakdown(
-  teamId: string,
+  /**
+   * Equipos cuyos resultados se suman. En el ranking de clubes son el equipo
+   * principal y sus filiales; en el resto, uno solo.
+   */
+  teamIds: string[],
   season: string,
   /**
    * Modalidades incluidas, en formato `superficie_categoría`. La vista global
@@ -53,7 +59,7 @@ export async function getSeasonBreakdown(
        tournaments:tournamentId ( id, name, year, type, surface, category ),
        teams:teamId ( id, regionId )`
     )
-    .eq('teamId', teamId)
+    .in('teamId', teamIds)
     .eq('tournaments.year', seasonYear)
 
   if (error) throw error
@@ -76,18 +82,19 @@ export async function getSeasonBreakdown(
     lista.forEach((c: any) => coeficientes.set(`${c.regionId}-${c.modality}`, c.coefficient))
   }
 
-  const regionId = teamRegionId ?? (filas[0] as any).teams?.regionId
-
   const entries: BreakdownEntry[] = filas
     .map((p: any) => {
       const modalidad = modalidadDe(p.tournaments)
       const esRegional = p.tournaments.type === 'REGIONAL'
+      // Cada equipo puede pertenecer a una región distinta.
+      const regionId = teamRegionId ?? p.teams?.regionId
       const coef = esRegional
         ? coeficientes.get(`${regionId}-${modalidad}`) ?? 1.0
         : 1.0
       const basePoints = p.points || 0
       return {
         tournamentId: p.tournaments.id,
+        teamId: p.teamId,
         tournamentName: p.tournaments.name,
         type: p.tournaments.type,
         position: p.position,

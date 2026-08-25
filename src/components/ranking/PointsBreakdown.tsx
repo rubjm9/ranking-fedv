@@ -8,7 +8,9 @@ import { cn } from '@/utils/cn'
 const ANCHO = 320
 const MARGEN = 8
 /** Espacio necesario encima del disparador para no salirse por arriba. */
-const UMBRAL_VOLTEO = 260
+const UMBRAL_VOLTEO = 300
+/** Margen para que el puntero pueda viajar del disparador al panel sin cerrarlo. */
+const RETARDO_CIERRE = 180
 
 const ETIQUETA_TIPO: Record<string, string> = {
   CE1: 'CE 1ª',
@@ -27,45 +29,65 @@ const ETIQUETA_MODALIDAD: Record<string, string> = {
 }
 
 interface PointsBreakdownProps {
-  teamId: string
+  /** Equipo principal y, en el ranking de clubes, sus filiales. */
+  teamIds: string[]
   teamName: string
   season: string
-  /** Modalidades que suma esta celda. */
   modalities: string[]
   regionId?: string
-  /** Valor que muestra la tabla, para poder contrastarlo con la suma. */
+  /** Valor que muestra la tabla, para contrastarlo con la suma. */
   value: number
+  /** Nombre por id, para distinguir filiales dentro de un club. */
+  memberNames?: Record<string, string>
   className?: string
 }
 
 /**
  * Muestra de dónde salen los puntos de una celda del ranking.
  *
- * Se pide el detalle solo al abrir, y react-query lo cachea por equipo,
- * temporada y modalidades. Se abre con el ratón, con el dedo y con el teclado:
- * limitarlo a `hover` lo dejaría inservible en móvil, que es de donde viene la
- * mayoría del tráfico.
+ * Se pide el detalle solo al abrir y se cachea. Se abre con el ratón, con el
+ * dedo y con el teclado: limitarlo a `hover` lo dejaría inservible en móvil.
  */
 const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
-  teamId,
+  teamIds,
   teamName,
   season,
   modalities,
   regionId,
   value,
+  memberNames,
   className,
 }) => {
   const id = useId()
   const [abierto, setAbierto] = useState(false)
   const botonRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const cierreRef = useRef<number | undefined>(undefined)
   const [pos, setPos] = useState<{ top: number; left: number; debajo: boolean } | null>(null)
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['points-breakdown', teamId, season, modalities.join(',')],
-    queryFn: () => getSeasonBreakdown(teamId, season, modalities, regionId),
+    queryKey: ['points-breakdown', teamIds.join(','), season, modalities.join(',')],
+    queryFn: () => getSeasonBreakdown(teamIds, season, modalities, regionId),
     enabled: abierto,
     staleTime: 10 * 60 * 1000,
   })
+
+  /*
+   * El panel se pinta en un portal, así que al mover el ratón hacia él se sale
+   * del disparador. Sin este retardo el panel desaparecía antes de poder
+   * desplazarlo, y los últimos torneos quedaban inalcanzables.
+   */
+  const cancelarCierre = useCallback(() => {
+    if (cierreRef.current) {
+      window.clearTimeout(cierreRef.current)
+      cierreRef.current = undefined
+    }
+  }, [])
+
+  const cerrarConRetardo = useCallback(() => {
+    cancelarCierre()
+    cierreRef.current = window.setTimeout(() => setAbierto(false), RETARDO_CIERRE)
+  }, [cancelarCierre])
 
   const recolocar = useCallback(() => {
     const el = botonRef.current
@@ -86,18 +108,15 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
       return
     }
     recolocar()
-    window.addEventListener('scroll', recolocar, true)
     window.addEventListener('resize', recolocar)
-    return () => {
-      window.removeEventListener('scroll', recolocar, true)
-      window.removeEventListener('resize', recolocar)
-    }
+    return () => window.removeEventListener('resize', recolocar)
   }, [abierto, recolocar])
 
   useEffect(() => {
     if (!abierto) return
     const alPulsar = (e: PointerEvent) => {
-      if (!botonRef.current?.contains(e.target as Node)) setAbierto(false)
+      const t = e.target as Node
+      if (!botonRef.current?.contains(t) && !panelRef.current?.contains(t)) setAbierto(false)
     }
     const alTeclear = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -113,7 +132,10 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
     }
   }, [abierto])
 
+  useEffect(() => cancelarCierre, [cancelarCierre])
+
   const descuadre = data ? Math.abs(data.total - value) > 0.01 : false
+  const variosEquipos = teamIds.length > 1
 
   return (
     <>
@@ -123,11 +145,14 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
         aria-expanded={abierto}
         aria-controls={abierto ? id : undefined}
         aria-label={`Desglose de ${formatPoints(value)} puntos de ${teamName}`}
-        onClick={() => setAbierto((v) => !v)}
-        onMouseEnter={() => setAbierto(true)}
-        onMouseLeave={() => setAbierto(false)}
+        onClick={() => (abierto ? setAbierto(false) : setAbierto(true))}
+        onMouseEnter={() => {
+          cancelarCierre()
+          setAbierto(true)
+        }}
+        onMouseLeave={cerrarConRetardo}
         onFocus={() => setAbierto(true)}
-        onBlur={() => setAbierto(false)}
+        onBlur={cerrarConRetardo}
         className={cn(
           'inline-flex min-h-[44px] items-center justify-end rounded touch-manipulation tabular-nums underline decoration-dotted decoration-content-subtle underline-offset-4 transition-colors hover:text-link focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
           className
@@ -140,9 +165,12 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
         pos &&
         createPortal(
           <div
+            ref={panelRef}
             id={id}
             role="dialog"
             aria-label={`Desglose de puntos de ${teamName}`}
+            onMouseEnter={cancelarCierre}
+            onMouseLeave={cerrarConRetardo}
             className="fixed z-[9999] w-80 max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-line bg-surface text-left shadow-xl"
             style={{
               top: pos.top,
@@ -152,9 +180,9 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
                 : 'translate(-50%, calc(-100% - 8px))',
             }}
           >
-            <div className="border-b border-line px-3 py-2">
+            <div className="flex items-baseline justify-between gap-2 border-b border-line px-3 py-2">
               <p className="truncate text-sm font-semibold text-content">{teamName}</p>
-              <p className="text-xs text-content-muted">Temporada {season.replace('-', '/')}</p>
+              <p className="shrink-0 text-xs text-content-muted">{season.replace('-', '/')}</p>
             </div>
 
             <div className="max-h-64 overflow-y-auto overscroll-contain">
@@ -178,32 +206,39 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
 
               {data && data.entries.length > 0 && (
                 <ul className="divide-y divide-line">
-                  {data.entries.map((e) => (
-                    <li key={e.tournamentId} className="px-3 py-2">
-                      <div className="flex items-start justify-between gap-2">
+                  {data.entries.map((e, i) => (
+                    <li key={`${e.tournamentId}-${e.teamId}-${i}`} className="px-3 py-2.5">
+                      <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="truncate text-sm text-content">{e.tournamentName}</p>
-                          <p className="text-xs text-content-muted">
-                            <span className="font-medium">
-                              {ETIQUETA_TIPO[e.type] ?? e.type}
-                            </span>
-                            {modalities.length > 1 && ETIQUETA_MODALIDAD[e.modality] && (
-                              <> · {ETIQUETA_MODALIDAD[e.modality]}</>
+                          {/* Formato del torneo: lo identifica sin repetir el nombre largo. */}
+                          <p className="truncate text-sm font-semibold text-content">
+                            {ETIQUETA_TIPO[e.type] ?? e.type}
+                            {ETIQUETA_MODALIDAD[e.modality] && (
+                              <span className="font-normal text-content-muted">
+                                {' · '}
+                                {ETIQUETA_MODALIDAD[e.modality]}
+                              </span>
                             )}
-                            {' · '}
+                          </p>
+                          <p className="mt-0.5 font-display text-base font-bold leading-tight text-brand-strong">
                             {e.position}.º puesto
                           </p>
+                          {variosEquipos && memberNames?.[e.teamId] && (
+                            <p className="mt-0.5 truncate text-xs text-content-subtle">
+                              {memberNames[e.teamId]}
+                            </p>
+                          )}
+                          {e.regionalCoefficient !== 1 && (
+                            <p className="mt-0.5 text-xs tabular-nums text-content-subtle">
+                              {formatPoints(e.basePoints)} × {e.regionalCoefficient.toFixed(2)} coef.
+                              regional
+                            </p>
+                          )}
                         </div>
-                        <p className="shrink-0 text-sm font-semibold tabular-nums text-content">
+                        <p className="shrink-0 font-display text-base font-bold tabular-nums text-content">
                           {formatPoints(e.points)}
                         </p>
                       </div>
-                      {e.regionalCoefficient !== 1 && (
-                        <p className="mt-0.5 text-xs text-content-subtle tabular-nums">
-                          {formatPoints(e.basePoints)} × {e.regionalCoefficient.toFixed(2)} (coef.
-                          regional)
-                        </p>
-                      )}
                     </li>
                   ))}
                 </ul>
@@ -213,9 +248,9 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
             {data && data.entries.length > 0 && (
               <div className="flex items-center justify-between gap-2 border-t border-line bg-surface-muted px-3 py-2">
                 <span className="text-xs font-medium uppercase tracking-wide text-content-muted">
-                  Total
+                  Total {season.replace('-', '/')}
                 </span>
-                <span className="text-sm font-bold tabular-nums text-content">
+                <span className="font-display text-base font-bold tabular-nums text-content">
                   {formatPoints(data.total)}
                 </span>
               </div>

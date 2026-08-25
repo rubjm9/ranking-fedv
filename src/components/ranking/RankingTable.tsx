@@ -2,6 +2,7 @@ import React from 'react'
 import TeamLogo from '@/components/ui/TeamLogo'
 import RankingTeamLink from '@/components/ranking/RankingTeamLink'
 import PointsBreakdown from '@/components/ranking/PointsBreakdown'
+import TotalBreakdown from '@/components/ranking/TotalBreakdown'
 import RankingCardList from '@/components/ranking/RankingCardList'
 import type { ViewMode } from '@/hooks/useViewMode'
 
@@ -54,6 +55,8 @@ const RankingTable: React.FC<RankingTableProps> = ({
         showCoefficients={rankingType !== 'historical'}
         showTeamsCount={rankingType === 'clubs'}
         modalities={modalities}
+        coefficients={coefficients}
+        weighted={rankingType !== 'historical'}
       />
     )
   }
@@ -145,17 +148,25 @@ const RankingTable: React.FC<RankingTableProps> = ({
                     className="px-4 py-4 whitespace-nowrap text-sm text-content text-right"
                   >
                     <PointsBreakdown
-                      teamId={team.team_id}
+                      teamIds={team.member_team_ids ?? [team.team_id]}
                       teamName={team.team_name}
                       season={season}
                       modalities={modalities}
                       regionId={team.region_id}
+                      memberNames={team.member_team_names}
                       value={getSeasonPoints(team, season) || 0}
                     />
                   </td>
                 ))}
-                <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-content text-right tabular-nums">
-                  {(team.total_points || 0).toFixed(2)}
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-content text-right">
+                  <TotalBreakdown
+                    teamName={team.team_name}
+                    seasons={seasons}
+                    coefficients={coefficients}
+                    getSeasonPoints={(season) => getSeasonPoints(team, season)}
+                    total={team.total_points || 0}
+                    weighted={rankingType !== 'historical'}
+                  />
                 </td>
               </tr>
             )

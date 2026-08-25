@@ -17,6 +17,7 @@ import RankingTableSkeleton from '@/components/ui/RankingTableSkeleton'
 import dynamicRankingService from '@/services/dynamicRankingService'
 import teamSeasonRankingsService from '@/services/teamSeasonRankingsService'
 import RankingTable from '@/components/ranking/RankingTable'
+import CollapsibleRows from '@/components/ranking/CollapsibleRows'
 import ViewModeToggle from '@/components/ui/ViewModeToggle'
 import { useMostRecentSeasons } from '@/hooks/useMostRecentSeasons'
 import { useViewMode } from '@/hooks/useViewMode'
@@ -514,11 +515,6 @@ const RankingPageNew: React.FC = () => {
   // En móvil arranca en tarjetas: la tabla tiene 8 columnas y 807px de ancho.
   const [rankingViewMode, setRankingViewMode] = useViewMode()
   /** Evita recortar el top 10; solo limita altura durante la animación de colapsar */
-  const rankingTableMaxHeight = showAllResults
-    ? '5000px'
-    : isCollapsing
-      ? '960px'
-      : 'none'
   const [selectedTeamsForAnalysis, setSelectedTeamsForAnalysis] = useState<string[]>([])
   const [analysisView, setAnalysisView] = useState<'points' | 'positions'>('points')
   const [hoveredPoint, setHoveredPoint] = useState<{team: any, point: any, x: number, y: number} | null>(null)
@@ -1423,7 +1419,13 @@ const RankingPageNew: React.FC = () => {
         season_breakdown: allSeasons,
         is_club: true,
         teams_count: sortedTeams.length,
-        position_change: 0
+        position_change: 0,
+        // Ids y nombres de todos los equipos del club (principal y filiales),
+        // para que el desglose por torneo sume lo mismo que la fila.
+        member_team_ids: sortedTeams.map(t => t.team_id),
+        member_team_names: Object.fromEntries(
+          sortedTeams.map(t => [t.team_id, t.team_name])
+        ),
       }
     }).sort((a, b) => b.total_points - a.total_points)
   }, [rankingData])
@@ -3174,10 +3176,10 @@ const RankingPageNew: React.FC = () => {
           </div>
 
         {/* Tabla estilo UEFA - wrapper con animación expandir/colapsar */}
-          <div
-            className="overflow-hidden transition-[max-height] duration-500 ease-in-out"
-            style={{ maxHeight: rankingTableMaxHeight }}
-            onTransitionEnd={() => { if (isCollapsing) setIsCollapsing(false) }}
+          <CollapsibleRows
+            expanded={showAllResults}
+            collapsing={isCollapsing}
+            onCollapseEnd={() => setIsCollapsing(false)}
           >
             <RankingTable
               teams={rankingDataWithRecalculatedPoints?.slice(0, (showAllResults || isCollapsing) ? undefined : 10) || []}
@@ -3191,7 +3193,7 @@ const RankingPageNew: React.FC = () => {
               viewMode={rankingViewMode}
               modalities={modalidadesDeLaVistaGlobal}
             />
-          </div>
+          </CollapsibleRows>
 
         {/* Footer estilo UEFA */}
           <div className="px-6 py-4 border-t border-line bg-surface-muted">
@@ -3835,10 +3837,10 @@ const RankingPageNew: React.FC = () => {
           </div>
 
         {/* Tabla estilo UEFA - wrapper con animación expandir/colapsar */}
-        <div
-          className="overflow-hidden transition-[max-height] duration-500 ease-in-out"
-          style={{ maxHeight: rankingTableMaxHeight }}
-          onTransitionEnd={() => { if (isCollapsing) setIsCollapsing(false) }}
+        <CollapsibleRows
+          expanded={showAllResults}
+          collapsing={isCollapsing}
+          onCollapseEnd={() => setIsCollapsing(false)}
         >
           <RankingTable
             teams={rankedTeamsWithPoints.slice(0, (showAllResults || isCollapsing) ? undefined : 10)}
@@ -3852,7 +3854,7 @@ const RankingPageNew: React.FC = () => {
             viewMode={rankingViewMode}
             modalities={[activeTab]}
           />
-        </div>
+        </CollapsibleRows>
 
         {/* Footer estilo UEFA */}
         <div className="px-6 py-4 border-t border-line bg-surface-muted">

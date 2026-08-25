@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react'
 import TeamLogo from '@/components/ui/TeamLogo'
 import RankingTeamLink from '@/components/ranking/RankingTeamLink'
 import PointsBreakdown from '@/components/ranking/PointsBreakdown'
+import TotalBreakdown from '@/components/ranking/TotalBreakdown'
 import { cn } from '@/utils/cn'
 
 interface RankingCardListProps {
@@ -18,6 +19,10 @@ interface RankingCardListProps {
   showTeamsCount?: boolean
   /** Modalidades que suma cada temporada, para el desglose por torneo. */
   modalities?: string[]
+  /** Pesos por antigüedad, para explicar el total. */
+  coefficients?: number[]
+  /** En el ranking histórico no se pondera por antigüedad. */
+  weighted?: boolean
 }
 
 const COEFFICIENTS = [1.0, 0.8, 0.5, 0.2]
@@ -45,6 +50,8 @@ const RankingCardList: React.FC<RankingCardListProps> = ({
   showCoefficients = true,
   showTeamsCount = false,
   modalities = [],
+  coefficients = COEFFICIENTS,
+  weighted = true,
 }) => {
   const [expanded, setExpanded] = useState<string | null>(null)
 
@@ -92,9 +99,15 @@ const RankingCardList: React.FC<RankingCardListProps> = ({
               </div>
 
               <div className="shrink-0 text-right">
-                <div className="font-display text-base font-bold tabular-nums text-content">
-                  {team.total_points?.toFixed(2) || '0.00'}
-                </div>
+                <TotalBreakdown
+                  teamName={team.team_name}
+                  seasons={seasons}
+                  coefficients={coefficients}
+                  getSeasonPoints={(season) => getSeasonPoints(team, season)}
+                  total={team.total_points || 0}
+                  weighted={weighted}
+                  className="font-display text-base"
+                />
                 <div className="text-[11px] uppercase tracking-wide text-content-subtle">pts</div>
               </div>
 
@@ -129,11 +142,12 @@ const RankingCardList: React.FC<RankingCardListProps> = ({
                     <dd className="text-sm tabular-nums text-content">
                       {modalities.length > 0 ? (
                         <PointsBreakdown
-                          teamId={team.team_id}
+                          teamIds={team.member_team_ids ?? [team.team_id]}
                           teamName={team.team_name}
                           season={season}
                           modalities={modalities}
                           regionId={team.region_id}
+                          memberNames={team.member_team_names}
                           value={getSeasonPoints(team, season) || 0}
                           className="justify-start"
                         />
