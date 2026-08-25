@@ -128,9 +128,9 @@ const RankingCardList: React.FC<RankingCardListProps> = ({
             </div>
 
             {isOpen && (
-              <dl id={panelId} className="grid grid-cols-2 gap-x-4 gap-y-2 bg-surface-muted px-4 py-3">
+              <dl id={panelId} className="divide-y divide-line/60 bg-surface-muted px-4 py-1">
                 {seasons.map((season, seasonIndex) => (
-                  <div key={season} className="flex items-baseline justify-between gap-2">
+                  <div key={season} className="flex items-center justify-between gap-3 py-1">
                     <dt className="text-xs text-content-muted">
                       {formatSeason(season)}
                       {showCoefficients && (

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getSeasonBreakdown } from '@/services/pointsBreakdownService'
 import { formatPoints } from '@/utils/rankingCalculations'
+import { useHasHover } from '@/hooks/useHasHover'
 import { cn } from '@/utils/cn'
 
 const ANCHO = 320
@@ -59,6 +60,7 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
   className,
 }) => {
   const id = useId()
+  const conHover = useHasHover()
   const [abierto, setAbierto] = useState(false)
   const botonRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -108,8 +110,22 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
       return
     }
     recolocar()
+
+    /*
+     * Al desplazar la página el panel debe seguir a su celda, pero el scroll
+     * interno de la propia lista no debe recolocarlo: se ignora cuando el
+     * evento nace dentro del panel.
+     */
+    const alDesplazar = (e: Event) => {
+      if (panelRef.current?.contains(e.target as Node)) return
+      recolocar()
+    }
+    window.addEventListener('scroll', alDesplazar, true)
     window.addEventListener('resize', recolocar)
-    return () => window.removeEventListener('resize', recolocar)
+    return () => {
+      window.removeEventListener('scroll', alDesplazar, true)
+      window.removeEventListener('resize', recolocar)
+    }
   }, [abierto, recolocar])
 
   useEffect(() => {
@@ -146,13 +162,21 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
         aria-controls={abierto ? id : undefined}
         aria-label={`Desglose de ${formatPoints(value)} puntos de ${teamName}`}
         onClick={() => (abierto ? setAbierto(false) : setAbierto(true))}
-        onMouseEnter={() => {
-          cancelarCierre()
-          setAbierto(true)
-        }}
-        onMouseLeave={cerrarConRetardo}
+        onMouseEnter={
+          conHover
+            ? () => {
+                cancelarCierre()
+                setAbierto(true)
+              }
+            : undefined
+        }
+        onMouseLeave={conHover ? cerrarConRetardo : undefined}
         onFocus={() => setAbierto(true)}
-        onBlur={cerrarConRetardo}
+        onBlur={(e) => {
+          // Tocar dentro del panel quita el foco del botón: no debe cerrarlo.
+          if (panelRef.current?.contains(e.relatedTarget as Node)) return
+          cerrarConRetardo()
+        }}
         className={cn(
           'inline-flex min-h-[44px] items-center justify-end rounded touch-manipulation tabular-nums underline decoration-dotted decoration-content-subtle underline-offset-4 transition-colors hover:text-link focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
           className
@@ -169,8 +193,8 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
             id={id}
             role="dialog"
             aria-label={`Desglose de puntos de ${teamName}`}
-            onMouseEnter={cancelarCierre}
-            onMouseLeave={cerrarConRetardo}
+            onMouseEnter={conHover ? cancelarCierre : undefined}
+            onMouseLeave={conHover ? cerrarConRetardo : undefined}
             className="fixed z-[9999] w-80 max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-line bg-surface text-left shadow-xl"
             style={{
               top: pos.top,
@@ -213,6 +237,7 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
                           {/* Formato del torneo: lo identifica sin repetir el nombre largo. */}
                           <p className="truncate text-sm font-semibold text-content">
                             {ETIQUETA_TIPO[e.type] ?? e.type}
+                            {e.type === 'REGIONAL' && e.regionName && ` ${e.regionName}`}
                             {ETIQUETA_MODALIDAD[e.modality] && (
                               <span className="font-normal text-content-muted">
                                 {' · '}

@@ -17,6 +17,8 @@ export interface BreakdownEntry {
   modality: string
   /** Equipo que consiguió el resultado; relevante en el ranking de clubes. */
   teamId: string
+  /** Región del torneo; solo tiene sentido en los regionales. */
+  regionName?: string
 }
 
 export interface SeasonBreakdown {
@@ -56,7 +58,7 @@ export async function getSeasonBreakdown(
     .from('positions')
     .select(
       `id, position, points, teamId,
-       tournaments:tournamentId ( id, name, year, type, surface, category ),
+       tournaments:tournamentId ( id, name, year, type, surface, category, region:regions(name) ),
        teams:teamId ( id, regionId )`
     )
     .in('teamId', teamIds)
@@ -102,6 +104,7 @@ export async function getSeasonBreakdown(
         regionalCoefficient: coef,
         points: basePoints * coef,
         modality: modalidad,
+        regionName: p.tournaments.region?.name,
       }
     })
     .sort((a, b) => b.points - a.points)

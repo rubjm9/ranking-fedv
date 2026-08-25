@@ -1368,33 +1368,68 @@ const RankingPageNew: React.FC = () => {
   }
 
   // Cache para ranking de clubes
+  /*
+   * Relación club–filial tal como está en la base de datos. Antes el club se
+   * deducía quitando un sufijo " B".." E" del nombre, y eso fallaba con los
+   * equipos que tienen nombre propio por modalidad: "Murciélagos B" se muestra
+   * como "Murciélagos Bélicos" y quedaba fuera de la suma de su club.
+   */
+  const { data: teamsMeta } = useQuery({
+    queryKey: ['teams-club-relations'],
+    queryFn: async () => {
+      if (!supabase) return []
+      const { data, error } = await supabase
+        .from('teams')
+        .select('id, name, isFilial, parentTeamId')
+      if (error) throw error
+      return data || []
+    },
+    staleTime: 30 * 60 * 1000,
+  })
+
+  const clubDeEquipo = useMemo(() => {
+    const mapa = new Map<string, { clubId: string; clubName: string }>()
+    const porId = new Map((teamsMeta || []).map((t: any) => [t.id, t]))
+    ;(teamsMeta || []).forEach((t: any) => {
+      const padre = t.parentTeamId ? porId.get(t.parentTeamId) : null
+      mapa.set(t.id, {
+        clubId: padre?.id ?? t.id,
+        clubName: padre?.name ?? t.name,
+      })
+    })
+    return mapa
+  }, [teamsMeta])
+
   const clubsRankingCache = useMemo(() => {
     if (!rankingData) return null
     
-    const clubGroups: { [key: string]: any[] } = {}
-    
+    // Sin las relaciones cargadas no se puede agrupar de forma fiable.
+    if (clubDeEquipo.size === 0) return null
+
+    const clubGroups: { [clubId: string]: { nombre: string; equipos: any[] } } = {}
+
     rankingData.forEach(team => {
-      let clubKey = team.team_name
-      if (team.team_name.match(/\s+[B-E]$/)) {
-        clubKey = team.team_name.replace(/\s+[B-E]$/, '')
+      const club = clubDeEquipo.get(team.team_id)
+      const clubId = club?.clubId ?? team.team_id
+      const nombre = club?.clubName ?? team.team_name
+
+      if (!clubGroups[clubId]) {
+        clubGroups[clubId] = { nombre, equipos: [] }
       }
-      
-      if (!clubGroups[clubKey]) {
-        clubGroups[clubKey] = []
-      }
-      clubGroups[clubKey].push(team)
+      clubGroups[clubId].equipos.push(team)
     })
-    
-    return Object.entries(clubGroups).map(([clubName, teams]) => {
+
+    return Object.values(clubGroups).map(({ nombre: clubName, equipos: teams }) => {
       let totalClubPoints = 0
       let totalTournaments = 0
       const allSeasons: { [key: string]: number } = {}
       
-      const sortedTeams = teams.sort((a, b) => {
-        const aIsFilial = a.team_name.match(/\s+[B-E]$/)
-        const bIsFilial = b.team_name.match(/\s+[B-E]$/)
-        if (!aIsFilial && bIsFilial) return -1
-        if (aIsFilial && !bIsFilial) return 1
+      // El equipo principal primero: es el que no tiene club padre.
+      const sortedTeams = [...teams].sort((a, b) => {
+        const aEsFilial = clubDeEquipo.get(a.team_id)?.clubId !== a.team_id
+        const bEsFilial = clubDeEquipo.get(b.team_id)?.clubId !== b.team_id
+        if (!aEsFilial && bEsFilial) return -1
+        if (aEsFilial && !bEsFilial) return 1
         return 0
       })
       
@@ -1428,7 +1463,7 @@ const RankingPageNew: React.FC = () => {
         ),
       }
     }).sort((a, b) => b.total_points - a.total_points)
-  }, [rankingData])
+  }, [rankingData, clubDeEquipo])
 
   // Función auxiliar para calcular position_change en ranking de clubes
   const calculateClubsPositionChange = async (currentClubsData: any[], referenceSeason: string, category?: string) => {

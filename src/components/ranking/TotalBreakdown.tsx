@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { formatPoints } from '@/utils/rankingCalculations'
+import { useHasHover } from '@/hooks/useHasHover'
 import { cn } from '@/utils/cn'
 
 const ANCHO = 300
@@ -37,6 +38,7 @@ const TotalBreakdown: React.FC<TotalBreakdownProps> = ({
   className,
 }) => {
   const id = useId()
+  const conHover = useHasHover()
   const [abierto, setAbierto] = useState(false)
   const botonRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -74,8 +76,22 @@ const TotalBreakdown: React.FC<TotalBreakdownProps> = ({
       return
     }
     recolocar()
+
+    /*
+     * Al desplazar la página el panel debe seguir a su celda, pero el scroll
+     * interno de la propia lista no debe recolocarlo: se ignora cuando el
+     * evento nace dentro del panel.
+     */
+    const alDesplazar = (e: Event) => {
+      if (panelRef.current?.contains(e.target as Node)) return
+      recolocar()
+    }
+    window.addEventListener('scroll', alDesplazar, true)
     window.addEventListener('resize', recolocar)
-    return () => window.removeEventListener('resize', recolocar)
+    return () => {
+      window.removeEventListener('scroll', alDesplazar, true)
+      window.removeEventListener('resize', recolocar)
+    }
   }, [abierto, recolocar])
 
   useEffect(() => {
@@ -117,13 +133,21 @@ const TotalBreakdown: React.FC<TotalBreakdownProps> = ({
         aria-controls={abierto ? id : undefined}
         aria-label={`Cómo se calcula el total de ${formatPoints(total)} puntos de ${teamName}`}
         onClick={() => setAbierto((v) => !v)}
-        onMouseEnter={() => {
-          cancelarCierre()
-          setAbierto(true)
-        }}
-        onMouseLeave={cerrarConRetardo}
+        onMouseEnter={
+          conHover
+            ? () => {
+                cancelarCierre()
+                setAbierto(true)
+              }
+            : undefined
+        }
+        onMouseLeave={conHover ? cerrarConRetardo : undefined}
         onFocus={() => setAbierto(true)}
-        onBlur={cerrarConRetardo}
+        onBlur={(e) => {
+          // Tocar dentro del panel quita el foco del botón: no debe cerrarlo.
+          if (panelRef.current?.contains(e.relatedTarget as Node)) return
+          cerrarConRetardo()
+        }}
         className={cn(
           'inline-flex min-h-[44px] items-center justify-end rounded font-bold tabular-nums underline decoration-dotted decoration-content-subtle underline-offset-4 touch-manipulation transition-colors hover:text-link focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
           className
@@ -140,8 +164,8 @@ const TotalBreakdown: React.FC<TotalBreakdownProps> = ({
             id={id}
             role="dialog"
             aria-label={`Cálculo del total de ${teamName}`}
-            onMouseEnter={cancelarCierre}
-            onMouseLeave={cerrarConRetardo}
+            onMouseEnter={conHover ? cancelarCierre : undefined}
+            onMouseLeave={conHover ? cerrarConRetardo : undefined}
             className="fixed z-[9999] w-[300px] max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-line bg-surface text-left shadow-xl"
             style={{
               top: pos.top,
