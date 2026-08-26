@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'reac
 import { useQuery } from '@tanstack/react-query'
 import { UsersRound, Trophy, BarChart3, TrendingUp, Loader2, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
-import { regionsService, getTeamPublicUrl } from '@/services/apiService'
+import { regionsService, getTeamPublicUrl, getRegionPublicUrl } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
 import seasonService from '@/services/seasonService'
 import { getRegionalCoefficientBaseSeason } from '@/utils/rankingCalculations'
@@ -14,6 +14,7 @@ import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import EmptyState from '@/components/ui/EmptyState'
 import TeamLogo from '@/components/ui/TeamLogo'
+import ShareButton from '@/components/ui/ShareButton'
 import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
 import DataTable, {
   DataTableHead,
@@ -511,6 +512,15 @@ const RegionDetailPage: React.FC = () => {
               { label: 'Regiones', href: '/regiones' },
               { label: region.name },
             ]}
+          />
+        }
+        actions={
+          <ShareButton
+            url={getRegionPublicUrl(region)}
+            title={`${region.name} - Ranking FEDV`}
+            description={`Equipos, torneos y coeficiente regional de ${region.name} en el Ranking FEDV`}
+            variant="dark"
+            size="sm"
           />
         }
         statsBar={

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Calendar, Trophy, MapPin, Search, Eye, BarChart3 } from 'lucide-react'
+import { Calendar, Trophy, MapPin, Search, Eye, UsersRound, BarChart3 } from 'lucide-react'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
 import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
@@ -11,6 +11,7 @@ import TableSkeleton from '@/components/ui/TableSkeleton'
 import TableColumnFilter from '@/components/ui/TableColumnFilter'
 import TournamentCategoryIcon from '@/components/ui/TournamentCategoryIcon'
 import { tournamentsService } from '@/services/apiService'
+import { supabase } from '@/services/supabaseService'
 import { usePageMeta } from '@/hooks/usePageMeta'
 
 type SortField = 'name' | 'year' | 'type' | 'surface' | 'category' | 'region'
@@ -35,6 +36,26 @@ const TournamentsPage = () => {
     queryKey: ['tournaments'],
     queryFn: () => tournamentsService.getAll(),
   })
+
+  const { data: positionsStats, isLoading: isLoadingPositionsStats } = useQuery({
+    queryKey: ['tournaments-positions-stats'],
+    queryFn: async () => {
+      if (!supabase) return { competingTeams: 0, totalPoints: 0 }
+      const { data, error: positionsError } = await supabase
+        .from('positions')
+        .select('teamId, points')
+      if (positionsError) throw positionsError
+      const rows = data || []
+      return {
+        competingTeams: new Set(rows.map((row) => row.teamId).filter(Boolean)).size,
+        totalPoints: rows.reduce((sum, row) => sum + (Number(row.points) || 0), 0),
+      }
+    },
+    staleTime: 10 * 60 * 1000,
+  })
+
+  const competingTeamsCount = positionsStats?.competingTeams ?? 0
+  const totalPointsAwarded = positionsStats?.totalPoints ?? 0
 
   const allTournaments = tournamentsData?.data || []
 
@@ -115,8 +136,6 @@ const TournamentsPage = () => {
 
   const totalTournaments = allTournaments.length
   const totalSeasons = years.length
-  const totalRegions = regionOptions.length + (hasNationalTournaments ? 1 : 0)
-  const totalTypes = types.length
 
   const getTypeLabel = (type: string) => {
     switch (type) {
@@ -209,12 +228,17 @@ const TournamentsPage = () => {
         subtitle="Explora y filtra todos los torneos del ranking FEDV"
         statsBar={
           <PageHeroStatsBar
-            isLoading={isLoading}
+            isLoading={isLoading || isLoadingPositionsStats}
             items={[
               {
                 icon: Trophy,
-                label: 'Total torneos',
+                label: 'Torneos',
                 value: totalTournaments,
+              },
+              {
+                icon: UsersRound,
+                label: 'Equipos',
+                value: competingTeamsCount,
               },
               {
                 icon: Calendar,
@@ -222,14 +246,9 @@ const TournamentsPage = () => {
                 value: totalSeasons,
               },
               {
-                icon: MapPin,
-                label: 'Regiones',
-                value: totalRegions,
-              },
-              {
                 icon: BarChart3,
-                label: 'Tipos',
-                value: totalTypes,
+                label: 'Puntos repartidos',
+                value: totalPointsAwarded,
               },
             ]}
           />

@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Calendar, MapPin, Trophy, UsersRound, Users, BarChart3, Award, Clock } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { useQuery } from '@tanstack/react-query'
-import { tournamentsService, getTeamPublicUrl } from '@/services/apiService'
+import { tournamentsService, getTeamPublicUrl, getTournamentPublicUrl } from '@/services/apiService'
 import seasonService from '@/services/seasonService'
 import {
   buildRegionalCoefficientLookup,
@@ -16,6 +16,7 @@ import {
 import { translateSurface, translateModality, translateTournamentType, getStatusLabel } from '@/utils/translations'
 import { isTournamentFinished } from '@/utils/tournamentUtils'
 import TeamLogo from '@/components/ui/TeamLogo'
+import ShareButton from '@/components/ui/ShareButton'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
 import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
@@ -90,6 +91,81 @@ interface RegionStats {
 
 const iconClass = 'h-5 w-5 text-content-subtle mr-3 flex-shrink-0'
 
+const TOURNAMENT_TYPE_HEADING: Record<string, string> = {
+  CE1: 'Campeonato de España 1ª División',
+  CE2: 'Campeonato de España 2ª División',
+  REGIONAL: 'Campeonato Regional',
+}
+
+const parseLocalDate = (dateString: string): Date => {
+  if (dateString.includes('T')) return new Date(dateString)
+  return new Date(`${dateString}T00:00:00`)
+}
+
+const formatSpanishDay = (date: Date, includeYear: boolean): string => {
+  const day = date.getDate()
+  const month = date.toLocaleDateString('es-ES', { month: 'long' })
+  if (!includeYear) return `${day} de ${month}`
+  return `${day} de ${month} de ${date.getFullYear()}`
+}
+
+/** Rango de fechas tipo "6 y 7 de marzo de 2026". */
+const formatTournamentDateRange = (startDate?: string, endDate?: string): string | null => {
+  if (!startDate && !endDate) return null
+  if (startDate && !endDate) return formatSpanishDay(parseLocalDate(startDate), true)
+  if (!startDate && endDate) return formatSpanishDay(parseLocalDate(endDate), true)
+
+  const start = parseLocalDate(startDate!)
+  const end = parseLocalDate(endDate!)
+
+  if (start.toDateString() === end.toDateString()) {
+    return formatSpanishDay(start, true)
+  }
+
+  if (start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth()) {
+    const month = start.toLocaleDateString('es-ES', { month: 'long' })
+    return `${start.getDate()} y ${end.getDate()} de ${month} de ${start.getFullYear()}`
+  }
+
+  if (start.getFullYear() === end.getFullYear()) {
+    return `${formatSpanishDay(start, false)} y ${formatSpanishDay(end, true)}`
+  }
+
+  return `${formatSpanishDay(start, true)} – ${formatSpanishDay(end, true)}`
+}
+
+const buildTournamentHeroTitle = (tournament: Tournament): string => {
+  const typeLabel = TOURNAMENT_TYPE_HEADING[tournament.type] || translateTournamentType(tournament.type)
+  const modality = `${translateSurface(tournament.surface)} ${translateModality(tournament.category)}`
+  const season = formatSeasonFromYear(tournament.year)
+  const parts = [typeLabel]
+
+  if (tournament.type === 'REGIONAL' && tournament.region?.name) {
+    parts.push(tournament.region.name)
+  }
+
+  parts.push(modality, season)
+  return parts.join(' · ')
+}
+
+const buildTournamentHeroSubtitle = (tournament: Tournament): string | undefined => {
+  const parts = [
+    tournament.location?.trim() || null,
+    formatTournamentDateRange(tournament.startDate, tournament.endDate),
+  ].filter(Boolean) as string[]
+
+  return parts.length > 0 ? parts.join(' · ') : undefined
+}
+
+const buildTournamentBreadcrumbLabel = (tournament: Tournament): string => {
+  const modality = `${translateSurface(tournament.surface)} ${translateModality(tournament.category)}`
+  const season = formatSeasonFromYear(tournament.year)
+  if (tournament.type === 'REGIONAL' && tournament.region?.name) {
+    return `${tournament.region.name} · ${modality} · ${season}`
+  }
+  return `${modality} · ${season}`
+}
+
 const IconFrisbee = ({ className = iconClass }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
     <circle cx="12" cy="12" r="9" />
@@ -119,10 +195,14 @@ const TournamentDetailPage: React.FC = () => {
 
   const tournament = tournamentData?.data
 
+  const heroTitle = tournament ? buildTournamentHeroTitle(tournament) : undefined
+  const heroSubtitle = tournament ? buildTournamentHeroSubtitle(tournament) : undefined
+  const breadcrumbLabel = tournament ? buildTournamentBreadcrumbLabel(tournament) : undefined
+
   usePageMeta({
-    title: tournament?.name,
-    description: tournament?.name
-      ? `Clasificación y puntos otorgados en ${tournament.name}.`
+    title: heroTitle || tournament?.name,
+    description: heroTitle
+      ? `Clasificación y puntos otorgados en ${heroTitle}.`
       : undefined,
   })
 
@@ -284,20 +364,34 @@ const TournamentDetailPage: React.FC = () => {
   return (
     <PageContainer>
       <PageHeader
-        title={tournament.name}
-        subtitle={translateTournamentType(tournament.type)}
+        title={heroTitle || tournament.name}
+        subtitle={heroSubtitle}
         breadcrumbs={
           <Breadcrumbs
             variant="dark"
             items={[
               { label: 'Torneos', href: '/tournaments' },
-              { label: tournament.name },
+              { label: breadcrumbLabel || tournament.name },
             ]}
+          />
+        }
+        actions={
+          <ShareButton
+            url={getTournamentPublicUrl(tournament)}
+            title={`${heroTitle || tournament.name} - Ranking FEDV`}
+            description={`Clasificación y puntos otorgados en ${heroTitle || tournament.name}`}
+            variant="dark"
+            size="sm"
           />
         }
         statsBar={
           <PageHeroStatsBar
             items={[
+              {
+                icon: Trophy,
+                label: 'Estado',
+                value: getStatusLabel(isFinished),
+              },
               {
                 icon: Calendar,
                 label: 'Año',
@@ -305,18 +399,13 @@ const TournamentDetailPage: React.FC = () => {
               },
               {
                 icon: UsersRound,
-                label: 'Equipos',
+                label: 'Nº equipos',
                 value: totalTeams,
               },
               {
                 icon: BarChart3,
                 label: 'Puntos repartidos',
                 value: formatPoints(totalPoints),
-              },
-              {
-                icon: Trophy,
-                label: 'Estado',
-                value: getStatusLabel(isFinished),
               },
             ]}
           />

@@ -101,6 +101,15 @@ export function getTeamPublicUrl(team: { slug?: string | null; id?: string }): s
   return '/equipos'
 }
 
+/**
+ * Las URL de torneo son por id y en inglés, a diferencia de equipos y
+ * regiones. Se construían a mano en cada punto de uso.
+ */
+export function getTournamentPublicUrl(tournament: { id?: string }): string {
+  if (tournament.id) return `/tournaments/${tournament.id}`
+  return '/tournaments'
+}
+
 export function buildRegionPublicSlugById(regions: RegionSlugSource[]): Map<string, string> {
   const usedSlugs = new Set<string>()
   const byId = new Map<string, string>()

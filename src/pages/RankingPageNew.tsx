@@ -19,6 +19,7 @@ import teamSeasonRankingsService from '@/services/teamSeasonRankingsService'
 import RankingTable from '@/components/ranking/RankingTable'
 import CollapsibleRows from '@/components/ranking/CollapsibleRows'
 import ViewModeToggle from '@/components/ui/ViewModeToggle'
+import ShareButton from '@/components/ui/ShareButton'
 import { useMostRecentSeasons } from '@/hooks/useMostRecentSeasons'
 import { useViewMode } from '@/hooks/useViewMode'
 import { getRankingReferenceSeason } from '@/utils/rankingCalculations'
@@ -4313,7 +4314,21 @@ const RankingPageNew: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-surface-muted">
-      <RankingPageHeader season={referenceSeason} isLoadingSeason={isLoadingSeason} />
+      <RankingPageHeader
+        season={referenceSeason}
+        isLoadingSeason={isLoadingSeason}
+        actions={
+          <ShareButton
+            // La ruta actual, para que el enlace lleve a la pestaña y los
+            // filtros que quien comparte está mirando.
+            url={`${location.pathname}${location.search}`}
+            title={`${(surface && SURFACE_LABELS[surface]) || 'Ranking'} - Ranking FEDV`}
+            description="Clasificación de equipos de ultimate frisbee en España"
+            variant="dark"
+            size="sm"
+          />
+        }
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
 

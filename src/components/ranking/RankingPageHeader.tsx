@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Info } from 'lucide-react'
 import PageHeroShell from '@/components/layout/PageHeroShell'
@@ -6,11 +6,13 @@ import PageHeroShell from '@/components/layout/PageHeroShell'
 interface RankingPageHeaderProps {
   season?: string
   isLoadingSeason?: boolean
+  actions?: ReactNode
 }
 
 const RankingPageHeader: React.FC<RankingPageHeaderProps> = ({
   season,
   isLoadingSeason,
+  actions,
 }) => {
   return (
     <div className="mb-6">
@@ -24,10 +26,15 @@ const RankingPageHeader: React.FC<RankingPageHeaderProps> = ({
               Clasificación oficial de equipos de ultimate frisbee en España
             </p>
           </div>
-          {season && !isLoadingSeason && (
-            <span className="inline-flex shrink-0 items-center self-start rounded-full border border-primary-600/30 bg-primary-600/20 px-3 py-1 text-sm font-semibold text-primary-300">
-              Temporada {season}
-            </span>
+          {(actions || (season && !isLoadingSeason)) && (
+            <div className="flex shrink-0 flex-wrap items-center gap-2 self-start">
+              {season && !isLoadingSeason && (
+                <span className="inline-flex items-center rounded-full border border-primary-600/30 bg-primary-600/20 px-3 py-1 text-sm font-semibold text-primary-300">
+                  Temporada {season}
+                </span>
+              )}
+              {actions}
+            </div>
           )}
         </div>
       </PageHeroShell>

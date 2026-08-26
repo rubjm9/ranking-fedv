@@ -11,6 +11,31 @@
     <meta name="color-scheme" content="light dark" />
 
     <!--
+      Open Graph y Twitter Card. Son fijas a propósito: los rastreadores de
+      WhatsApp, Twitter y LinkedIn no ejecutan JavaScript, así que lo que
+      inyecte React desde usePageMeta no llega a la previsualización. Esto
+      garantiza que todo enlace compartido muestre al menos la identidad del
+      sitio; el título por entidad exige inyección en servidor.
+
+      VITE_SITE_URL lo sustituye Vite al construir (sintaxis %VAR%).
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Ranking FEDV" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:title" content="Ranking FEDV — Ultimate frisbee en España" />
+    <meta property="og:description" content="Clasificaciones, torneos y equipos de ultimate frisbee en España. Federación Española de Disco Volador." />
+    <meta property="og:url" content="%VITE_SITE_URL%/" />
+    <meta property="og:image" content="%VITE_SITE_URL%/og-image.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Ranking FEDV — Ultimate frisbee en España" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Ranking FEDV — Ultimate frisbee en España" />
+    <meta name="twitter:description" content="Clasificaciones, torneos y equipos de ultimate frisbee en España." />
+    <meta name="twitter:image" content="%VITE_SITE_URL%/og-image.jpg" />
+
+    <!--
       Aplica el tema antes del primer pintado para evitar el destello de tema
       claro. Debe quedar sincronizado con src/hooks/useTheme.ts.
     -->

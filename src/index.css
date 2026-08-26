@@ -218,7 +218,7 @@
   }
 
   .hero-stats-bar__value {
-    @apply font-display text-2xl font-bold tabular-nums tracking-tight text-white sm:text-3xl;
+    @apply truncate font-display text-2xl font-bold tabular-nums tracking-tight text-white sm:text-3xl;
   }
 
   .hero-stats-bar__label {
