@@ -71,7 +71,7 @@ export const formatSeasonFromYear = (year: number): string =>
 const POINTS_DECIMALS = 2
 
 const esNumberFormat = (value: number, options?: Intl.NumberFormatOptions): string =>
-  new Intl.NumberFormat('es-ES', options).format(value)
+  new Intl.NumberFormat('es-ES', { useGrouping: true, ...options }).format(value)
 
 /** Redondea puntos a decimales fijos (evita errores de coma flotante). */
 export const roundPoints = (points: number, decimals = POINTS_DECIMALS): number =>

@@ -8,8 +8,8 @@ export type RegionSlugSource = {
   createdAt?: string
 }
 
-// Servicio principal que usa Supabase con fallback a datos mock
-// Si Supabase no está disponible, usa datos mock automáticamente
+// Servicio principal: todas las operaciones van contra Supabase.
+// Si el cliente no está disponible, las llamadas fallan en lugar de devolver datos simulados.
 
 // Tipos de datos
 export interface Team {
@@ -227,7 +227,7 @@ export const regionsService = {
       const { data: regions, error } = await query
       
       if (error) {
-        console.warn('Supabase error, sin datos mock disponibles:', error.message)
+        console.warn('Supabase error:', error.message)
         return { success: false, data: [], message: 'Error de conexión' }
       }
       
@@ -402,7 +402,7 @@ export const regionsService = {
   }
 }
 
-// Servicios de equipos usando Supabase con fallback a mock
+// Servicios de equipos usando Supabase
 export const teamsService = {
   // Obtener todos los equipos
   getAll: async (params?: { search?: string; region?: string }) => {
@@ -606,7 +606,7 @@ const findTournamentByCombination = async (data: {
   return existing
 }
 
-// Servicios de torneos usando Supabase con fallback a mock
+// Servicios de torneos usando Supabase
 export const tournamentsService = {
   // Obtener todos los torneos
   getAll: async (params?: { search?: string; type?: string; year?: number }) => {
@@ -877,33 +877,19 @@ function getTournamentMultiplier(type: string): number {
   }
 }
 
-// Servicios de autenticación usando Supabase con fallback
+// Servicios de autenticación usando Supabase
 export const authService = {
   // Login
   login: async (email: string, password: string) => {
     if (!supabase) {
-      // Fallback: autenticación mock para desarrollo
-      if (email === 'admin@fedv.es' && password === 'admin123') {
-        return { 
-          success: true, 
-          data: { 
-            user: { 
-              id: 'mock-user-id', 
-              email: 'admin@fedv.es',
-              role: 'admin'
-            } 
-          }, 
-          message: 'Login exitoso (modo desarrollo)' 
-        }
-      }
-      throw new Error('Supabase no configurado y credenciales incorrectas')
+      throw new Error('Supabase client not initialized')
     }
-    
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     })
-    
+
     if (error) throw error
     return { success: true, data, message: 'Login exitoso' }
   },
@@ -911,9 +897,9 @@ export const authService = {
   // Logout
   logout: async () => {
     if (!supabase) {
-      return { success: true, message: 'Logout exitoso (modo desarrollo)' }
+      throw new Error('Supabase client not initialized')
     }
-    
+
     const { error } = await supabase.auth.signOut()
     if (error) throw error
     return { success: true, message: 'Logout exitoso' }
@@ -922,18 +908,9 @@ export const authService = {
   // Obtener usuario actual
   getCurrentUser: async () => {
     if (!supabase) {
-      // Fallback: usuario mock para desarrollo
-      return { 
-        success: true, 
-        data: { 
-          id: 'mock-user-id', 
-          email: 'admin@fedv.es',
-          role: 'admin'
-        }, 
-        message: 'Usuario obtenido exitosamente (modo desarrollo)' 
-      }
+      throw new Error('Supabase client not initialized')
     }
-    
+
     const { data: { user }, error } = await supabase.auth.getUser()
     if (error) throw error
     return { success: true, data: user, message: 'Usuario obtenido exitosamente' }
@@ -942,20 +919,9 @@ export const authService = {
   // Verificar sesión
   getSession: async () => {
     if (!supabase) {
-      // Fallback: sesión mock para desarrollo
-      return { 
-        success: true, 
-        data: { 
-          user: { 
-            id: 'mock-user-id', 
-            email: 'admin@fedv.es',
-            role: 'admin'
-          } 
-        }, 
-        message: 'Sesión obtenida exitosamente (modo desarrollo)' 
-      }
+      throw new Error('Supabase client not initialized')
     }
-    
+
     const { data: { session }, error } = await supabase.auth.getSession()
     if (error) throw error
     return { success: true, data: session, message: 'Sesión obtenida exitosamente' }

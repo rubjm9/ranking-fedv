@@ -6,6 +6,8 @@ export interface HeroStatItem {
   icon: LucideIcon
   label: string
   value: ReactNode
+  /** Si es true, no aplica formato numérico (p. ej. años: 2025, no 2.025). */
+  raw?: boolean
 }
 
 interface PageHeroStatsBarProps {
@@ -54,7 +56,9 @@ const PageHeroStatsBar: React.FC<PageHeroStatsBarProps> = ({
                 </div>
               ) : (
                 <>
-                  <p className="hero-stats-bar__value">{formatStatDisplayValue(item.value)}</p>
+                  <p className="hero-stats-bar__value">
+                    {item.raw ? item.value : formatStatDisplayValue(item.value)}
+                  </p>
                   <p className="hero-stats-bar__label">{item.label}</p>
                 </>
               )}

@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Calendar, Trophy, MapPin, Search, Eye, UsersRound, BarChart3 } from 'lucide-react'
@@ -13,9 +12,14 @@ import TournamentCategoryIcon from '@/components/ui/TournamentCategoryIcon'
 import { tournamentsService } from '@/services/apiService'
 import { supabase } from '@/services/supabaseService'
 import { usePageMeta } from '@/hooks/usePageMeta'
+import { useUrlState, useUrlDebouncedState, useUrlBatch } from '@/hooks/useUrlState'
 
 type SortField = 'name' | 'year' | 'type' | 'surface' | 'category' | 'region'
 type SortDirection = 'asc' | 'desc'
+
+/** No se escriben en la URL, para no ensuciarla con lo que nadie ha cambiado. */
+const ORDEN_POR_DEFECTO: SortField = 'year'
+const DIRECCION_POR_DEFECTO: SortDirection = 'desc'
 
 const filterSelectClass =
   'h-7 w-full min-w-[5.5rem] rounded-md border border-line bg-surface px-2 text-xs text-content-muted focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
@@ -23,14 +27,17 @@ const filterSelectClass =
 const TournamentsPage = () => {
   usePageMeta({ title: 'Torneos', description: 'Calendario y resultados de los torneos de ultimate frisbee disputados en España.' })
 
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedType, setSelectedType] = useState('')
-  const [selectedYear, setSelectedYear] = useState('')
-  const [selectedSurface, setSelectedSurface] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('')
-  const [selectedRegion, setSelectedRegion] = useState('')
-  const [sortField, setSortField] = useState<SortField>('year')
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+  // Los filtros viven en la URL: así la vista se puede compartir y sobrevive
+  // a entrar en un torneo y volver atrás, que en móvil es el recorrido normal.
+  const [searchTerm, setSearchTerm] = useUrlDebouncedState('q')
+  const [selectedType, setSelectedType] = useUrlState<string>('tipo', '')
+  const [selectedYear, setSelectedYear] = useUrlState<string>('anio', '')
+  const [selectedSurface, setSelectedSurface] = useUrlState<string>('superficie', '')
+  const [selectedCategory, setSelectedCategory] = useUrlState<string>('categoria', '')
+  const [selectedRegion, setSelectedRegion] = useUrlState<string>('region', '')
+  const [sortField] = useUrlState<SortField>('orden', ORDEN_POR_DEFECTO)
+  const [sortDirection] = useUrlState<SortDirection>('dir', DIRECCION_POR_DEFECTO)
+  const escribirUrl = useUrlBatch()
 
   const { data: tournamentsData, isLoading, error } = useQuery({
     queryKey: ['tournaments'],
@@ -173,12 +180,19 @@ const TournamentsPage = () => {
     />
   )
 
+  // Campo y dirección se escriben juntos: dos llamadas seguidas a
+  // setSearchParams parten de la misma base y la segunda perdería la primera.
+  const aplicarOrden = (campo: SortField, direccion: SortDirection) =>
+    escribirUrl({
+      orden: campo === ORDEN_POR_DEFECTO ? null : campo,
+      dir: direccion === DIRECCION_POR_DEFECTO ? null : direccion,
+    })
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+      aplicarOrden(field, sortDirection === 'asc' ? 'desc' : 'asc')
     } else {
-      setSortField(field)
-      setSortDirection('desc')
+      aplicarOrden(field, 'desc')
     }
   }
 
@@ -191,11 +205,15 @@ const TournamentsPage = () => {
   const hasActiveFilters = activeFiltersCount > 0 || searchTerm.length > 0
 
   const clearFilters = () => {
-    setSelectedType('')
-    setSelectedYear('')
-    setSelectedSurface('')
-    setSelectedCategory('')
-    setSelectedRegion('')
+    // Una sola escritura, por el mismo motivo que aplicarOrden.
+    escribirUrl({
+      tipo: null,
+      anio: null,
+      superficie: null,
+      categoria: null,
+      region: null,
+      q: null,
+    })
     setSearchTerm('')
   }
 

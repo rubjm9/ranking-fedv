@@ -7,14 +7,13 @@ import { tournamentsService, getTeamPublicUrl, getTournamentPublicUrl } from '@/
 import seasonService from '@/services/seasonService'
 import {
   buildRegionalCoefficientLookup,
-  formatPoints,
+  formatInteger,
   formatSeasonFromYear,
   getPreviousSeasonLabel,
   getWeightedRegionalPoints,
   roundPoints,
 } from '@/utils/rankingCalculations'
-import { translateSurface, translateModality, translateTournamentType, getStatusLabel } from '@/utils/translations'
-import { isTournamentFinished } from '@/utils/tournamentUtils'
+import { translateSurface, translateModality, translateTournamentType } from '@/utils/translations'
 import TeamLogo from '@/components/ui/TeamLogo'
 import ShareButton from '@/components/ui/ShareButton'
 import PageContainer from '@/components/layout/PageContainer'
@@ -154,7 +153,7 @@ const buildTournamentHeroSubtitle = (tournament: Tournament): string | undefined
     formatTournamentDateRange(tournament.startDate, tournament.endDate),
   ].filter(Boolean) as string[]
 
-  return parts.length > 0 ? parts.join(' · ') : undefined
+  return parts.length > 0 ? parts.join(', ') : undefined
 }
 
 const buildTournamentBreadcrumbLabel = (tournament: Tournament): string => {
@@ -207,7 +206,6 @@ const TournamentDetailPage: React.FC = () => {
   })
 
   const isRegional = tournament?.type === 'REGIONAL'
-  const isFinished = tournament ? isTournamentFinished(tournament) : false
   const tournamentSeason = tournament?.year ? formatSeasonFromYear(tournament.year) : null
   const coefficientBaseSeason = tournamentSeason
     ? getPreviousSeasonLabel(tournamentSeason)
@@ -388,14 +386,15 @@ const TournamentDetailPage: React.FC = () => {
           <PageHeroStatsBar
             items={[
               {
-                icon: Trophy,
-                label: 'Estado',
-                value: getStatusLabel(isFinished),
+                icon: MapPin,
+                label: 'Ubicación',
+                value: tournament.location || 'Sin ubicación',
               },
               {
                 icon: Calendar,
                 label: 'Año',
                 value: tournament.year,
+                raw: true,
               },
               {
                 icon: UsersRound,
@@ -405,7 +404,7 @@ const TournamentDetailPage: React.FC = () => {
               {
                 icon: BarChart3,
                 label: 'Puntos repartidos',
-                value: formatPoints(totalPoints),
+                value: totalPoints,
               },
             ]}
           />
@@ -598,10 +597,10 @@ const TournamentDetailPage: React.FC = () => {
                         </td>
                       )}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-content">{formatPoints(position.points)}</div>
+                        <div className="text-sm font-medium text-content">{formatInteger(position.points)}</div>
                         {isRegional && position.coefficient !== 1 && (
                           <div className="text-xs text-content-subtle">
-                            base {position.basePoints}
+                            base {formatInteger(position.basePoints)}
                           </div>
                         )}
                       </td>
