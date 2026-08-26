@@ -184,13 +184,15 @@ class SubseasonDetectionService {
       // Generar fingerprint para evitar duplicados
       const fingerprint = `${type}_${options.season || 'null'}_${options.subseason || 'null'}_${options.category || 'null'}`
 
-      // Verificar si ya existe una notificación pendiente con este fingerprint
+      // Verificar si ya existe una notificación pendiente con este fingerprint.
+      // maybeSingle(): lo habitual es que no exista, y con single() PostgREST
+      // responde 406 por 0 filas.
       const { data: existing } = await supabase
         .from('admin_notifications')
         .select('id')
         .eq('fingerprint', fingerprint)
         .eq('status', 'pending')
-        .single()
+        .maybeSingle()
 
       if (existing) {
         console.log(`Notificación ya existe: ${fingerprint}`)

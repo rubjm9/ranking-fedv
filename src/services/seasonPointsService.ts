@@ -279,18 +279,16 @@ const seasonPointsService = {
         throw new Error('Supabase no está configurado')
       }
 
+      // maybeSingle(): "el equipo no jugó esa temporada" es una respuesta
+      // válida; con single() PostgREST devuelve 406 y ensucia la consola.
       const { data, error } = await supabase
         .from('team_season_points')
         .select('*')
         .eq('team_id', teamId)
         .eq('season', season)
-        .single()
+        .maybeSingle()
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          // No encontrado
-          return null
-        }
         throw error
       }
 

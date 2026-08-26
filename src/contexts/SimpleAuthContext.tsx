@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { User } from '@supabase/supabase-js'
+import { AuthError, User } from '@supabase/supabase-js'
 import { supabase } from '@/services/supabaseService'
 
 export type AppUserRole = 'admin' | 'editor'
@@ -24,6 +24,18 @@ export const useAuth = () => {
   return context
 }
 
+/** Códigos y nombres con los que supabase-js informa de "no hay sesión utilizable". */
+const EXPECTED_MISSING_SESSION = new Set([
+  'AuthSessionMissingError',
+  'refresh_token_not_found',
+  'refresh_token_already_used',
+  'session_not_found',
+  'validation_failed',
+])
+
+const isExpectedMissingSessionError = (error: AuthError): boolean =>
+  EXPECTED_MISSING_SESSION.has(error.name) || EXPECTED_MISSING_SESSION.has(error.code ?? '')
+
 function getRoleFromUser(user: User | null): AppUserRole {
   const role = user?.app_metadata?.role
   return role === 'admin' ? 'admin' : 'editor'
@@ -40,8 +52,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
+        const { data: { user }, error } = await supabase.auth.getUser()
         setUser(user)
+
+        /*
+         * Arrancar sin sesión válida es normal en cualquier ruta pública:
+         *
+         * - sin nada en localStorage, getUser() resuelve con
+         *   AuthSessionMissingError y no llega a pedir nada por red;
+         * - con una sesión caducada, supabase-js intenta refrescarla y el
+         *   servidor responde 400 en /auth/v1/token?grant_type=refresh_token
+         *   ("Refresh token is not valid"). Ese 400 aparece en la consola del
+         *   navegador y es benigno: supabase-js borra la sesión guardada acto
+         *   seguido, así que no se repite en la siguiente carga.
+         *
+         * Se distinguen de un fallo real (red caída, proyecto mal configurado)
+         * para no dejar pasar en silencio lo que sí importa.
+         */
+        if (error && !isExpectedMissingSessionError(error)) {
+          console.error('Error verificando autenticación:', error)
+        }
       } catch (error) {
         console.error('Error verificando autenticación:', error)
       } finally {

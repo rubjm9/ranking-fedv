@@ -46,13 +46,15 @@ const hybridRankingService = {
         throw new Error('Supabase no está configurado')
       }
 
-      // Obtener la temporada más reciente de team_season_points
+      // Obtener la temporada más reciente de team_season_points.
+      // maybeSingle(): la tabla vacía es un caso previsto (hay fallback por
+      // calendario) y con single() PostgREST devolvería 406 por 0 filas.
       const { data, error } = await supabase
         .from('team_season_points')
         .select('season')
         .order('season', { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle()
 
       if (error || !data) {
         // Si no hay datos, calcular basándose en el año actual
@@ -95,14 +97,16 @@ const hybridRankingService = {
 
       const pointsColumn = `${category}_points`
 
-      // Obtener la temporada más reciente que tenga datos para esta categoría
+      // Obtener la temporada más reciente que tenga datos para esta categoría.
+      // maybeSingle(): una categoría sin puntos es normal y cae al global; con
+      // single() PostgREST devolvería 406 por 0 filas.
       const { data, error } = await supabase
         .from('team_season_points')
         .select('season')
         .gt(pointsColumn, 0)
         .order('season', { ascending: false })
         .limit(1)
-        .single()
+        .maybeSingle()
 
       if (error || !data) {
         // Si no hay datos para esta categoría, usar la temporada más reciente global

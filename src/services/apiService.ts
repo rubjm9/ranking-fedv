@@ -139,21 +139,45 @@ export function getRegionPublicUrl(
   return '/regiones'
 }
 
+/*
+ * Resolución de slugs de región.
+ *
+ * `regions.slug` solo existe si se ha aplicado la migración 018. Nombrar la
+ * columna en el select devolvía 400 (42703, "column regions.slug does not
+ * exist") en cada resolución, así que una ficha /regiones/:slug encadenaba tres
+ * 400 idénticos en la consola antes de caer al slug derivado del nombre.
+ * Se pide `*`: la tabla tiene cinco filas y nueve columnas cortas, nunca falla
+ * por columna ausente y aprovecha `slug` en cuanto la migración esté aplicada.
+ *
+ * `regionsInFlight` comparte la petición en curso, porque el efecto de
+ * RegionDetailPage resuelve la región varias veces por carga. Se limpia al
+ * resolverse: los datos pueden cambiar desde el panel de administración.
+ */
+let regionsInFlight: Promise<RegionSlugSource[]> | null = null
+
 async function fetchRegionsForSlugResolution(): Promise<RegionSlugSource[]> {
+  if (!regionsInFlight) {
+    regionsInFlight = requestRegionsForSlugResolution().finally(() => {
+      regionsInFlight = null
+    })
+  }
+  return regionsInFlight
+}
+
+async function requestRegionsForSlugResolution(): Promise<RegionSlugSource[]> {
   const { data, error } = await supabase
     .from('regions')
-    .select('id, name, slug, createdAt')
+    .select('*')
     .order('createdAt', { ascending: true })
 
-  if (!error && data) return data
+  if (error) throw error
 
-  const { data: fallback, error: fallbackError } = await supabase
-    .from('regions')
-    .select('id, name, createdAt')
-    .order('createdAt', { ascending: true })
-
-  if (fallbackError) throw fallbackError
-  return (fallback || []).map((region) => ({ ...region, slug: null }))
+  return (data || []).map((region) => ({
+    id: region.id,
+    name: region.name,
+    createdAt: region.createdAt,
+    slug: region.slug ?? null,
+  }))
 }
 
 function buildRegionSlugLookup(

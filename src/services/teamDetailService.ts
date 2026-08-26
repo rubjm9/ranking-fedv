@@ -273,22 +273,27 @@ class TeamDetailService {
     const totalsByCategory: Record<string, number> = {}
 
     try {
-      // Determinar la temporada más reciente
-      const currentYear = new Date().getFullYear()
-      const currentMonth = new Date().getMonth() + 1
-      const referenceSeason = currentMonth >= 7 
-        ? `${currentYear}-${(currentYear + 1).toString().slice(-2)}`
-        : `${currentYear - 1}-${currentYear.toString().slice(-2)}`
+      /*
+       * La temporada de referencia sale de los datos, no del calendario. Al
+       * derivarla de la fecha se pedía la temporada que acaba de empezar (sin
+       * filas todavía): la consulta devolvía 406 PGRST116, nunca se usaba el
+       * ranking pre-calculado y el fallback ponderaba con la temporada
+       * equivocada, así que los puntos de esta ficha no cuadraban con los de
+       * /ranking/:categoria.
+       */
+      const referenceSeason = await hybridRankingService.getMostRecentSeason()
 
-      // Una sola query para obtener todos los rankings del equipo
+      // Una sola query para obtener todos los rankings del equipo.
+      // maybeSingle() en lugar de single(): "sin fila" es un resultado válido y
+      // con single() PostgREST responde 406 y lo pinta como error en consola.
       const { data, error } = await supabase
         .from('team_season_rankings')
         .select('*')
         .eq('team_id', teamId)
         .eq('season', referenceSeason)
-        .single()
+        .maybeSingle()
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.warn('Error obteniendo rankings desde team_season_rankings:', error)
       }
 
@@ -909,17 +914,15 @@ class TeamDetailService {
    */
   async getRelatedTeams(teamId: string) {
     try {
+      // maybeSingle(): si el equipo no existe se devuelve lista vacía, así que
+      // 0 filas no es un error y con single() sería un 406 en consola.
       const { data: team, error: teamError } = await supabase
         .from('teams')
         .select('parentTeamId, isFilial')
         .eq('id', teamId)
-        .single()
+        .maybeSingle()
 
       if (teamError) {
-        // Si el equipo no existe, retornar array vacío en lugar de lanzar error
-        if (teamError.code === 'PGRST116' || teamError.message?.includes('No rows returned')) {
-          return []
-        }
         throw teamError
       }
 

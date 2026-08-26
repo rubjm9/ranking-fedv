@@ -729,18 +729,16 @@ const teamSeasonRankingsService = {
         throw new Error('Supabase no está configurado')
       }
 
+      // maybeSingle(): que un equipo no tenga fila en esa temporada es normal;
+      // con single() PostgREST devuelve 406 y ensucia la consola.
       const { data, error } = await supabase
         .from('team_season_rankings')
         .select('*')
         .eq('team_id', teamId)
         .eq('season', season)
-        .single()
+        .maybeSingle()
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          // No se encontró registro
-          return null
-        }
         throw error
       }
 

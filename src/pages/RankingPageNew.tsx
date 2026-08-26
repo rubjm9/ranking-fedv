@@ -1008,28 +1008,67 @@ const RankingPageNew: React.FC = () => {
     activeTab !== 'general' &&
     detailedViewMode === 'ranking'
 
-  const { data: allTimeCategoryPoints = [] } = useQuery({
+  /** Fila de team_season_points con la columna de puntos de la categoría activa. */
+  type CategoryPointRow = { team_id: string; season: string } & Record<string, unknown>
+
+  /*
+   * `team_season_points` no tiene clave ajena hacia `teams` (la migración 005 la
+   * recreó con `team_id TEXT` y sin REFERENCES), así que PostgREST no puede
+   * embeber `teams(...)` en esta tabla: devolvía 400 PGRST200 en cada carga de
+   * una categoría y la sección "fuera del ranking" quedaba siempre vacía.
+   * Se resuelve en dos consultas y se une por `team_id` en el cliente,
+   * reproduciendo la forma anidada que espera buildOutOfRankingTeams.
+   */
+  const { data: allTimeCategoryPoints = [], error: allTimeCategoryPointsError } = useQuery({
     queryKey: ['category-all-time-points', selectedSurface],
     queryFn: async () => {
       if (!supabase || !selectedSurface) return []
 
-      const { data, error } = await supabase
+      // El select se declara `string` y se castea la respuesta porque
+      // supabase-js no sabe analizar la columna interpolada y devolvería un
+      // tipo de error en vez de las filas.
+      const pointsSelect: string = `team_id, season, ${selectedSurface}_points`
+
+      const { data: pointsData, error: pointsError } = await supabase
         .from('team_season_points')
-        .select(`
-          team_id,
-          season,
-          ${selectedSurface}_points,
-          teams(id, ${TEAM_RANKING_NAME_SELECT}, logo, region:regions(name))
-        `)
+        .select(pointsSelect)
         .gt(`${selectedSurface}_points`, 0)
         .order('season', { ascending: false })
 
-      if (error) throw error
-      return data || []
+      if (pointsError) throw pointsError
+
+      const pointRows = (pointsData ?? []) as unknown as CategoryPointRow[]
+      if (pointRows.length === 0) return []
+
+      const teamIds = Array.from(new Set(pointRows.map(row => String(row.team_id))))
+
+      const { data: teamRows, error: teamsError } = await supabase
+        .from('teams')
+        .select(`id, ${TEAM_RANKING_NAME_SELECT}, logo, region:regions(name)`)
+        .in('id', teamIds)
+
+      if (teamsError) throw teamsError
+
+      const teamsById = new Map((teamRows || []).map(team => [String(team.id), team]))
+
+      return pointRows.map(row => ({
+        ...row,
+        teams: teamsById.get(String(row.team_id)) ?? null,
+      }))
     },
     staleTime: 10 * 60 * 1000,
     enabled: showOutOfRankingSection && !!selectedSurface,
   })
+
+  // Sin esto el fallo se quedaba dentro de React Query y la sección se vaciaba en silencio.
+  useEffect(() => {
+    if (allTimeCategoryPointsError) {
+      console.error(
+        `No se pudieron cargar los puntos históricos de ${selectedSurface}; la sección "fuera del ranking" quedará vacía:`,
+        allTimeCategoryPointsError
+      )
+    }
+  }, [allTimeCategoryPointsError, selectedSurface])
 
   // Función helper para enriquecer datos con logos
   const enrichRankingDataWithLogos = async (rankingData: any[]) => {
