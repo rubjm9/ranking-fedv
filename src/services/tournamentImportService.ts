@@ -1,6 +1,6 @@
 import ExcelJS from 'exceljs'
 import { tournamentsService, teamsService, regionsService } from './apiService'
-import { getPointsForPosition, getOffsetForTournament, DEFAULT_DIVISION_SIZE } from '@/utils/tournamentUtils'
+import { getPointsForPosition, getOffsetForTournament, getCE2OffsetFromParent, DEFAULT_DIVISION_SIZE } from '@/utils/tournamentUtils'
 
 export interface TournamentImportRow {
   // Información del torneo
@@ -386,16 +386,23 @@ export const tournamentImportService = {
           //   no existe se usa el estándar y se enlazará después (migración / recálculo).
           let divisionSize: number | undefined
           let parentTournamentId: string | undefined
+          let ce1PositionCount: number | undefined
 
           if (row.tipo === 'CE1') {
-            divisionSize = DEFAULT_DIVISION_SIZE
+            let count = 0
+            for (let i = 1; i <= 30; i++) {
+              const teamName = row[`posicion_${i}` as keyof TournamentImportRow] as string
+              if (teamName?.trim()) count++
+            }
+            divisionSize = count > 0 ? count : DEFAULT_DIVISION_SIZE
           } else if (row.tipo === 'CE2') {
             try {
               const ce1Response = await tournamentsService.getCE1ByModality(year, row.superficie, row.categoria)
               const parentCE1 = ce1Response.data?.[0]
               if (parentCE1) {
                 parentTournamentId = parentCE1.id
-                divisionSize = parentCE1.divisionSize ?? DEFAULT_DIVISION_SIZE
+                ce1PositionCount = parentCE1.positionCount
+                divisionSize = getCE2OffsetFromParent(ce1PositionCount, parentCE1.divisionSize)
               } else {
                 divisionSize = DEFAULT_DIVISION_SIZE
               }
@@ -404,7 +411,7 @@ export const tournamentImportService = {
             }
           }
 
-          const offset = getOffsetForTournament(row.tipo, divisionSize)
+          const offset = getOffsetForTournament(row.tipo, divisionSize, ce1PositionCount)
 
           // Crear torneo
           const tournamentData = {

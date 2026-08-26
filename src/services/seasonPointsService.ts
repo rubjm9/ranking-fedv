@@ -378,19 +378,41 @@ const seasonPointsService = {
 
       console.log('🧮 Recalculando puntos de todas las posiciones con la curva vigente...')
 
-      // Traer todos los torneos con el dato necesario para el offset
+      // Traer todos los torneos con el dato necesario para el offset CE2
       const { data: tournaments, error: tournamentsError } = await supabase
         .from('tournaments')
-        .select('id, type, divisionSize')
+        .select('id, type, divisionSize, parentTournamentId')
 
       if (tournamentsError) {
         throw tournamentsError
       }
 
+      const { data: allPositions, error: allPositionsError } = await supabase
+        .from('positions')
+        .select('tournamentId')
+
+      if (allPositionsError) {
+        throw allPositionsError
+      }
+
+      const ce1PositionCounts = new Map<string, number>()
+      for (const pos of allPositions || []) {
+        const tid = pos.tournamentId as string
+        ce1PositionCounts.set(tid, (ce1PositionCounts.get(tid) ?? 0) + 1)
+      }
+
       let updated = 0
 
       for (const tournament of tournaments || []) {
-        const offset = getOffsetForTournament(tournament.type, tournament.divisionSize)
+        const ce1PositionCount =
+          tournament.type === 'CE2' && tournament.parentTournamentId
+            ? ce1PositionCounts.get(tournament.parentTournamentId)
+            : undefined
+        const offset = getOffsetForTournament(
+          tournament.type,
+          tournament.divisionSize,
+          ce1PositionCount
+        )
 
         const { data: positions, error: positionsError } = await supabase
           .from('positions')
@@ -422,6 +444,18 @@ const seasonPointsService = {
         }
 
         updated += recomputed.length
+      }
+
+      // Sincronizar divisionSize de CE2 con el conteo real del CE1 padre
+      for (const tournament of tournaments || []) {
+        if (tournament.type !== 'CE2' || !tournament.parentTournamentId) continue
+        const ce1Count = ce1PositionCounts.get(tournament.parentTournamentId)
+        if (ce1Count != null && ce1Count >= 1 && tournament.divisionSize !== ce1Count) {
+          await supabase
+            .from('tournaments')
+            .update({ divisionSize: ce1Count })
+            .eq('id', tournament.id)
+        }
       }
 
       console.log(`✅ ${updated} posiciones recalculadas`)

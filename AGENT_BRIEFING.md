@@ -115,21 +115,22 @@ Supabase). La última de la reforma de puntos es
 - **85%** de decaimiento para los puestos **1–8**, **90%** a partir del **9**.
 - Misma forma para la curva **nacional** (ancla **1000**) y la **regional** (ancla **100**).
 - La **2ª división (CE2) NO empieza de cero**: continúa la curva nacional justo
-  detrás de la 1ª mediante un **offset** = `divisionSize` de la 1ª asociada
-  (típicamente 16 → el campeón de 2ª es el puesto 17 de la curva).
+  detrás de la 1ª. El **offset** = **nº de equipos con resultados en el CE1 padre**
+  (si hay 7 en 1ª, el campeón de 2ª es el puesto 8 de la curva → 321 pts).
+  Las divisiones suelen ser de 8, 12 o 16 equipos; 7 u 11 cuando algún equipo no participa.
 
 ```ts
 nationalCurvePoints(p)   // 1→1000, 8→321, 9→289, 16→138, 17→124, 32→26
 regionalCurvePoints(p)   // 1→100, 8→32, 9→29
+getCE2OffsetFromParent(ce1PositionCount, fallbackDivisionSize?)
 getPointsForPosition(position, type, offset=0)
-  // REGIONAL → regionalCurvePoints(position)
-  // CE1      → nationalCurvePoints(position)
-  // CE2      → nationalCurvePoints(position + offset)
-getOffsetForTournament(type, divisionSize)  // CE2 → divisionSize ?? 16 ; resto → 0
+  // CE2 → nationalCurvePoints(position + getCE2OffsetFromParent(...))
+getOffsetForTournament(type, divisionSize, ce1PositionCount?)
+  // CE2 → prioriza ce1PositionCount; fallback divisionSize ?? 16
 ```
 
-`divisionSize` y `parentTournamentId` se declaran por torneo (formularios de
-Nuevo/Editar torneo) y permiten un offset **dinámico** sin contar resultados.
+`parentTournamentId` enlaza CE2→CE1. El offset se **deriva del conteo real** de
+posiciones del CE1 padre en recálculo y formularios (no de un default fijo 16).
 
 ---
 

@@ -1,6 +1,10 @@
 import { supabase } from './supabaseService'
 import seasonService from './seasonService'
 import {
+  getPointsForPosition,
+  getOffsetForTournament,
+} from '@/utils/tournamentUtils'
+import {
   getTeamDisplayNameForCategory,
   TEAM_RANKING_NAME_SELECT,
 } from '@/utils/teamNames'
@@ -1052,30 +1056,121 @@ const rankingService = {
     }
   },
 
+  // Validar que los puntos almacenados coinciden con la curva vigente
+  validateCurvePoints: async (): Promise<any> => {
+    try {
+      if (!supabase) {
+        throw new Error('Supabase no está configurado')
+      }
+
+      console.log('🔍 Validando puntos vs curva esperada...')
+
+      const { data: positions, error } = await supabase
+        .from('positions')
+        .select(`
+          id, position, points, tournamentId,
+          tournaments:tournamentId ( id, type, divisionSize, parentTournamentId )
+        `)
+
+      if (error) throw error
+
+      const ce1PositionCounts = new Map<string, number>()
+      for (const row of positions || []) {
+        const tournament = (row as any).tournaments
+        if (tournament?.type === 'CE1') {
+          const tid = row.tournamentId as string
+          ce1PositionCounts.set(tid, (ce1PositionCounts.get(tid) ?? 0) + 1)
+        }
+      }
+
+      const mismatches: Array<{
+        id: string
+        tournamentId: string
+        position: number
+        stored: number
+        expected: number
+        type: string
+      }> = []
+
+      for (const row of positions || []) {
+        const tournament = (row as any).tournaments
+        if (!tournament?.type) continue
+
+        const ce1PositionCount =
+          tournament.type === 'CE2' && tournament.parentTournamentId
+            ? ce1PositionCounts.get(tournament.parentTournamentId)
+            : undefined
+
+        const offset = getOffsetForTournament(
+          tournament.type,
+          tournament.divisionSize,
+          ce1PositionCount
+        )
+        const expected = getPointsForPosition(row.position, tournament.type, offset)
+
+        if ((row.points ?? 0) !== expected) {
+          mismatches.push({
+            id: row.id,
+            tournamentId: row.tournamentId,
+            position: row.position,
+            stored: row.points ?? 0,
+            expected,
+            type: tournament.type,
+          })
+        }
+      }
+
+      const issues = mismatches.length > 0
+        ? [{
+            type: 'curve_mismatch',
+            count: mismatches.length,
+            message: `${mismatches.length} posiciones con puntos distintos a la curva esperada`,
+            data: mismatches.slice(0, 50),
+          }]
+        : []
+
+      const result = {
+        isValid: mismatches.length === 0,
+        issues,
+        totalIssues: mismatches.length,
+        timestamp: new Date().toISOString(),
+      }
+
+      console.log('✅ Validación de curva completada:', result)
+      return result
+    } catch (error) {
+      console.error('Error en validación de curva:', error)
+      throw error
+    }
+  },
+
   // Ejecutar todas las validaciones
   runAllValidations: async (): Promise<any> => {
     try {
       console.log('🔍 Ejecutando todas las validaciones...')
 
-      const [integrity, points] = await Promise.all([
+      const [integrity, points, curve] = await Promise.all([
         rankingService.validateReferentialIntegrity(),
-        rankingService.validatePointRanges()
+        rankingService.validatePointRanges(),
+        rankingService.validateCurvePoints(),
       ])
 
       const allIssues = [
         ...integrity.issues,
-        ...points.issues
+        ...points.issues,
+        ...curve.issues,
       ]
 
       const result = {
         isValid: allIssues.length === 0,
         validations: {
           integrity,
-          points
+          points,
+          curve,
         },
         totalIssues: allIssues.length,
         allIssues,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       }
 
       console.log('✅ Todas las validaciones completadas:', result)

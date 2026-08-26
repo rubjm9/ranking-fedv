@@ -31,10 +31,12 @@ const EscenaCargando = () => (
 import TemporalWeightChart from '@/components/home/TemporalWeightChart'
 import RegionalCoeffExplainer from '@/components/home/RegionalCoeffExplainer'
 import {
-  DEFAULT_DIVISION_SIZE,
+  getPointsForPosition,
   nationalCurvePoints,
   regionalCurvePoints,
 } from '@/utils/tournamentUtils'
+
+const CE2_EXAMPLE_CE1_TEAMS = 12
 
 const PREVIEW_POSITIONS = [1, 2, 3, 8, 9, 16]
 
@@ -203,9 +205,10 @@ const RankingOnboarding: React.FC = () => {
             <div className="space-y-3 rounded-xl border border-line bg-surface-muted p-4">
               <h4 className="text-lg font-semibold text-content">¿Y la 2ª división?</h4>
               <p className="text-sm text-content-muted">
-                La 2ª división continúa la curva nacional. Con {DEFAULT_DIVISION_SIZE} equipos en 1ª,
-                el campeón de 2ª recibe los puntos del puesto {DEFAULT_DIVISION_SIZE + 1}:{' '}
-                {nationalCurvePoints(DEFAULT_DIVISION_SIZE + 1)} puntos.
+                La 2ª división continúa la curva nacional justo después del último equipo de 1ª.
+                Con {CE2_EXAMPLE_CE1_TEAMS} equipos en 1ª, el campeón de 2ª recibe{' '}
+                {getPointsForPosition(1, 'CE2', CE2_EXAMPLE_CE1_TEAMS)} puntos (puesto{' '}
+                {CE2_EXAMPLE_CE1_TEAMS + 1} de la curva).
               </p>
               <p className="text-sm text-content-muted">
                 En regionales, los puntos finales se calculan así:{' '}

@@ -32,6 +32,7 @@ import {
   getPointsForPosition,
   generateDefaultPositions,
   getOffsetForTournament,
+  getCE2OffsetFromParent,
   DEFAULT_DIVISION_SIZE,
   DIVISION_SIZE_MIN,
   DIVISION_SIZE_MAX,
@@ -128,10 +129,17 @@ const NewTournamentPage: React.FC = () => {
   const resolveParentDivisionSize = (parent?: { divisionSize?: number | null; positionCount?: number }) =>
     getEffectiveDivisionSize(parent?.divisionSize, parent?.positionCount)
 
-  // Offset en la curva nacional (0 para CE1/REGIONAL; tamaño de la 1ª para CE2)
+  const selectedParent = ce1Options.find(
+    (t: { id: string }) => t.id === formData.parentTournamentId
+  )
+
+  // Offset en la curva nacional (CE2: nº real de equipos en el CE1 padre)
   const offset = useMemo(
-    () => getOffsetForTournament(formData.type, formData.divisionSize),
-    [formData.type, formData.divisionSize]
+    () =>
+      formData.type === 'CE2'
+        ? getCE2OffsetFromParent(selectedParent?.positionCount, formData.divisionSize)
+        : getOffsetForTournament(formData.type, formData.divisionSize),
+    [formData.type, formData.divisionSize, selectedParent?.positionCount]
   )
 
   const tournamentTypes = [
@@ -180,12 +188,15 @@ const NewTournamentPage: React.FC = () => {
     })))
   }, [offset])
 
-  // CE2: sincronizar offset con el CE1 asociado cuando carguen las opciones o cambie la selección
+  // CE2: sincronizar offset con el conteo real del CE1 asociado
   useEffect(() => {
     if (formData.type !== 'CE2' || !formData.parentTournamentId) return
     const parent = ce1Options.find((t: { id: string }) => t.id === formData.parentTournamentId)
     if (!parent) return
-    const effectiveSize = resolveParentDivisionSize(parent)
+    const effectiveSize =
+      parent.positionCount != null && parent.positionCount >= 1
+        ? parent.positionCount
+        : resolveParentDivisionSize(parent)
     setFormData((prev) =>
       prev.divisionSize === effectiveSize ? prev : { ...prev, divisionSize: effectiveSize }
     )

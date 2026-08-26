@@ -61,7 +61,7 @@ const ImportResultsPage: React.FC = () => {
       const mockData = [
         { team: 'Equipo A', position: 1, points: 1000 },
         { team: 'Equipo B', position: 2, points: 850 },
-        { team: 'Equipo C', position: 3, points: 725 }
+        { team: 'Equipo C', position: 3, points: 723 }
       ]
       setPreviewData(mockData)
       setShowPreview(true)
@@ -87,10 +87,10 @@ const ImportResultsPage: React.FC = () => {
   }
 
   const downloadTemplate = () => {
-    const csvContent = `team,position,points
-Equipo A,1,1000
-Equipo B,2,850
-Equipo C,3,725`
+    const csvContent = `team,position
+Equipo A,1
+Equipo B,2
+Equipo C,3`
     
     const blob = new Blob([csvContent], { type: 'text/csv' })
     const url = window.URL.createObjectURL(blob)

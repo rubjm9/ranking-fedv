@@ -3,6 +3,8 @@ import {
   nationalCurvePoints,
   regionalCurvePoints,
   getPointsForPosition,
+  getCE2OffsetFromParent,
+  getOffsetForTournament,
   generateDefaultPositions,
   isTournamentFinished,
 } from '../tournamentUtils'
@@ -53,6 +55,21 @@ describe('getPointsForPosition', () => {
     // 1ª de 16 equipos -> el campeón de 2ª es el puesto 17 de la curva
     expect(getPointsForPosition(1, 'CE2', 16)).toBe(124)
     expect(getPointsForPosition(16, 'CE2', 16)).toBe(26)
+  })
+
+  it('CE2 con offset según equipos reales del CE1 padre', () => {
+    expect(getCE2OffsetFromParent(7)).toBe(7)
+    expect(getCE2OffsetFromParent(8)).toBe(8)
+    expect(getCE2OffsetFromParent(12)).toBe(12)
+    expect(getPointsForPosition(1, 'CE2', 7)).toBe(321)
+    expect(getPointsForPosition(1, 'CE2', 8)).toBe(289)
+    expect(getPointsForPosition(1, 'CE2', 12)).toBe(189)
+  })
+
+  it('getOffsetForTournament prioriza conteo CE1 para CE2', () => {
+    expect(getOffsetForTournament('CE2', 16, 12)).toBe(12)
+    expect(getOffsetForTournament('CE2', 16, 0)).toBe(16)
+    expect(getOffsetForTournament('CE1', 16, 12)).toBe(0)
   })
 
   it('REGIONAL usa la curva regional', () => {

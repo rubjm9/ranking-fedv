@@ -5,7 +5,6 @@ import {
   nationalCurvePoints,
   regionalCurvePoints,
   getPointsForPosition,
-  DEFAULT_DIVISION_SIZE,
 } from '@/utils/tournamentUtils'
 import {
   DEFAULT_TEMPORAL_WEIGHTS,
@@ -63,8 +62,8 @@ const ConfigurationPage: React.FC = () => {
           </div>
           <p className="text-sm text-content-muted mb-4">
             Curva unificada: decaimiento 85% en puestos 1–8, 90% desde el 9. Nacional ancla 1000 pts,
-            regional ancla 100 pts. CE2 continúa la curva nacional con offset de{' '}
-            {DEFAULT_DIVISION_SIZE} (tamaño estándar de 1ª división).
+            regional ancla 100 pts. CE2 continúa la curva nacional justo después del último equipo
+            de 1ª (offset = nº de equipos en el CE1 asociado).
           </p>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -75,15 +74,14 @@ const ConfigurationPage: React.FC = () => {
               expanded={pointsExpanded}
             />
             <PointsCurveTable
-              title="Campeonato España 2ª"
+              title="Campeonato España 2ª (ej. CE1 = 12 equipos)"
               description={
                 <>
-                  Continúa la curva de 1ª desde el puesto {DEFAULT_DIVISION_SIZE + 1}. Con división
-                  estándar de {DEFAULT_DIVISION_SIZE}, el campeón de 2ª recibe{' '}
-                  {getPointsForPosition(1, 'CE2', DEFAULT_DIVISION_SIZE)} pts.
+                  Offset = equipos en 1ª. Con 12 equipos en CE1, el campeón de 2ª recibe{' '}
+                  {getPointsForPosition(1, 'CE2', 12)} pts (puesto 13 de la curva).
                 </>
               }
-              getPoints={(pos) => getPointsForPosition(pos, 'CE2', DEFAULT_DIVISION_SIZE)}
+              getPoints={(pos) => getPointsForPosition(pos, 'CE2', 12)}
               expanded={pointsExpanded}
             />
             <PointsCurveTable

@@ -1,5 +1,9 @@
 import { supabase } from './supabaseService'
 import { generateSlug, generateUniqueSlug } from '@/utils/slug'
+import {
+  getPointsForPosition,
+  getOffsetForTournament,
+} from '@/utils/tournamentUtils'
 
 export type RegionSlugSource = {
   id: string
@@ -953,6 +957,45 @@ export const authService = {
 }
 
 // Servicios de posiciones usando Supabase
+
+/** Calcula los puntos de una posición según el torneo y, para CE2, el conteo del CE1 padre. */
+const computePositionPoints = async (
+  tournamentId: string,
+  position: number
+): Promise<number> => {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized')
+  }
+
+  const { data: tournament, error: tournamentError } = await supabase
+    .from('tournaments')
+    .select('type, divisionSize, parentTournamentId')
+    .eq('id', tournamentId)
+    .single()
+
+  if (tournamentError || !tournament) {
+    throw tournamentError ?? new Error('Torneo no encontrado')
+  }
+
+  let ce1PositionCount: number | undefined
+  if (tournament.type === 'CE2' && tournament.parentTournamentId) {
+    const { count, error: countError } = await supabase
+      .from('positions')
+      .select('*', { count: 'exact', head: true })
+      .eq('tournamentId', tournament.parentTournamentId)
+
+    if (countError) throw countError
+    ce1PositionCount = count ?? 0
+  }
+
+  const offset = getOffsetForTournament(
+    tournament.type,
+    tournament.divisionSize,
+    ce1PositionCount
+  )
+  return getPointsForPosition(position, tournament.type, offset)
+}
+
 export const positionsService = {
   // Obtener todas las posiciones
   getAll: async (params?: { search?: string; tournament?: string; team?: string }) => {
@@ -1016,10 +1059,14 @@ export const positionsService = {
   },
 
   // Crear una nueva posición
-  create: async (positionData: any) => {
+  create: async (positionData: { tournamentId: string; teamId: string; position: number; points?: number }) => {
+    const points =
+      positionData.points ??
+      (await computePositionPoints(positionData.tournamentId, positionData.position))
+
     const { data, error } = await supabase
       .from('positions')
-      .insert(positionData)
+      .insert({ ...positionData, points })
       .select()
       .single()
     
@@ -1028,10 +1075,26 @@ export const positionsService = {
   },
 
   // Actualizar una posición
-  update: async (id: string, positionData: any) => {
+  update: async (id: string, positionData: { position?: number; points?: number }) => {
+    let payload = { ...positionData }
+
+    if (positionData.position != null && positionData.points == null) {
+      const { data: existing, error: existingError } = await supabase
+        .from('positions')
+        .select('tournamentId')
+        .eq('id', id)
+        .single()
+
+      if (existingError) throw existingError
+      payload = {
+        ...payload,
+        points: await computePositionPoints(existing.tournamentId, positionData.position),
+      }
+    }
+
     const { data, error } = await supabase
       .from('positions')
-      .update(positionData)
+      .update(payload)
       .eq('id', id)
       .select()
       .single()

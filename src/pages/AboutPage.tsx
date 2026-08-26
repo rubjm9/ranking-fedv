@@ -4,14 +4,14 @@ import { Trophy, Calculator, MapPin, Award, ChevronDown } from 'lucide-react'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
 import PointsCurveTable from '@/components/about/PointsCurveTable'
-import { nationalCurvePoints, regionalCurvePoints } from '@/utils/tournamentUtils'
+import { nationalCurvePoints, regionalCurvePoints, getPointsForPosition } from '@/utils/tournamentUtils'
 import { DEFAULT_TEMPORAL_WEIGHTS } from '@/utils/rankingCalculations'
 import { usePageMeta } from '@/hooks/usePageMeta'
 
 const AboutPage: React.FC = () => {
   usePageMeta({ title: 'Cómo funciona', description: 'Cómo se calcula el ranking FEDV: puntos por puesto, coeficiente regional y ponderación por temporada.' })
 
-  const ce2Offset = 16
+  const ce2ExampleCe1Teams = 12
   const [pointsTablesExpanded, setPointsTablesExpanded] = useState(false)
 
   return (
@@ -87,15 +87,16 @@ const AboutPage: React.FC = () => {
           <div className="bg-surface-muted rounded-xl p-5">
             <h3 className="text-lg font-semibold text-content mb-2">¿Y la 2ª división?</h3>
             <p className="text-content-muted text-sm">
-              La 2ª división no tiene una tabla aparte. Sigue la misma escala que la 1ª división,
-              como si fuera la continuación natural: cuando termina la 1ª, empiezan los puestos de
-              la 2ª. Si en una categoría hay 16 equipos en 1ª división, el campeón de 2ª división
-              recibe los puntos del puesto 17 de la escala nacional.
+              La 2ª división no tiene una tabla aparte. Sigue la misma escala que la 1ª división:
+              el campeón de 2ª recibe los puntos del puesto inmediatamente posterior al último
+              equipo de 1ª. Si en 1ª participan 12 equipos, el campeón de 2ª es el 13º de la
+              escala nacional (no el 17º).
             </p>
             <p className="text-content-muted text-sm mt-3">
-              Ejemplo: con {ce2Offset} equipos en 1ª división, el campeón de 2ª división recibe{' '}
-              {nationalCurvePoints(ce2Offset + 1)} puntos, los mismos que tendría un{' '}
-              {ce2Offset + 1}º puesto en la tabla nacional.
+              Ejemplo: con {ce2ExampleCe1Teams} equipos en 1ª división, el campeón de 2ª recibe{' '}
+              {getPointsForPosition(1, 'CE2', ce2ExampleCe1Teams)} puntos (puesto{' '}
+              {ce2ExampleCe1Teams + 1} de la curva). Con 16 equipos en 1ª, serían{' '}
+              {getPointsForPosition(1, 'CE2', 16)} puntos.
             </p>
           </div>
         </div>

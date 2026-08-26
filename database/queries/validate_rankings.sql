@@ -54,3 +54,16 @@ SELECT
 FROM team_season_rankings
 GROUP BY season
 ORDER BY season DESC;
+
+-- 6. CE2: offset almacenado vs nº real de equipos en CE1 padre
+SELECT ce2.name AS ce2_name,
+  ce1_cnt.cnt AS equipos_ce1,
+  ce2."divisionSize" AS offset_almacenado,
+  CASE WHEN ce2."divisionSize" = ce1_cnt.cnt THEN 'OK' ELSE 'DESAJUSTE' END AS estado
+FROM tournaments ce2
+JOIN tournaments ce1 ON ce1.id = ce2."parentTournamentId"
+JOIN (
+  SELECT "tournamentId", COUNT(*) AS cnt FROM positions GROUP BY "tournamentId"
+) ce1_cnt ON ce1_cnt."tournamentId" = ce1.id
+WHERE ce2.type = 'CE2'
+ORDER BY ce2.year DESC, ce2.name;

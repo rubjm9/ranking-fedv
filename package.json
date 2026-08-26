@@ -13,7 +13,8 @@
     "test:coverage": "vitest --coverage",
     "backfill-slugs": "node --env-file=.env.local --import tsx src/scripts/backfill-team-slugs.ts",
     "backfill-region-slugs": "node --env-file=.env.local --import tsx src/scripts/backfill-region-slugs.ts",
-    "backfill-regional-coefficients": "node --env-file=.env.local --import tsx src/scripts/backfill-regional-coefficients.ts"
+    "backfill-regional-coefficients": "node --env-file=.env.local --import tsx src/scripts/backfill-regional-coefficients.ts",
+    "recompute-position-points": "node --env-file=.env.local --import tsx src/scripts/recompute-position-points.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

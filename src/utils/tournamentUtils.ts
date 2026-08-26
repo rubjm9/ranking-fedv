@@ -143,7 +143,7 @@ export const DIVISION_SIZE_PRESETS = [8, 12, 16] as const
 export const clampDivisionSize = (value: number): number =>
   Math.min(DIVISION_SIZE_MAX, Math.max(DIVISION_SIZE_MIN, value))
 
-/** Tamaño efectivo de división de un CE1 (declarado o inferido de posiciones, mín. estándar 16). */
+/** Tamaño efectivo de división de un CE1 (declarado o inferido de posiciones). */
 export const getEffectiveDivisionSize = (
   storedSize?: number | null,
   positionCount?: number | null
@@ -154,18 +154,43 @@ export const getEffectiveDivisionSize = (
   if (hasStored) return storedSize!
 
   if (positionCount != null && positionCount >= DIVISION_SIZE_MIN) {
-    return Math.max(DEFAULT_DIVISION_SIZE, positionCount)
+    return positionCount
+  }
+  return DEFAULT_DIVISION_SIZE
+}
+
+/**
+ * Offset CE2 = nº de equipos en el CE1 asociado.
+ * El campeón de 2ª es el siguiente puesto tras el último de 1ª en la curva nacional.
+ * Si el CE1 aún no tiene resultados, usa divisionSize declarado o el default.
+ */
+export const getCE2OffsetFromParent = (
+  ce1PositionCount?: number | null,
+  fallbackDivisionSize?: number | null
+): number => {
+  if (ce1PositionCount != null && ce1PositionCount >= 1) {
+    return ce1PositionCount
+  }
+  if (
+    fallbackDivisionSize != null &&
+    fallbackDivisionSize >= DIVISION_SIZE_MIN &&
+    fallbackDivisionSize <= DIVISION_SIZE_MAX
+  ) {
+    return fallbackDivisionSize
   }
   return DEFAULT_DIVISION_SIZE
 }
 
 // Offset = nº de equipos de 1ª que preceden a la 2ª en la curva nacional.
-// CE2: el tamaño de su 1ª asociada (almacenado en su propio divisionSize); 0 para CE1/REGIONAL.
+// CE2: preferir el conteo real del CE1 padre; 0 para CE1/REGIONAL.
 export const getOffsetForTournament = (
   tournamentType: string,
-  divisionSize?: number | null
+  divisionSize?: number | null,
+  ce1PositionCount?: number | null
 ): number => {
-  if (tournamentType === 'CE2') return divisionSize ?? DEFAULT_DIVISION_SIZE
+  if (tournamentType === 'CE2') {
+    return getCE2OffsetFromParent(ce1PositionCount, divisionSize)
+  }
   return 0
 }
 
