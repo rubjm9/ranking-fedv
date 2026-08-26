@@ -76,7 +76,7 @@ const NewResultPage: React.FC = () => {
     const newErrors: Record<string, string> = {}
 
     if (!formData.tournamentId) {
-      newErrors.tournamentId = 'Selecciona un torneo'
+      newErrors.tournamentId = 'Selecciona un campeonato'
     }
 
     if (!formData.teamId) {
@@ -93,7 +93,7 @@ const NewResultPage: React.FC = () => {
         pos => pos.teamId === formData.teamId
       )
       if (teamAlreadyRegistered) {
-        newErrors.teamId = 'Este equipo ya está registrado en este torneo'
+        newErrors.teamId = 'Este equipo ya está registrado en este campeonato'
       }
     }
 
@@ -159,10 +159,10 @@ const NewResultPage: React.FC = () => {
               </div>
             )}
 
-            {/* Torneo */}
+            {/* Campeonato */}
             <div>
               <label htmlFor="tournamentId" className="block text-sm font-medium text-content-muted mb-2">
-                Torneo *
+                Campeonato *
               </label>
               <select
                 id="tournamentId"
@@ -174,7 +174,7 @@ const NewResultPage: React.FC = () => {
                 }`}
                 disabled={!!tournamentId} // Si viene de un torneo específico, no permitir cambiar
               >
-                <option value="">Selecciona un torneo</option>
+                <option value="">Selecciona un campeonato</option>
                 {tournamentsData?.data?.map((tournament) => (
                   <option key={tournament.id} value={tournament.id}>
                     {tournament.name} ({tournament.year})
@@ -233,7 +233,7 @@ const NewResultPage: React.FC = () => {
                 <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.position}</p>
               )}
               <p className="mt-1 text-sm text-content-subtle">
-                Ingresa la posición final del equipo en el torneo (1 = primer lugar)
+                Ingresa la posición final del equipo en el campeonato (1 = primer lugar)
               </p>
             </div>
 

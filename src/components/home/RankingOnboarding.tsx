@@ -104,11 +104,11 @@ const RankingOnboarding: React.FC = () => {
         />
 
         <div className="space-y-8">
-          <RankingOnboardingStep step={1} title="Participación en torneos" icon={<Trophy className="h-5 w-5" />}>
+          <RankingOnboardingStep step={1} title="Participación en campeonatos" icon={<Trophy className="h-5 w-5" />}>
             <p className="mb-5 text-lg text-content-muted">
-              Los equipos suman puntos según su posición en torneos oficiales FEDV: Campeonatos de
+              Los equipos suman puntos según su posición en campeonatos oficiales FEDV: Campeonatos de
               España (CE1 y CE2) y campeonatos regionales. Cada modalidad tiene su ranking
-              independiente y los puntos de todos los torneos de la temporada se acumulan.
+              independiente y los puntos de todos los campeonatos de la temporada se acumulan.
             </p>
 
             <div className="mb-6">

@@ -241,12 +241,12 @@ export const TournamentFlowScene: React.FC = () => {
   return (
     <SceneFrame
       title="Cada modalidad acumula su propia temporada"
-      description="Un resultado suma solo en su columna. Dos torneos de playa mixto se apilan juntos; un CE de césped open abre otro ranking."
+      description="Un resultado suma solo en su columna. Dos campeonatos de playa mixto se apilan juntos; un CE de césped open abre otro ranking."
     >
       <div
         className="relative overflow-hidden rounded-[1.5rem] border border-line bg-surface-muted/60 p-4"
         role="img"
-        aria-label="Acumulado animado donde cada torneo suma puntos solo en la modalidad correspondiente"
+        aria-label="Acumulado animado donde cada campeonato suma puntos solo en la modalidad correspondiente"
       >
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <span className="inline-flex items-center rounded-full border border-brand-strong/30 bg-brand-subtle px-3 py-1 text-xs font-semibold text-brand-strong">
@@ -346,7 +346,7 @@ export const TournamentFlowScene: React.FC = () => {
           <div className={cn(baseNodeClass, 'bg-emerald-50/80 dark:bg-emerald-950/40')}>
             <p className="text-sm font-semibold text-content">Temporada completa</p>
             <p className="mt-2 text-sm text-content-muted">
-              El ranking de modalidad es la suma de todos los torneos oficiales del año.
+              El ranking de modalidad es la suma de todos los campeonatos oficiales del año.
             </p>
           </div>
         </div>

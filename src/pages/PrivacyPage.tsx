@@ -21,7 +21,7 @@ const PrivacyPage: React.FC = () => {
           Datos que recopilamos
         </h2>
         <p className="text-content-muted">
-          El sitio público muestra datos deportivos de equipos, torneos y regiones.
+          El sitio público muestra datos deportivos de equipos, campeonatos y regiones.
           El acceso al panel de administración requiere autenticación y queda
           restringido al personal autorizado.
         </p>
@@ -30,7 +30,7 @@ const PrivacyPage: React.FC = () => {
         </h2>
         <p className="text-content-muted">
           Este sitio usa Google Analytics 4 para elaborar estadísticas de uso
-          de las páginas públicas (por ejemplo, ranking, equipos o torneos).
+          de las páginas públicas (por ejemplo, ranking, equipos o campeonatos).
           La navegación implica la aceptación de estas cookies, que se usan
           únicamente con ese fin. Las rutas del panel de administración no
           se envían a Analytics.

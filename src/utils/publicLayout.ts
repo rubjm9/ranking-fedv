@@ -5,7 +5,7 @@ export const hasPublicHeroHeader = (pathname: string): boolean => {
   const prefixes = [
     '/equipos',
     '/regiones',
-    '/tournaments',
+    '/campeonatos',
     '/ranking',
     '/como-funciona',
     '/about',

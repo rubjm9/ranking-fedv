@@ -12,7 +12,7 @@ import { Trophy, UsersRound, Calendar, MapPin } from 'lucide-react'
 const items = [
   { name: 'Ranking', href: '/ranking/resumen', match: '/ranking', icon: Trophy },
   { name: 'Equipos', href: '/equipos', match: '/equipos', icon: UsersRound },
-  { name: 'Torneos', href: '/tournaments', match: '/tournaments', icon: Calendar },
+  { name: 'Campeonatos', href: '/campeonatos', match: '/campeonatos', icon: Calendar },
   { name: 'Regiones', href: '/regiones', match: '/regiones', icon: MapPin },
 ]
 

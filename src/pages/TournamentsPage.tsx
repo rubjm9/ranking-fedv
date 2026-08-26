@@ -25,7 +25,7 @@ const filterSelectClass =
   'h-7 w-full min-w-[5.5rem] rounded-md border border-line bg-surface px-2 text-xs text-content-muted focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
 
 const TournamentsPage = () => {
-  usePageMeta({ title: 'Torneos', description: 'Calendario y resultados de los torneos de ultimate frisbee disputados en España.' })
+  usePageMeta({ title: 'Campeonatos', description: 'Calendario y resultados de los campeonatos de ultimate frisbee disputados en España.' })
 
   // Los filtros viven en la URL: así la vista se puede compartir y sobrevive
   // a entrar en un torneo y volver atrás, que en móvil es el recorrido normal.
@@ -226,7 +226,7 @@ const TournamentsPage = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="text-red-500 mb-4">Error al cargar los torneos</div>
+            <div className="text-red-500 mb-4">Error al cargar los campeonatos</div>
             <button
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
@@ -242,15 +242,15 @@ const TournamentsPage = () => {
   return (
     <PageContainer>
       <PageHeader
-        title="Torneos"
-        subtitle="Explora y filtra todos los torneos del ranking FEDV"
+        title="Campeonatos"
+        subtitle="Explora y filtra todos los campeonatos del ranking FEDV"
         statsBar={
           <PageHeroStatsBar
             isLoading={isLoading || isLoadingPositionsStats}
             items={[
               {
                 icon: Trophy,
-                label: 'Torneos',
+                label: 'Campeonatos',
                 value: totalTournaments,
               },
               {
@@ -278,15 +278,15 @@ const TournamentsPage = () => {
       ) : sortedTournaments.length === 0 && !hasActiveFilters ? (
         <EmptyState
           icon={Trophy}
-          title="No se encontraron torneos"
-          description="Aún no hay torneos registrados en el sistema."
-          actionLink={{ label: 'Ver torneos recientes', href: '/tournaments' }}
+          title="No se encontraron campeonatos"
+          description="Aún no hay campeonatos registrados en el sistema."
+          actionLink={{ label: 'Ver campeonatos recientes', href: '/campeonatos' }}
         />
       ) : (
         <>
           <div className="mb-3 flex items-center justify-between gap-3">
             <p className="text-xs text-content-subtle">
-              {sortedTournaments.length} torneo{sortedTournaments.length !== 1 ? 's' : ''} encontrado{sortedTournaments.length !== 1 ? 's' : ''}
+              {sortedTournaments.length} campeonato{sortedTournaments.length !== 1 ? 's' : ''} encontrado{sortedTournaments.length !== 1 ? 's' : ''}
             </p>
             {hasActiveFilters && (
               <button
@@ -299,11 +299,11 @@ const TournamentsPage = () => {
             )}
           </div>
 
-          <DataTable caption="Listado de torneos" darkHeader={false}>
+          <DataTable caption="Listado de campeonatos" darkHeader={false}>
             <thead className="bg-surface-muted border-b border-line">
               <tr>
                 <TableColumnFilter
-                  label="Torneo"
+                  label="Campeonato"
                   sortIcon={getSortState('name')}
                   onSort={() => handleSort('name')}
                   active={!!searchTerm}
@@ -428,7 +428,7 @@ const TournamentsPage = () => {
               {sortedTournaments.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-sm text-content-subtle">
-                    No hay torneos que coincidan con los filtros aplicados.
+                    No hay campeonatos que coincidan con los filtros aplicados.
                   </td>
                 </tr>
               ) : (
@@ -442,7 +442,7 @@ const TournamentsPage = () => {
                         {getCombinedIcon(tournament.surface, tournament.category)}
                         <div className="ml-3">
                           <Link
-                            to={`/tournaments/${tournament.id}`}
+                            to={`/campeonatos/${tournament.id}`}
                             className="text-sm font-medium text-content hover:text-link transition-colors"
                           >
                             {tournament.name}
@@ -485,7 +485,7 @@ const TournamentsPage = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <Link
-                        to={`/tournaments/${tournament.id}`}
+                        to={`/campeonatos/${tournament.id}`}
                         className="inline-flex items-center justify-center w-8 h-8 text-content-muted hover:text-link hover:bg-brand-subtle rounded-lg transition-colors"
                         title="Ver detalles"
                       >

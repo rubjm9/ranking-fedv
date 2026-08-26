@@ -100,7 +100,7 @@ class SubseasonDetectionService {
           .order('endDate', { ascending: false })
 
         if (error) {
-          console.error(`Error obteniendo torneos para ${category}:`, error)
+          console.error(`Error obteniendo campeonatos para ${category}:`, error)
           continue
         }
 
@@ -247,7 +247,7 @@ class SubseasonDetectionService {
         await this.createNotification(
           'subseason_complete',
           `Subtemporada ${subseason} posiblemente completada`,
-          `Los torneos CE1 de ${categoriesStr} para la temporada ${currentSeason} parecen estar completos. ` +
+          `Los campeonatos CE1 de ${categoriesStr} para la temporada ${currentSeason} parecen estar completos. ` +
           `Revisa y consolida los rankings si es correcto.`,
           {
             season: currentSeason,

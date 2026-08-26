@@ -33,7 +33,7 @@ const AdminLayout: React.FC = () => {
     { name: 'Dashboard', href: '/admin/dashboard', icon: BarChart3 },
     { name: 'Equipos', href: '/admin/teams', icon: UsersRound },
     { name: 'Regiones', href: '/admin/regions', icon: MapPin },
-    { name: 'Torneos', href: '/admin/tournaments', icon: Calendar },
+    { name: 'Campeonatos', href: '/admin/tournaments', icon: Calendar },
     { name: 'Histórico', href: '/admin/historico', icon: History },
     { name: 'Ranking', href: '/admin/ranking', icon: TrendingUp },
     { name: 'Temporadas y ranking', href: '/admin/seasons', icon: Clock },

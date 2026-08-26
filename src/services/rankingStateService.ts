@@ -29,7 +29,7 @@ const DEFAULT_STATE: RankingState = {
 function buildStaleMessage(reason: string, affectsCoefficients: boolean): string {
   const base =
     reason ||
-    'Hay cambios en torneos o resultados que aún no se han reflejado en el ranking público.'
+    'Hay cambios en campeonatos o resultados que aún no se han reflejado en el ranking público.'
   if (affectsCoefficients) {
     return (
       `${base} Si afectan a campeonatos de España (CE1/CE2), también conviene recalcular los coeficientes regionales antes de publicar el ranking.`

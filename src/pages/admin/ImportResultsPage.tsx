@@ -115,7 +115,7 @@ Equipo C,3,725`
             </button>
             <div>
               <h1 className="page-header-title">Importar Resultados</h1>
-              <p className="text-content-muted">Importa resultados del torneo desde un archivo CSV</p>
+              <p className="text-content-muted">Importa resultados del campeonato desde un archivo CSV</p>
             </div>
           </div>
         </div>

@@ -157,8 +157,8 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
     return (
       <EmptyState
         icon={Trophy}
-        title="No hay resultados de torneos"
-        description="Este equipo aún no tiene resultados registrados en ningún torneo."
+        title="No hay resultados de campeonatos"
+        description="Este equipo aún no tiene resultados registrados en ningún campeonato."
       />
     )
   }
@@ -186,11 +186,11 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
 
       {viewMode === 'table' ? (
         <>
-          <DataTable caption="Resultados en torneos" darkHeader={false}>
+          <DataTable caption="Resultados en campeonatos" darkHeader={false}>
             <thead className="bg-surface-muted border-b border-line">
               <tr>
                 <TableColumnFilter
-                  label="Torneo"
+                  label="Campeonato"
                   sortIcon={getSortState('name')}
                   onSort={() => handleSort('name')}
                   active={!!searchTerm}
@@ -314,7 +314,7 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
                   <tr key={result.id} className="hover:bg-surface-muted transition-colors duration-150">
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <Link
-                        to={`/tournaments/${result.tournamentId}`}
+                        to={`/campeonatos/${result.tournamentId}`}
                         className="flex items-center gap-2 text-sm font-medium text-content hover:text-link transition-colors"
                       >
                         <span>{result.name}</span>
@@ -386,7 +386,7 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
           {paginatedResults.map((result) => (
             <Link
               key={result.id}
-              to={`/tournaments/${result.tournamentId}`}
+              to={`/campeonatos/${result.tournamentId}`}
               className="bg-surface rounded-lg shadow p-4 hover:shadow-md transition-shadow border border-line"
             >
               <div className="flex items-start justify-between mb-2">

@@ -277,7 +277,7 @@ const RegionsPage = () => {
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-content-muted">Torneos:</span>
+                    <span className="text-sm text-content-muted">Campeonatos:</span>
                     <span className="text-sm font-medium text-content">
                       {region._count?.tournaments || region.tournaments?.length || 0}
                     </span>
@@ -404,7 +404,7 @@ const RegionsPage = () => {
             <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 dark:text-amber-300">
               <strong>Nota:</strong> El coeficiente se calcula por separado para las 6 modalidades
               (playa mixto, playa open, playa femenino, césped mixto, césped open, césped femenino),
-              aunque actualmente solo se aplica a las modalidades que tienen torneos regionales.
+              aunque actualmente solo se aplica a las modalidades que tienen campeonatos regionales.
               El sistema está preparado para incorporar nuevas modalidades automáticamente.
             </div>
           </div>

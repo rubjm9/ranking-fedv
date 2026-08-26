@@ -206,7 +206,7 @@ const EditRegionPage: React.FC = () => {
               <MapPin className="h-6 w-6 text-green-600 dark:text-green-300" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-content-muted">Torneos</p>
+              <p className="text-sm font-medium text-content-muted">Campeonatos</p>
               <p className="page-header-title">{formData._count?.tournaments || 0}</p>
             </div>
           </div>

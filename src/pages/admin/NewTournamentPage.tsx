@@ -94,7 +94,7 @@ const NewTournamentPage: React.FC = () => {
     setFormData(duplicateData)
     if (!duplicateToastShownRef.current) {
       duplicateToastShownRef.current = true
-      toast.success('Datos del torneo cargados. Puedes editarlos antes de guardar.')
+      toast.success('Datos del campeonato cargados. Puedes editarlos antes de guardar.')
     }
   }, [searchParams])
 
@@ -204,9 +204,9 @@ const NewTournamentPage: React.FC = () => {
     toast(
       (t) => (
         <div className="text-sm">
-          <p className="font-medium">Torneo ya existente</p>
+          <p className="font-medium">Campeonato ya existente</p>
           <p className="mt-1">
-            Ya hay un torneo con esta combinación ({combinationLabel}). Puedes añadir los resultados editándolo.
+            Ya hay un campeonato con esta combinación ({combinationLabel}). Puedes añadir los resultados editándolo.
           </p>
           <button
             type="button"
@@ -216,7 +216,7 @@ const NewTournamentPage: React.FC = () => {
               navigate(`/admin/tournaments/${existingId}/edit`)
             }}
           >
-            Ir al torneo existente
+            Ir al campeonato existente
           </button>
         </div>
       ),
@@ -231,7 +231,7 @@ const NewTournamentPage: React.FC = () => {
     },
     onSuccess: async (_, variables) => {
       const affectsCoefficients = variables.type === 'CE1' || variables.type === 'CE2'
-      void markRankingDirtyAfterEdit('Torneo creado', { affectsCoefficients })
+      void markRankingDirtyAfterEdit('Campeonato creado', { affectsCoefficients })
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
       queryClient.invalidateQueries({ queryKey: ['ranking-state'] })
       queryClient.invalidateQueries({ queryKey: ['admin-notifications-pending'] })
@@ -249,7 +249,7 @@ const NewTournamentPage: React.FC = () => {
     },
     onError: (error: unknown) => {
       if (error instanceof DuplicateTournamentError) return
-      console.error('Error al crear torneo:', error)
+      console.error('Error al crear campeonato:', error)
     }
   })
 
@@ -257,7 +257,7 @@ const NewTournamentPage: React.FC = () => {
     const newErrors: Record<string, string> = {}
 
     if (!formData.type) {
-      newErrors.type = 'El tipo de torneo es requerido'
+      newErrors.type = 'El tipo de campeonato es requerido'
     }
 
     if (!formData.season) {
@@ -273,7 +273,7 @@ const NewTournamentPage: React.FC = () => {
     }
 
     if (formData.type === 'REGIONAL' && !formData.regionId) {
-      newErrors.regionId = 'La región es requerida para torneos regionales'
+      newErrors.regionId = 'La región es requerida para campeonatos regionales'
     }
 
     const dateError = validateTournamentDates(formData.startDate, formData.endDate)
@@ -305,7 +305,7 @@ const NewTournamentPage: React.FC = () => {
     switch (field) {
       case 'type':
         if (!value) {
-          newErrors.type = 'El tipo de torneo es requerido'
+          newErrors.type = 'El tipo de campeonato es requerido'
         } else {
           delete newErrors.type
         }
@@ -337,7 +337,7 @@ const NewTournamentPage: React.FC = () => {
         
       case 'regionId':
         if (formData.type === 'REGIONAL' && !value) {
-          newErrors.regionId = 'La región es requerida para torneos regionales'
+          newErrors.regionId = 'La región es requerida para campeonatos regionales'
         } else {
           delete newErrors.regionId
         }
@@ -400,14 +400,14 @@ const NewTournamentPage: React.FC = () => {
         const positionsWithTeams = positions.filter(p => p.teamId)
         await tournamentsService.updatePositions(result.data.id, positionsWithTeams)
       }
-      toast.success('Torneo creado exitosamente')
+      toast.success('Campeonato creado exitosamente')
     } catch (error) {
       if (error instanceof DuplicateTournamentError) {
         showDuplicateTournamentAlert(error.existing.id)
         return
       }
-      console.error('Error al crear torneo:', error)
-      toast.error('Error al crear el torneo')
+      console.error('Error al crear campeonato:', error)
+      toast.error('Error al crear el campeonato')
     } finally {
       setIsLoading(false)
     }
@@ -671,8 +671,8 @@ const NewTournamentPage: React.FC = () => {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-                <h1 className="page-header-title">Nuevo torneo</h1>
-                <p className="text-content-muted mt-1">Crear un nuevo torneo en el sistema</p>
+                <h1 className="page-header-title">Nuevo campeonato</h1>
+                <p className="text-content-muted mt-1">Crear un nuevo campeonato en el sistema</p>
               </div>
             </div>
             
@@ -695,7 +695,7 @@ const NewTournamentPage: React.FC = () => {
           {/* Generated Name Preview */}
           {generatedName && (
             <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">Nombre del torneo:</h3>
+              <h3 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">Nombre del campeonato:</h3>
               <p className="text-lg font-semibold text-blue-800 dark:text-blue-300">{generatedName}</p>
             </div>
           )}
@@ -708,7 +708,7 @@ const NewTournamentPage: React.FC = () => {
               {/* Tournament Type */}
               <div>
                 <label htmlFor="type" className="block text-sm font-medium text-content-muted mb-2">
-                  Tipo de Torneo *
+                  Tipo de campeonato *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -801,7 +801,7 @@ const NewTournamentPage: React.FC = () => {
 
           {/* Tournament Details */}
           <div>
-            <h3 className="text-lg font-medium text-content mb-4">Detalles del Torneo</h3>
+            <h3 className="text-lg font-medium text-content mb-4">Detalles del campeonato</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Surface */}
@@ -1055,7 +1055,7 @@ const NewTournamentPage: React.FC = () => {
 
           {/* Positions Section */}
           <div>
-            <h3 className="text-lg font-medium text-content mb-4">Posiciones del Torneo</h3>
+            <h3 className="text-lg font-medium text-content mb-4">Posiciones del campeonato</h3>
             
               <div className="space-y-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1138,7 +1138,7 @@ const NewTournamentPage: React.FC = () => {
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  Crear Torneo
+                  Crear campeonato
                 </>
               )}
             </button>

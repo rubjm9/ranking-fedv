@@ -107,7 +107,7 @@ const RankingSummaryView: React.FC<RankingSummaryViewProps> = ({
           <StatsBlock
             title="Total equipos"
             value={highlightStats.totalTeams}
-            subtitle="Con torneos disputados"
+            subtitle="Con campeonatos disputados"
             icon={UsersRound}
             tooltip="Número total de equipos únicos con puntos en el ranking actual."
           />

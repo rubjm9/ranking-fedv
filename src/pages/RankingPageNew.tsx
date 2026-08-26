@@ -293,6 +293,37 @@ const SURFACE_LABELS: Record<string, string> = {
   'grass-open': 'Césped open',
 }
 
+/** Etiquetas de categoría (coinciden con las pestañas) para el H1 del hero. */
+const CATEGORY_TAB_LABELS: Record<(typeof VALID_CATEGORY_TABS)[number], string> = {
+  beach_mixed: 'Playa Mixto',
+  beach_women: 'Playa Women',
+  beach_open: 'Playa Open',
+  grass_mixed: 'Césped Mixto',
+  grass_women: 'Césped Women',
+  grass_open: 'Césped Open',
+}
+
+const COMBINED_HERO_LABELS: Record<Exclude<CombinedType, 'all'>, string> = {
+  beach: 'Playa',
+  grass: 'Césped',
+  mixed: 'Mixto',
+  open: 'Open',
+  women: 'Women',
+}
+
+/** Título del H1 según pestaña activa y subtipo de ranking combinado. */
+const resolveRankingHeroTitle = (
+  activeTab: RankingActiveTab,
+  selectedCombinedType: CombinedType
+): string => {
+  if (activeTab === 'summary') return 'Ranking FEDV'
+  if (activeTab === 'general') {
+    if (selectedCombinedType === 'all') return 'Ranking general'
+    return `Ranking combinado ${COMBINED_HERO_LABELS[selectedCombinedType]}`
+  }
+  return `Ranking ${CATEGORY_TAB_LABELS[activeTab]}`
+}
+
 /**
  * Query a conservar al cambiar de pestaña. Antes se navegaba con una plantilla
  * de path desnuda, que descartaba los filtros enteros.
@@ -1175,14 +1206,37 @@ const RankingPageNew: React.FC = () => {
   
   const categoryHighlightStats = categoryHighlightStatsQuery || null
 
-  // Calcular estadísticas destacadas del ranking general
+  // Calcular estadísticas destacadas del ranking general / combinado activo
   useEffect(() => {
-    if (activeTab === 'general' && generalRankingData) {
-      getGeneralHighlightStats(generalRankingData).then(setGeneralHighlightStats)
-    } else {
+    if (activeTab !== 'general') {
       setGeneralHighlightStats(null)
+      return
     }
-  }, [activeTab, generalRankingData, generalSeasonToUse])
+
+    const activeData =
+      selectedCombinedType === 'all' ? generalRankingData : combinedSubsetData
+
+    if (!activeData || activeData.length === 0) {
+      setGeneralHighlightStats(null)
+      return
+    }
+
+    let cancelled = false
+    getGeneralHighlightStats(activeData, previousGeneralSeasonData || null).then((stats) => {
+      if (!cancelled) setGeneralHighlightStats(stats)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    activeTab,
+    selectedCombinedType,
+    generalRankingData,
+    combinedSubsetData,
+    previousGeneralSeasonData,
+    generalSeasonToUse,
+  ])
 
   // Calcular position_change para ranking general cuando es histórico o clubes
   useEffect(() => {
@@ -2365,26 +2419,33 @@ const RankingPageNew: React.FC = () => {
 
   // Función auxiliar para calcular mejor histórico
   // Calcula el equipo con más puntos acumulados en TODAS las temporadas
-  // SIN aplicar coeficientes de antigüedad (suma directa de todos los puntos)
-  const calculateBestHistorical = async () => {
+  // SIN aplicar coeficientes de antigüedad (suma directa de todos los puntos).
+  // Si se pasan `surfaces`, solo suma esas modalidades (ranking combinado).
+  const calculateBestHistorical = async (surfaces?: string[]) => {
     try {
       if (!supabase) {
         console.warn('Supabase no disponible para calcular mejor histórico')
         return null
       }
 
-      // Obtener todos los datos de team_season_points (todas las temporadas)
+      const categoryColumnMap: Record<string, string> = {
+        beach_mixed: 'beach_mixed_points',
+        beach_open: 'beach_open_points',
+        beach_women: 'beach_women_points',
+        grass_mixed: 'grass_mixed_points',
+        grass_open: 'grass_open_points',
+        grass_women: 'grass_women_points',
+      }
+
+      const columns = surfaces?.length
+        ? surfaces.map((s) => categoryColumnMap[s]).filter(Boolean)
+        : Object.values(categoryColumnMap)
+
+      if (columns.length === 0) return null
+
       const { data: allSeasonData, error } = await supabase
         .from('team_season_points')
-        .select(`
-          team_id,
-          beach_mixed_points,
-          beach_open_points,
-          beach_women_points,
-          grass_mixed_points,
-          grass_open_points,
-          grass_women_points
-        `)
+        .select(`team_id, ${columns.join(', ')}`)
 
       if (error) {
         console.error('Error obteniendo datos históricos:', error)
@@ -2396,17 +2457,15 @@ const RankingPageNew: React.FC = () => {
         return null
       }
 
-      // Sumar todos los puntos de todas las temporadas y categorías por equipo
       const teamTotalPoints: { [teamId: string]: number } = {}
 
       allSeasonData.forEach((row: any) => {
         const teamId = row.team_id
-        const totalPoints = (row.beach_mixed_points || 0) +
-                          (row.beach_open_points || 0) +
-                          (row.beach_women_points || 0) +
-                          (row.grass_mixed_points || 0) +
-                          (row.grass_open_points || 0) +
-                          (row.grass_women_points || 0)
+        const totalPoints = columns.reduce(
+          (sum, col) => sum + (parseFloat(row[col]) || 0),
+          0
+        )
+        if (totalPoints <= 0) return
 
         if (!teamTotalPoints[teamId]) {
           teamTotalPoints[teamId] = 0
@@ -2414,7 +2473,6 @@ const RankingPageNew: React.FC = () => {
         teamTotalPoints[teamId] += totalPoints
       })
 
-      // Encontrar el equipo con más puntos acumulados
       const sortedTeams = Object.entries(teamTotalPoints)
         .map(([team_id, total_points]) => ({ team_id, total_points }))
         .sort((a, b) => b.total_points - a.total_points)
@@ -2425,7 +2483,6 @@ const RankingPageNew: React.FC = () => {
 
       const bestHistoricalTeam = sortedTeams[0]
 
-      // Obtener información del equipo (nombre)
       const { data: teamData } = await supabase
         .from('teams')
         .select('id, name')
@@ -2753,14 +2810,16 @@ const RankingPageNew: React.FC = () => {
     }
   }
 
-  // Función para calcular estadísticas destacadas del ranking general
-  const getGeneralHighlightStats = async (generalData: any[]) => {
+  // Función para calcular estadísticas destacadas del ranking general / combinado
+  const getGeneralHighlightStats = async (
+    generalData: any[],
+    previousRanking?: any[] | null
+  ) => {
     if (!generalData || generalData.length === 0) return null
 
     try {
       const rankingDataWithChanges = getRankingByType(generalData, 'current')
 
-      // 1. Líder actual (mejor equipo en el ranking general)
       const generalLeader = rankingDataWithChanges.length > 0 ? {
         team_id: rankingDataWithChanges[0].team_id,
         team_name: rankingDataWithChanges[0].team_name,
@@ -2768,19 +2827,26 @@ const RankingPageNew: React.FC = () => {
         global_points: rankingDataWithChanges[0].total_points || 0
       } : null
 
-      // 2. Equipo revelación (más puntos ganados comparando con temporada anterior)
-      const generalRevelation = await calculateGeneralMostPointsGained(generalData, generalSeasonToUse || '')
+      const generalRevelation = await calculateGeneralMostPointsGained(
+        generalData,
+        generalSeasonToUse || '',
+        previousRanking
+      )
 
-      // 3. Subida en el ranking (mayor subida de posiciones)
-      const generalBiggestRise = await calculateGeneralBiggestRise(generalData, generalSeasonToUse || '')
+      const generalBiggestRise = await calculateGeneralBiggestRise(
+        generalData,
+        generalSeasonToUse || '',
+        previousRanking
+      )
 
-      // 4. Mejor filial en el ranking general
       const generalBestFilial = await calculateGeneralBestFilial(rankingDataWithChanges)
 
-      // 5. Líder histórico (más puntos acumulados sin coeficientes)
-      const generalBestHistorical = await calculateBestHistorical()
+      const surfacesForHistorical =
+        selectedCombinedType === 'all'
+          ? undefined
+          : COMBINED_SURFACES[selectedCombinedType]
+      const generalBestHistorical = await calculateBestHistorical(surfacesForHistorical)
 
-      // 6. Equipos nuevos (equipos que solo tienen puntos en la temporada actual)
       const generalNewTeamsList = rankingDataWithChanges.filter(team => {
         const seasons = Object.keys(team.season_breakdown || {})
         return seasons.length === 1 && seasons.includes(generalSeasonToUse || '')
@@ -2788,7 +2854,6 @@ const RankingPageNew: React.FC = () => {
       const generalNewTeams = generalNewTeamsList.length
       const generalNewTeamsNames = generalNewTeamsList.map(team => team.team_name).slice(0, 5)
 
-      // Obtener logos de los equipos destacados
       const teamIdsToFetch = [
         generalLeader?.team_id,
         generalRevelation?.team_id,
@@ -2827,22 +2892,29 @@ const RankingPageNew: React.FC = () => {
     }
   }
 
-  // Función auxiliar para calcular mayor subida en ranking general
-  const calculateGeneralBiggestRise = async (generalData: any[], referenceSeason: string) => {
+  // Función auxiliar para calcular mayor subida en ranking general / combinado
+  const calculateGeneralBiggestRise = async (
+    generalData: any[],
+    referenceSeason: string,
+    previousRanking?: any[] | null
+  ) => {
     if (!generalData || generalData.length === 0) return null
 
     const rankingDataWithChanges = getRankingByType(generalData, 'current')
 
-    // Obtener ranking global de la temporada anterior
-    const previousGlobalRanking = await getPreviousSeasonGlobalRanking(referenceSeason)
+    const previousGlobalRanking =
+      previousRanking && previousRanking.length > 0
+        ? previousRanking
+        : await getPreviousSeasonGlobalRanking(referenceSeason)
     if (!previousGlobalRanking || previousGlobalRanking.length === 0) return null
 
-    // Crear mapa de posiciones anteriores
     const previousPositionsMap = new Map(
-      previousGlobalRanking.map((team) => [team.team_id, team.ranking_position || 0])
+      previousGlobalRanking.map((team, index) => [
+        team.team_id,
+        team.ranking_position || index + 1,
+      ])
     )
 
-    // Calcular cambios de posición
     const teamsWithRise = rankingDataWithChanges
       .map((team, index) => {
         const currentPosition = index + 1
@@ -2860,7 +2932,6 @@ const RankingPageNew: React.FC = () => {
 
     if (teamsWithRise.length === 0) return null
 
-    // Encontrar el equipo con mayor subida
     const biggestRise = teamsWithRise.reduce((max, team) => 
       team.positions_gained > max.positions_gained ? team : max
     )
@@ -2873,22 +2944,26 @@ const RankingPageNew: React.FC = () => {
     }
   }
 
-  // Función auxiliar para calcular más puntos ganados en ranking general
-  const calculateGeneralMostPointsGained = async (generalData: any[], referenceSeason: string) => {
+  // Función auxiliar para calcular más puntos ganados en ranking general / combinado
+  const calculateGeneralMostPointsGained = async (
+    generalData: any[],
+    referenceSeason: string,
+    previousRanking?: any[] | null
+  ) => {
     if (!generalData || generalData.length === 0) return null
 
     const rankingDataWithChanges = getRankingByType(generalData, 'current')
 
-    // Obtener ranking global de la temporada anterior
-    const previousGlobalRanking = await getPreviousSeasonGlobalRanking(referenceSeason)
+    const previousGlobalRanking =
+      previousRanking && previousRanking.length > 0
+        ? previousRanking
+        : await getPreviousSeasonGlobalRanking(referenceSeason)
     if (!previousGlobalRanking || previousGlobalRanking.length === 0) return null
 
-    // Crear mapa de puntos anteriores
     const previousPointsMap = new Map(
       previousGlobalRanking.map(team => [team.team_id, team.total_points || 0])
     )
 
-    // Calcular puntos ganados
     const teamsWithPointsGained = rankingDataWithChanges
       .map(team => {
         const currentPoints = team.total_points || 0
@@ -2904,7 +2979,6 @@ const RankingPageNew: React.FC = () => {
 
     if (teamsWithPointsGained.length === 0) return null
 
-    // Encontrar el equipo con más puntos ganados
     const mostPointsGained = teamsWithPointsGained.reduce((max, team) => 
       team.points_gained > max.points_gained ? team : max
     )
@@ -2978,9 +3052,16 @@ const RankingPageNew: React.FC = () => {
   }
 
   const renderCombinedSubSelector = () => (
-    <div className="mb-8 rounded-2xl border border-line bg-surface p-4 shadow-sm sm:p-5">
-      <p className="mb-3 text-sm font-semibold text-content">Tipo de ranking combinado</p>
-      <div className="flex flex-wrap gap-2 sm:gap-3" role="group" aria-label="Tipo de ranking combinado">
+    <div
+      key="combined-type-selector"
+      className="animate-slide-up mb-2 rounded-xl border border-primary-500/20 bg-gradient-to-r from-brand-subtle via-surface to-accent-50/40 px-3 py-2.5 shadow-sm sm:mb-3 sm:px-4 sm:py-3"
+      role="group"
+      aria-label="Tipo de ranking combinado"
+    >
+      <p className="mb-2 text-xs font-semibold text-brand-strong sm:text-sm">
+        Tipo de ranking combinado
+      </p>
+      <div className="flex gap-1.5 overflow-x-auto scrollbar-thin sm:flex-wrap sm:gap-2 sm:overflow-visible">
         {(Object.keys(combinedTypeLabels) as CombinedType[]).map((type) => (
           <button
             key={type}
@@ -2992,10 +3073,10 @@ const RankingPageNew: React.FC = () => {
                 search: rankingSearchAlCambiarPestana(location.search),
               })
             }}
-            className={`min-h-[44px] rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+            className={`min-h-[40px] shrink-0 rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 sm:min-h-[44px] sm:px-4 ${
               selectedCombinedType === type
                 ? 'bg-primary-600 text-white shadow-md ring-2 ring-primary-600/20'
-                : 'border border-line bg-surface-muted text-content-muted hover:border-primary-300 hover:bg-brand-subtle hover:text-brand-strong'
+                : 'border border-line bg-surface/90 text-content-muted hover:border-primary-300 hover:bg-brand-subtle hover:text-brand-strong'
             }`}
           >
             {combinedTypeLabels[type]}
@@ -3012,7 +3093,6 @@ const RankingPageNew: React.FC = () => {
     if (isLoadingAny) {
       return (
         <div className="space-y-4">
-          {renderCombinedSubSelector()}
           <RankingTableSkeleton />
         </div>
       )
@@ -3039,7 +3119,6 @@ const RankingPageNew: React.FC = () => {
     if (!currentReferenceSeason) {
       return (
         <div className="space-y-4">
-          {renderCombinedSubSelector()}
           <RankingTableSkeleton />
         </div>
       )
@@ -3073,7 +3152,7 @@ const RankingPageNew: React.FC = () => {
           icon={Trophy}
           title="No hay equipos en el ranking"
           description="Aún no hay equipos con puntos registrados para esta vista."
-          actionLink={{ label: 'Ver torneos recientes', href: '/tournaments' }}
+          actionLink={{ label: 'Ver campeonatos recientes', href: '/campeonatos' }}
         />
       )
     }
@@ -3097,11 +3176,8 @@ const RankingPageNew: React.FC = () => {
 
     return (
       <div className="space-y-6">
-        {/* Sub-selector de tipo de ranking combinado */}
-        {renderCombinedSubSelector()}
-
-        {/* Estadísticas destacadas del ranking general (solo para ranking 'all') */}
-        {selectedCombinedType === 'all' && generalHighlightStats && (
+        {/* Estadísticas destacadas del ranking general / combinado activo */}
+        {generalHighlightStats && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-4 items-stretch">
             <StatsBlock
               title="Líder Actual"
@@ -3111,7 +3187,7 @@ const RankingPageNew: React.FC = () => {
               color="blue"
               logo={generalHighlightStats.generalLeader?.logo}
               teamName={generalHighlightStats.generalLeader?.team_name}
-              tooltip="El equipo con más puntos en el ranking global actual, considerando todas las categorías y coeficientes de antigüedad."
+              tooltip="El equipo con más puntos en este ranking, considerando las modalidades de la vista y coeficientes de antigüedad."
               useLogoAsBackground={true}
             />
             <StatsBlock
@@ -3122,7 +3198,7 @@ const RankingPageNew: React.FC = () => {
               color="yellow"
               logo={generalHighlightStats.generalRevelation?.logo}
               teamName={generalHighlightStats.generalRevelation?.team_name}
-              tooltip="El equipo que ha ganado más puntos en el ranking global comparando la temporada actual con la anterior."
+              tooltip="El equipo que ha ganado más puntos en este ranking comparando la temporada actual con la anterior."
               useLogoAsBackground={true}
             />
             <StatsBlock
@@ -3133,7 +3209,7 @@ const RankingPageNew: React.FC = () => {
               color="green"
               logo={generalHighlightStats.generalBiggestRise?.logo}
               teamName={generalHighlightStats.generalBiggestRise?.team_name}
-              tooltip="El equipo que ha subido más posiciones en el ranking global comparando la temporada actual con la anterior."
+              tooltip="El equipo que ha subido más posiciones en este ranking comparando la temporada actual con la anterior."
               useLogoAsBackground={true}
             />
             <StatsBlock
@@ -3144,7 +3220,7 @@ const RankingPageNew: React.FC = () => {
               color="purple"
               logo={generalHighlightStats.generalBestFilial?.logo}
               teamName={generalHighlightStats.generalBestFilial?.team_name}
-              tooltip="El equipo filial mejor clasificado en el ranking global actual."
+              tooltip="El equipo filial mejor clasificado en este ranking."
               useLogoAsBackground={true}
             />
             <StatsBlock
@@ -3155,7 +3231,7 @@ const RankingPageNew: React.FC = () => {
               color="orange"
               logo={generalHighlightStats.generalBestHistorical?.logo}
               teamName={generalHighlightStats.generalBestHistorical?.team_name}
-              tooltip="El equipo con más puntos acumulados desde que se registran datos en el ranking, en todas las temporadas sin aplicar coeficientes."
+              tooltip="El equipo con más puntos acumulados desde que se registran datos, en las modalidades de esta vista, sin aplicar coeficientes."
               useLogoAsBackground={true}
             />
             <StatsBlock
@@ -3166,14 +3242,14 @@ const RankingPageNew: React.FC = () => {
                 : 'En esta temporada'}
               icon={UsersRound}
               color="red"
-              tooltip="Equipos nuevos desde que se registran datos en el ranking (solo tienen puntos en la temporada actual del ranking global)."
+              tooltip="Equipos nuevos desde que se registran datos en el ranking (solo tienen puntos en la temporada actual de esta vista)."
           />
         </div>
         )}
 
         {/* Estadísticas destacadas con tooltips (solo para ranking 'all') */}
         {selectedCombinedType === 'all' && generalStats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4">
+          <div className="hidden md:grid md:grid-cols-4 gap-4 pt-4">
             <div className="bg-surface rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
                 <UsersRound className="w-8 h-8 text-primary-500" />
@@ -3754,7 +3830,7 @@ const RankingPageNew: React.FC = () => {
           icon={Trophy}
           title="No hay equipos en esta categoría"
           description="Aún no hay equipos con puntos registrados en esta categoría."
-          actionLink={{ label: 'Ver torneos recientes', href: '/tournaments' }}
+          actionLink={{ label: 'Ver campeonatos recientes', href: '/campeonatos' }}
         />
       )
     }
@@ -3834,7 +3910,7 @@ const RankingPageNew: React.FC = () => {
 
         {/* Estadísticas destacadas con tooltips */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4">
+          <div className="hidden md:grid md:grid-cols-4 gap-4 pt-4">
             <div className="bg-surface rounded-lg shadow p-4 group relative">
               <div className="flex items-center">
                 <UsersRound className="w-8 h-8 text-primary-500" />
@@ -4312,9 +4388,12 @@ const RankingPageNew: React.FC = () => {
     )
   }
 
+  const heroTitle = resolveRankingHeroTitle(activeTab, selectedCombinedType)
+
   return (
     <div className="min-h-screen bg-surface-muted">
       <RankingPageHeader
+        title={heroTitle}
         season={referenceSeason}
         isLoadingSeason={isLoadingSeason}
         actions={
@@ -4322,7 +4401,7 @@ const RankingPageNew: React.FC = () => {
             // La ruta actual, para que el enlace lleve a la pestaña y los
             // filtros que quien comparte está mirando.
             url={`${location.pathname}${location.search}`}
-            title={`${(surface && SURFACE_LABELS[surface]) || 'Ranking'} - Ranking FEDV`}
+            title={`${heroTitle} - Ranking FEDV`}
             description="Clasificación de equipos de ultimate frisbee en España"
             variant="dark"
             size="sm"
@@ -4333,6 +4412,8 @@ const RankingPageNew: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
 
         <RankingTabNav tabs={tabs} activeTab={activeTab} onTabChange={handleTabClick} />
+
+        {activeTab === 'general' && renderCombinedSubSelector()}
 
         {activeTab !== 'summary' && (
           <div className="bg-surface border-b border-line px-2 py-1.5 mb-4 rounded-b-xl shadow-sm sm:py-2 sm:mb-6">

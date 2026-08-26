@@ -110,7 +110,7 @@ const RegionalCoeffExplainer: React.FC = () => {
     <div className="space-y-5">
       <p className="text-lg text-content-muted">
         El coeficiente regional compara el rendimiento nacional de cada región con la media y
-        luego traslada ese ajuste a los torneos regionales de la siguiente temporada.
+        luego traslada ese ajuste a los campeonatos regionales de la siguiente temporada.
       </p>
 
       <div className="overflow-hidden rounded-[1.75rem] border border-line bg-gradient-to-br from-surface via-surface-muted to-brand-subtle/40 p-5 shadow-[0_24px_80px_-50px_rgba(15,23,42,0.45)]">
@@ -269,7 +269,7 @@ const RegionalCoeffExplainer: React.FC = () => {
       <div className="grid gap-3 md:grid-cols-3">
         <div className="rounded-lg border border-line bg-surface-muted p-3 text-sm text-content-muted">
           <strong className="block text-content">Solo nacionales</strong>
-          Usa resultados de CE1 y CE2, nunca de torneos regionales.
+          Usa resultados de CE1 y CE2, nunca de campeonatos regionales.
         </div>
         <div className="rounded-lg border border-line bg-surface-muted p-3 text-sm text-content-muted">
           <strong className="block text-content">Por modalidad</strong>

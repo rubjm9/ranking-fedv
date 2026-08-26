@@ -118,7 +118,7 @@ const RankingMaintenancePanel: React.FC<RankingMaintenancePanelProps> = ({ selec
     <div className="bg-surface shadow rounded-lg p-6">
       <h2 className="text-lg font-semibold text-content mb-2">Actualización del ranking</h2>
       <p className="text-sm text-content-muted mb-4">
-        Flujo recomendado tras editar torneos o resultados: recalcula posiciones, coeficientes
+        Flujo recomendado tras editar campeonatos o resultados: recalcula posiciones, coeficientes
         regionales (si afectan CE1/CE2), puntos por temporada y rankings públicos.
       </p>
 

@@ -1,4 +1,16 @@
 {
+  "redirects": [
+    {
+      "source": "/tournaments",
+      "destination": "/campeonatos",
+      "permanent": true
+    },
+    {
+      "source": "/tournaments/:id",
+      "destination": "/campeonatos/:id",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
@@ -6,4 +18,3 @@
     }
   ]
 }
-

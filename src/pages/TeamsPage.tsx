@@ -271,7 +271,7 @@ const TeamsPage = () => {
               },
               {
                 icon: Trophy,
-                label: 'Total torneos',
+                label: 'Total campeonatos',
                 value: statsData?.totalTournaments || 0,
               },
             ]}

@@ -104,7 +104,7 @@ const RegionsAdminPage: React.FC = () => {
       
       // Manejar diferentes tipos de errores
       if (error.response?.status === 409) {
-        toast.error('No se puede eliminar la región porque tiene equipos o torneos asociados. Primero elimina o reasigna los equipos y torneos.')
+        toast.error('No se puede eliminar la región porque tiene equipos o campeonatos asociados. Primero elimina o reasigna los equipos y campeonatos.')
       } else if (error.response?.status === 404) {
         toast.error('La región no fue encontrada')
       } else if (error.response?.status === 401) {
@@ -367,12 +367,12 @@ const RegionsAdminPage: React.FC = () => {
                     <li>{selectedRegion?._count?.teams} equipo(s) asociado(s)</li>
                   )}
                   {(selectedRegion?._count?.tournaments ?? 0) > 0 && (
-                    <li>{selectedRegion?._count?.tournaments} torneo(s) asociado(s)</li>
+                    <li>{selectedRegion?._count?.tournaments} campeonato(s) asociado(s)</li>
                   )}
                 </ul>
                 <p className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
                   <strong>Nota:</strong> No se puede eliminar una región que tiene equipos o
-                  torneos asociados.
+                  campeonatos asociados.
                 </p>
               </div>
             </div>

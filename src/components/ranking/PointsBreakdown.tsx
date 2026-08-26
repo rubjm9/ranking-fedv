@@ -224,7 +224,7 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
 
               {data && data.entries.length === 0 && (
                 <p className="px-3 py-4 text-sm text-content-muted">
-                  Sin torneos puntuables en esta temporada.
+                  Sin campeonatos puntuables en esta temporada.
                 </p>
               )}
 
@@ -234,7 +234,7 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
                     <li key={`${e.tournamentId}-${e.teamId}-${i}`} className="px-3 py-2.5">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          {/* Formato del torneo: lo identifica sin repetir el nombre largo. */}
+                          {/* Formato del campeonato: lo identifica sin repetir el nombre largo. */}
                           <p className="truncate text-sm font-semibold text-content">
                             {ETIQUETA_TIPO[e.type] ?? e.type}
                             {e.type === 'REGIONAL' && e.regionName && ` ${e.regionName}`}

@@ -169,7 +169,7 @@ const EditTournamentPage: React.FC = () => {
     mutationFn: (data: any) => tournamentsService.update(id!, data),
     onSuccess: async (_, variables) => {
       const affectsCoefficients = variables.type === 'CE1' || variables.type === 'CE2'
-      void markRankingDirtyAfterEdit('Torneo actualizado', { affectsCoefficients })
+      void markRankingDirtyAfterEdit('Campeonato actualizado', { affectsCoefficients })
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
       queryClient.invalidateQueries({ queryKey: ['ranking-state'] })
       queryClient.invalidateQueries({ queryKey: ['admin-notifications-pending'] })
@@ -187,8 +187,8 @@ const EditTournamentPage: React.FC = () => {
       navigate('/admin/tournaments')
     },
     onError: (error: any) => {
-      console.error('Error al actualizar torneo:', error)
-      toast.error('Error al actualizar el torneo')
+      console.error('Error al actualizar campeonato:', error)
+      toast.error('Error al actualizar el campeonato')
     }
   })
 
@@ -196,16 +196,16 @@ const EditTournamentPage: React.FC = () => {
   const deleteTournamentMutation = useMutation({
     mutationFn: () => tournamentsService.delete(id!),
     onSuccess: () => {
-      void markRankingDirtyAfterEdit('Torneo eliminado', { affectsCoefficients: true })
+      void markRankingDirtyAfterEdit('Campeonato eliminado', { affectsCoefficients: true })
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
       queryClient.invalidateQueries({ queryKey: ['ranking-state'] })
       queryClient.invalidateQueries({ queryKey: ['admin-notifications-pending'] })
-      toast.success('Torneo eliminado exitosamente')
+      toast.success('Campeonato eliminado exitosamente')
       navigate('/admin/tournaments')
     },
     onError: (error: any) => {
-      console.error('Error al eliminar torneo:', error)
-      toast.error('Error al eliminar el torneo')
+      console.error('Error al eliminar campeonato:', error)
+      toast.error('Error al eliminar el campeonato')
     }
   })
 
@@ -252,8 +252,8 @@ const EditTournamentPage: React.FC = () => {
         setPositions(existingPositions)
       }
     } catch (error) {
-      console.error('Error al cargar torneo:', error)
-      toast.error('Error al cargar el torneo')
+      console.error('Error al cargar campeonato:', error)
+      toast.error('Error al cargar el campeonato')
       navigate('/admin/tournaments')
     } finally {
       setIsLoading(false)
@@ -303,7 +303,7 @@ const EditTournamentPage: React.FC = () => {
     const newErrors: Record<string, string> = {}
 
     if (!formData.type) {
-      newErrors.type = 'El tipo de torneo es requerido'
+      newErrors.type = 'El tipo de campeonato es requerido'
     }
 
     if (!formData.season) {
@@ -319,7 +319,7 @@ const EditTournamentPage: React.FC = () => {
     }
 
     if (formData.type === 'REGIONAL' && !formData.regionId) {
-      newErrors.regionId = 'La región es requerida para torneos regionales'
+      newErrors.regionId = 'La región es requerida para campeonatos regionales'
     }
 
     const dateError = validateTournamentDates(formData.startDate, formData.endDate)
@@ -351,7 +351,7 @@ const EditTournamentPage: React.FC = () => {
     switch (field) {
       case 'type':
         if (!value) {
-          newErrors.type = 'El tipo de torneo es requerido'
+          newErrors.type = 'El tipo de campeonato es requerido'
         } else {
           delete newErrors.type
         }
@@ -383,7 +383,7 @@ const EditTournamentPage: React.FC = () => {
         
       case 'regionId':
         if (formData.type === 'REGIONAL' && !value) {
-          newErrors.regionId = 'La región es requerida para torneos regionales'
+          newErrors.regionId = 'La región es requerida para campeonatos regionales'
         } else {
           delete newErrors.regionId
         }
@@ -450,10 +450,10 @@ const EditTournamentPage: React.FC = () => {
         await tournamentsService.updatePositions(id!, [])
       }
       
-      toast.success('Torneo actualizado exitosamente')
+      toast.success('Campeonato actualizado exitosamente')
     } catch (error) {
-      console.error('Error al actualizar torneo:', error)
-      toast.error('Error al actualizar el torneo')
+      console.error('Error al actualizar campeonato:', error)
+      toast.error('Error al actualizar el campeonato')
     } finally {
       setIsSaving(false)
     }
@@ -465,8 +465,8 @@ const EditTournamentPage: React.FC = () => {
     try {
       await deleteTournamentMutation.mutateAsync()
     } catch (error) {
-      console.error('Error al eliminar torneo:', error)
-      toast.error('Error al eliminar el torneo')
+      console.error('Error al eliminar campeonato:', error)
+      toast.error('Error al eliminar el campeonato')
     } finally {
       setIsDeleting(false)
       setShowDeleteModal(false)
@@ -564,7 +564,7 @@ const EditTournamentPage: React.FC = () => {
   }
 
   const handleDuplicateTournament = () => {
-    if (window.confirm('¿Estás seguro de que quieres duplicar este torneo? Se creará una copia con un nuevo nombre.')) {
+    if (window.confirm('¿Estás seguro de que quieres duplicar este campeonato? Se creará una copia con un nuevo nombre.')) {
       // Crear datos del torneo duplicado
       const duplicatedData = {
         ...formData,
@@ -584,7 +584,7 @@ const EditTournamentPage: React.FC = () => {
       })
       
       navigate(`/admin/tournaments/new?${queryParams.toString()}`)
-      toast.success('Torneo duplicado. Puedes editarlo antes de guardar.')
+      toast.success('Campeonato duplicado. Puedes editarlo antes de guardar.')
     }
   }
 
@@ -716,8 +716,8 @@ const EditTournamentPage: React.FC = () => {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="page-header-title">Editar Torneo</h1>
-              <p className="text-content-muted">Modificar información del torneo</p>
+              <h1 className="page-header-title">Editar campeonato</h1>
+              <p className="text-content-muted">Modificar información del campeonato</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -733,7 +733,7 @@ const EditTournamentPage: React.FC = () => {
             className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-300 bg-surface border border-red-300 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors flex items-center"
           >
             <Trash2 className="h-4 w-4 mr-2" />
-            Eliminar Torneo
+            Eliminar campeonato
           </button>
           </div>
         </div>
@@ -746,7 +746,7 @@ const EditTournamentPage: React.FC = () => {
           {/* Generated Name Preview */}
           {generatedName && (
             <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">Nombre del torneo:</h3>
+              <h3 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">Nombre del campeonato:</h3>
               <p className="text-lg font-semibold text-blue-800 dark:text-blue-300">{generatedName}</p>
             </div>
           )}
@@ -759,7 +759,7 @@ const EditTournamentPage: React.FC = () => {
               {/* Tournament Type */}
               <div>
                 <label htmlFor="type" className="block text-sm font-medium text-content-muted mb-2">
-                  Tipo de Torneo *
+                  Tipo de campeonato *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -852,7 +852,7 @@ const EditTournamentPage: React.FC = () => {
 
           {/* Tournament Details */}
           <div>
-            <h3 className="text-lg font-medium text-content mb-4">Detalles del Torneo</h3>
+            <h3 className="text-lg font-medium text-content mb-4">Detalles del campeonato</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Surface */}
@@ -1104,13 +1104,13 @@ const EditTournamentPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Positions Section - Solo si el torneo ya terminó */}
+          {/* Positions Section - Solo si el campeonato ya terminó */}
           {isTournamentFinished() && (
             <div className="border-t border-line pt-6">
               <div className="mb-4">
-                <h3 className="text-lg font-medium text-content">Posiciones del Torneo</h3>
+                <h3 className="text-lg font-medium text-content">Posiciones del campeonato</h3>
                 <p className="text-sm text-content-muted mt-1">
-                  Configura las posiciones finales del torneo
+                  Configura las posiciones finales del campeonato
                 </p>
               </div>
             
@@ -1165,7 +1165,7 @@ const EditTournamentPage: React.FC = () => {
           </div>
           )}
 
-          {/* Mensaje cuando el torneo no ha terminado */}
+          {/* Mensaje cuando el campeonato no ha terminado */}
           {!isTournamentFinished() && formData.endDate && (
             <div className="border-t border-line pt-6">
               <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg p-4">
@@ -1177,7 +1177,7 @@ const EditTournamentPage: React.FC = () => {
                   </div>
                   <div className="ml-3">
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      Las posiciones del torneo estarán disponibles a partir del {new Date(formData.endDate).toLocaleDateString('es-ES')}.
+                      Las posiciones del campeonato estarán disponibles a partir del {new Date(formData.endDate).toLocaleDateString('es-ES')}.
                     </p>
                   </div>
                 </div>
@@ -1220,11 +1220,11 @@ const EditTournamentPage: React.FC = () => {
         open={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDelete}
-        title="Eliminar torneo"
+        title="Eliminar campeonato"
         confirmLabel="Eliminar definitivamente"
         isPending={isDeleting || deleteTournamentMutation.isPending}
       >
-        <p>¿Estás seguro de que quieres eliminar este torneo?</p>
+        <p>¿Estás seguro de que quieres eliminar este campeonato?</p>
 
         <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-left dark:border-red-900/50 dark:bg-red-950/40">
           <div className="mb-2 flex items-center gap-2">
@@ -1265,7 +1265,7 @@ const EditTournamentPage: React.FC = () => {
             Esta acción <strong>no se puede deshacer</strong>. Se eliminarán permanentemente:
           </p>
           <ul className="mt-2 list-inside list-disc text-sm text-yellow-700 dark:text-yellow-300">
-            <li>El torneo y toda su información</li>
+            <li>El campeonato y toda su información</li>
             <li>Todas las posiciones y resultados</li>
             <li>Los puntos de ranking asociados</li>
           </ul>

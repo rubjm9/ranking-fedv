@@ -112,7 +112,7 @@ const EditResultPage: React.FC = () => {
             onClick={() => navigate('/admin/tournaments')}
             className="mt-4 text-blue-600 dark:text-blue-300 hover:text-blue-800"
           >
-            Volver a torneos
+            Volver a campeonatos
           </button>
         </div>
       </div>
@@ -154,7 +154,7 @@ const EditResultPage: React.FC = () => {
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-content-subtle">Torneo</p>
+                <p className="text-sm font-medium text-content-subtle">Campeonato</p>
                 <p className="text-lg font-semibold text-content">
                   {position.tournament?.name} ({position.tournament?.year})
                 </p>
@@ -210,7 +210,7 @@ const EditResultPage: React.FC = () => {
                 <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.position}</p>
               )}
               <p className="mt-1 text-sm text-content-subtle">
-                Ingresa la nueva posición final del equipo en el torneo (1 = primer lugar). 
+                Ingresa la nueva posición final del equipo en el campeonato (1 = primer lugar). 
                 Los puntos se recalcularán automáticamente.
               </p>
             </div>

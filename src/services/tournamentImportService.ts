@@ -197,7 +197,7 @@ export const tournamentImportService = {
 
     // Crear workbook con headers como primera fila
     const workbook = new ExcelJS.Workbook()
-    const worksheet = workbook.addWorksheet('Torneos')
+    const worksheet = workbook.addWorksheet('Campeonatos')
     worksheet.addRow(headers)
     exampleData.forEach(row => worksheet.addRow(row))
 
@@ -207,7 +207,7 @@ export const tournamentImportService = {
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'plantilla-importacion-torneos.xlsx'
+    a.download = 'plantilla-importacion-campeonatos.xlsx'
     document.body.appendChild(a)
     a.click()
     window.URL.revokeObjectURL(url)
@@ -245,7 +245,7 @@ export const tournamentImportService = {
         return tournament as TournamentImportRow
       })
 
-    console.log('Torneos parseados:', tournaments)
+    console.log('Campeonatos parseados:', tournaments)
     return tournaments
   },
 
@@ -282,7 +282,7 @@ export const tournamentImportService = {
 
       // Validar valores específicos
       if (row.tipo && !['CE1', 'CE2', 'REGIONAL'].includes(row.tipo)) {
-        errors.push(`Fila ${rowNumber}: Tipo de torneo '${row.tipo}' no es válido. Valores válidos: CE1, CE2, REGIONAL`)
+        errors.push(`Fila ${rowNumber}: Tipo de campeonato '${row.tipo}' no es válido. Valores válidos: CE1, CE2, REGIONAL`)
       }
 
       if (row.superficie && !['GRASS', 'BEACH', 'INDOOR'].includes(row.superficie)) {
@@ -318,7 +318,7 @@ export const tournamentImportService = {
 
       // Para torneos regionales, región es requerida
       if (row.tipo === 'REGIONAL' && (!row.region || row.region.trim() === '')) {
-        errors.push(`Fila ${rowNumber}: La región es requerida para torneos regionales`)
+        errors.push(`Fila ${rowNumber}: La región es requerida para campeonatos regionales`)
       } else if (row.tipo === 'REGIONAL' && row.region && !regionNameToId.has(row.region.toLowerCase())) {
         errors.push(`Fila ${rowNumber}: Región '${row.region}' no encontrada en la base de datos`)
       }
@@ -443,14 +443,14 @@ export const tournamentImportService = {
                 })
               } else {
                 missingTeams.push(`Posición ${i}: '${teamName}'`)
-                errors.push(`Torneo '${row.nombre}' - Equipo '${teamName}' en posición ${i} no encontrado en la base de datos`)
+                errors.push(`Campeonato '${row.nombre}' - Equipo '${teamName}' en posición ${i} no encontrado en la base de datos`)
               }
             }
           }
 
           // Si hay equipos faltantes, agregar advertencia específica
           if (missingTeams.length > 0) {
-            errors.push(`Torneo '${row.nombre}' - Equipos no encontrados: ${missingTeams.join(', ')}`)
+            errors.push(`Campeonato '${row.nombre}' - Equipos no encontrados: ${missingTeams.join(', ')}`)
           }
 
           // Crear posiciones en lote
@@ -460,16 +460,16 @@ export const tournamentImportService = {
           }
 
         } catch (error) {
-          console.error('Error al crear torneo:', error)
-          errors.push(`Error al crear torneo '${row.nombre}': ${error}`)
+          console.error('Error al crear campeonato:', error)
+          errors.push(`Error al crear campeonato '${row.nombre}': ${error}`)
         }
       }
 
       return {
         success: errors.length === 0,
         message: errors.length === 0 
-          ? `Importación completada: ${tournamentsCreated} torneo(s) creado(s), ${positionsCreated} posiciones creadas`
-          : `Importación completada con advertencias: ${tournamentsCreated} torneo(s) creado(s), ${positionsCreated} posiciones creadas. ${errors.length} advertencia(s)`,
+          ? `Importación completada: ${tournamentsCreated} campeonato(s) creado(s), ${positionsCreated} posiciones creadas`
+          : `Importación completada con advertencias: ${tournamentsCreated} campeonato(s) creado(s), ${positionsCreated} posiciones creadas. ${errors.length} advertencia(s)`,
         data: {
           tournamentsCreated,
           positionsCreated,

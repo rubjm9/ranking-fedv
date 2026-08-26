@@ -21,7 +21,7 @@ const TermsPage: React.FC = () => {
           Uso del contenido
         </h2>
         <p className="text-content-muted">
-          Los datos de ranking, equipos y torneos pueden consultarse con fines
+          Los datos de ranking, equipos y campeonatos pueden consultarse con fines
           informativos. La reproducción comercial requiere autorización expresa de la FEDV.
         </p>
         <h2 className="font-display text-xl font-semibold text-content mt-6 mb-3">
@@ -29,7 +29,7 @@ const TermsPage: React.FC = () => {
         </h2>
         <p className="text-content-muted">
           La FEDV trabaja para mantener la información actualizada. No obstante,
-          pueden existir retrasos entre la celebración de torneos y la actualización del ranking.
+          pueden existir retrasos entre la celebración de campeonatos y la actualización del ranking.
         </p>
         <h2 className="font-display text-xl font-semibold text-content mt-6 mb-3">
           Contacto

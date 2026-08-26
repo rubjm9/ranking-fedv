@@ -57,7 +57,7 @@ const Navbar: React.FC = () => {
   ]
 
   const navigationAfterRegions = [
-    { name: 'Torneos', href: '/tournaments', icon: Calendar },
+    { name: 'Campeonatos', href: '/campeonatos', icon: Calendar },
     { name: 'Disc golf', href: '/disc-golf', icon: Disc3 },
     { name: 'Cómo funciona', href: '/como-funciona', icon: Info },
   ]
@@ -67,7 +67,7 @@ const Navbar: React.FC = () => {
    * repiten en el panel. Los acordeones de Ranking y Regiones sí se mantienen,
    * porque dan acceso a modalidades y regiones concretas que la barra no cubre.
    */
-  const bottomNavHrefs = ['/equipos', '/tournaments']
+  const bottomNavHrefs = ['/equipos', '/campeonatos']
   const notInBottomNav = (item: { href: string }) => !bottomNavHrefs.includes(item.href)
 
   const isActive = (href: string) => {

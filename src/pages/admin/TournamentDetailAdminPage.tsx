@@ -41,15 +41,15 @@ const TournamentDetailAdminPage: React.FC = () => {
   const deleteTournamentMutation = useMutation({
     mutationFn: (tournamentId: string) => tournamentsService.delete(tournamentId),
     onSuccess: () => {
-      void markRankingDirtyAfterEdit('Torneo eliminado', { affectsCoefficients: true })
+      void markRankingDirtyAfterEdit('Campeonato eliminado', { affectsCoefficients: true })
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
       queryClient.invalidateQueries({ queryKey: ['ranking-state'] })
       queryClient.invalidateQueries({ queryKey: ['admin-notifications-pending'] })
       navigate('/admin/tournaments')
     },
     onError: (error: any) => {
-      console.error('Error al eliminar torneo:', error)
-      alert('Error al eliminar el torneo: ' + error.message)
+      console.error('Error al eliminar campeonato:', error)
+      alert('Error al eliminar el campeonato: ' + error.message)
     }
   })
 
@@ -67,13 +67,13 @@ const TournamentDetailAdminPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-surface-muted flex items-center justify-center">
         <div className="text-center">
-          <p className="text-content-muted">Torneo no encontrado</p>
+          <p className="text-content-muted">Campeonato no encontrado</p>
           <p className="text-sm text-content-subtle mt-2">ID: {id}</p>
           <button
             onClick={() => navigate('/admin/tournaments')}
             className="mt-4 text-blue-600 dark:text-blue-300 hover:text-blue-800"
           >
-            Volver a torneos
+            Volver a campeonatos
           </button>
         </div>
       </div>
@@ -106,13 +106,13 @@ const TournamentDetailAdminPage: React.FC = () => {
             className="flex items-center text-content-muted hover:text-content mb-6"
           >
             <ArrowLeft className="h-5 w-5 mr-2" />
-            Volver a torneos
+            Volver a campeonatos
           </button>
           
           <div className="flex justify-between items-start">
             <div>
               <h1 className="page-header-title">{tournament.name}</h1>
-              <p className="text-content-muted mt-1">Detalles del torneo</p>
+              <p className="text-content-muted mt-1">Detalles del campeonato</p>
             </div>
             
             <div className="flex space-x-3">
@@ -121,11 +121,11 @@ const TournamentDetailAdminPage: React.FC = () => {
                 className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
               >
                 <Edit className="h-4 w-4 mr-2" />
-                Editar torneo
+                Editar campeonato
               </button>
               
               <button
-                onClick={() => navigate(`/tournaments/${id}`)}
+                onClick={() => navigate(`/campeonatos/${id}`)}
                 className="btn-primary flex items-center"
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
@@ -145,7 +145,7 @@ const TournamentDetailAdminPage: React.FC = () => {
 
         {/* Tournament Details */}
         <div className="bg-surface rounded-lg shadow-sm border border-line p-6 mb-8">
-          <h2 className="text-lg font-semibold text-content mb-6">Información del torneo</h2>
+          <h2 className="text-lg font-semibold text-content mb-6">Información del campeonato</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
@@ -205,7 +205,7 @@ const TournamentDetailAdminPage: React.FC = () => {
             <div className="text-center py-12">
               <Trophy className="h-12 w-12 text-content-subtle mx-auto mb-4" />
               <h3 className="text-lg font-medium text-content mb-2">No hay resultados</h3>
-              <p className="text-content-muted mb-4">Este torneo aún no tiene resultados registrados.</p>
+              <p className="text-content-muted mb-4">Este campeonato aún no tiene resultados registrados.</p>
               <button
                 onClick={() => navigate(`/admin/tournaments/${id}/edit`)}
                 className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
@@ -272,10 +272,10 @@ const TournamentDetailAdminPage: React.FC = () => {
         open={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={handleDeleteTournament}
-        title="Eliminar torneo"
+        title="Eliminar campeonato"
         isPending={deleteTournamentMutation.isPending}
       >
-        ¿Estás seguro de que quieres eliminar este torneo? Esta acción no se puede deshacer.
+        ¿Estás seguro de que quieres eliminar este campeonato? Esta acción no se puede deshacer.
       </ConfirmDialog>
     </div>
   )

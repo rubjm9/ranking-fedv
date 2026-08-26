@@ -226,7 +226,7 @@ const SeasonManagementPage: React.FC = () => {
   const renderCellIcon = (state: CellState) => {
     if (state === 'none') {
       return (
-        <span className="inline-flex text-gray-300" title="Sin torneo">
+        <span className="inline-flex text-gray-300" title="Sin campeonato">
           <Minus className="h-4 w-4" />
         </span>
       )
@@ -292,7 +292,7 @@ const SeasonManagementPage: React.FC = () => {
         <div className="bg-surface shadow rounded-lg p-6">
           <h2 className="text-lg font-semibold text-content mb-2">Estado de subtemporadas</h2>
           <p className="text-sm text-content-muted mb-4">
-            Revisa los torneos por subtemporada y ciérralos o recalcúlalos cuando corresponda.
+            Revisa los campeonatos por subtemporada y ciérralos o recalcúlalos cuando corresponda.
           </p>
           {loadingMonitor ? (
             <p className="text-content-subtle py-4">Cargando datos...</p>

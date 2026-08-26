@@ -11,8 +11,8 @@ const quickActions = [
     iconClass: 'bg-brand-subtle text-link',
   },
   {
-    name: 'Nuevo torneo',
-    description: 'Crear un nuevo torneo',
+    name: 'Nuevo campeonato',
+    description: 'Crear un nuevo campeonato',
     icon: Calendar,
     href: '/admin/tournaments/new',
     iconClass: 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-300',

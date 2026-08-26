@@ -4,12 +4,49 @@ import { Info } from 'lucide-react'
 import PageHeroShell from '@/components/layout/PageHeroShell'
 
 interface RankingPageHeaderProps {
+  title?: string
   season?: string
   isLoadingSeason?: boolean
   actions?: ReactNode
 }
 
+/** Estilo del H1: «Ranking» (y «combinado») en blanco; modalidad o FEDV en accent. */
+const renderHeroTitle = (title: string) => {
+  if (title.includes('FEDV')) {
+    const [before, ...after] = title.split('FEDV')
+    return (
+      <>
+        {before}
+        <span className="text-accent-400">FEDV</span>
+        {after.join('FEDV')}
+      </>
+    )
+  }
+
+  // «Ranking combinado Playa» → Ranking combinado en blanco, modalidad en naranja
+  const combinedMatch = title.match(/^(Ranking combinado)\s+(.+)$/i)
+  if (combinedMatch) {
+    return (
+      <>
+        {combinedMatch[1]} <span className="text-accent-400">{combinedMatch[2]}</span>
+      </>
+    )
+  }
+
+  const match = title.match(/^(Ranking)\s+(.+)$/)
+  if (match) {
+    return (
+      <>
+        {match[1]} <span className="text-accent-400">{match[2]}</span>
+      </>
+    )
+  }
+
+  return title
+}
+
 const RankingPageHeader: React.FC<RankingPageHeaderProps> = ({
+  title = 'Ranking FEDV',
   season,
   isLoadingSeason,
   actions,
@@ -20,7 +57,7 @@ const RankingPageHeader: React.FC<RankingPageHeaderProps> = ({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="font-display text-2xl font-bold tracking-tight text-white md:text-3xl">
-              Ranking <span className="text-accent-400">FEDV</span>
+              {renderHeroTitle(title)}
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-content-subtle md:text-base">
               Clasificación oficial de equipos de ultimate frisbee en España

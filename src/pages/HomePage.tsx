@@ -204,7 +204,7 @@ const HomePage: React.FC = () => {
               </div>
               <div className="text-center">
                 <div className="font-display text-3xl font-bold text-white">{mainStats.totalTournaments}</div>
-                <div className="text-sm text-content-subtle mt-1">Torneos</div>
+                <div className="text-sm text-content-subtle mt-1">Campeonatos</div>
               </div>
               <div className="text-center">
                 <div className="font-display text-3xl font-bold text-white">{mainStats.totalRegions}</div>
@@ -222,7 +222,7 @@ const HomePage: React.FC = () => {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-        {/* Banner próximo torneo */}
+        {/* Banner próximo campeonato */}
         {upcomingTournaments[0] && (
           <div className="mb-8 bg-brand-subtle border border-brand-strong/30 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -230,7 +230,7 @@ const HomePage: React.FC = () => {
                 <Calendar className="h-7 w-7 text-link" strokeWidth={1.5} />
               </div>
               <div>
-                <span className="text-xs font-semibold text-link uppercase tracking-wide">Próximo torneo</span>
+                <span className="text-xs font-semibold text-link uppercase tracking-wide">Próximo campeonato</span>
                 <p className="font-semibold text-content">{upcomingTournaments[0].name}</p>
                 <p className="text-sm text-content-subtle">
                   {getTournamentTypeLabel(upcomingTournaments[0].type)}
@@ -242,7 +242,7 @@ const HomePage: React.FC = () => {
               </div>
             </div>
             <Link
-              to={`/tournaments/${upcomingTournaments[0].id}`}
+              to={`/campeonatos/${upcomingTournaments[0].id}`}
               className="btn-primary text-sm px-4 py-2 shrink-0"
             >
               Ver detalles
@@ -322,24 +322,24 @@ const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Torneos */}
+        {/* Campeonatos */}
         <div className="text-center mb-12">
-          <h2 className="section-title mb-2">Torneos</h2>
-          <p className="text-lg text-content-muted">Consulta los torneos próximos y pasados</p>
+          <h2 className="section-title mb-2">Campeonatos</h2>
+          <p className="text-lg text-content-muted">Consulta los campeonatos próximos y pasados</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Próximos torneos */}
+          {/* Próximos campeonatos */}
           <div className="bg-surface rounded-2xl shadow-sm p-6 border border-line">
-            <h3 className="text-lg font-semibold text-content mb-4">Próximos torneos</h3>
+            <h3 className="text-lg font-semibold text-content mb-4">Próximos campeonatos</h3>
             <div className="divide-y divide-line">
               {upcomingTournaments.length === 0 && (
-                <p className="text-content-subtle text-sm py-2">No hay torneos próximos programados.</p>
+                <p className="text-content-subtle text-sm py-2">No hay campeonatos próximos programados.</p>
               )}
               {upcomingTournaments.map((tournament) => (
                 <Link
                   key={tournament.id}
-                  to={`/tournaments/${tournament.id}`}
+                  to={`/campeonatos/${tournament.id}`}
                   className="flex items-center justify-between py-4 -mx-2 px-2 rounded-lg hover:bg-surface-muted transition-colors"
                 >
                   <div className="flex items-center">
@@ -370,22 +370,22 @@ const HomePage: React.FC = () => {
             </div>
             <div className="mt-4 text-center">
               <Link
-                to="/tournaments"
+                to="/campeonatos"
                 className="text-link hover:text-brand-strong font-medium"
               >
-                Ver todos los torneos
+                Ver todos los campeonatos
               </Link>
             </div>
           </div>
 
-          {/* Torneos pasados */}
+          {/* Campeonatos pasados */}
           <div className="bg-surface rounded-2xl shadow-sm p-6 border border-line">
-            <h3 className="text-lg font-semibold text-content mb-4">Torneos pasados</h3>
+            <h3 className="text-lg font-semibold text-content mb-4">Campeonatos pasados</h3>
             <div className="divide-y divide-line">
               {completedTournaments.map((tournament) => (
                 <Link
                   key={tournament.id}
-                  to={`/tournaments/${tournament.id}`}
+                  to={`/campeonatos/${tournament.id}`}
                   className="flex items-center justify-between py-4 -mx-2 px-2 rounded-lg hover:bg-surface-muted transition-colors"
                 >
                   <div className="flex items-center">
@@ -416,10 +416,10 @@ const HomePage: React.FC = () => {
             </div>
             <div className="mt-4 text-center">
               <Link
-                to="/tournaments"
+                to="/campeonatos"
                 className="text-link hover:text-brand-strong font-medium"
               >
-                Ver todos los torneos
+                Ver todos los campeonatos
               </Link>
             </div>
           </div>
@@ -444,7 +444,7 @@ const HomePage: React.FC = () => {
             </div>
           </Link>
           <Link
-            to="/tournaments"
+            to="/campeonatos"
             className="bg-surface rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-line"
           >
             <div className="flex items-center">
@@ -452,7 +452,7 @@ const HomePage: React.FC = () => {
                 <Trophy className="h-7 w-7 text-link" strokeWidth={1.5} />
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-content">Torneos</h3>
+                <h3 className="text-lg font-medium text-content">Campeonatos</h3>
                 <p className="text-content-muted">Consulta resultados y calendario</p>
               </div>
             </div>

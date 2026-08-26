@@ -212,7 +212,7 @@ const TeamDetailPage: React.FC = () => {
       case 'CE1': return 'Campeonato España 1ª División'
       case 'CE2': return 'Campeonato España 2ª División'
       case 'REGIONAL': return 'Campeonato Regional'
-      case 'INTERNATIONAL': return 'Torneo Internacional'
+      case 'INTERNATIONAL': return 'Campeonato internacional'
       default: return type
     }
   }
@@ -470,7 +470,7 @@ const TeamDetailPage: React.FC = () => {
     },
     {
       id: 'tournaments',
-      label: 'Torneos',
+      label: 'Campeonatos',
       icon: Calendar,
       badge: tournamentResults.length,
       content: (
@@ -595,7 +595,7 @@ const TeamDetailPage: React.FC = () => {
         )
         return (
           <div className="bg-surface rounded-xl shadow-sm border border-line p-6">
-            <h3 className="text-xl font-semibold text-content mb-4">Posición del equipo por torneo y temporada</h3>
+            <h3 className="text-xl font-semibold text-content mb-4">Posición del equipo por campeonato y temporada</h3>
             <div className="overflow-x-auto rounded-lg border border-line">
               <table className="min-w-full text-sm">
                 <thead>
@@ -611,7 +611,7 @@ const TeamDetailPage: React.FC = () => {
                 <tbody>
                   {seasons.length === 0 ? (
                     <tr>
-                      <td colSpan={2} className="px-4 py-8 text-center text-content-subtle">No hay datos de torneos.</td>
+                      <td colSpan={2} className="px-4 py-8 text-center text-content-subtle">No hay datos de campeonatos.</td>
                     </tr>
                   ) : rowKeys.map(({ surface, modality, type }) => (
                     <tr key={`${surface}-${modality}-${type}`} className="border-b border-line hover:bg-surface-muted">
@@ -623,7 +623,7 @@ const TeamDetailPage: React.FC = () => {
                         return (
                           <td key={year} className="px-3 py-2 text-center border-r border-line last:border-r-0">
                             {cell === '✕' ? (
-                              <span className="text-content-subtle font-medium" title="El torneo no se disputó">✕</span>
+                              <span className="text-content-subtle font-medium" title="El campeonato no se disputó">✕</span>
                             ) : cell === 'No p.' ? (
                               <span className="text-content-subtle text-xs" title="El equipo no participó">No p.</span>
                             ) : typeof cell === 'number' && cell <= 3 ? (
@@ -654,9 +654,9 @@ const TeamDetailPage: React.FC = () => {
               <p className="font-medium text-content-muted">Leyenda:</p>
               <ul className="list-disc list-inside space-y-0.5">
                 <li><strong>Círculo dorado (1), plateado (2) o bronce (3):</strong> medalla (1º, 2º o 3º puesto).</li>
-                <li><strong>Número (4º en adelante):</strong> posición en la que quedó este equipo en ese torneo.</li>
-                <li><strong>✕</strong> (cruz gris): el torneo no existió o no se disputó en esa temporada.</li>
-                <li><strong>No p.:</strong> el torneo sí se disputó pero este equipo no participó.</li>
+                <li><strong>Número (4º en adelante):</strong> posición en la que quedó este equipo en ese campeonato.</li>
+                <li><strong>✕</strong> (cruz gris): el campeonato no existió o no se disputó en esa temporada.</li>
+                <li><strong>No p.:</strong> el campeonato sí se disputó pero este equipo no participó.</li>
               </ul>
             </div>
           </div>
@@ -700,7 +700,7 @@ const TeamDetailPage: React.FC = () => {
                         </div>
                         <div className="text-sm text-content-muted">
                           <div>{data.points.toFixed(1)} puntos</div>
-                          <div>{data.tournaments} torneos</div>
+                          <div>{data.tournaments} campeonatos</div>
                           <div>Mejor: {data.bestPosition}º</div>
                         </div>
                       </div>
@@ -819,7 +819,7 @@ const TeamDetailPage: React.FC = () => {
               items={[
                 {
                   icon: Calendar,
-                  label: 'Torneos',
+                  label: 'Campeonatos',
                   value: statistics.totalTournaments,
                 },
                 {
@@ -829,7 +829,7 @@ const TeamDetailPage: React.FC = () => {
                 },
                 {
                   icon: Trophy,
-                  label: 'Torneos ganados',
+                  label: 'Campeonatos ganados',
                   value: statistics.tournamentsWon,
                 },
                 {

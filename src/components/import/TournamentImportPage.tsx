@@ -73,8 +73,8 @@ const TournamentImportPage: React.FC = () => {
     <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-content">Importar torneos</h1>
-        <p className="text-content-muted">Importa múltiples torneos desde un archivo Excel</p>
+        <h1 className="text-2xl font-bold text-content">Importar campeonatos</h1>
+        <p className="text-content-muted">Importa múltiples campeonatos desde un archivo Excel</p>
       </div>
 
       {/* Template Download */}
@@ -85,7 +85,7 @@ const TournamentImportPage: React.FC = () => {
             <div>
               <h3 className="text-sm font-medium text-blue-900 dark:text-blue-300">Plantilla de importación</h3>
               <p className="text-sm text-blue-700 dark:text-blue-300">
-                Descarga la plantilla Excel con el formato correcto para importar torneos
+                Descarga la plantilla Excel con el formato correcto para importar campeonatos
               </p>
             </div>
           </div>
@@ -157,7 +157,7 @@ const TournamentImportPage: React.FC = () => {
             <div className="flex items-center text-green-600 dark:text-green-300">
               <CheckCircle className="h-5 w-5 mr-2" />
               <span className="text-sm font-medium">
-                ✅ Datos válidos - {importData.length} torneo(s) listo(s) para importar
+                ✅ Datos válidos - {importData.length} campeonato(s) listo(s) para importar
               </span>
             </div>
           ) : (
@@ -192,7 +192,7 @@ const TournamentImportPage: React.FC = () => {
             <div>
               <h3 className="text-lg font-medium text-content">Importar datos</h3>
               <p className="text-sm text-content-muted">
-                Se crearán {importData.length} torneo(s) con sus posiciones
+                Se crearán {importData.length} campeonato(s) con sus posiciones
               </p>
             </div>
             <button
@@ -208,7 +208,7 @@ const TournamentImportPage: React.FC = () => {
               ) : (
                 <>
                   <Upload className="h-4 w-4 mr-2" />
-                  Importar torneos
+                  Importar campeonatos
                 </>
               )}
             </button>
@@ -233,7 +233,7 @@ const TournamentImportPage: React.FC = () => {
               <div className="bg-surface-muted rounded-lg p-4">
                 <h4 className="text-sm font-medium text-content mb-2">Resumen:</h4>
                 <ul className="text-sm text-content-muted space-y-1">
-                  <li>• Torneos creados: {importResult.data?.tournamentsCreated || 0}</li>
+                  <li>• Campeonatos creados: {importResult.data?.tournamentsCreated || 0}</li>
                   <li>• Posiciones creadas: {importResult.data?.positionsCreated || 0}</li>
                   {importResult.data?.errors && importResult.data.errors.length > 0 && (
                     <li>• Advertencias: {importResult.data.errors.length}</li>
@@ -280,22 +280,22 @@ const TournamentImportPage: React.FC = () => {
         <h3 className="text-lg font-medium text-content mb-4">Instrucciones de uso</h3>
         <div className="text-sm text-content-muted space-y-2">
           <p><strong>1.</strong> Descarga la plantilla Excel</p>
-          <p><strong>2.</strong> Completa la información de cada torneo en una fila</p>
+          <p><strong>2.</strong> Completa la información de cada campeonato en una fila</p>
           <p><strong>3.</strong> Para las posiciones, escribe el nombre exacto del equipo</p>
           <p><strong>4.</strong> Sube el archivo completado</p>
           <p><strong>5.</strong> Revisa la validación y corrige errores si es necesario</p>
-          <p><strong>6.</strong> Haz clic en "Importar torneos"</p>
+          <p><strong>6.</strong> Haz clic en "Importar campeonatos"</p>
         </div>
         
         <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg">
           <h4 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">Notas importantes:</h4>
           <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-            <li>• Un torneo por fila</li>
+            <li>• Un campeonato por fila</li>
             <li>• Las posiciones se asignan automáticamente según el orden de las columnas</li>
             <li>• Los nombres de equipos deben coincidir exactamente con los registrados</li>
-            <li>• Para torneos regionales, la región es obligatoria</li>
+            <li>• Para campeonatos regionales, la región es obligatoria</li>
             <li>• Las fechas deben estar en formato YYYY-MM-DD</li>
-            <li>• Soporte para hasta 30 posiciones (torneos regionales)</li>
+            <li>• Soporte para hasta 30 posiciones (campeonatos regionales)</li>
           </ul>
         </div>
       </div>

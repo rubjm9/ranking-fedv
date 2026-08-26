@@ -138,7 +138,7 @@ const RegionDetailAdminPage: React.FC = () => {
                   <Trophy className="h-6 w-6 text-green-600 dark:text-green-300" />
                 </div>
                 <div className="page-header-title">{region._count?.tournaments || region.tournaments?.length || 0}</div>
-                <div className="text-sm text-content-subtle">Torneos</div>
+                <div className="text-sm text-content-subtle">Campeonatos</div>
               </div>
               
               <div className="text-center">
@@ -182,7 +182,7 @@ const RegionDetailAdminPage: React.FC = () => {
                 className="btn-outline w-full flex items-center justify-center"
               >
                 <Trophy className="h-4 w-4 mr-2" />
-                Ver Torneos
+                Ver campeonatos
               </button>
             </div>
           </div>

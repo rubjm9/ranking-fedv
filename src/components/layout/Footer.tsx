@@ -55,7 +55,7 @@ const Footer: React.FC = () => {
                 { label: 'Ranking', to: '/ranking' },
                 { label: 'Equipos', to: '/equipos' },
                 { label: 'Regiones', to: '/regiones' },
-                { label: 'Torneos', to: '/tournaments' },
+                { label: 'Campeonatos', to: '/campeonatos' },
                 { label: 'Disc golf', to: '/disc-golf' },
               ].map(({ label, to }) => (
                 <li key={to}>

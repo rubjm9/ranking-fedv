@@ -7,7 +7,7 @@ import type { DashboardStatItem } from '@/types'
 const statIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   'Equipos registrados': UsersRound,
   'Regiones activas': MapPin,
-  'Torneos este año': Calendar,
+  'Campeonatos este año': Calendar,
   'Ranking actualizado': TrendingUp,
 }
 

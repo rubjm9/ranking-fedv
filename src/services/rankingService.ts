@@ -514,7 +514,7 @@ const rankingService = {
         console.log('🏆 Procesando posición:', {
           position: position.position,
           points: position.points,
-          tournament: tournament?.name || 'Sin torneo',
+          tournament: tournament?.name || 'Sin campeonato',
           team: team?.name || 'Sin equipo',
           year: tournament?.year
         })
@@ -946,7 +946,7 @@ const rankingService = {
         issues.push({
           type: 'orphan_tournaments',
           count: orphanTournaments.length,
-          message: `${orphanTournaments.length} posiciones con torneos inexistentes`
+          message: `${orphanTournaments.length} posiciones con campeonatos inexistentes`
         })
       }
 
@@ -1583,7 +1583,7 @@ const rankingService = {
       }
 
       if (diagnostics.tables.positions.totalRecords === 0) {
-        diagnostics.recommendations.push('⚠️ No hay posiciones registradas. Importar resultados de torneos.')
+        diagnostics.recommendations.push('⚠️ No hay posiciones registradas. Importar resultados de campeonatos.')
       }
 
       // 5. Estadísticas de rendimiento

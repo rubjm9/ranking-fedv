@@ -328,14 +328,14 @@ const TournamentDetailPage: React.FC = () => {
   if (tournamentError) {
     return (
       <PageContainer>
-        <PageHeader title="Error al cargar el torneo" />
+        <PageHeader title="Error al cargar el campeonato" />
         <EmptyState
           icon={Trophy}
-          title="Error al cargar el torneo"
-          description="No se pudo cargar la información del torneo."
+          title="Error al cargar el campeonato"
+          description="No se pudo cargar la información del campeonato."
           actionLink={{
-            label: 'Volver a torneos',
-            href: '/tournaments',
+            label: 'Volver a campeonatos',
+            href: '/campeonatos',
           }}
         />
       </PageContainer>
@@ -345,14 +345,14 @@ const TournamentDetailPage: React.FC = () => {
   if (!tournament) {
     return (
       <PageContainer>
-        <PageHeader title="Torneo no encontrado" />
+        <PageHeader title="Campeonato no encontrado" />
         <EmptyState
           icon={Trophy}
-          title="Torneo no encontrado"
-          description="El torneo que buscas no existe o ha sido eliminado."
+          title="Campeonato no encontrado"
+          description="El campeonato que buscas no existe o ha sido eliminado."
           actionLink={{
-            label: 'Volver a torneos',
-            href: '/tournaments',
+            label: 'Volver a campeonatos',
+            href: '/campeonatos',
           }}
         />
       </PageContainer>
@@ -368,7 +368,7 @@ const TournamentDetailPage: React.FC = () => {
           <Breadcrumbs
             variant="dark"
             items={[
-              { label: 'Torneos', href: '/tournaments' },
+              { label: 'Campeonatos', href: '/campeonatos' },
               { label: breadcrumbLabel || tournament.name },
             ]}
           />
@@ -411,12 +411,12 @@ const TournamentDetailPage: React.FC = () => {
         }
       />
 
-        {/* Información del torneo y distribución por regiones */}
+        {/* Información del campeonato y distribución por regiones */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          {/* Información del torneo - 2/3 */}
+          {/* Información del campeonato - 2/3 */}
           <div className="lg:col-span-2">
             <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
-              <h2 className="text-xl font-semibold text-content mb-4">Sobre el torneo</h2>
+              <h2 className="text-xl font-semibold text-content mb-4">Sobre el campeonato</h2>
               
               <p className="text-content-muted leading-relaxed mb-6">
                 {tournament.description || 'El campeonato más importante de España para equipos de primera división. Celebrado en diferentes ciudades cada año con la participación de los mejores equipos del país.'}
@@ -531,10 +531,10 @@ const TournamentDetailPage: React.FC = () => {
             <EmptyState
               icon={Trophy}
               title="No hay resultados disponibles"
-              description="Este torneo aún no tiene resultados registrados."
+              description="Este campeonato aún no tiene resultados registrados."
             />
           ) : (
-            <DataTable caption="Resultados finales del torneo" darkHeader={false}>
+            <DataTable caption="Resultados finales del campeonato" darkHeader={false}>
               <thead className="bg-surface-muted">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">

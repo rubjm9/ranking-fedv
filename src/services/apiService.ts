@@ -102,12 +102,12 @@ export function getTeamPublicUrl(team: { slug?: string | null; id?: string }): s
 }
 
 /**
- * Las URL de torneo son por id y en inglés, a diferencia de equipos y
- * regiones. Se construían a mano en cada punto de uso.
+ * Las URL públicas de campeonato son por id (`/campeonatos/:id`), a diferencia
+ * de equipos y regiones (slug). Se construían a mano en cada punto de uso.
  */
 export function getTournamentPublicUrl(tournament: { id?: string }): string {
-  if (tournament.id) return `/tournaments/${tournament.id}`
-  return '/tournaments'
+  if (tournament.id) return `/campeonatos/${tournament.id}`
+  return '/campeonatos'
 }
 
 export function buildRegionPublicSlugById(regions: RegionSlugSource[]): Map<string, string> {
@@ -638,7 +638,7 @@ export const tournamentsService = {
         throw error
       }
       
-      return { success: true, data: data || [], message: 'Torneos obtenidos exitosamente' }
+      return { success: true, data: data || [], message: 'Campeonatos obtenidos exitosamente' }
     } catch (error) {
       console.error('❌ Error de conexión:', error)
       throw error
@@ -689,7 +689,7 @@ export const tournamentsService = {
       throw error
     }
 
-    return { success: true, data, message: 'Torneo obtenido exitosamente' }
+    return { success: true, data, message: 'Campeonato obtenido exitosamente' }
   },
 
   // Buscar torneo existente con la misma combinación
@@ -757,7 +757,7 @@ export const tournamentsService = {
     // Recalcular ranking automáticamente si el torneo se crea con posiciones
     // Nota: Funcionalidad de auto-ranking removida
 
-    return { success: true, data, message: 'Torneo creado exitosamente' }
+    return { success: true, data, message: 'Campeonato creado exitosamente' }
   },
 
   // Actualizar un torneo
@@ -770,7 +770,7 @@ export const tournamentsService = {
       .single()
     
     if (error) throw error
-    return { success: true, data, message: 'Torneo actualizado exitosamente' }
+    return { success: true, data, message: 'Campeonato actualizado exitosamente' }
   },
 
   // Eliminar un torneo
@@ -781,7 +781,7 @@ export const tournamentsService = {
       .eq('id', id)
     
     if (error) throw error
-    return { success: true, message: 'Torneo eliminado exitosamente' }
+    return { success: true, message: 'Campeonato eliminado exitosamente' }
   },
 
   // Agregar posiciones a un torneo
@@ -988,7 +988,7 @@ export const positionsService = {
       .order('position')
     
     if (error) throw error
-    return { success: true, data: data || [], message: 'Posiciones del torneo obtenidas exitosamente' }
+    return { success: true, data: data || [], message: 'Posiciones del campeonato obtenidas exitosamente' }
   },
 
   // Crear una nueva posición
@@ -1165,9 +1165,9 @@ export const importExportService = {
     // Transformar datos para exportación
     const exportData = positions.map(pos => ({
       id: pos.id,
-      torneo: pos.tournament?.name || 'Sin torneo',
+      campeonato: pos.tournament?.name || 'Sin campeonato',
       año: pos.tournament?.year || '',
-      tipo_torneo: pos.tournament?.type || '',
+      tipo_campeonato: pos.tournament?.type || '',
       equipo: pos.team?.name || 'Sin equipo',
       region_equipo: pos.team?.region?.name || 'Sin región',
       posicion: pos.position,
@@ -1190,13 +1190,13 @@ export const importExportService = {
     return {
       equipos: teams,
       regiones: regions,
-      torneos: tournaments,
+      campeonatos: tournaments,
       posiciones: positions,
       metadata: {
         fecha_exportacion: new Date().toISOString(),
         total_equipos: teams.length,
         total_regiones: regions.length,
-        total_torneos: tournaments.length,
+        total_campeonatos: tournaments.length,
         total_posiciones: positions.length
       }
     }

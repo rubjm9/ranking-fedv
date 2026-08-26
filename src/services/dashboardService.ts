@@ -124,7 +124,7 @@ async function countTournamentsForSeason(seasonYear: number): Promise<number> {
     .eq('year', seasonYear)
 
   if (error) {
-    console.error('Error contando torneos de la temporada:', error)
+    console.error('Error contando campeonatos de la temporada:', error)
     return 0
   }
 
@@ -178,7 +178,7 @@ export const dashboardService = {
           href: '/admin/regions',
         },
         {
-          name: 'Torneos este año',
+          name: 'Campeonatos este año',
           value: tournamentsThisSeason,
           change: tournamentsDelta.change,
           changeType: tournamentsDelta.changeType,
@@ -219,7 +219,7 @@ export const dashboardService = {
 
     const tournamentItems: DashboardActivityItem[] = recentTournaments.map((tournament) => ({
       type: 'tournament',
-      action: 'Torneo finalizado',
+      action: 'Campeonato finalizado',
       details: tournament.name,
       timestamp: tournament.startDate,
       href: `/admin/tournaments/${tournament.id}`,
@@ -252,7 +252,7 @@ export const dashboardService = {
     if (rankingState.isDirty) {
       items.push({
         title: 'Ranking desactualizado',
-        description: rankingState.reason || 'Hay cambios en torneos que no se han reflejado en el ranking',
+        description: rankingState.reason || 'Hay cambios en campeonatos que no se han reflejado en el ranking',
         href: '/admin/seasons',
         priority: 'high',
       })
@@ -274,11 +274,11 @@ export const dashboardService = {
     if (tournamentsWithoutResults.length > 0) {
       const first = tournamentsWithoutResults[0]
       items.push({
-        title: 'Torneos sin resultados',
+        title: 'Campeonatos sin resultados',
         description:
           tournamentsWithoutResults.length === 1
             ? `${first.name} no tiene posiciones registradas`
-            : `${tournamentsWithoutResults.length} torneos sin posiciones registradas`,
+            : `${tournamentsWithoutResults.length} campeonatos sin posiciones registradas`,
         href: `/admin/tournaments/${first.id}`,
         priority: 'medium',
       })

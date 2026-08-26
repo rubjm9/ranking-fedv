@@ -113,7 +113,7 @@ const ImportExportPage: React.FC = () => {
     switch (type) {
       case 'teams': return 'Equipos'
       case 'regions': return 'Regiones'
-      case 'tournaments': return 'Torneos'
+      case 'tournaments': return 'Campeonatos'
       case 'results': return 'Resultados'
       case 'positions': return 'Posiciones'
       case 'ranking': return 'Ranking'
@@ -145,7 +145,7 @@ const ImportExportPage: React.FC = () => {
               }`}
             >
               <Upload className="h-4 w-4 inline mr-2" />
-              Importar Torneos
+              Importar campeonatos
             </button>
             <button
               onClick={() => setActiveTab('general')}
@@ -184,7 +184,7 @@ const ImportExportPage: React.FC = () => {
           <div className="bg-surface rounded-lg shadow-sm border border-line p-6">
             <h3 className="text-lg font-medium text-content mb-4">Importación General</h3>
             <p className="text-content-muted mb-4">
-              Esta funcionalidad está en desarrollo. Por ahora, usa la pestaña "Importar Torneos" para importar torneos específicamente.
+              Esta funcionalidad está en desarrollo. Por ahora, usa la pestaña "Importar campeonatos" para importar campeonatos específicamente.
             </p>
             
             <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 rounded-lg p-4">
@@ -237,7 +237,7 @@ const ImportExportPage: React.FC = () => {
                   <option value="all">Todos los datos</option>
                   <option value="teams">Solo equipos</option>
                   <option value="regions">Solo regiones</option>
-                  <option value="tournaments">Solo torneos</option>
+                  <option value="tournaments">Solo campeonatos</option>
                   <option value="results">Solo resultados</option>
                   <option value="ranking">Solo ranking actual</option>
                 </select>

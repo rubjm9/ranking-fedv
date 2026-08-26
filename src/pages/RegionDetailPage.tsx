@@ -147,7 +147,7 @@ const RegionDetailPage: React.FC = () => {
   usePageMeta({
     title: region?.name,
     description: region?.name
-      ? `Equipos, torneos y coeficiente regional de ${region.name} en el ranking FEDV.`
+      ? `Equipos, campeonatos y coeficiente regional de ${region.name} en el ranking FEDV.`
       : undefined,
   })
 
@@ -518,7 +518,7 @@ const RegionDetailPage: React.FC = () => {
           <ShareButton
             url={getRegionPublicUrl(region)}
             title={`${region.name} - Ranking FEDV`}
-            description={`Equipos, torneos y coeficiente regional de ${region.name} en el Ranking FEDV`}
+            description={`Equipos, campeonatos y coeficiente regional de ${region.name} en el Ranking FEDV`}
             variant="dark"
             size="sm"
           />
@@ -534,7 +534,7 @@ const RegionDetailPage: React.FC = () => {
               },
               {
                 icon: Trophy,
-                label: 'Torneos',
+                label: 'Campeonatos',
                 value: region._count?.tournaments ?? tournaments.length,
               },
               {
@@ -738,7 +738,7 @@ const RegionDetailPage: React.FC = () => {
                         onClick={() => handleTeamSort('tournaments')}
                         className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                       >
-                        Torneos
+                        Campeonatos
                         {getTeamSortIcon('tournaments')}
                       </button>
                     </DataTableHeaderCell>
@@ -829,14 +829,14 @@ const RegionDetailPage: React.FC = () => {
         <h2 className="font-display text-lg font-semibold text-content mb-4">Campeonatos regionales</h2>
         {tournaments.length === 0 ? (
           <EmptyState
-            title="Sin torneos"
-            description="No hay torneos registrados para esta región."
+            title="Sin campeonatos"
+            description="No hay campeonatos registrados para esta región."
           />
         ) : (
-          <DataTable caption="Torneos de la región">
+          <DataTable caption="Campeonatos de la región">
             <DataTableHead>
               <tr>
-                <DataTableHeaderCell>Torneo</DataTableHeaderCell>
+                <DataTableHeaderCell>Campeonato</DataTableHeaderCell>
                 <DataTableHeaderCell>Año</DataTableHeaderCell>
                 <DataTableHeaderCell>Tipo</DataTableHeaderCell>
                 <DataTableHeaderCell>Superficie</DataTableHeaderCell>
@@ -847,7 +847,7 @@ const RegionDetailPage: React.FC = () => {
                 <DataTableRow key={tournament.id}>
                   <DataTableCell>
                     <Link
-                      to={`/tournaments/${tournament.id}`}
+                      to={`/campeonatos/${tournament.id}`}
                       className="font-medium text-content hover:text-link"
                     >
                       {tournament.name}

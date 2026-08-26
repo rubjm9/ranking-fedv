@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from '@/contexts/SimpleAuthContext'
 import PublicLayout from '@/components/layout/PublicLayout'
@@ -17,6 +17,12 @@ import TournamentsPage from '@/pages/TournamentsPage'
 // Páginas de administración
 import TeamLegacyRedirect from '@/pages/TeamLegacyRedirect'
 import RegionLegacyRedirect from '@/pages/RegionLegacyRedirect'
+
+/** Redirect cliente de `/tournaments/:id` → `/campeonatos/:id` (misma id, sin lookup). */
+function TournamentLegacyRedirect() {
+  const { id } = useParams()
+  return <Navigate to={`/campeonatos/${id}`} replace />
+}
 
 
 /*
@@ -110,8 +116,10 @@ function App() {
               <Route path="regiones/:slug" element={<RegionDetailPage />} />
               <Route path="regions" element={<Navigate to="/regiones" replace />} />
               <Route path="regions/:id" element={<RegionLegacyRedirect />} />
-              <Route path="tournaments" element={<TournamentsPage />} />
-              <Route path="tournaments/:id" element={<TournamentDetailPage />} />
+              <Route path="campeonatos" element={<TournamentsPage />} />
+              <Route path="campeonatos/:id" element={<TournamentDetailPage />} />
+              <Route path="tournaments" element={<Navigate to="/campeonatos" replace />} />
+              <Route path="tournaments/:id" element={<TournamentLegacyRedirect />} />
               <Route path="como-funciona" element={<AboutPage />} />
               <Route path="about" element={<Navigate to="/como-funciona" replace />} />
               <Route path="disc-golf" element={<DiscGolfPage />} />

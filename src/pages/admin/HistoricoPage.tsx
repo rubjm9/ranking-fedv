@@ -65,7 +65,7 @@ export default function HistoricoPage() {
         <h1 className="page-header-title">Histórico</h1>
       </div>
       <p className="text-content-muted mb-6">
-        Por temporada: número de equipos que participaron en cada torneo. Cruz (✕) = temporada cerrada sin torneo; vacío = previsto.
+        Por temporada: número de equipos que participaron en cada campeonato. Cruz (✕) = temporada cerrada sin campeonato; vacío = previsto.
       </p>
 
       {isLoading ? (
@@ -91,7 +91,7 @@ export default function HistoricoPage() {
               {seasons.length === 0 ? (
                 <tr>
                   <td colSpan={2} className="px-4 py-8 text-center text-content-subtle">
-                    No hay temporadas con torneos en la base de datos.
+                    No hay temporadas con campeonatos en la base de datos.
                   </td>
                 </tr>
               ) : rowKeys.map(({ surface, modality, type }) => (
@@ -104,7 +104,7 @@ export default function HistoricoPage() {
                     return (
                       <td key={year} className="px-3 py-2 text-center border-r border-line last:border-r-0">
                         {cell === '✕' ? (
-                          <span className="text-red-500 font-medium" title="Temporada cerrada, torneo no disputado">✕</span>
+                          <span className="text-red-500 font-medium" title="Temporada cerrada, campeonato no disputado">✕</span>
                         ) : cell === '' ? (
                           <span className="text-gray-300">—</span>
                         ) : (

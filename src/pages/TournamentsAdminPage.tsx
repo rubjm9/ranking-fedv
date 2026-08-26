@@ -83,17 +83,17 @@ const TournamentsAdminPage: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
-      toast.success('Torneo eliminado exitosamente')
+      toast.success('Campeonato eliminado exitosamente')
       setShowDeleteModal(false)
       setSelectedTournament(null)
     },
     onError: (error: any) => {
-      console.error('Error al eliminar torneo:', error)
+      console.error('Error al eliminar campeonato:', error)
       if (error.message?.includes('409')) {
         setShowDeleteModal(false)
         setShowDeletePositionsModal(true)
       } else {
-        toast.error('Error al eliminar el torneo')
+        toast.error('Error al eliminar el campeonato')
       }
     }
   })
@@ -120,13 +120,13 @@ const TournamentsAdminPage: React.FC = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
-      toast.success(`Se eliminaron ${data.data.deletedPositions} posiciones del torneo`)
+      toast.success(`Se eliminaron ${data.data.deletedPositions} posiciones del campeonato`)
       setShowDeletePositionsModal(false)
       setSelectedTournament(null)
     },
     onError: (error: any) => {
       console.error('Error al eliminar posiciones:', error)
-      toast.error('Error al eliminar las posiciones del torneo')
+      toast.error('Error al eliminar las posiciones del campeonato')
     }
   })
 
@@ -248,7 +248,7 @@ const TournamentsAdminPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="text-red-500 mb-4">Error al cargar los torneos</div>
+          <div className="text-red-500 mb-4">Error al cargar los campeonatos</div>
           <button 
             onClick={() => window.location.reload()} 
             className="btn-primary"
@@ -267,15 +267,15 @@ const TournamentsAdminPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        title="Torneos"
-        subtitle="Gestiona los torneos del ranking FEDV"
+        title="Campeonatos"
+        subtitle="Gestiona los campeonatos del ranking FEDV"
         actions={
           <button
             onClick={() => navigate('/admin/tournaments/new')}
             className="btn-primary flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Nuevo torneo
+            Nuevo campeonato
           </button>
         }
       />
@@ -285,18 +285,18 @@ const TournamentsAdminPage: React.FC = () => {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-content mb-2">No hay torneos</h3>
+            <h3 className="text-lg font-medium text-content mb-2">No hay campeonatos</h3>
             <p className="text-content-muted mb-4">
               {searchTerm || selectedType !== 'all' || selectedYear !== 'all' || selectedSurface !== 'all' || selectedCategory !== 'all'
-                ? 'No se encontraron torneos con los filtros aplicados.' 
-                : 'Aún no se han creado torneos en el sistema.'}
+                ? 'No se encontraron campeonatos con los filtros aplicados.' 
+                : 'Aún no se han creado campeonatos en el sistema.'}
             </p>
             <button
               onClick={() => navigate('/admin/tournaments/new')}
               className="btn-primary flex items-center gap-2 mx-auto"
             >
               <Plus className="h-4 w-4" />
-              <span>Crear Primer Torneo</span>
+              <span>Crear primer campeonato</span>
             </button>
           </div>
         </div>
@@ -304,7 +304,7 @@ const TournamentsAdminPage: React.FC = () => {
         <>
           <div className="mb-3 flex items-center justify-between gap-3">
             <p className="text-xs text-content-subtle">
-              {filteredAndSortedTournaments.length} torneo{filteredAndSortedTournaments.length !== 1 ? 's' : ''} encontrado{filteredAndSortedTournaments.length !== 1 ? 's' : ''}
+              {filteredAndSortedTournaments.length} campeonato{filteredAndSortedTournaments.length !== 1 ? 's' : ''} encontrado{filteredAndSortedTournaments.length !== 1 ? 's' : ''}
             </p>
             {hasActiveFilters && (
               <button
@@ -323,7 +323,7 @@ const TournamentsAdminPage: React.FC = () => {
               <thead className="bg-surface-muted border-b border-line">
                 <tr>
                   <TableColumnFilter
-                    label="Torneo"
+                    label="Campeonato"
                     sortIcon={getSortState('name')}
                     onSort={() => handleSort('name')}
                     active={!!searchTerm}
@@ -482,12 +482,12 @@ const TournamentsAdminPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end">
                         <ActionButtonGroup
-                          onView={() => window.open(`/tournaments/${tournament.id}`, '_blank')}
+                          onView={() => window.open(`/campeonatos/${tournament.id}`, '_blank')}
                           onEdit={() => navigate(`/admin/tournaments/${tournament.id}/edit`)}
                           onDelete={() => handleDelete(tournament)}
                           viewTooltip="Ver en página pública"
-                          editTooltip="Editar torneo"
-                          deleteTooltip="Eliminar torneo"
+                          editTooltip="Editar campeonato"
+                          deleteTooltip="Eliminar campeonato"
                         />
                       </div>
                     </td>
@@ -523,7 +523,7 @@ const TournamentsAdminPage: React.FC = () => {
         }
       >
         <p className="text-content-muted">
-          ¿Estás seguro de que quieres eliminar el torneo &quot;{selectedTournament?.name}&quot;?
+          ¿Estás seguro de que quieres eliminar el campeonato &quot;{selectedTournament?.name}&quot;?
           Esta acción no se puede deshacer.
         </p>
       </Modal>
@@ -532,7 +532,7 @@ const TournamentsAdminPage: React.FC = () => {
       <Modal
         open={showDeletePositionsModal && !!selectedTournament}
         onClose={() => setShowDeletePositionsModal(false)}
-        title="Eliminar posiciones del torneo"
+        title="Eliminar posiciones del campeonato"
         size="md"
         footer={
           <>
@@ -554,8 +554,8 @@ const TournamentsAdminPage: React.FC = () => {
         }
       >
         <p className="text-content-muted">
-          El torneo &quot;{selectedTournament?.name}&quot; tiene posiciones asociadas que impiden su
-          eliminación. ¿Quieres eliminar todas las posiciones del torneo para poder eliminarlo
+          El campeonato &quot;{selectedTournament?.name}&quot; tiene posiciones asociadas que impiden su
+          eliminación. ¿Quieres eliminar todas las posiciones del campeonato para poder eliminarlo
           después?
         </p>
       </Modal>

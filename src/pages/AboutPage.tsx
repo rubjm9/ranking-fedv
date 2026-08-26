@@ -18,7 +18,7 @@ const AboutPage: React.FC = () => {
     <PageContainer>
       <PageHeader
         title="Cómo funciona el ranking FEDV"
-        subtitle="Una guía sencilla para entender cómo se puntúan los torneos, cómo se suman los resultados y cómo se construye el ranking oficial."
+        subtitle="Una guía sencilla para entender cómo se puntúan los campeonatos, cómo se suman los resultados y cómo se construye el ranking oficial."
         className="text-center [&_.page-header-title]:text-center [&_.page-header-subtitle]:mx-auto"
       />
 
@@ -28,7 +28,7 @@ const AboutPage: React.FC = () => {
           <h2 className="text-2xl font-bold text-content mb-4">Escala de puntos</h2>
 
           <p className="text-content-muted mb-4">
-            Cada vez que un equipo participa en un torneo oficial, suma puntos según el puesto que
+            Cada vez que un equipo participa en un campeonato oficial, suma puntos según el puesto que
             consigue. Cuanto más arriba quede, más puntos recibe. A partir del 8º puesto, la bajada
             de puntos es un poco más suave que entre los primeros puestos, pero la idea es siempre
             la misma: premiar las mejores clasificaciones.
@@ -100,9 +100,9 @@ const AboutPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Torneos nacionales vs regionales */}
+        {/* Campeonatos nacionales vs regionales */}
         <div className="card">
-          <h2 className="text-2xl font-bold text-content mb-6">Torneos nacionales y regionales</h2>
+          <h2 className="text-2xl font-bold text-content mb-6">Campeonatos nacionales y regionales</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="border border-line rounded-2xl p-6">
@@ -131,7 +131,7 @@ const AboutPage: React.FC = () => {
                 <h3 className="text-lg font-semibold text-content">Regional</h3>
               </div>
               <p className="text-content-muted text-sm">
-                Torneos autonómicos. Puntos base de la curva regional (ancla 100), multiplicados por el
+                Campeonatos autonómicos. Puntos base de la curva regional (ancla 100), multiplicados por el
                 coeficiente de la región del equipo.
               </p>
               <div className="mt-4 bg-brand-subtle rounded-lg p-3 font-mono text-sm text-brand-strong text-center">
@@ -153,11 +153,11 @@ const AboutPage: React.FC = () => {
               <h3 className="text-lg font-semibold text-content mb-4">Qué mide</h3>
               <p className="text-content-muted mb-4">
                 Refleja la fortaleza relativa de cada región en el ámbito nacional. Solo se usan resultados
-                de torneos <strong>CE1 y CE2</strong>; los campeonatos regionales se excluyen del cálculo.
+                de campeonatos <strong>CE1 y CE2</strong>; los campeonatos regionales se excluyen del cálculo.
               </p>
               <p className="text-content-muted mb-4">
                 Se calcula al cierre de cada temporada, se almacena por temporada y modalidad, y se aplica
-                a los torneos <strong>REGIONAL de la temporada siguiente</strong> (coeficientes de T−1 →
+                a los campeonatos <strong>REGIONAL de la temporada siguiente</strong> (coeficientes de T−1 →
                 regionales de T).
               </p>
               <Link to="/regiones" className="text-link hover:text-primary-500 font-medium text-sm">
@@ -250,9 +250,9 @@ const AboutPage: React.FC = () => {
               <div className="w-16 h-16 bg-brand-subtle rounded-full flex items-center justify-center mx-auto mb-4">
                 <Trophy className="h-8 w-8 text-link" />
               </div>
-              <h3 className="text-lg font-semibold text-content mb-2">Puntos por torneo</h3>
+              <h3 className="text-lg font-semibold text-content mb-2">Puntos por campeonato</h3>
               <p className="text-content-muted text-sm">
-                Cada resultado aporta puntos según posición, tipo de torneo y (en regionales) coeficiente
+                Cada resultado aporta puntos según posición, tipo de campeonato y (en regionales) coeficiente
                 de la región del equipo.
               </p>
             </div>
