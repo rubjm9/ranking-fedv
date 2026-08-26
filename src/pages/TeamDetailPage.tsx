@@ -21,6 +21,7 @@ import TableSkeleton from '@/components/ui/TableSkeleton'
 import AnimatedPoints from '@/components/ui/AnimatedPoints'
 import { formatBestGlobalPositionWhen } from '@/utils/rankingCalculations'
 import { usePageMeta } from '@/hooks/usePageMeta'
+import { useUrlState } from '@/hooks/useUrlState'
 
 const renderHistoricalGlobalPositionValue = (
   position: number,
@@ -71,7 +72,7 @@ const TeamDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const location = useLocation()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const [isLoading, setIsLoading] = useState(true)
   const [teamData, setTeamData] = useState<TeamDetailData | null>(null)
   const [relatedTeams, setRelatedTeams] = useState<any[]>([])
@@ -85,7 +86,10 @@ const TeamDetailPage: React.FC = () => {
       : undefined,
   })
 
-  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview')
+  // Derivado de la URL, sin estado espejo: antes activeTab y la query se
+  // actualizaban por separado y sin resincronizar, así que el botón atrás
+  // cambiaba la URL y la pestaña visible se quedaba donde estaba.
+  const [activeTab, setActiveTab] = useUrlState<string>('tab', 'overview')
   const [chartMetric, setChartMetric] = useState<'position' | 'points'>('position')
   const [compareWithTeamId, setCompareWithTeamId] = useState<string>('')
   const loadIdRef = useRef(0)
@@ -244,9 +248,10 @@ const TeamDetailPage: React.FC = () => {
   }
 
   const handleTabChange = (tabId: string) => {
+    // Escribe conservando el resto de la query, que el objeto literal anterior
+    // borraba, y con replace: así el botón atrás saca de la ficha en un toque
+    // en lugar de recorrer las pestañas una a una.
     setActiveTab(tabId)
-    setSearchParams({ tab: tabId })
-    // Scroll to top when changing tabs
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 

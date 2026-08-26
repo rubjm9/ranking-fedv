@@ -66,14 +66,15 @@ const TeamsPage = () => {
       pagina: null,
     })
 
-  // Volver a la página 1 al cambiar un filtro, pero no en el montaje: si no,
-  // una URL compartida con ?pagina=3 se reseteaba a sí misma al abrirla.
-  //
-  // Depende de los valores ya asentados en la URL, no de los inmediatos: con
-  // los inmediatos esto se dispararía en cada pulsación del buscador.
-  // Se comparan los valores, no se cuentan ejecuciones: StrictMode monta el
-  // efecto dos veces en desarrollo y un guard de «primera vez» pasaría de largo
-  // en la segunda.
+  /*
+    Volver a la página 1 al cambiar un filtro, con dos salvedades:
+
+    - No en el montaje, o una URL compartida con ?pagina=3 se resetearía sola al
+      abrirla. Se comparan los valores en vez de contar ejecuciones, porque un
+      guard de «primera vez» lo salta StrictMode en su segundo montaje.
+    - Se depende de los valores ya asentados en la URL, no de los inmediatos:
+      con los inmediatos esto se dispararía en cada pulsación del buscador.
+  */
   const filtrosPrevios = useRef<string | null>(null)
   useEffect(() => {
     const clave = `${selectedRegion}|${teamSearchEnUrl}|${locationSearchEnUrl}`
@@ -81,7 +82,6 @@ const TeamsPage = () => {
     const esPrimera = filtrosPrevios.current === null
     filtrosPrevios.current = clave
     if (!esPrimera && currentPage !== 1) setCurrentPage(1)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRegion, teamSearchEnUrl, locationSearchEnUrl])
 
   const { data: teamsData, isLoading, error } = useQuery({
