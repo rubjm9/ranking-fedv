@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Trophy, Medal, TrendingUp, TrendingDown, UsersRound, Shield, Calendar, RefreshCw, BarChart3, LineChart, Star, MapPin, ChevronRight, Info } from 'lucide-react'
@@ -1583,70 +1583,75 @@ const RankingPageNew: React.FC = () => {
     return mapa
   }, [teamsMeta])
 
-  const clubsRankingCache = useMemo(() => {
-    if (!rankingData) return null
-    
-    // Sin las relaciones cargadas no se puede agrupar de forma fiable.
-    if (clubDeEquipo.size === 0) return null
+  /**
+   * Agrupa equipos en clubes usando parentTeamId/isFilial de la base de datos.
+   * Incluye member_team_ids para que el desglose por torneo sume lo mismo que la fila.
+   */
+  const buildClubsRanking = useCallback(
+    (data: any[] | null | undefined) => {
+      if (!data?.length || clubDeEquipo.size === 0) return null
 
-    const clubGroups: { [clubId: string]: { nombre: string; equipos: any[] } } = {}
+      const clubGroups: { [clubId: string]: { nombre: string; equipos: any[] } } = {}
 
-    rankingData.forEach(team => {
-      const club = clubDeEquipo.get(team.team_id)
-      const clubId = club?.clubId ?? team.team_id
-      const nombre = club?.clubName ?? team.team_name
+      data.forEach(team => {
+        const club = clubDeEquipo.get(team.team_id)
+        const clubId = club?.clubId ?? team.team_id
+        const nombre = club?.clubName ?? team.team_name
 
-      if (!clubGroups[clubId]) {
-        clubGroups[clubId] = { nombre, equipos: [] }
-      }
-      clubGroups[clubId].equipos.push(team)
-    })
-
-    return Object.values(clubGroups).map(({ nombre: clubName, equipos: teams }) => {
-      let totalClubPoints = 0
-      let totalTournaments = 0
-      const allSeasons: { [key: string]: number } = {}
-      
-      // El equipo principal primero: es el que no tiene club padre.
-      const sortedTeams = [...teams].sort((a, b) => {
-        const aEsFilial = clubDeEquipo.get(a.team_id)?.clubId !== a.team_id
-        const bEsFilial = clubDeEquipo.get(b.team_id)?.clubId !== b.team_id
-        if (!aEsFilial && bEsFilial) return -1
-        if (aEsFilial && !bEsFilial) return 1
-        return 0
+        if (!clubGroups[clubId]) {
+          clubGroups[clubId] = { nombre, equipos: [] }
+        }
+        clubGroups[clubId].equipos.push(team)
       })
-      
-      sortedTeams.forEach(team => {
-        totalClubPoints += team.total_points || 0
-        totalTournaments += team.tournaments_count || 0
-        
-        Object.entries(team.season_breakdown || {}).forEach(([season, seasonData]: [string, any]) => {
-          allSeasons[season] = (allSeasons[season] || 0) + seasonData.base_points
+
+      return Object.values(clubGroups)
+        .map(({ nombre: clubName, equipos: teams }) => {
+          let totalClubPoints = 0
+          let totalTournaments = 0
+          const allSeasons: { [key: string]: number } = {}
+
+          const sortedTeams = [...teams].sort((a, b) => {
+            const aEsFilial = clubDeEquipo.get(a.team_id)?.clubId !== a.team_id
+            const bEsFilial = clubDeEquipo.get(b.team_id)?.clubId !== b.team_id
+            if (!aEsFilial && bEsFilial) return -1
+            if (aEsFilial && !bEsFilial) return 1
+            return 0
+          })
+
+          sortedTeams.forEach(team => {
+            totalClubPoints += team.total_points || 0
+            totalTournaments += team.tournaments_count || 0
+
+            Object.entries(team.season_breakdown || {}).forEach(
+              ([season, seasonData]: [string, any]) => {
+                allSeasons[season] = (allSeasons[season] || 0) + seasonData.base_points
+              }
+            )
+          })
+
+          const mainTeam = sortedTeams[0]
+
+          return {
+            team_id: mainTeam.team_id,
+            team_name: clubName,
+            region_name: mainTeam.region_name,
+            logo: mainTeam.logo || null,
+            total_points: totalClubPoints,
+            tournaments_count: totalTournaments,
+            season_breakdown: allSeasons,
+            is_club: true,
+            teams_count: sortedTeams.length,
+            position_change: 0,
+            member_team_ids: sortedTeams.map(t => t.team_id),
+            member_team_names: Object.fromEntries(
+              sortedTeams.map(t => [t.team_id, t.team_name])
+            ),
+          }
         })
-      })
-      
-      const mainTeam = sortedTeams[0]
-      
-      return {
-        team_id: mainTeam.team_id,
-        team_name: clubName,
-        region_name: mainTeam.region_name,
-        logo: mainTeam.logo || null,
-        total_points: totalClubPoints,
-        tournaments_count: totalTournaments,
-        season_breakdown: allSeasons,
-        is_club: true,
-        teams_count: sortedTeams.length,
-        position_change: 0,
-        // Ids y nombres de todos los equipos del club (principal y filiales),
-        // para que el desglose por torneo sume lo mismo que la fila.
-        member_team_ids: sortedTeams.map(t => t.team_id),
-        member_team_names: Object.fromEntries(
-          sortedTeams.map(t => [t.team_id, t.team_name])
-        ),
-      }
-    }).sort((a, b) => b.total_points - a.total_points)
-  }, [rankingData, clubDeEquipo])
+        .sort((a, b) => b.total_points - a.total_points)
+    },
+    [clubDeEquipo]
+  )
 
   // Función auxiliar para calcular position_change en ranking de clubes
   const calculateClubsPositionChange = async (currentClubsData: any[], referenceSeason: string, category?: string) => {
@@ -1726,68 +1731,77 @@ const RankingPageNew: React.FC = () => {
     }
   }
 
-  // Función para calcular ranking de clubes (optimizada con cache)
-  const calculateClubsRanking = (data: any[]) => {
-    if (!data) return []
-    
-    // Si tenemos datos en cache y son los mismos, usar cache
-    if (clubsRankingCache && data === rankingData) {
-      return clubsRankingCache
-    }
-    
-    // Calcular en tiempo real si no hay cache
-    const clubGroups: { [key: string]: any[] } = {}
-    
-    data.forEach(team => {
-      let clubKey = team.team_name
-      if (team.team_name.match(/\s+[B-E]$/)) {
-        clubKey = team.team_name.replace(/\s+[B-E]$/, '')
-      }
-      
-      if (!clubGroups[clubKey]) {
-        clubGroups[clubKey] = []
-      }
-      clubGroups[clubKey].push(team)
-    })
-    
-    return Object.entries(clubGroups).map(([clubName, teams]) => {
-      let totalClubPoints = 0
-      let totalTournaments = 0
-      const allSeasons: { [key: string]: number } = {}
-      
-      const sortedTeams = teams.sort((a, b) => {
-        const aIsFilial = a.team_name.match(/\s+[B-E]$/)
-        const bIsFilial = b.team_name.match(/\s+[B-E]$/)
-        if (!aIsFilial && bIsFilial) return -1
-        if (aIsFilial && !bIsFilial) return 1
-        return 0
+  // Función para calcular ranking de clubes (usa relaciones de BD cuando están disponibles)
+  const calculateClubsRanking = useCallback(
+    (data: any[]) => {
+      if (!data) return []
+
+      const fromDb = buildClubsRanking(data)
+      if (fromDb) return fromDb
+
+      // Respaldo por sufijo del nombre si aún no hay relaciones cargadas
+      const clubGroups: { [key: string]: any[] } = {}
+
+      data.forEach(team => {
+        let clubKey = team.team_name
+        if (team.team_name.match(/\s+[B-E]$/)) {
+          clubKey = team.team_name.replace(/\s+[B-E]$/, '')
+        }
+
+        if (!clubGroups[clubKey]) {
+          clubGroups[clubKey] = []
+        }
+        clubGroups[clubKey].push(team)
       })
-      
-      sortedTeams.forEach(team => {
-        totalClubPoints += team.total_points || 0
-        totalTournaments += team.tournaments_count || 0
-        
-        Object.entries(team.season_breakdown || {}).forEach(([season, seasonData]: [string, any]) => {
-          allSeasons[season] = (allSeasons[season] || 0) + seasonData.base_points
+
+      return Object.entries(clubGroups)
+        .map(([clubName, teams]) => {
+          let totalClubPoints = 0
+          let totalTournaments = 0
+          const allSeasons: { [key: string]: number } = {}
+
+          const sortedTeams = teams.sort((a, b) => {
+            const aIsFilial = a.team_name.match(/\s+[B-E]$/)
+            const bIsFilial = b.team_name.match(/\s+[B-E]$/)
+            if (!aIsFilial && bIsFilial) return -1
+            if (aIsFilial && !bIsFilial) return 1
+            return 0
+          })
+
+          sortedTeams.forEach(team => {
+            totalClubPoints += team.total_points || 0
+            totalTournaments += team.tournaments_count || 0
+
+            Object.entries(team.season_breakdown || {}).forEach(
+              ([season, seasonData]: [string, any]) => {
+                allSeasons[season] = (allSeasons[season] || 0) + seasonData.base_points
+              }
+            )
+          })
+
+          const mainTeam = sortedTeams[0]
+
+          return {
+            team_id: mainTeam.team_id,
+            team_name: clubName,
+            region_name: mainTeam.region_name,
+            logo: mainTeam.logo || null,
+            total_points: totalClubPoints,
+            tournaments_count: totalTournaments,
+            season_breakdown: allSeasons,
+            is_club: true,
+            teams_count: sortedTeams.length,
+            position_change: 0,
+            member_team_ids: sortedTeams.map(t => t.team_id),
+            member_team_names: Object.fromEntries(
+              sortedTeams.map(t => [t.team_id, t.team_name])
+            ),
+          }
         })
-      })
-      
-      const mainTeam = sortedTeams[0]
-      
-      return {
-        team_id: mainTeam.team_id,
-        team_name: clubName,
-        region_name: mainTeam.region_name,
-        logo: mainTeam.logo || null,
-        total_points: totalClubPoints,
-        tournaments_count: totalTournaments,
-        season_breakdown: allSeasons,
-        is_club: true,
-        teams_count: sortedTeams.length,
-        position_change: 0 // Se calculará después con calculateClubsPositionChange
-      }
-    }).sort((a, b) => b.total_points - a.total_points)
-  }
+        .sort((a, b) => b.total_points - a.total_points)
+    },
+    [buildClubsRanking]
+  )
 
   // Función para obtener el ranking según el tipo seleccionado
   const getRankingByType = (data: any[], rankingType: string) => {
