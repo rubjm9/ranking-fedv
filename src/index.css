@@ -703,29 +703,28 @@
   animation-delay: 0.2s;
 }
 
+/*
+  Antes esto era una lista de doce clases, así que todo lo que animaba con las
+  utilidades `transition-*` de Tailwind quedaba fuera. Ahora se anula de raíz.
+
+  Se usan duraciones de 0,01ms en lugar de `none` para que los eventos
+  `transitionend` y `animationend` sigan disparándose: hay componentes que
+  encadenan lógica a ellos y con `none` no llegarían nunca.
+*/
 @media (prefers-reduced-motion: reduce) {
-  .animate-fade-in,
-  .animate-slide-up,
-  .animate-bounce-gentle,
-  .onboarding-float,
-  .onboarding-breathe,
-  .onboarding-pulse,
-  .onboarding-ledger-chip,
-  .onboarding-ledger-bump,
-  .loading-spinner,
-  .loading-dots > div,
-  .nav-link,
-  .nav-link::after {
-    animation: none !important;
-    transition: none !important;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 
+  /* El subrayado del enlace activo se anima al aparecer: sin animación tiene
+     que quedarse ya en su estado final, o desaparecería. */
   .nav-link--active::after {
     transform: scaleX(1);
     opacity: 1;
-  }
-
-  * {
-    scroll-behavior: auto !important;
   }
 }

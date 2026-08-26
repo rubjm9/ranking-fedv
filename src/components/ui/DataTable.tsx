@@ -47,14 +47,26 @@ export const DataTableHead: React.FC<DataTableHeadProps> = ({ children, classNam
 interface DataTableHeaderCellProps {
   children: ReactNode
   className?: string
+  /** Orden actual de esta columna. Omitir en columnas no ordenables. */
+  sort?: 'none' | 'asc' | 'desc'
 }
 
 export const DataTableHeaderCell: React.FC<DataTableHeaderCellProps> = ({
   children,
   className = '',
+  sort,
 }) => (
   <th
     scope="col"
+    aria-sort={
+      sort === undefined
+        ? undefined
+        : sort === 'asc'
+          ? 'ascending'
+          : sort === 'desc'
+            ? 'descending'
+            : 'none'
+    }
     className={`px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider [&_button]:uppercase ${className}`}
   >
     {children}

@@ -88,6 +88,28 @@ export const formatPoints = (points: number, decimals = POINTS_DECIMALS): string
 export const formatInteger = (value: number): string =>
   esNumberFormat(Math.round(value), { maximumFractionDigits: 0 })
 
+/**
+ * Coeficiente (es-ES: 1,15). Sin separador de millares: un coeficiente nunca
+ * llega a mil, y agruparlo solo añadiría ruido.
+ *
+ * Existe porque `1.15×` con punto decimal convivía con `1.234,56` de
+ * formatPoints en la misma frase.
+ */
+export const formatCoefficient = (value: number, decimals = 2): string =>
+  esNumberFormat(value, {
+    useGrouping: false,
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  })
+
+/** Porcentaje sin el símbolo (es-ES: 12,4). El `%` lo pone quien lo pinta. */
+export const formatPercent = (value: number, decimals = 1): string =>
+  esNumberFormat(value, {
+    useGrouping: false,
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  })
+
 /** Clave de modalidad usada en regional_coefficients (ej: BEACH + MIXED → beach_mixed). */
 export const getModalityKey = (surface: string, category: string): string =>
   `${surface.toLowerCase()}_${category.toLowerCase()}`

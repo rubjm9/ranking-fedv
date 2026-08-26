@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react'
 
+const prefiereMenosMovimiento = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 export function usePrefersReducedMotion(): boolean {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  // Inicialización diferida: arrancar en `false` y corregir en el efecto dejaba
+  // un frame animándose a quien había pedido justo lo contrario.
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(prefiereMenosMovimiento)
 
   useEffect(() => {
     if (typeof window === 'undefined') return

@@ -5,13 +5,24 @@ interface TeamLogoProps {
   logo?: string | null
   size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
+  /** Para los logos sobre el pliegue, que no deben diferirse. */
+  eager?: boolean
 }
 
-const TeamLogo: React.FC<TeamLogoProps> = ({ 
-  name, 
-  logo, 
-  size = 'md', 
-  className = '' 
+/** Lado en píxeles de cada tamaño, para dar al `<img>` dimensiones intrínsecas. */
+const LADO_PX: Record<NonNullable<TeamLogoProps['size']>, number> = {
+  sm: 32,
+  md: 40,
+  lg: 48,
+  xl: 64,
+}
+
+const TeamLogo: React.FC<TeamLogoProps> = ({
+  name,
+  logo,
+  size = 'md',
+  className = '',
+  eager = false,
 }) => {
   const [imageError, setImageError] = useState(false)
 
@@ -51,10 +62,19 @@ const TeamLogo: React.FC<TeamLogoProps> = ({
   }
 
   if (logo && !imageError) {
+    const lado = LADO_PX[size] ?? LADO_PX.md
     return (
       <img
         src={logo}
-        alt={`${name} logo`}
+        // Sin el sufijo «logo»: el lector de pantalla ya anuncia que es una
+        // imagen, así que repetirlo solo alarga la lectura.
+        alt={name}
+        // width/height dan dimensiones intrínsecas y evitan el salto de layout,
+        // que es donde más se nota en un listado largo con red lenta.
+        width={lado}
+        height={lado}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
         className={`rounded-full object-cover ${getSizeClasses()} ${className}`}
         onError={() => setImageError(true)}
       />
@@ -62,10 +82,14 @@ const TeamLogo: React.FC<TeamLogoProps> = ({
   }
 
   return (
+    // Las iniciales solas se leían sin contexto: role + aria-label las
+    // convierten en el nombre del equipo.
     <div
+      role="img"
+      aria-label={name}
       className={`rounded-full flex items-center justify-center text-white font-bold ${getSizeClasses()} ${getColorClass(name)} ${className}`}
     >
-      {getInitials(name)}
+      <span aria-hidden="true">{getInitials(name)}</span>
     </div>
   )
 }
