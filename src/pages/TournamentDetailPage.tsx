@@ -19,6 +19,7 @@ import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
 import ContentGridSkeleton from '@/components/ui/ContentGridSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import { usePageMeta } from '@/hooks/usePageMeta'
+import { useChartTheme } from '@/utils/chartTheme'
 
 interface Tournament {
   id: string
@@ -175,6 +176,7 @@ const IconSpain = ({ className = iconClass }: { className?: string }) => (
 )
 
 const TournamentDetailPage: React.FC = () => {
+  const chart = useChartTheme()
   const { id } = useParams<{ id: string }>()
   
   // Obtener datos del torneo usando React Query
@@ -267,14 +269,14 @@ const TournamentDetailPage: React.FC = () => {
       regionCounts[regionName] = (regionCounts[regionName] || 0) + 1
     })
 
-    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4']
+    const colors = chart.series
     return Object.entries(regionCounts).map(([name, teams], index) => ({
       name,
       teams,
       percentage: (teams / positions.length) * 100,
       color: colors[index % colors.length]
     }))
-  }, [positions])
+  }, [positions, chart])
 
   // Calcular estadísticas del torneo
   const totalPoints = roundPoints(positions.reduce((sum, pos) => sum + pos.points, 0))

@@ -29,6 +29,7 @@ import {
 } from '@/utils/teamNames'
 import { usePageMeta } from '@/hooks/usePageMeta'
 import { useUrlState } from '@/hooks/useUrlState'
+import { useChartTheme } from '@/utils/chartTheme'
 
 interface SimpleChartProps {
   data: any[]
@@ -38,9 +39,11 @@ interface SimpleChartProps {
 }
 
 const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, setHoveredPoint }) => {
+  const chart = useChartTheme()
+
   if (!data || data.length === 0) return null
 
-  const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
+  const colors = chart.series
   const width = 800
   const height = 400
   const padding = 60
@@ -83,8 +86,8 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
     <div className="w-full overflow-x-auto relative">
       <svg width={width} height={height} className="border border-line rounded-lg">
         {/* Ejes */}
-        <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#E5E7EB" strokeWidth="2" />
-        <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#E5E7EB" strokeWidth="2" />
+        <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke={chart.axisLine} strokeWidth="2" />
+        <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke={chart.axisLine} strokeWidth="2" />
         
         {/* Etiquetas del eje X */}
         {allSeasons.map((season, index) => (
@@ -594,6 +597,7 @@ const resolveCombinedTypeFromSurface = (surfaceParam?: string): CombinedType => 
 }
 
 const RankingPageNew: React.FC = () => {
+  const chart = useChartTheme()
   const { surface } = useParams<{ surface: string }>()
   const navigate = useNavigate()
   const location = useLocation()
@@ -3588,7 +3592,7 @@ const RankingPageNew: React.FC = () => {
                 <h5 className="text-sm font-medium text-content mb-3">Equipos seleccionados:</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {analysisData.map((team, index) => {
-                    const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
+                    const colors = chart.series
                     return (
                       <div key={team.team_id} className="flex items-center space-x-2">
                         <div 
@@ -4261,7 +4265,7 @@ const RankingPageNew: React.FC = () => {
                 <h5 className="text-sm font-medium text-content mb-3">Equipos seleccionados:</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {analysisData.map((team, index) => {
-                    const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
+                    const colors = chart.series
                     return (
                       <div key={team.team_id} className="flex items-center space-x-2">
                         <div 

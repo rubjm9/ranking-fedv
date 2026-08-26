@@ -12,8 +12,8 @@ import {
 } from 'recharts'
 import { nationalCurvePoints, regionalCurvePoints } from '@/utils/tournamentUtils'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
-import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/utils/cn'
+import { useChartTheme } from '@/utils/chartTheme'
 
 const baseNodeClass =
   'rounded-xl border border-line bg-surface/92 p-3 shadow-[0_18px_45px_-28px_rgba(30,64,175,0.45)] backdrop-blur-sm'
@@ -382,12 +382,11 @@ const CurveTooltip: React.FC<CurveTooltipProps> = ({ active, payload, label }) =
 
 export const PositionCurveScene: React.FC = () => {
   const prefersReducedMotion = usePrefersReducedMotion()
-  const { resolved } = useTheme()
-  const isDark = resolved === 'dark'
-  const axis = isDark ? '#94a3b8' : '#64748b'
-  const axisLine = isDark ? '#475569' : '#cbd5e1'
-  const grid = isDark ? '#334155' : '#e2e8f0'
-  const reference = isDark ? '#64748b' : '#94a3b8'
+  // Antes eran ternarios sobre hexadecimales sueltos, el único gráfico que
+  // miraba el tema. Ahora sale de la misma fuente que el resto.
+  const chart = useChartTheme()
+  const { axis, axisLine, grid } = chart
+  const reference = chart.axisLine
 
   return (
     <SceneFrame

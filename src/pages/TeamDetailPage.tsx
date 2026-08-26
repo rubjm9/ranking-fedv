@@ -63,6 +63,11 @@ const renderWorstHistoricalPositionValue = (
     whenClassName
   )
 
+/** Un ?tab= desconocido dejaba la página sin ninguna pestaña seleccionada, es
+ *  decir, en blanco. Con la pestaña en la URL eso es un enlace compartible. */
+const PESTANAS_VALIDAS = ['overview', 'rankings', 'tournaments', 'history', 'historico', 'seasons'] as const
+type PestanaEquipo = typeof PESTANAS_VALIDAS[number]
+
 interface TeamRedirectState {
   resolvedTeamId?: string
   canonicalSlug?: string
@@ -89,7 +94,10 @@ const TeamDetailPage: React.FC = () => {
   // Derivado de la URL, sin estado espejo: antes activeTab y la query se
   // actualizaban por separado y sin resincronizar, así que el botón atrás
   // cambiaba la URL y la pestaña visible se quedaba donde estaba.
-  const [activeTab, setActiveTab] = useUrlState<string>('tab', 'overview')
+  const [tabEnUrl, setActiveTab] = useUrlState<string>('tab', 'overview')
+  const activeTab: PestanaEquipo = PESTANAS_VALIDAS.includes(tabEnUrl as PestanaEquipo)
+    ? (tabEnUrl as PestanaEquipo)
+    : 'overview'
   const [chartMetric, setChartMetric] = useState<'position' | 'points'>('position')
   const [compareWithTeamId, setCompareWithTeamId] = useState<string>('')
   const loadIdRef = useRef(0)
