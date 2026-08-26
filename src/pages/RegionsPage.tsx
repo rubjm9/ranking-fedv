@@ -5,7 +5,7 @@ import { MapPin, UsersRound, TrendingUp, ChevronRight, Loader2, ChevronDown, Che
 import { regionsService, getRegionPublicUrl, buildRegionPublicSlugById } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
 import seasonService from '@/services/seasonService'
-import { getRegionalCoefficientBaseSeason } from '@/utils/rankingCalculations'
+import { getRegionalCoefficientBaseSeason, formatCoefficient, formatPoints } from '@/utils/rankingCalculations'
 import { supabase } from '@/services/supabaseService'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
@@ -164,8 +164,8 @@ const RegionsPage = () => {
   }
 
   const highestCoefLabel = highestCoef
-    ? `Mayor coef. activo · promedio ${highestCoef.avg.toFixed(2)}${
-        highestCoefPoints != null ? ` · ${highestCoefPoints.toFixed(1)} pts` : ''
+    ? `Mayor coef. activo · promedio ${formatCoefficient(highestCoef.avg)}${
+        highestCoefPoints != null ? ` · ${formatPoints(highestCoefPoints, 1)} pts` : ''
       }`
     : 'Mayor coef. activo'
 
@@ -296,8 +296,9 @@ const RegionsPage = () => {
                             className={`rounded px-1.5 py-1 text-center ${getCoefficientColor(coef)}`}
                             title={MODALITY_LABELS[mod]}
                           >
-                            <div className="text-xs font-bold">{coef.toFixed(2)}</div>
-                            <div className="text-[10px] opacity-75">{short}</div>
+                            <div className="text-xs font-bold">{formatCoefficient(coef)}</div>
+                            <div className="text-[10px] opacity-75" aria-hidden="true">{short}</div>
+                            <span className="sr-only">{MODALITY_LABELS[mod]}</span>
                           </div>
                         )
                       })}

@@ -1,6 +1,7 @@
 import React from 'react'
 import { LucideIcon } from 'lucide-react'
 import TeamLogo from './TeamLogo'
+import { formatPoints } from '@/utils/rankingCalculations'
 
 interface StickyHeaderProps {
   teamName: string
@@ -64,7 +65,7 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
                   </span>
                 )}
                 <span>
-                  Puntos: <strong className="text-content">{totalPoints.toFixed(1)}</strong>
+                  Puntos: <strong className="text-content">{formatPoints(totalPoints, 1)}</strong>
                 </span>
               </div>
             </div>

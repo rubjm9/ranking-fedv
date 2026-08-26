@@ -14,6 +14,7 @@ import { regionsService, Region } from '@/services/apiService'
 import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
 import StatsGridSkeleton from '@/components/ui/StatsGridSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
+import { formatCoefficient, formatInteger } from '@/utils/rankingCalculations'
 
 const RegionDetailAdminPage: React.FC = () => {
   const navigate = useNavigate()
@@ -98,7 +99,7 @@ const RegionDetailAdminPage: React.FC = () => {
                 <span className="block text-sm font-medium text-content-muted mb-2">Coeficiente</span>
                 <div className="flex items-center">
                   <span className={`text-lg font-bold ${getCoefficientColor(region.coefficient)}`}>
-                    {region.coefficient.toFixed(2)}
+                    {formatCoefficient(region.coefficient)}
                   </span>
                   <Calculator className="h-4 w-4 ml-2 text-content-subtle" />
                 </div>
@@ -146,7 +147,7 @@ const RegionDetailAdminPage: React.FC = () => {
                   <BarChart3 className="h-6 w-6 text-purple-600 dark:text-purple-300" />
                 </div>
                 <div className="page-header-title">
-                  {region.averagePoints ? region.averagePoints.toFixed(0) : '0'}
+                  {formatInteger(region.averagePoints ?? 0)}
                 </div>
                 <div className="text-sm text-content-subtle">Puntos Promedio</div>
               </div>

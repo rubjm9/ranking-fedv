@@ -6,7 +6,7 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { regionsService, getTeamPublicUrl, getRegionPublicUrl } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
 import seasonService from '@/services/seasonService'
-import { getRegionalCoefficientBaseSeason } from '@/utils/rankingCalculations'
+import { getRegionalCoefficientBaseSeason, formatCoefficient, formatPoints, formatInteger } from '@/utils/rankingCalculations'
 import { supabase } from '@/services/supabaseService'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
@@ -27,9 +27,11 @@ import SeasonNavigator, { useSelectedSeason } from '@/components/regions/SeasonN
 import RegionalCoefficientBreakdown from '@/components/regions/RegionalCoefficientBreakdown'
 import { MODALITIES, MODALITY_LABELS, getCoefficientStyle } from '@/components/regions/constants'
 import { usePageMeta } from '@/hooks/usePageMeta'
+import { useChartTheme, SERIES_DASH } from '@/utils/chartTheme'
 
-const CHART_COLORS = ['#4F46E5', '#F97316', '#10B981', '#6366F1', '#EA580C', '#0EA5E9']
-const formatChartValue = (value: number) => Number(value).toFixed(2)
+
+/** Ticks del eje: enteros, que con 200px de alto los decimales no caben. */
+const formatChartAxis = (value: number) => formatInteger(Number(value))
 
 /** Barra de coeficiente con animación de crecimiento al montar o cambiar el valor. */
 const CoefProgressBar: React.FC<{ pct: number; barClass: string }> = ({ pct, barClass }) => {
@@ -80,6 +82,7 @@ const getTournamentTypeLabel = (type: string) => {
 }
 
 const RegionDetailPage: React.FC = () => {
+  const chart = useChartTheme()
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const location = useLocation()
@@ -502,7 +505,7 @@ const RegionDetailPage: React.FC = () => {
         title={region.name}
         subtitle={
           avgActiveCoef !== null
-            ? `Coeficiente medio activo: ${avgActiveCoef.toFixed(2)}×`
+            ? `Coeficiente medio activo: ${formatCoefficient(avgActiveCoef)}×`
             : 'Región participante en el ranking FEDV'
         }
         breadcrumbs={
@@ -578,12 +581,12 @@ const RegionDetailPage: React.FC = () => {
                 </div>
                 {coef !== null ? (
                   <>
-                    <p className="text-2xl font-bold text-content mb-2">{coef.toFixed(2)}×</p>
+                    <p className="text-2xl font-bold text-content mb-2">{formatCoefficient(coef)}×</p>
                     <CoefProgressBar pct={pct} barClass={style!.bar} />
                     <div className="flex justify-between text-[10px] text-content-subtle mb-2">
-                      <span>0.80</span>
-                      <span>1.00</span>
-                      <span>1.20</span>
+                      <span>{formatCoefficient(0.8)}</span>
+                      <span>{formatCoefficient(1)}</span>
+                      <span>{formatCoefficient(1.2)}</span>
                     </div>
                     <span className={`text-xs ${style!.badge}`}>{style!.label}</span>
                   </>
@@ -601,11 +604,15 @@ const RegionDetailPage: React.FC = () => {
           <h2 className="font-display text-lg font-semibold text-content mb-4">Evolución histórica</h2>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={evolutionChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
               <XAxis dataKey="season" tick={{ fontSize: 11 }} />
-              <YAxis domain={[0.75, 1.25]} tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(v: number) => v.toFixed(2)} />
+              <YAxis domain={[0.75, 1.25]} tick={{ fontSize: 11 }} tickFormatter={(v: number) => formatCoefficient(v)} />
+              <Tooltip formatter={(v: number) => formatCoefficient(v)} />
               <Legend
+                /* plainline hace que el marcador reproduzca el trazo de cada
+                   serie. Sin él la leyenda pinta seis marcadores idénticos y no
+                   hay forma de emparejar el trazo con el nombre. */
+                iconType="plainline"
                 /* Sin formatter la etiqueta hereda el color de la serie, que sobre
                    fondo oscuro caía a 2,76:1. */
                 formatter={(value) => <span className="text-content-muted">{value}</span>}
@@ -616,8 +623,14 @@ const RegionDetailPage: React.FC = () => {
                   type="monotone"
                   dataKey={mod}
                   name={MODALITY_LABELS[mod]}
-                  stroke={CHART_COLORS[i % CHART_COLORS.length]}
+                  stroke={chart.series[i % chart.series.length]}
                   strokeWidth={2}
+                  strokeDasharray={SERIES_DASH[i % SERIES_DASH.length]}
+                  /* Recharts anima el dibujado manipulando stroke-dasharray:
+                     con un trazo propio se pelean y la línea no llega a
+                     pintarse. En una gráfica de cinco puntos la animación no
+                     aporta nada que compense perder la codificación. */
+                  isAnimationActive={false}
                   dot={{ r: 3 }}
                   connectNulls
                 />
@@ -758,8 +771,8 @@ const RegionDetailPage: React.FC = () => {
                             {team.name}
                           </Link>
                         </DataTableCell>
-                        <DataTableCell>{team.points.toFixed(1)}</DataTableCell>
-                        <DataTableCell>{team.historicalPoints.toFixed(1)}</DataTableCell>
+                        <DataTableCell>{formatPoints(team.points, 1)}</DataTableCell>
+                        <DataTableCell>{formatPoints(team.historicalPoints, 1)}</DataTableCell>
                         <DataTableCell className="text-content-subtle">{team.tournaments}</DataTableCell>
                       </DataTableRow>
                     ))
@@ -779,8 +792,8 @@ const RegionDetailPage: React.FC = () => {
                             {team.name}
                           </Link>
                         </DataTableCell>
-                        <DataTableCell>{team.modalityPoints.toFixed(1)}</DataTableCell>
-                        <DataTableCell>{team.historicalPoints.toFixed(1)}</DataTableCell>
+                        <DataTableCell>{formatPoints(team.modalityPoints, 1)}</DataTableCell>
+                        <DataTableCell>{formatPoints(team.historicalPoints, 1)}</DataTableCell>
                       </DataTableRow>
                     ))}
               </DataTableBody>
@@ -794,11 +807,11 @@ const RegionDetailPage: React.FC = () => {
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} tickFormatter={formatChartValue} />
-                  <Tooltip formatter={(v: number) => formatChartValue(v)} />
-                  <Bar dataKey="points" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={formatChartAxis} />
+                  <Tooltip formatter={(v: number) => formatPoints(v, 1)} />
+                  <Bar dataKey="points" fill={chart.series[0]} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -811,11 +824,11 @@ const RegionDetailPage: React.FC = () => {
             {historicalChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={historicalChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} tickFormatter={formatChartValue} />
-                  <Tooltip formatter={(v: number) => formatChartValue(v)} />
-                  <Bar dataKey="points" fill={CHART_COLORS[1]} radius={[4, 4, 0, 0]} />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={formatChartAxis} />
+                  <Tooltip formatter={(v: number) => formatPoints(v, 1)} />
+                  <Bar dataKey="points" fill={chart.series[1]} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (

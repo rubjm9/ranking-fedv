@@ -27,22 +27,27 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           position="top-right"
           toastOptions={{
             duration: 4000,
+            /* Los tokens se resuelven en el portal, que vive dentro de <html>,
+               así que el aviso sigue al tema sin necesidad de JavaScript.
+               Antes salía gris oscuro sobre página clara y casi invisible
+               sobre fondo oscuro. */
             style: {
-              background: '#363636',
-              color: '#fff',
+              background: 'rgb(var(--color-surface-raised))',
+              color: 'rgb(var(--color-content))',
+              border: '1px solid rgb(var(--color-line))',
             },
             success: {
               duration: 3000,
               iconTheme: {
                 primary: '#10b981',
-                secondary: '#fff',
+                secondary: 'rgb(var(--color-surface-raised))',
               },
             },
             error: {
               duration: 5000,
               iconTheme: {
                 primary: '#ef4444',
-                secondary: '#fff',
+                secondary: 'rgb(var(--color-surface-raised))',
               },
             },
           }}

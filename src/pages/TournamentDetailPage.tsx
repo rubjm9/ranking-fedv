@@ -5,14 +5,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { useQuery } from '@tanstack/react-query'
 import { tournamentsService, getTeamPublicUrl, getTournamentPublicUrl } from '@/services/apiService'
 import seasonService from '@/services/seasonService'
-import {
-  buildRegionalCoefficientLookup,
-  formatInteger,
-  formatSeasonFromYear,
-  getPreviousSeasonLabel,
-  getWeightedRegionalPoints,
-  roundPoints,
-} from '@/utils/rankingCalculations'
+import { buildRegionalCoefficientLookup, formatInteger, formatSeasonFromYear, getPreviousSeasonLabel, getWeightedRegionalPoints, roundPoints, formatCoefficient } from '@/utils/rankingCalculations'
 import { translateSurface, translateModality, translateTournamentType } from '@/utils/translations'
 import TeamLogo from '@/components/ui/TeamLogo'
 import ShareButton from '@/components/ui/ShareButton'
@@ -26,6 +19,7 @@ import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
 import ContentGridSkeleton from '@/components/ui/ContentGridSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import { usePageMeta } from '@/hooks/usePageMeta'
+import { useChartTheme } from '@/utils/chartTheme'
 
 interface Tournament {
   id: string
@@ -182,6 +176,7 @@ const IconSpain = ({ className = iconClass }: { className?: string }) => (
 )
 
 const TournamentDetailPage: React.FC = () => {
+  const chart = useChartTheme()
   const { id } = useParams<{ id: string }>()
   
   // Obtener datos del torneo usando React Query
@@ -274,14 +269,14 @@ const TournamentDetailPage: React.FC = () => {
       regionCounts[regionName] = (regionCounts[regionName] || 0) + 1
     })
 
-    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4']
+    const colors = chart.series
     return Object.entries(regionCounts).map(([name, teams], index) => ({
       name,
       teams,
       percentage: (teams / positions.length) * 100,
       color: colors[index % colors.length]
     }))
-  }, [positions])
+  }, [positions, chart])
 
   // Calcular estadísticas del torneo
   const totalPoints = roundPoints(positions.reduce((sum, pos) => sum + pos.points, 0))
@@ -592,7 +587,7 @@ const TournamentDetailPage: React.FC = () => {
                       {isRegional && (
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-content">
-                            {position.coefficient.toFixed(2)}x
+                            {formatCoefficient(position.coefficient)}x
                           </div>
                         </td>
                       )}

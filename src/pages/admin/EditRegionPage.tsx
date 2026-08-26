@@ -6,6 +6,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { regionsService } from '@/services/apiService'
 import { Region } from '@/types'
 import FormSkeleton from '@/components/ui/FormSkeleton'
+import { formatCoefficient } from '@/utils/rankingCalculations'
 
 // Interfaz extendida para el admin con propiedades adicionales
 interface RegionWithDetails extends Region {
@@ -219,7 +220,7 @@ const EditRegionPage: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-content-muted">Coeficiente</p>
               <p className={`text-2xl font-bold ${getCoefficientColor(formData.coefficient)}`}>
-                {typeof formData.coefficient === 'number' ? formData.coefficient.toFixed(2) : '1.00'}
+                {formatCoefficient(typeof formData.coefficient === 'number' ? formData.coefficient : 1)}
               </p>
             </div>
           </div>
@@ -319,7 +320,7 @@ const EditRegionPage: React.FC = () => {
                   <div className="flex items-center">
                     <span className="text-sm font-medium text-content-muted mr-2">Valor:</span>
                     <span className={`text-lg font-bold ${getCoefficientColor(formData.coefficient)}`}>
-                      {typeof formData.coefficient === 'number' ? formData.coefficient.toFixed(2) : '1.00'}
+                      {formatCoefficient(typeof formData.coefficient === 'number' ? formData.coefficient : 1)}
                     </span>
                   </div>
                   <div className="flex items-center">

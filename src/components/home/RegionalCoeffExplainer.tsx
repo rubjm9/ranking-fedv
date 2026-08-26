@@ -3,10 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { regionsService } from '@/services/apiService'
-import {
-  DEFAULT_REGIONAL_CONFIG,
-  calculateRegionalCoefficient,
-} from '@/utils/rankingCalculations'
+import { DEFAULT_REGIONAL_CONFIG, calculateRegionalCoefficient, formatCoefficient, formatInteger } from '@/utils/rankingCalculations'
 
 const BASE_EXAMPLE_POINTS = 100
 const EQUAL_POINTS = 1000
@@ -121,7 +118,7 @@ const RegionalCoeffExplainer: React.FC = () => {
           </h4>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-content-muted">
             Edita los puntos nacionales y mira cómo cambia el coeficiente. El valor queda entre{' '}
-            {DEFAULT_REGIONAL_CONFIG.floor.toFixed(2)} y {DEFAULT_REGIONAL_CONFIG.ceiling.toFixed(2)}.
+            {formatCoefficient(DEFAULT_REGIONAL_CONFIG.floor)} y {formatCoefficient(DEFAULT_REGIONAL_CONFIG.ceiling)}.
           </p>
         </div>
 
@@ -154,7 +151,7 @@ const RegionalCoeffExplainer: React.FC = () => {
                   Media nacional
                 </p>
                 <p className="mt-1 text-3xl font-semibold text-brand-strong">
-                  {mean.toFixed(0)}{' '}
+                  {formatInteger(mean)}{' '}
                   <span className="text-base font-medium text-brand-strong">pts</span>
                 </p>
                 <p className="mt-1 text-sm text-brand-strong/80">
@@ -206,7 +203,7 @@ const RegionalCoeffExplainer: React.FC = () => {
                     <span
                       className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ring-1 ${coefficientTone(row.coefficient)}`}
                     >
-                      × {row.coefficient.toFixed(2)}
+                      × {formatCoefficient(row.coefficient)}
                     </span>
                     <p className="text-sm text-content-muted">
                       Si gana un regional ({BASE_EXAMPLE_POINTS} pts) →{' '}
@@ -247,7 +244,7 @@ const RegionalCoeffExplainer: React.FC = () => {
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ring-1 ${coefficientTone(row.coefficient)}`}
                         >
-                          × {row.coefficient.toFixed(2)}
+                          × {formatCoefficient(row.coefficient)}
                         </span>
                       </td>
                       <td className="px-4 py-3">

@@ -19,8 +19,9 @@ import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
 import TabsSkeleton from '@/components/ui/TabsSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import AnimatedPoints from '@/components/ui/AnimatedPoints'
-import { formatBestGlobalPositionWhen } from '@/utils/rankingCalculations'
+import { formatBestGlobalPositionWhen, formatPoints } from '@/utils/rankingCalculations'
 import { usePageMeta } from '@/hooks/usePageMeta'
+import { useUrlState } from '@/hooks/useUrlState'
 
 const renderHistoricalGlobalPositionValue = (
   position: number,
@@ -62,6 +63,11 @@ const renderWorstHistoricalPositionValue = (
     whenClassName
   )
 
+/** Un ?tab= desconocido dejaba la página sin ninguna pestaña seleccionada, es
+ *  decir, en blanco. Con la pestaña en la URL eso es un enlace compartible. */
+const PESTANAS_VALIDAS = ['overview', 'rankings', 'tournaments', 'history', 'historico', 'seasons'] as const
+type PestanaEquipo = typeof PESTANAS_VALIDAS[number]
+
 interface TeamRedirectState {
   resolvedTeamId?: string
   canonicalSlug?: string
@@ -71,7 +77,7 @@ const TeamDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const location = useLocation()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const [isLoading, setIsLoading] = useState(true)
   const [teamData, setTeamData] = useState<TeamDetailData | null>(null)
   const [relatedTeams, setRelatedTeams] = useState<any[]>([])
@@ -85,7 +91,13 @@ const TeamDetailPage: React.FC = () => {
       : undefined,
   })
 
-  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview')
+  // Derivado de la URL, sin estado espejo: antes activeTab y la query se
+  // actualizaban por separado y sin resincronizar, así que el botón atrás
+  // cambiaba la URL y la pestaña visible se quedaba donde estaba.
+  const [tabEnUrl, setActiveTab] = useUrlState<string>('tab', 'overview')
+  const activeTab: PestanaEquipo = PESTANAS_VALIDAS.includes(tabEnUrl as PestanaEquipo)
+    ? (tabEnUrl as PestanaEquipo)
+    : 'overview'
   const [chartMetric, setChartMetric] = useState<'position' | 'points'>('position')
   const [compareWithTeamId, setCompareWithTeamId] = useState<string>('')
   const loadIdRef = useRef(0)
@@ -244,9 +256,10 @@ const TeamDetailPage: React.FC = () => {
   }
 
   const handleTabChange = (tabId: string) => {
+    // Escribe conservando el resto de la query, que el objeto literal anterior
+    // borraba, y con replace: así el botón atrás saca de la ficha en un toque
+    // en lugar de recorrer las pestañas una a una.
     setActiveTab(tabId)
-    setSearchParams({ tab: tabId })
-    // Scroll to top when changing tabs
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -352,7 +365,7 @@ const TeamDetailPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-line">
                   <span className="text-sm text-content-muted font-medium">Acumulación histórica:</span>
-                  <span className="text-sm font-semibold text-content">{statistics.totalPoints.toFixed(1)}</span>
+                  <span className="text-sm font-semibold text-content">{formatPoints(statistics.totalPoints, 1)}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-line">
                   <span className="text-sm text-content-muted font-medium">Temporadas activas:</span>
@@ -448,7 +461,7 @@ const TeamDetailPage: React.FC = () => {
                         <span className="text-sm font-medium text-content">#{ranking.position}</span>
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-content">{ranking.points.toFixed(1)}</span>
+                        <span className="text-sm text-content">{formatPoints(ranking.points, 1)}</span>
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                         {ranking.change !== 0 ? (
@@ -623,9 +636,9 @@ const TeamDetailPage: React.FC = () => {
                         return (
                           <td key={year} className="px-3 py-2 text-center border-r border-line last:border-r-0">
                             {cell === '✕' ? (
-                              <span className="text-content-subtle font-medium" title="El campeonato no se disputó">✕</span>
+                              <span className="text-content-subtle font-medium" title="El campeonato no se disputó"><span aria-hidden="true">✕</span><span className="sr-only">El campeonato no se disputó</span></span>
                             ) : cell === 'No p.' ? (
-                              <span className="text-content-subtle text-xs" title="El equipo no participó">No p.</span>
+                              <span className="text-content-subtle text-xs" title="El equipo no participó"><span aria-hidden="true">No p.</span><span className="sr-only">El equipo no participó</span></span>
                             ) : typeof cell === 'number' && cell <= 3 ? (
                               <span
                                 className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border ${
@@ -684,7 +697,7 @@ const TeamDetailPage: React.FC = () => {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
                     <h4 className="text-md font-medium text-content">{season.season}</h4>
                     <span className="text-sm font-medium text-content-muted">
-                      {season.totalPoints.toFixed(1)} puntos totales
+                      {formatPoints(season.totalPoints, 1)} puntos totales
                     </span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -699,7 +712,7 @@ const TeamDetailPage: React.FC = () => {
                           </span>
                         </div>
                         <div className="text-sm text-content-muted">
-                          <div>{data.points.toFixed(1)} puntos</div>
+                          <div>{formatPoints(data.points, 1)} puntos</div>
                           <div>{data.tournaments} campeonatos</div>
                           <div>Mejor: {data.bestPosition}º</div>
                         </div>

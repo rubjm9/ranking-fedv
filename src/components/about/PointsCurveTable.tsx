@@ -77,15 +77,20 @@ const PointsCurveTable: React.FC<PointsCurveTableProps> = ({
                     className={`p-0 ${row.gapBefore ? '' : index > 0 ? 'border-t border-line' : ''}`}
                   >
                     {row.gapBefore && (
-                      <div
-                        className="flex items-center gap-2 pt-2.5"
-                        aria-hidden
-                        title={`Puestos omitidos: ${gapLabel}`}
-                      >
-                        <span className="h-px flex-1 border-t border-dotted border-line-strong" />
-                        <span className="shrink-0 text-[11px] leading-none text-content-subtle">···</span>
-                        <span className="h-px flex-1 border-t border-dotted border-line-strong" />
-                      </div>
+                      <>
+                        {/*
+                          Qué puestos se omiten vivía solo en un `title` sobre un
+                          elemento aria-hidden: no llegaba a lectores de pantalla
+                          ni, en táctil, a nadie. La línea de puntos sigue siendo
+                          decorativa; el dato va en texto.
+                        */}
+                        <span className="sr-only">Puestos omitidos: {gapLabel}</span>
+                        <div className="flex items-center gap-2 pt-2.5" aria-hidden="true">
+                          <span className="h-px flex-1 border-t border-dotted border-line-strong" />
+                          <span className="shrink-0 text-[11px] leading-none text-content-subtle">···</span>
+                          <span className="h-px flex-1 border-t border-dotted border-line-strong" />
+                        </div>
+                      </>
                     )}
                     <div className={`grid grid-cols-2 py-2 ${row.gapBefore ? 'pt-1.5' : ''}`}>
                       <span className="pr-4 text-content-muted">{row.position}º</span>

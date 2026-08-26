@@ -9,6 +9,8 @@ import {
   Tooltip,
 } from 'recharts'
 import { MODALITY_LABELS } from '@/components/regions/constants'
+import { formatPoints } from '@/utils/rankingCalculations'
+import { useChartTheme } from '@/utils/chartTheme'
 
 interface RankingEntry {
   position: number
@@ -32,8 +34,8 @@ const RADAR_MODALITY_ORDER = [
   'beach_mixed',
 ] as const
 
-const GRADIENT_ORANGE = '#F97316'
-const GRADIENT_GREEN = '#10B981'
+
+
 
 /** 6 ejes → 60° entre vértices; endAngle = startAngle - 360 para hexágono regular */
 const RADAR_START_ANGLE = 120
@@ -68,7 +70,7 @@ function RadarAxisTick({
       x={x}
       y={y}
       textAnchor={textAnchor}
-      fill="#64748b"
+      className="fill-content-muted"
       fontSize={10}
       dominantBaseline="central"
     >
@@ -88,6 +90,8 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
   currentRankings,
   height = 260,
 }) => {
+  const chart = useChartTheme()
+
   const chartData = useMemo(
     () =>
       RADAR_MODALITY_ORDER.map((modality) => {
@@ -126,7 +130,7 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
               </span>
             </p>
             <p className="text-content-muted">
-              Puntos: <span className="font-semibold text-content">{entry.points.toFixed(1)}</span>
+              Puntos: <span className="font-semibold text-content">{formatPoints(entry.points, 1)}</span>
             </p>
           </>
         ) : (
@@ -145,7 +149,11 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
   }
 
   return (
-    <div className="w-full">
+    <div
+      className="w-full"
+      role="img"
+      aria-label="Comparativa del percentil del equipo en cada modalidad del ranking"
+    >
       <ResponsiveContainer width="100%" aspect={1} maxHeight={height}>
         <RadarChart
           data={chartData}
@@ -157,11 +165,11 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
         >
           <defs>
             <linearGradient id="teamRadarFill" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor={GRADIENT_ORANGE} stopOpacity={0.45} />
-              <stop offset="100%" stopColor={GRADIENT_GREEN} stopOpacity={0.45} />
+              <stop offset="0%" stopColor={chart.series[1]} stopOpacity={0.45} />
+              <stop offset="100%" stopColor={chart.series[2]} stopOpacity={0.45} />
             </linearGradient>
           </defs>
-          <PolarGrid gridType="polygon" stroke="#e2e8f0" />
+          <PolarGrid gridType="polygon" stroke={chart.grid} />
           <PolarAngleAxis dataKey="modality" tick={RadarAxisTick} />
           <PolarRadiusAxis
             angle={RADAR_START_ANGLE}
@@ -173,7 +181,7 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
           <Radar
             name="Posición"
             dataKey="score"
-            stroke={GRADIENT_ORANGE}
+            stroke={chart.series[1]}
             fill="url(#teamRadarFill)"
             fillOpacity={1}
             strokeWidth={2}

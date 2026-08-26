@@ -14,7 +14,7 @@ import Modal from '@/components/ui/Modal'
 import { regionsService, Region } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
 import seasonService from '@/services/seasonService'
-import { getRegionalCoefficientBaseSeason } from '@/utils/rankingCalculations'
+import { getRegionalCoefficientBaseSeason, formatCoefficient } from '@/utils/rankingCalculations'
 import { MODALITIES, MODALITY_SHORT, MODALITY_LABELS, getCoefficientColor } from '@/components/regions/constants'
 import ActionButtonGroup from '@/components/ui/ActionButtonGroup'
 import AdminPageHeader from '@/components/layout/AdminPageHeader'
@@ -260,10 +260,12 @@ const RegionsAdminPage: React.FC = () => {
                 {MODALITIES.map(mod => (
                   <th
                     key={mod}
+                    scope="col"
                     title={MODALITY_LABELS[mod]}
                     className="px-2 py-2 text-center text-xs font-medium text-content-muted border-r border-line last:border-r-0 min-w-[3rem]"
                   >
-                    {MODALITY_SHORT[mod]}
+                    <span className="sr-only">{MODALITY_LABELS[mod]}</span>
+                    <span aria-hidden="true">{MODALITY_SHORT[mod]}</span>
                   </th>
                 ))}
               </tr>
@@ -296,7 +298,7 @@ const RegionsAdminPage: React.FC = () => {
                           <Loader2 className="mx-auto h-3.5 w-3.5 animate-spin text-content-subtle" />
                         ) : coef != null ? (
                           <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${getCoefficientColor(coef)}`}>
-                            {coef.toFixed(2)}
+                            {formatCoefficient(coef)}
                           </span>
                         ) : (
                           <span className="text-xs text-content-subtle">—</span>

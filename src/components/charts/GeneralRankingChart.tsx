@@ -1,6 +1,8 @@
 import React from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import dynamicRankingService from '@/services/dynamicRankingService'
+import { formatPoints, formatInteger } from '@/utils/rankingCalculations'
+import { useChartTheme } from '@/utils/chartTheme'
 
 interface SubseasonDataPoint {
   date: string
@@ -89,6 +91,7 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
   compareWithTeamId,
   compareWithTeamName
 }) => {
+  const chart = useChartTheme()
   const [chartData, setChartData] = React.useState<any[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
 
@@ -222,7 +225,7 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
               {metric === 'position' ? (
                 <span className="font-medium">#{value}</span>
               ) : (
-                <span className="font-medium">{Number(value).toFixed(1)} pts</span>
+                <span className="font-medium">{formatPoints(Number(value), 1)} pts</span>
               )}
             </div>
           )
@@ -240,18 +243,29 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
         </div>
       )}
       
+      {/* Los gráficos no tenían nombre accesible: para un lector de pantalla
+          simplemente no existían. */}
+      <div
+        role="img"
+        aria-label={
+          metric === 'position'
+            ? `Evolución del puesto de ${teamName || 'el equipo'} en el ranking global por temporada`
+            : `Evolución de los puntos de ${teamName || 'el equipo'} en el ranking global por temporada`
+        }
+      >
       <ResponsiveContainer width="100%" height={height}>
         <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
           <XAxis 
             dataKey="displayDate" 
-            stroke="#666"
+            stroke={chart.axis}
             fontSize={12}
             tickLine={false}
             axisLine={false}
           />
           <YAxis 
-            stroke="#666"
+            tickFormatter={(v: number) => formatInteger(v)}
+            stroke={chart.axis}
             fontSize={12}
             tickLine={false}
             axisLine={false}
@@ -270,21 +284,23 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
               <Line
                 type="monotone"
                 dataKey={dataKey}
-                stroke="#3B82F6"
+                stroke={chart.series[0]}
                 strokeWidth={2}
-                dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2 }}
+                dot={{ fill: chart.series[0], strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: chart.series[0], strokeWidth: 2 }}
                 connectNulls={false}
                 name={teamName || 'Este equipo'}
               />
               {isComparing && (
+                /* Los dos primeros tonos de la paleta: es el par validado para
+                   contraste y para daltonismo. */
                 <Line
                   type="monotone"
                   dataKey={compareDataKey}
-                  stroke="#F59E0B"
+                  stroke={chart.series[1]}
                   strokeWidth={2}
-                  dot={{ fill: '#F59E0B', strokeWidth: 2, r: 4 }}
-                  activeDot={{ r: 6, stroke: '#F59E0B', strokeWidth: 2 }}
+                  dot={{ fill: chart.series[1], strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, stroke: chart.series[1], strokeWidth: 2 }}
                   connectNulls={false}
                   name={compareWithTeamName || 'Otro equipo'}
                 />
@@ -296,90 +312,95 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
               <Line
                 type="monotone"
                 dataKey="subseason1"
-                stroke="#3B82F6"
+                stroke={chart.series[0]}
                 strokeWidth={2}
-                dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2 }}
+                dot={{ fill: chart.series[0], strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: chart.series[0], strokeWidth: 2 }}
                 connectNulls={false}
                 name="Playa Mixto"
               />
               <Line
                 type="monotone"
                 dataKey="subseason2Open"
-                stroke="#EF4444"
+                stroke={chart.series[1]}
                 strokeWidth={2}
-                dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#EF4444', strokeWidth: 2 }}
+                dot={{ fill: chart.series[1], strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: chart.series[1], strokeWidth: 2 }}
                 connectNulls={false}
                 name="Playa Open"
               />
               <Line
                 type="monotone"
                 dataKey="subseason2Women"
-                stroke="#EC4899"
+                stroke={chart.series[2]}
                 strokeWidth={2}
-                dot={{ fill: '#EC4899', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#EC4899', strokeWidth: 2 }}
+                dot={{ fill: chart.series[2], strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: chart.series[2], strokeWidth: 2 }}
                 connectNulls={false}
                 name="Playa Women"
               />
               <Line
                 type="monotone"
                 dataKey="subseason2"
-                stroke="#F97316"
+                stroke={chart.series[3]}
                 strokeWidth={1.5}
                 strokeDasharray="4 2"
-                dot={{ fill: '#F97316', strokeWidth: 2, r: 3 }}
+                dot={{ fill: chart.series[3], strokeWidth: 2, r: 3 }}
                 connectNulls={false}
                 name="Playa (combinado)"
               />
               <Line
                 type="monotone"
                 dataKey="subseason3"
-                stroke="#10B981"
+                stroke={chart.series[4]}
                 strokeWidth={2}
-                dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#10B981', strokeWidth: 2 }}
+                dot={{ fill: chart.series[4], strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: chart.series[4], strokeWidth: 2 }}
                 connectNulls={false}
                 name="Césped Mixto"
               />
               <Line
                 type="monotone"
                 dataKey="subseason4Open"
-                stroke="#F59E0B"
+                stroke={chart.series[5]}
                 strokeWidth={2}
-                dot={{ fill: '#F59E0B', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#F59E0B', strokeWidth: 2 }}
+                dot={{ fill: chart.series[5], strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: chart.series[5], strokeWidth: 2 }}
                 connectNulls={false}
                 name="Césped Open"
               />
               <Line
                 type="monotone"
                 dataKey="subseason4Women"
-                stroke="#8B5CF6"
+                stroke={chart.series[6]}
                 strokeWidth={2}
-                dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#8B5CF6', strokeWidth: 2 }}
+                dot={{ fill: chart.series[6], strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: chart.series[6], strokeWidth: 2 }}
                 connectNulls={false}
                 name="Césped Women"
               />
               <Line
                 type="monotone"
                 dataKey="subseason4"
-                stroke="#84CC16"
+                stroke={chart.series[7]}
                 strokeWidth={1.5}
                 strokeDasharray="4 2"
-                dot={{ fill: '#84CC16', strokeWidth: 2, r: 3 }}
+                dot={{ fill: chart.series[7], strokeWidth: 2, r: 3 }}
                 connectNulls={false}
                 name="Césped (combinado)"
               />
+              {/*
+                El total no es una categoría, así que no gasta un noveno tono:
+                va en tinta neutra y con trazo más grueso, distinguible por algo
+                más que el color.
+              */}
               <Line
                 type="monotone"
                 dataKey="finalGlobal"
-                stroke="#8B5CF6"
+                stroke={chart.emphasis}
                 strokeWidth={3}
-                dot={{ fill: '#8B5CF6', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: '#8B5CF6', strokeWidth: 2 }}
+                dot={{ fill: chart.emphasis, strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: chart.emphasis, strokeWidth: 2 }}
                 connectNulls={false}
                 name="Ranking Global Final"
               />
@@ -387,6 +408,7 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
           )}
         </LineChart>
       </ResponsiveContainer>
+      </div>
       
       <div className="mt-4 text-xs text-content-subtle text-center">
         {metric === 'position' ? (

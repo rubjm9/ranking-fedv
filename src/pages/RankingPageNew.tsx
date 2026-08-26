@@ -22,12 +22,14 @@ import ViewModeToggle from '@/components/ui/ViewModeToggle'
 import ShareButton from '@/components/ui/ShareButton'
 import { useMostRecentSeasons } from '@/hooks/useMostRecentSeasons'
 import { useViewMode } from '@/hooks/useViewMode'
-import { getRankingReferenceSeason } from '@/utils/rankingCalculations'
+import { getRankingReferenceSeason, formatPoints, formatInteger, formatPercent } from '@/utils/rankingCalculations'
 import {
   getTeamDisplayNameForCategory,
   TEAM_RANKING_NAME_SELECT,
 } from '@/utils/teamNames'
 import { usePageMeta } from '@/hooks/usePageMeta'
+import { useUrlState } from '@/hooks/useUrlState'
+import { useChartTheme } from '@/utils/chartTheme'
 
 interface SimpleChartProps {
   data: any[]
@@ -37,9 +39,11 @@ interface SimpleChartProps {
 }
 
 const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, setHoveredPoint }) => {
+  const chart = useChartTheme()
+
   if (!data || data.length === 0) return null
 
-  const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
+  const colors = chart.series
   const width = 800
   const height = 400
   const padding = 60
@@ -82,8 +86,8 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
     <div className="w-full overflow-x-auto relative">
       <svg width={width} height={height} className="border border-line rounded-lg">
         {/* Ejes */}
-        <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#E5E7EB" strokeWidth="2" />
-        <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#E5E7EB" strokeWidth="2" />
+        <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke={chart.axisLine} strokeWidth="2" />
+        <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke={chart.axisLine} strokeWidth="2" />
         
         {/* Etiquetas del eje X */}
         {allSeasons.map((season, index) => (
@@ -92,7 +96,7 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
             x={xScale(index)}
             y={height - padding + 20}
             textAnchor="middle"
-            className="text-xs fill-slate-600"
+            className="text-xs fill-content-muted"
           >
             {season}
           </text>
@@ -109,7 +113,7 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
               textAnchor="end"
               className="text-xs fill-slate-600"
             >
-              {value.toFixed(0)}
+              {formatInteger(value)}
             </text>
           ))
         ) : (
@@ -122,7 +126,7 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
               textAnchor="end"
               className="text-xs fill-slate-600"
             >
-              {value.toFixed(0)}
+              {formatInteger(value)}
             </text>
           ))
         )}
@@ -204,7 +208,7 @@ const SimpleChart: React.FC<SimpleChartProps> = ({ data, type, hoveredPoint, set
           }}
         >
           <div className="font-semibold">{hoveredPoint.team.team_name}</div>
-          <div>{hoveredPoint.point.season}: {hoveredPoint.point.value.toFixed(type === 'points' ? 1 : 0)}{type === 'points' ? ' pts' : 'º'}</div>
+          <div>{hoveredPoint.point.season}: {type === 'points' ? formatPoints(hoveredPoint.point.value, 1) : formatInteger(hoveredPoint.point.value)}{type === 'points' ? ' pts' : 'º'}</div>
         </div>
       )}
     </div>
@@ -241,6 +245,8 @@ const SLUG_TO_TAB: Record<string, string> = {
   'open': 'general',
   'women': 'general',
 }
+
+type DetailedViewMode = 'ranking' | 'historical' | 'clubs' | 'analysis' | 'advanced'
 
 const SLUG_TO_COMBINED: Record<string, CombinedType> = {
   'general': 'all',
@@ -591,6 +597,7 @@ const resolveCombinedTypeFromSurface = (surfaceParam?: string): CombinedType => 
 }
 
 const RankingPageNew: React.FC = () => {
+  const chart = useChartTheme()
   const { surface } = useParams<{ surface: string }>()
   const navigate = useNavigate()
   const location = useLocation()
@@ -618,9 +625,15 @@ const RankingPageNew: React.FC = () => {
   const [hoveredPoint, setHoveredPoint] = useState<{team: any, point: any, x: number, y: number} | null>(null)
   const [teamSearchTerm, setTeamSearchTerm] = useState<string>('')
   const [showAllTeams, setShowAllTeams] = useState<boolean>(false)
-  const [detailedViewMode, setDetailedViewMode] = useState<'ranking' | 'historical' | 'clubs' | 'analysis' | 'advanced'>('ranking')
-  const [selectedSeasonForDetailedView, setSelectedSeasonForDetailedView] = useState<string | null>(null)
-  const [selectedSeasonForGeneralView, setSelectedSeasonForGeneralView] = useState<string | null>(null)
+  // Sub-vista y temporada viven en la URL: «mira el ranking de clubes de
+  // 2023-24» era imposible de compartir, y volver de una ficha te devolvía
+  // siempre al ranking del año en curso.
+  const [detailedViewMode, setDetailedViewMode] = useUrlState<DetailedViewMode>('vista', 'ranking')
+  // Un solo parámetro para las dos vistas: es la misma intención del usuario, y
+  // todas las lecturas tienen su propio fallback si la temporada no aplica.
+  const [temporadaSeleccionada, setTemporadaSeleccionada] = useUrlState<string>('temporada', '')
+  const selectedSeasonForDetailedView = temporadaSeleccionada
+  const selectedSeasonForGeneralView = temporadaSeleccionada
   // categoryHighlightStats ahora viene de una query cacheada más abajo
 
   // Sync URL param :surface → component state
@@ -632,7 +645,9 @@ const RankingPageNew: React.FC = () => {
       if (VALID_CATEGORY_TABS.includes(tab as typeof VALID_CATEGORY_TABS[number])) {
         setSelectedSurface(tab)
       }
-      setDetailedViewMode('ranking')
+      // Antes forzaba setDetailedViewMode('ranking') aquí. Ya no hace falta: el
+      // cambio de pestaña descarta `vista` al navegar, y forzarlo en el montaje
+      // borraba la sub-vista de cualquier enlace compartido.
     }
     const combined = SLUG_TO_COMBINED[surface]
     if (combined) {
@@ -3221,7 +3236,7 @@ const RankingPageNew: React.FC = () => {
             <StatsBlock
               title="Líder Actual"
               value={generalHighlightStats.generalLeader?.team_name || 'N/A'}
-              subtitle={`${generalHighlightStats.generalLeader?.global_points?.toFixed(1) || '0'} pts`}
+              subtitle={`${formatPoints(generalHighlightStats.generalLeader?.global_points ?? 0, 1)} pts`}
               icon={Trophy}
               color="blue"
               logo={generalHighlightStats.generalLeader?.logo}
@@ -3232,7 +3247,7 @@ const RankingPageNew: React.FC = () => {
             <StatsBlock
               title="Equipo Revelación"
               value={generalHighlightStats.generalRevelation?.team_name || 'N/A'}
-              subtitle={`+${generalHighlightStats.generalRevelation?.points_gained?.toFixed(1) || '0'} pts`}
+              subtitle={`+${formatPoints(generalHighlightStats.generalRevelation?.points_gained ?? 0, 1)} pts`}
               icon={BarChart3}
               color="yellow"
               logo={generalHighlightStats.generalRevelation?.logo}
@@ -3254,7 +3269,7 @@ const RankingPageNew: React.FC = () => {
             <StatsBlock
               title="Mejor Filial"
               value={generalHighlightStats.generalBestFilial?.team_name || 'Sin filiales'}
-              subtitle={generalHighlightStats.generalBestFilial ? `${generalHighlightStats.generalBestFilial.global_points?.toFixed(1) || '0'} pts` : 'No hay filiales'}
+              subtitle={generalHighlightStats.generalBestFilial ? `${formatPoints(generalHighlightStats.generalBestFilial.global_points ?? 0, 1)} pts` : 'No hay filiales'}
               icon={UsersRound}
               color="purple"
               logo={generalHighlightStats.generalBestFilial?.logo}
@@ -3265,7 +3280,7 @@ const RankingPageNew: React.FC = () => {
             <StatsBlock
               title="Líder histórico"
               value={generalHighlightStats.generalBestHistorical?.team_name || 'N/A'}
-              subtitle={`${generalHighlightStats.generalBestHistorical?.historical_points?.toFixed(1) || '0'} pts`}
+              subtitle={`${formatPoints(generalHighlightStats.generalBestHistorical?.historical_points ?? 0, 1)} pts`}
               icon={Star}
               color="orange"
               logo={generalHighlightStats.generalBestHistorical?.logo}
@@ -3339,7 +3354,7 @@ const RankingPageNew: React.FC = () => {
                 <Calendar className="w-8 h-8 text-orange-500" />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-content-subtle">Actividad</p>
-                  <p className="text-2xl font-semibold text-content">{generalStats.avg_activity.toFixed(1)}</p>
+                  <p className="text-2xl font-semibold text-content">{formatPoints(generalStats.avg_activity, 1)}</p>
                 </div>
               </div>
               {/* Tooltip */}
@@ -3381,10 +3396,11 @@ const RankingPageNew: React.FC = () => {
             <div className="flex flex-wrap items-center justify-end gap-3">
               <ViewModeToggle value={rankingViewMode} onChange={setRankingViewMode} />
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-content-muted">Temporada:</label>
+                <label htmlFor="temporada-general" className="text-sm font-medium text-content-muted">Temporada:</label>
                 <select
+                  id="temporada-general"
                   value={selectedSeasonForGeneralView || defaultGeneralSeason || referenceSeason || ''}
-                  onChange={(e) => setSelectedSeasonForGeneralView(e.target.value || null)}
+                  onChange={(e) => setTemporadaSeleccionada(e.target.value)}
                   className="text-sm border border-line-strong rounded px-3 py-1 bg-surface"
                 >
                   {generalSeasonOptions.map((season) => {
@@ -3469,9 +3485,9 @@ const RankingPageNew: React.FC = () => {
           {/* Selector de equipos múltiple */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-content-muted">
+              <p className="block text-sm font-medium text-content-muted">
                 Seleccionar equipos para análisis:
-              </label>
+              </p>
               <span className="text-sm text-content-subtle">
                 {selectedTeamsForAnalysis.length} equipos seleccionados
               </span>
@@ -3480,8 +3496,9 @@ const RankingPageNew: React.FC = () => {
             {/* Barra de búsqueda */}
             <div className="mb-3">
               <input
-                type="text"
+                type="search"
                 placeholder="Buscar equipos..."
+                aria-label="Buscar equipos para el análisis"
                 value={teamSearchTerm}
                 onChange={(e) => setTeamSearchTerm(e.target.value)}
                 className="input-field text-sm"
@@ -3614,7 +3631,7 @@ const RankingPageNew: React.FC = () => {
                 <h5 className="text-sm font-medium text-content mb-3">Equipos seleccionados:</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {analysisData.map((team, index) => {
-                    const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
+                    const colors = chart.series
                     return (
                       <div key={team.team_id} className="flex items-center space-x-2">
                         <div 
@@ -3651,10 +3668,10 @@ const RankingPageNew: React.FC = () => {
                           </RankingTeamLink>
                         </div>
                         <div className="text-sm text-content-muted space-y-1">
-                          <div>Total: {totalPoints.toFixed(1)} pts</div>
-                          <div>Promedio: {avgPoints.toFixed(1)} pts</div>
-                          <div>Máximo: {maxPoints.toFixed(1)} pts</div>
-                          <div>Mínimo: {minPoints.toFixed(1)} pts</div>
+                          <div>Total: {formatPoints(totalPoints, 1)} pts</div>
+                          <div>Promedio: {formatPoints(avgPoints, 1)} pts</div>
+                          <div>Máximo: {formatPoints(maxPoints, 1)} pts</div>
+                          <div>Mínimo: {formatPoints(minPoints, 1)} pts</div>
                         </div>
                       </div>
                     )
@@ -3719,8 +3736,8 @@ const RankingPageNew: React.FC = () => {
                 <div className="text-sm text-content-muted">Diferencia 1º-2º</div>
                 <div className="text-xl font-semibold text-content">
                   {rankingDataWithChanges && rankingDataWithChanges.length > 1 
-                    ? (rankingDataWithChanges[0].total_points - rankingDataWithChanges[1].total_points).toFixed(1)
-                    : '0.0'
+                    ? formatPoints(rankingDataWithChanges[0].total_points - rankingDataWithChanges[1].total_points, 1)
+                    : formatPoints(0, 1)
                   }
                 </div>
               </div>
@@ -3734,9 +3751,9 @@ const RankingPageNew: React.FC = () => {
                 <div className="text-sm text-content-muted">Densidad Competitiva</div>
                 <div className="text-xl font-semibold text-content">
                   {rankingDataWithChanges && rankingDataWithChanges.length > 0
-                    ? ((rankingDataWithChanges.slice(0, 10).reduce((sum, team) => sum + (team.total_points || 0), 0) / 10) / 
-                       (rankingDataWithChanges[0].total_points || 1) * 100).toFixed(1) + '%'
-                    : '0%'
+                    ? formatPercent((rankingDataWithChanges.slice(0, 10).reduce((sum, team) => sum + (team.total_points || 0), 0) / 10) /
+                        (rankingDataWithChanges[0].total_points || 1) * 100) + '%'
+                    : formatPercent(0) + '%'
                   }
                 </div>
               </div>
@@ -3882,7 +3899,7 @@ const RankingPageNew: React.FC = () => {
             <StatsBlock
               title="Líder Actual"
               value={categoryHighlightStats.categoryLeader?.team_name || 'N/A'}
-              subtitle={`${categoryHighlightStats.categoryLeader?.category_points?.toFixed(1) || '0'} pts`}
+              subtitle={`${formatPoints(categoryHighlightStats.categoryLeader?.category_points ?? 0, 1)} pts`}
               icon={Trophy}
               color="blue"
               logo={categoryHighlightStats.categoryLeader?.logo}
@@ -3893,7 +3910,7 @@ const RankingPageNew: React.FC = () => {
             <StatsBlock
               title="Equipo Revelación"
               value={categoryHighlightStats.categoryRevelation?.team_name || 'N/A'}
-              subtitle={`+${categoryHighlightStats.categoryRevelation?.points_gained?.toFixed(1) || '0'} pts`}
+              subtitle={`+${formatPoints(categoryHighlightStats.categoryRevelation?.points_gained ?? 0, 1)} pts`}
               icon={BarChart3}
               color="yellow"
               logo={categoryHighlightStats.categoryRevelation?.logo}
@@ -3915,7 +3932,7 @@ const RankingPageNew: React.FC = () => {
             <StatsBlock
               title="Mejor Filial"
               value={categoryHighlightStats.categoryBestFilial?.team_name || 'Sin filiales'}
-              subtitle={categoryHighlightStats.categoryBestFilial ? `${categoryHighlightStats.categoryBestFilial.category_points?.toFixed(1) || '0'} pts` : 'No hay filiales'}
+              subtitle={categoryHighlightStats.categoryBestFilial ? `${formatPoints(categoryHighlightStats.categoryBestFilial.category_points ?? 0, 1)} pts` : 'No hay filiales'}
               icon={UsersRound}
               color="purple"
               logo={categoryHighlightStats.categoryBestFilial?.logo}
@@ -3926,7 +3943,7 @@ const RankingPageNew: React.FC = () => {
             <StatsBlock
               title="Líder histórico"
               value={categoryHighlightStats.categoryBestHistorical?.team_name || 'N/A'}
-              subtitle={`${categoryHighlightStats.categoryBestHistorical?.historical_points?.toFixed(1) || '0'} pts`}
+              subtitle={`${formatPoints(categoryHighlightStats.categoryBestHistorical?.historical_points ?? 0, 1)} pts`}
               icon={Star}
               color="orange"
               logo={categoryHighlightStats.categoryBestHistorical?.logo}
@@ -4000,7 +4017,7 @@ const RankingPageNew: React.FC = () => {
                 <Calendar className="w-8 h-8 text-orange-500" />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-content-subtle">Actividad</p>
-                  <p className="text-2xl font-semibold text-content">{stats.avg_activity.toFixed(1)}</p>
+                  <p className="text-2xl font-semibold text-content">{formatPoints(stats.avg_activity, 1)}</p>
                 </div>
               </div>
               {/* Tooltip */}
@@ -4042,10 +4059,11 @@ const RankingPageNew: React.FC = () => {
             <div className="flex flex-wrap items-center justify-end gap-3">
               <ViewModeToggle value={rankingViewMode} onChange={setRankingViewMode} />
                 <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-content-muted">Temporada:</label>
+                <label htmlFor="temporada-categoria" className="text-sm font-medium text-content-muted">Temporada:</label>
                   <select 
+                id="temporada-categoria"
                 value={selectedSeasonForDetailedView || referenceSeason || ''}
-                onChange={(e) => setSelectedSeasonForDetailedView(e.target.value || null)}
+                onChange={(e) => setTemporadaSeleccionada(e.target.value)}
                     className="text-sm border border-line-strong rounded px-3 py-1 bg-surface"
                   >
                 {allSeasons.map((season) => {
@@ -4140,9 +4158,9 @@ const RankingPageNew: React.FC = () => {
           {/* Selector de equipos múltiple */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-content-muted">
+              <p className="block text-sm font-medium text-content-muted">
                 Seleccionar equipos para análisis:
-              </label>
+              </p>
               <span className="text-sm text-content-subtle">
                 {selectedTeamsForAnalysis.length} equipos seleccionados
               </span>
@@ -4151,8 +4169,9 @@ const RankingPageNew: React.FC = () => {
             {/* Barra de búsqueda */}
             <div className="mb-3">
               <input
-                type="text"
+                type="search"
                 placeholder="Buscar equipos..."
+                aria-label="Buscar equipos para el análisis"
                 value={teamSearchTerm}
                 onChange={(e) => setTeamSearchTerm(e.target.value)}
                 className="input-field text-sm"
@@ -4285,7 +4304,7 @@ const RankingPageNew: React.FC = () => {
                 <h5 className="text-sm font-medium text-content mb-3">Equipos seleccionados:</h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {analysisData.map((team, index) => {
-                    const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899']
+                    const colors = chart.series
                     return (
                       <div key={team.team_id} className="flex items-center space-x-2">
                         <div 
@@ -4322,10 +4341,10 @@ const RankingPageNew: React.FC = () => {
                           </RankingTeamLink>
                         </div>
                         <div className="text-sm text-content-muted space-y-1">
-                          <div>Total: {totalPoints.toFixed(1)} pts</div>
-                          <div>Promedio: {avgPoints.toFixed(1)} pts</div>
-                          <div>Máximo: {maxPoints.toFixed(1)} pts</div>
-                          <div>Mínimo: {minPoints.toFixed(1)} pts</div>
+                          <div>Total: {formatPoints(totalPoints, 1)} pts</div>
+                          <div>Promedio: {formatPoints(avgPoints, 1)} pts</div>
+                          <div>Máximo: {formatPoints(maxPoints, 1)} pts</div>
+                          <div>Mínimo: {formatPoints(minPoints, 1)} pts</div>
                         </div>
                       </div>
                     )
@@ -4399,8 +4418,8 @@ const RankingPageNew: React.FC = () => {
                 <div className="text-sm text-content-muted">Diferencia 1º-2º</div>
                 <div className="text-xl font-semibold text-content">
                   {rankingData && rankingData.length > 1 
-                    ? (rankingData[0].total_points - rankingData[1].total_points).toFixed(1)
-                    : '0.0'
+                    ? formatPoints(rankingData[0].total_points - rankingData[1].total_points, 1)
+                    : formatPoints(0, 1)
                   }
                 </div>
               </div>
@@ -4414,9 +4433,9 @@ const RankingPageNew: React.FC = () => {
                 <div className="text-sm text-content-muted">Densidad Competitiva</div>
                 <div className="text-xl font-semibold text-content">
                   {rankingData && rankingData.length > 0
-                    ? ((rankingData.slice(0, 10).reduce((sum, team) => sum + team.total_points, 0) / 10) / 
-                       (rankingData[0].total_points || 1) * 100).toFixed(1) + '%'
-                    : '0%'
+                    ? formatPercent((rankingData.slice(0, 10).reduce((sum, team) => sum + team.total_points, 0) / 10) /
+                        (rankingData[0].total_points || 1) * 100) + '%'
+                    : formatPercent(0) + '%'
                   }
                 </div>
               </div>

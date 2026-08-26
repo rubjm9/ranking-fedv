@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { RegionalCoefficientSeasonBreakdown } from '@/services/seasonService'
-import { formatPoints } from '@/utils/rankingCalculations'
+import { formatPoints, formatPercent, formatCoefficient } from '@/utils/rankingCalculations'
 import { MODALITIES, MODALITY_LABELS } from './constants'
 
 interface RegionalCoefficientBreakdownProps {
@@ -66,13 +66,15 @@ const RegionalCoefficientBreakdown: React.FC<RegionalCoefficientBreakdownProps> 
               {breakdown.windowYears.map(w => (
                 <div key={w.year} className="bg-surface-muted rounded-lg p-3 text-center">
                   <div className="text-xs text-content-subtle">{w.seasonLabel}</div>
-                  <div className="text-lg font-bold text-content">×{w.weight}</div>
+                  <div className="text-lg font-bold text-content">×{formatCoefficient(w.weight, 1)}</div>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="bg-brand-subtle rounded-xl p-4">
+            {/* Notación matemática a propósito: con coma decimal, los
+                argumentos de clamp() serían indistinguibles de los decimales. */}
             <p className="font-mono text-brand-strong text-center text-sm">
               coef = clamp(1.0 + (pts_región − media) / media × 0.20, 0.80, 1.20)
             </p>
@@ -121,9 +123,9 @@ const RegionalCoefficientBreakdown: React.FC<RegionalCoefficientBreakdownProps> 
                     <td className="p-2 text-right">{formatPoints(region.weightedPoints)}</td>
                     <td className="p-2 text-right text-content-muted">
                       {region.deviationFromMean >= 0 ? '+' : ''}
-                      {region.deviationFromMean.toFixed(1)}%
+                      {formatPercent(region.deviationFromMean)}%
                     </td>
-                    <td className="p-2 text-right font-bold">{region.coefficient.toFixed(2)}</td>
+                    <td className="p-2 text-right font-bold">{formatCoefficient(region.coefficient)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -146,7 +148,7 @@ const RegionalCoefficientBreakdown: React.FC<RegionalCoefficientBreakdownProps> 
                   {regionsToShow[0].yearBreakdown.map(row => (
                     <tr key={row.year}>
                       <td className="p-2">{row.year}-{(row.year + 1).toString().slice(-2)}</td>
-                      <td className="p-2 text-right">×{row.weight}</td>
+                      <td className="p-2 text-right">×{formatCoefficient(row.weight, 1)}</td>
                       <td className="p-2 text-right">{row.rawPoints}</td>
                       <td className="p-2 text-right font-medium">{formatPoints(row.weightedPoints)}</td>
                     </tr>

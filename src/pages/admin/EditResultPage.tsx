@@ -6,6 +6,7 @@ import { positionsService, UpdatePositionData } from '@/services/apiService'
 import { markRankingDirtyAfterEdit } from '@/services/rankingStateService'
 import FormSkeleton from '@/components/ui/FormSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
+import { formatPoints } from '@/utils/rankingCalculations'
 
 const EditResultPage: React.FC = () => {
   const navigate = useNavigate()
@@ -168,7 +169,7 @@ const EditResultPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-content-subtle">Puntos Actuales</p>
                 <p className="text-lg font-semibold text-content">
-                  {position.points.toFixed(1)}
+                  {formatPoints(position.points, 1)}
                 </p>
               </div>
             </div>

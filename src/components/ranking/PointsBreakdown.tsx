@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useId, useLayoutEffect, useRef, useState
 import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getSeasonBreakdown } from '@/services/pointsBreakdownService'
-import { formatPoints } from '@/utils/rankingCalculations'
+import { formatPoints, formatCoefficient } from '@/utils/rankingCalculations'
 import { useHasHover } from '@/hooks/useHasHover'
 import { cn } from '@/utils/cn'
 
@@ -255,7 +255,7 @@ const PointsBreakdown: React.FC<PointsBreakdownProps> = ({
                           )}
                           {e.regionalCoefficient !== 1 && (
                             <p className="mt-0.5 text-xs tabular-nums text-content-subtle">
-                              {formatPoints(e.basePoints)} × {e.regionalCoefficient.toFixed(2)} coef.
+                              {formatPoints(e.basePoints)} × {formatCoefficient(e.regionalCoefficient)} coef.
                               regional
                             </p>
                           )}
