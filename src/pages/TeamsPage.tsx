@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useMemo, useEffect, useCallback, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Search, UsersRound, MapPin, Trophy, Grid, List, Shield } from 'lucide-react'
@@ -9,7 +9,7 @@ import teamSeasonRankingsService from '@/services/teamSeasonRankingsService'
 import { supabase } from '@/services/supabaseService'
 import { ALL_RANKING_SURFACES } from '@/utils/coefficientCalculator'
 import { useViewMode } from '@/hooks/useViewMode'
-import { useUrlState, useUrlDebouncedState, useUrlBatch } from '@/hooks/useUrlState'
+import { useUrlState, useUrlDebouncedState, useUrlBatch, useUrlNumberState } from '@/hooks/useUrlState'
 import TeamLogo from '@/components/ui/TeamLogo'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import EmptyState from '@/components/ui/EmptyState'
@@ -31,6 +31,7 @@ type SortDirection = 'asc' | 'desc'
 
 const ORDEN_POR_DEFECTO: SortField = 'name'
 const DIRECCION_POR_DEFECTO: SortDirection = 'asc'
+const POR_PAGINA_POR_DEFECTO = 20
 
 const filterSelectClass =
   'h-7 w-full min-w-[5.5rem] rounded-md border border-line bg-surface px-2 text-xs text-content-muted focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
@@ -46,19 +47,42 @@ const TeamsPage = () => {
   usePageMeta({ title: 'Equipos', description: 'Todos los equipos de ultimate frisbee de España, con su región y su posición en el ranking FEDV.' })
 
   const navigate = useNavigate()
-  const [teamSearch, setTeamSearch] = useUrlDebouncedState('q')
-  const [locationSearch, setLocationSearch] = useUrlDebouncedState('ubicacion')
+  const [teamSearch, setTeamSearch, teamSearchEnUrl] = useUrlDebouncedState('q')
+  const [locationSearch, setLocationSearch, locationSearchEnUrl] = useUrlDebouncedState('ubicacion')
   const [selectedRegion, setSelectedRegion] = useUrlState<string>('region', '')
   const [sortField] = useUrlState<SortField>('orden', ORDEN_POR_DEFECTO)
   const [sortDirection] = useUrlState<SortDirection>('dir', DIRECCION_POR_DEFECTO)
   const escribirUrl = useUrlBatch()
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(20)
+  // La página también va en la URL: volver de una ficha a la página 1 cuando
+  // estabas en la 3 es la misma molestia que perder el filtro.
+  const [currentPage, setCurrentPage] = useUrlNumberState('pagina', 1)
+  const [itemsPerPage] = useUrlNumberState('por-pagina', POR_PAGINA_POR_DEFECTO)
   const [viewMode, setViewMode] = useViewMode()
 
+  /** Cambiar el tamaño de página vuelve a la primera, o quedarías fuera de rango. */
+  const cambiarPorPagina = (n: number) =>
+    escribirUrl({
+      'por-pagina': n === POR_PAGINA_POR_DEFECTO ? null : String(n),
+      pagina: null,
+    })
+
+  // Volver a la página 1 al cambiar un filtro, pero no en el montaje: si no,
+  // una URL compartida con ?pagina=3 se reseteaba a sí misma al abrirla.
+  //
+  // Depende de los valores ya asentados en la URL, no de los inmediatos: con
+  // los inmediatos esto se dispararía en cada pulsación del buscador.
+  // Se comparan los valores, no se cuentan ejecuciones: StrictMode monta el
+  // efecto dos veces en desarrollo y un guard de «primera vez» pasaría de largo
+  // en la segunda.
+  const filtrosPrevios = useRef<string | null>(null)
   useEffect(() => {
-    setCurrentPage(1)
-  }, [selectedRegion, teamSearch, locationSearch])
+    const clave = `${selectedRegion}|${teamSearchEnUrl}|${locationSearchEnUrl}`
+    if (filtrosPrevios.current === clave) return
+    const esPrimera = filtrosPrevios.current === null
+    filtrosPrevios.current = clave
+    if (!esPrimera && currentPage !== 1) setCurrentPage(1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRegion, teamSearchEnUrl, locationSearchEnUrl])
 
   const { data: teamsData, isLoading, error } = useQuery({
     queryKey: ['teams'],
@@ -214,10 +238,10 @@ const TeamsPage = () => {
       q: null,
       ubicacion: null,
       region: null,
+      pagina: null,
     })
     setTeamSearch('')
     setLocationSearch('')
-    setCurrentPage(1)
   }, [escribirUrl, setTeamSearch, setLocationSearch])
 
   const stopPropagation = (event: React.SyntheticEvent) => {
@@ -278,6 +302,49 @@ const TeamsPage = () => {
           />
         }
       />
+
+      {/*
+        Buscador y región para la vista de tarjetas.
+
+        Los filtros vivían solo en la cabecera de la tabla, que en tarjetas está
+        oculta: la vista que sale por defecto en móvil no tenía forma de buscar
+        entre setenta equipos. En tabla no se repite, porque ahí ya están.
+      */}
+      {viewMode === 'cards' && (
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row">
+          <div className="relative flex-1">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-content-subtle"
+              aria-hidden="true"
+            />
+            <input
+              id="buscar-equipo"
+              type="search"
+              value={teamSearch}
+              onChange={e => setTeamSearch(e.target.value)}
+              placeholder="Buscar equipo..."
+              aria-label="Buscar equipo por nombre"
+              className="input-field pl-9 text-base"
+            />
+          </div>
+          <label htmlFor="filtrar-region" className="sr-only">
+            Filtrar por región
+          </label>
+          <select
+            id="filtrar-region"
+            value={selectedRegion}
+            onChange={e => setSelectedRegion(e.target.value)}
+            className="input-field text-base sm:w-48"
+          >
+            <option value="">Todas las regiones</option>
+            {(regionsData?.data || []).map((region: { id: string; name: string }) => (
+              <option key={region.id} value={region.id}>
+                {region.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Contador, limpiar filtros y vista */}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -548,7 +615,7 @@ const TeamsPage = () => {
                 totalItems={filteredAndSortedTeams.length}
                 itemsPerPage={itemsPerPage}
                 onPageChange={setCurrentPage}
-                onItemsPerPageChange={setItemsPerPage}
+                onItemsPerPageChange={cambiarPorPagina}
               />
             </div>
           )}
