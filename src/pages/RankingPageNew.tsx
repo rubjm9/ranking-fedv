@@ -28,6 +28,7 @@ import {
   TEAM_RANKING_NAME_SELECT,
 } from '@/utils/teamNames'
 import { usePageMeta } from '@/hooks/usePageMeta'
+import { useUrlState } from '@/hooks/useUrlState'
 
 interface SimpleChartProps {
   data: any[]
@@ -241,6 +242,8 @@ const SLUG_TO_TAB: Record<string, string> = {
   'open': 'general',
   'women': 'general',
 }
+
+type DetailedViewMode = 'ranking' | 'historical' | 'clubs' | 'analysis' | 'advanced'
 
 const SLUG_TO_COMBINED: Record<string, CombinedType> = {
   'general': 'all',
@@ -618,9 +621,15 @@ const RankingPageNew: React.FC = () => {
   const [hoveredPoint, setHoveredPoint] = useState<{team: any, point: any, x: number, y: number} | null>(null)
   const [teamSearchTerm, setTeamSearchTerm] = useState<string>('')
   const [showAllTeams, setShowAllTeams] = useState<boolean>(false)
-  const [detailedViewMode, setDetailedViewMode] = useState<'ranking' | 'historical' | 'clubs' | 'analysis' | 'advanced'>('ranking')
-  const [selectedSeasonForDetailedView, setSelectedSeasonForDetailedView] = useState<string | null>(null)
-  const [selectedSeasonForGeneralView, setSelectedSeasonForGeneralView] = useState<string | null>(null)
+  // Sub-vista y temporada viven en la URL: «mira el ranking de clubes de
+  // 2023-24» era imposible de compartir, y volver de una ficha te devolvía
+  // siempre al ranking del año en curso.
+  const [detailedViewMode, setDetailedViewMode] = useUrlState<DetailedViewMode>('vista', 'ranking')
+  // Un solo parámetro para las dos vistas: es la misma intención del usuario, y
+  // todas las lecturas tienen su propio fallback si la temporada no aplica.
+  const [temporadaSeleccionada, setTemporadaSeleccionada] = useUrlState<string>('temporada', '')
+  const selectedSeasonForDetailedView = temporadaSeleccionada
+  const selectedSeasonForGeneralView = temporadaSeleccionada
   // categoryHighlightStats ahora viene de una query cacheada más abajo
 
   // Sync URL param :surface → component state
@@ -632,7 +641,9 @@ const RankingPageNew: React.FC = () => {
       if (VALID_CATEGORY_TABS.includes(tab as typeof VALID_CATEGORY_TABS[number])) {
         setSelectedSurface(tab)
       }
-      setDetailedViewMode('ranking')
+      // Antes forzaba setDetailedViewMode('ranking') aquí. Ya no hace falta: el
+      // cambio de pestaña descarta `vista` al navegar, y forzarlo en el montaje
+      // borraba la sub-vista de cualquier enlace compartido.
     }
     const combined = SLUG_TO_COMBINED[surface]
     if (combined) {
@@ -3345,7 +3356,7 @@ const RankingPageNew: React.FC = () => {
                 <label className="text-sm font-medium text-content-muted">Temporada:</label>
                 <select
                   value={selectedSeasonForGeneralView || defaultGeneralSeason || referenceSeason || ''}
-                  onChange={(e) => setSelectedSeasonForGeneralView(e.target.value || null)}
+                  onChange={(e) => setTemporadaSeleccionada(e.target.value)}
                   className="text-sm border border-line-strong rounded px-3 py-1 bg-surface"
                 >
                   {generalSeasonOptions.map((season) => {
@@ -4006,7 +4017,7 @@ const RankingPageNew: React.FC = () => {
                 <label className="text-sm font-medium text-content-muted">Temporada:</label>
                   <select 
                 value={selectedSeasonForDetailedView || referenceSeason || ''}
-                onChange={(e) => setSelectedSeasonForDetailedView(e.target.value || null)}
+                onChange={(e) => setTemporadaSeleccionada(e.target.value)}
                     className="text-sm border border-line-strong rounded px-3 py-1 bg-surface"
                   >
                 {allSeasons.map((season) => {
