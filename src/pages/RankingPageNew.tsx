@@ -796,7 +796,8 @@ const RankingPageNew: React.FC = () => {
 
   // Query para obtener datos de ranking por categoría
   // Query optimizada: usa datos pre-calculados con position_change incluido
-  const { data: rankingData, isLoading, error } = useQuery({
+  // isPlaceholderData: true mientras keepPreviousData muestra la categoría anterior al cambiar de pestaña
+  const { data: rankingData, isLoading, error, isPlaceholderData: isRankingPlaceholderData } = useQuery({
     queryKey: ['ranking-optimized', selectedSurface, seasonToUse],
     placeholderData: keepPreviousData,
     queryFn: async () => {
@@ -1090,12 +1091,26 @@ const RankingPageNew: React.FC = () => {
   const [generalRankingWithChanges, setGeneralRankingWithChanges] = useState<any[] | null>(null)
   const [categoryRankingWithChanges, setCategoryRankingWithChanges] = useState<any[] | null>(null)
 
-  // Query cacheada para estadísticas de categoría
+  // Query cacheada para estadísticas de categoría.
+  // No calcular con rankingData de placeholder (categoría anterior vía keepPreviousData):
+  // si no, se cachean highlights incorrectos bajo la clave de la nueva pestaña.
+  const rankingDataFingerprint = rankingData?.[0]?.team_id ?? null
   const { data: categoryHighlightStatsQuery } = useQuery({
-    queryKey: ['highlight-stats-category', activeTab, selectedCategorySeason],
-    queryFn: () => getCategoryHighlightStats(activeTab, rankingData!, selectedCategorySeason!),
+    queryKey: [
+      'highlight-stats-category',
+      activeTab,
+      seasonToUse,
+      rankingDataFingerprint,
+      rankingData?.length ?? 0,
+    ],
+    queryFn: () => getCategoryHighlightStats(activeTab, rankingData!, seasonToUse!),
     staleTime: 15 * 60 * 1000, // 15 minutos
-    enabled: activeTab !== 'summary' && activeTab !== 'general' && !!rankingData && !!selectedCategorySeason
+    enabled:
+      activeTab !== 'summary' &&
+      activeTab !== 'general' &&
+      !!rankingData &&
+      !!seasonToUse &&
+      !isRankingPlaceholderData,
   })
   
   const categoryHighlightStats = categoryHighlightStatsQuery || null
