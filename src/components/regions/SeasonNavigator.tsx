@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useUrlBatch } from '@/hooks/useUrlState'
 
 interface SeasonNavigatorProps {
   seasons: string[]
@@ -15,15 +16,19 @@ const SeasonNavigator: React.FC<SeasonNavigatorProps> = ({
   calculationSeason,
   appliesToSeason,
 }) => {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
+  // Antes escribía con un objeto literal, que machaca la query entera. Hoy no
+  // se notaba porque estas rutas no llevaban otros parámetros; en cuanto los
+  // llevan, se perderían.
+  const escribirUrl = useUrlBatch()
 
   const selectedSeason = searchParams.get('temporada') || defaultSeason || seasons[0] || ''
 
   useEffect(() => {
     if (!searchParams.get('temporada') && defaultSeason && seasons.includes(defaultSeason)) {
-      setSearchParams({ temporada: defaultSeason }, { replace: true })
+      escribirUrl({ temporada: defaultSeason })
     }
-  }, [defaultSeason, seasons, searchParams, setSearchParams])
+  }, [defaultSeason, seasons, searchParams, escribirUrl])
 
   const currentIndex = useMemo(
     () => seasons.findIndex(s => s === selectedSeason),
@@ -31,7 +36,7 @@ const SeasonNavigator: React.FC<SeasonNavigatorProps> = ({
   )
 
   const goToSeason = (season: string) => {
-    setSearchParams({ temporada: season }, { replace: true })
+    escribirUrl({ temporada: season })
   }
 
   const goPrev = () => {
