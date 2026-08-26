@@ -2,6 +2,7 @@ import React from 'react'
 import { LucideIcon } from 'lucide-react'
 import TeamLogo from '@/components/ui/TeamLogo'
 import Tooltip from '@/components/ui/Tooltip'
+import { cn } from '@/utils/cn'
 
 export interface StatsBlockProps {
   title: string
@@ -25,12 +26,14 @@ const StatsBlock: React.FC<StatsBlockProps> = ({
   tooltip,
   useLogoAsBackground = false,
 }) => {
+  const textoSobreLogo = useLogoAsBackground && !!logo
+
   return (
     <div className="relative group h-full flex flex-col">
       <div className="bg-surface rounded-lg border border-line shadow-sm relative overflow-hidden h-full flex flex-col">
         {useLogoAsBackground && logo && (
           <div
-            className="absolute inset-0 opacity-20 pointer-events-none rounded-lg overflow-hidden"
+            className="absolute inset-0 opacity-20 dark:opacity-15 pointer-events-none rounded-lg overflow-hidden"
             style={{
               backgroundImage: `url(${logo})`,
               backgroundRepeat: 'no-repeat',
@@ -54,16 +57,28 @@ const StatsBlock: React.FC<StatsBlockProps> = ({
             )}
           </div>
         )}
-        <div className="relative z-10 p-4 pt-3 flex-1 flex flex-col justify-end">
+        <div
+          className={cn(
+            'relative z-10 p-4 pt-3 flex-1 flex flex-col justify-end',
+            textoSobreLogo &&
+              'bg-gradient-to-t from-surface via-surface/80 to-transparent dark:from-surface dark:via-surface/90'
+          )}
+        >
           <p
-            className="text-lg font-bold text-content break-words line-clamp-2 leading-tight"
-            style={{ textShadow: '0 0 4px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 255, 255, 0.7)' }}
+            className={cn(
+              'text-lg font-bold text-content break-words line-clamp-2 leading-tight',
+              textoSobreLogo &&
+                '[text-shadow:0_0_4px_rgba(255,255,255,0.9),0_0_8px_rgba(255,255,255,0.7)] dark:[text-shadow:none]'
+            )}
           >
             {value}
           </p>
           <p
-            className="text-[10px] text-content-subtle mt-1 leading-tight line-clamp-3 break-words"
-            style={{ textShadow: '0 0 2px rgba(255, 255, 255, 0.8), 0 0 4px rgba(255, 255, 255, 0.6)' }}
+            className={cn(
+              'text-[10px] text-content-subtle mt-1 leading-tight line-clamp-3 break-words',
+              textoSobreLogo &&
+                '[text-shadow:0_0_2px_rgba(255,255,255,0.8),0_0_4px_rgba(255,255,255,0.6)] dark:[text-shadow:none]'
+            )}
           >
             {subtitle}
           </p>
