@@ -6,8 +6,11 @@ import PageHeader from '@/components/layout/PageHeader'
 import PointsCurveTable from '@/components/about/PointsCurveTable'
 import { nationalCurvePoints, regionalCurvePoints } from '@/utils/tournamentUtils'
 import { DEFAULT_TEMPORAL_WEIGHTS } from '@/utils/rankingCalculations'
+import { usePageMeta } from '@/hooks/usePageMeta'
 
 const AboutPage: React.FC = () => {
+  usePageMeta({ title: 'Cómo funciona', description: 'Cómo se calcula el ranking FEDV: puntos por puesto, coeficiente regional y ponderación por temporada.' })
+
   const ce2Offset = 16
   const [pointsTablesExpanded, setPointsTablesExpanded] = useState(false)
 

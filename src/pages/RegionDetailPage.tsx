@@ -25,6 +25,7 @@ import DataTable, {
 import SeasonNavigator, { useSelectedSeason } from '@/components/regions/SeasonNavigator'
 import RegionalCoefficientBreakdown from '@/components/regions/RegionalCoefficientBreakdown'
 import { MODALITIES, MODALITY_LABELS, getCoefficientStyle } from '@/components/regions/constants'
+import { usePageMeta } from '@/hooks/usePageMeta'
 
 const CHART_COLORS = ['#4F46E5', '#F97316', '#10B981', '#6366F1', '#EA580C', '#0EA5E9']
 const formatChartValue = (value: number) => Number(value).toFixed(2)
@@ -141,6 +142,13 @@ const RegionDetailPage: React.FC = () => {
   })
 
   const region = regionResponse?.data
+
+  usePageMeta({
+    title: region?.name,
+    description: region?.name
+      ? `Equipos, torneos y coeficiente regional de ${region.name} en el ranking FEDV.`
+      : undefined,
+  })
 
   const { data: coeffSeasonInfo } = useQuery({
     queryKey: ['regional-coeff-season-info'],

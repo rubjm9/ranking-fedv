@@ -1,8 +1,11 @@
 import React from 'react'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
+import { usePageMeta } from '@/hooks/usePageMeta'
 
 const TermsPage: React.FC = () => {
+  usePageMeta({ title: 'Términos' })
+
   return (
     <PageContainer>
       <PageHeader

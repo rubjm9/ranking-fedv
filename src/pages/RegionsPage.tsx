@@ -15,8 +15,11 @@ import SeasonNavigator, { useSelectedSeason } from '@/components/regions/SeasonN
 import RegionalCoefficientMatrix from '@/components/regions/RegionalCoefficientMatrix'
 import RegionalCoefficientBreakdown from '@/components/regions/RegionalCoefficientBreakdown'
 import { MODALITY_SHORT, MODALITY_LABELS, getCoefficientColor } from '@/components/regions/constants'
+import { usePageMeta } from '@/hooks/usePageMeta'
 
 const RegionsPage = () => {
+  usePageMeta({ title: 'Regiones', description: 'Las regiones del ranking FEDV y el coeficiente regional de cada una.' })
+
   const [showFormula, setShowFormula] = useState(false)
   const [regionStats, setRegionStats] = useState<{
     mostActive: { name: string; count: number } | null

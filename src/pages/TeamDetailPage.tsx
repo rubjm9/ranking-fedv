@@ -20,6 +20,7 @@ import TabsSkeleton from '@/components/ui/TabsSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import AnimatedPoints from '@/components/ui/AnimatedPoints'
 import { formatBestGlobalPositionWhen } from '@/utils/rankingCalculations'
+import { usePageMeta } from '@/hooks/usePageMeta'
 
 const renderHistoricalGlobalPositionValue = (
   position: number,
@@ -74,6 +75,16 @@ const TeamDetailPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [teamData, setTeamData] = useState<TeamDetailData | null>(null)
   const [relatedTeams, setRelatedTeams] = useState<any[]>([])
+
+  // El nombre llega de forma asíncrona, así que el hook se llama siempre y
+  // el título queda en el genérico mientras no haya dato.
+  usePageMeta({
+    title: teamData?.team?.name,
+    description: teamData?.team?.name
+      ? `Resultados, evolución y puntos de ${teamData.team.name} en el ranking FEDV.`
+      : undefined,
+  })
+
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview')
   const [chartMetric, setChartMetric] = useState<'position' | 'points'>('position')
   const [compareWithTeamId, setCompareWithTeamId] = useState<string>('')

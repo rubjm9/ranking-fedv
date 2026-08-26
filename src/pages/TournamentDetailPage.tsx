@@ -25,6 +25,7 @@ import DataTable from '@/components/ui/DataTable'
 import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
 import ContentGridSkeleton from '@/components/ui/ContentGridSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
+import { usePageMeta } from '@/hooks/usePageMeta'
 
 interface Tournament {
   id: string
@@ -117,6 +118,13 @@ const TournamentDetailPage: React.FC = () => {
   })
 
   const tournament = tournamentData?.data
+
+  usePageMeta({
+    title: tournament?.name,
+    description: tournament?.name
+      ? `Clasificación y puntos otorgados en ${tournament.name}.`
+      : undefined,
+  })
 
   const isRegional = tournament?.type === 'REGIONAL'
   const isFinished = tournament ? isTournamentFinished(tournament) : false

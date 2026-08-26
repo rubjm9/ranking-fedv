@@ -1,8 +1,11 @@
 import React from 'react'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
+import { usePageMeta } from '@/hooks/usePageMeta'
 
 const PrivacyPage: React.FC = () => {
+  usePageMeta({ title: 'Privacidad' })
+
   return (
     <PageContainer>
       <PageHeader

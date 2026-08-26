@@ -11,6 +11,7 @@ import TableSkeleton from '@/components/ui/TableSkeleton'
 import TableColumnFilter from '@/components/ui/TableColumnFilter'
 import TournamentCategoryIcon from '@/components/ui/TournamentCategoryIcon'
 import { tournamentsService } from '@/services/apiService'
+import { usePageMeta } from '@/hooks/usePageMeta'
 
 type SortField = 'name' | 'year' | 'type' | 'surface' | 'category' | 'region'
 type SortDirection = 'asc' | 'desc'
@@ -19,6 +20,8 @@ const filterSelectClass =
   'h-7 w-full min-w-[5.5rem] rounded-md border border-line bg-surface px-2 text-xs text-content-muted focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
 
 const TournamentsPage = () => {
+  usePageMeta({ title: 'Torneos', description: 'Calendario y resultados de los torneos de ultimate frisbee disputados en España.' })
+
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedType, setSelectedType] = useState('')
   const [selectedYear, setSelectedYear] = useState('')

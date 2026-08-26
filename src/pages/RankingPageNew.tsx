@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Trophy, Medal, TrendingUp, TrendingDown, UsersRound, Shield, Calendar, RefreshCw, BarChart3, LineChart, Star, MapPin, ChevronRight, Info } from 'lucide-react'
 import hybridRankingService from '@/services/hybridRankingService'
 import { supabase } from '@/services/supabaseService'
@@ -26,6 +26,7 @@ import {
   getTeamDisplayNameForCategory,
   TEAM_RANKING_NAME_SELECT,
 } from '@/utils/teamNames'
+import { usePageMeta } from '@/hooks/usePageMeta'
 
 interface SimpleChartProps {
   data: any[]
@@ -247,6 +248,63 @@ const SLUG_TO_COMBINED: Record<string, CombinedType> = {
   'mixto': 'mixed',
   'open': 'open',
   'women': 'women',
+}
+
+/**
+ * Inverso de SLUG_TO_TAB. Estaba reimplementado a mano dos veces, en sendos
+ * `slugMap` inline que además se recreaban en cada click.
+ */
+const TAB_TO_SLUG: Record<string, string> = {
+  summary: 'resumen',
+  general: 'general',
+  beach_mixed: 'beach-mixed',
+  beach_women: 'beach-women',
+  beach_open: 'beach-open',
+  grass_mixed: 'grass-mixed',
+  grass_women: 'grass-women',
+  grass_open: 'grass-open',
+}
+
+const COMBINED_TO_SLUG: Record<CombinedType, string> = {
+  all: 'general',
+  beach: 'playa',
+  grass: 'cesped',
+  mixed: 'mixto',
+  open: 'open',
+  women: 'women',
+}
+
+/** Etiqueta legible de cada slug, para el título de la pestaña del navegador. */
+const SURFACE_LABELS: Record<string, string> = {
+  resumen: 'Resumen',
+  summary: 'Resumen',
+  general: 'Ranking general',
+  playa: 'Ranking de playa',
+  cesped: 'Ranking de césped',
+  mixto: 'Ranking mixto',
+  open: 'Ranking open',
+  women: 'Ranking women',
+  'beach-mixed': 'Playa mixto',
+  'beach-women': 'Playa women',
+  'beach-open': 'Playa open',
+  'grass-mixed': 'Césped mixto',
+  'grass-women': 'Césped women',
+  'grass-open': 'Césped open',
+}
+
+/**
+ * Query a conservar al cambiar de pestaña. Antes se navegaba con una plantilla
+ * de path desnuda, que descartaba los filtros enteros.
+ *
+ * `vista` se descarta a propósito: el efecto de sincronización con :surface
+ * resetea detailedViewMode a 'ranking', así que arrastrarla dejaría la URL
+ * diciendo algo que la vista no muestra.
+ */
+const rankingSearchAlCambiarPestana = (search: string): string => {
+  const params = new URLSearchParams(search)
+  params.delete('vista')
+  const qs = params.toString()
+  return qs ? `?${qs}` : ''
 }
 
 const ALL_RANKING_SURFACES = [
@@ -503,6 +561,14 @@ const resolveCombinedTypeFromSurface = (surfaceParam?: string): CombinedType => 
 const RankingPageNew: React.FC = () => {
   const { surface } = useParams<{ surface: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  usePageMeta({
+    title: (surface && SURFACE_LABELS[surface]) || 'Ranking',
+    description:
+      'Ranking de ultimate frisbee de España: puntos por temporada, coeficiente regional y evolución de cada equipo.',
+  })
+
   const [activeTab, setActiveTab] = useState<RankingActiveTab>(() => resolveTabFromSurface(surface))
   const [selectedCombinedType, setSelectedCombinedType] = useState<CombinedType>(() => resolveCombinedTypeFromSurface(surface))
   // Nota: selectedSurface almacena superficies (beach_mixed, etc.)
@@ -1050,17 +1116,10 @@ const RankingPageNew: React.FC = () => {
   })
 
   const handleTabClick = (tabId: string) => {
-    const slugMap: Record<string, string> = {
-      'summary': 'resumen',
-      'general': 'general',
-      'beach_mixed': 'beach-mixed',
-      'beach_women': 'beach-women',
-      'beach_open': 'beach-open',
-      'grass_mixed': 'grass-mixed',
-      'grass_women': 'grass-women',
-      'grass_open': 'grass-open',
-    }
-    navigate(`/ranking/${slugMap[tabId] || tabId}`)
+    navigate({
+      pathname: `/ranking/${TAB_TO_SLUG[tabId] || tabId}`,
+      search: rankingSearchAlCambiarPestana(location.search),
+    })
   }
 
   // Query cacheada para estadísticas destacadas del resumen
@@ -2927,11 +2986,10 @@ const RankingPageNew: React.FC = () => {
             type="button"
             onClick={() => {
               setSelectedCombinedType(type)
-              const slugMap: Record<CombinedType, string> = {
-                all: 'general', beach: 'playa', grass: 'cesped',
-                mixed: 'mixto', open: 'open', women: 'women',
-              }
-              navigate(`/ranking/${slugMap[type]}`)
+              navigate({
+                pathname: `/ranking/${COMBINED_TO_SLUG[type]}`,
+                search: rankingSearchAlCambiarPestana(location.search),
+              })
             }}
             className={`min-h-[44px] rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
               selectedCombinedType === type

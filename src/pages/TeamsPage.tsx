@@ -20,8 +20,11 @@ import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
 import DataTable from '@/components/ui/DataTable'
 import TeamModalityNames from '@/components/teams/TeamModalityNames'
 import { getTeamModalityNameEntries } from '@/utils/teamNames'
+import { usePageMeta } from '@/hooks/usePageMeta'
 
 const TeamsPage = () => {
+  usePageMeta({ title: 'Equipos', description: 'Todos los equipos de ultimate frisbee de España, con su región y su posición en el ranking FEDV.' })
+
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const debouncedSearchTerm = useDebounce(searchTerm, 300)

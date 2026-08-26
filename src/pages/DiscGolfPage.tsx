@@ -3,8 +3,11 @@ import { Link } from 'react-router-dom'
 import { Disc3, Trophy } from 'lucide-react'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
+import { usePageMeta } from '@/hooks/usePageMeta'
 
 const DiscGolfPage: React.FC = () => {
+  usePageMeta({ title: 'Disc golf', description: 'Disc golf en España, dentro de la Federación Española de Disco Volador.' })
+
   return (
     <PageContainer>
       <PageHeader

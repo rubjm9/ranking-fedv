@@ -2,8 +2,11 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { Home, ArrowLeft, AlertTriangle } from 'lucide-react'
 import PageContainer from '@/components/layout/PageContainer'
+import { usePageMeta } from '@/hooks/usePageMeta'
 
 const NotFoundPage: React.FC = () => {
+  usePageMeta({ title: 'Página no encontrada' })
+
   return (
     <PageContainer className="flex items-center justify-center min-h-[60vh]">
       <div className="max-w-md w-full text-center">
