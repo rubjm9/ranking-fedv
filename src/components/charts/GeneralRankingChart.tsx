@@ -1,6 +1,7 @@
 import React from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import dynamicRankingService from '@/services/dynamicRankingService'
+import { formatPoints, formatInteger } from '@/utils/rankingCalculations'
 
 interface SubseasonDataPoint {
   date: string
@@ -222,7 +223,7 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
               {metric === 'position' ? (
                 <span className="font-medium">#{value}</span>
               ) : (
-                <span className="font-medium">{Number(value).toFixed(1)} pts</span>
+                <span className="font-medium">{formatPoints(Number(value), 1)} pts</span>
               )}
             </div>
           )
@@ -251,6 +252,7 @@ const GeneralRankingChart: React.FC<GeneralRankingChartProps> = ({
             axisLine={false}
           />
           <YAxis 
+            tickFormatter={(v: number) => formatInteger(v)}
             stroke="#666"
             fontSize={12}
             tickLine={false}

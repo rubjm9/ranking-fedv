@@ -9,6 +9,7 @@ import {
   Tooltip,
 } from 'recharts'
 import { MODALITY_LABELS } from '@/components/regions/constants'
+import { formatPoints } from '@/utils/rankingCalculations'
 
 interface RankingEntry {
   position: number
@@ -126,7 +127,7 @@ const TeamRankingRadarChart: React.FC<TeamRankingRadarChartProps> = ({
               </span>
             </p>
             <p className="text-content-muted">
-              Puntos: <span className="font-semibold text-content">{entry.points.toFixed(1)}</span>
+              Puntos: <span className="font-semibold text-content">{formatPoints(entry.points, 1)}</span>
             </p>
           </>
         ) : (

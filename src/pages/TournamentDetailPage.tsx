@@ -5,14 +5,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { useQuery } from '@tanstack/react-query'
 import { tournamentsService, getTeamPublicUrl, getTournamentPublicUrl } from '@/services/apiService'
 import seasonService from '@/services/seasonService'
-import {
-  buildRegionalCoefficientLookup,
-  formatInteger,
-  formatSeasonFromYear,
-  getPreviousSeasonLabel,
-  getWeightedRegionalPoints,
-  roundPoints,
-} from '@/utils/rankingCalculations'
+import { buildRegionalCoefficientLookup, formatInteger, formatSeasonFromYear, getPreviousSeasonLabel, getWeightedRegionalPoints, roundPoints, formatCoefficient } from '@/utils/rankingCalculations'
 import { translateSurface, translateModality, translateTournamentType } from '@/utils/translations'
 import TeamLogo from '@/components/ui/TeamLogo'
 import ShareButton from '@/components/ui/ShareButton'
@@ -592,7 +585,7 @@ const TournamentDetailPage: React.FC = () => {
                       {isRegional && (
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-content">
-                            {position.coefficient.toFixed(2)}x
+                            {formatCoefficient(position.coefficient)}x
                           </div>
                         </td>
                       )}

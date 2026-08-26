@@ -1,6 +1,7 @@
 import React from 'react'
 import TeamLogo from '@/components/ui/TeamLogo'
 import RankingTeamLink from '@/components/ranking/RankingTeamLink'
+import { formatPoints } from '@/utils/rankingCalculations'
 
 const getCategoryBadge = (category: string) => {
   if (category.includes('beach')) {
@@ -117,7 +118,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap">
                   <span className="text-sm font-medium text-content">
-                    {team.total_points?.toFixed(1) || '0.0'}
+                    {formatPoints(team.total_points ?? 0, 1)}
                   </span>
                 </td>
               </tr>

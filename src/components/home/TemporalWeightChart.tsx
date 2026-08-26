@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { DEFAULT_TEMPORAL_WEIGHTS } from '@/utils/rankingCalculations'
+import { DEFAULT_TEMPORAL_WEIGHTS, formatCoefficient } from '@/utils/rankingCalculations'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 const RAW_POINTS = 1000
@@ -104,7 +104,7 @@ const TemporalWeightChart: React.FC = () => {
                   <p className="text-xs text-content-subtle">{season.chip}</p>
                 </div>
                 <p className="font-mono text-sm font-semibold text-content">
-                  {RAW_POINTS} × {season.value.toFixed(1)} ={' '}
+                  {RAW_POINTS} × {formatCoefficient(season.value, 1)} ={' '}
                   <span className="text-brand-strong">{contribution}</span>
                 </p>
               </div>

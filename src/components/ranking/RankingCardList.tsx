@@ -5,6 +5,7 @@ import RankingTeamLink from '@/components/ranking/RankingTeamLink'
 import PointsBreakdown from '@/components/ranking/PointsBreakdown'
 import TotalBreakdown from '@/components/ranking/TotalBreakdown'
 import { cn } from '@/utils/cn'
+import { formatPoints } from '@/utils/rankingCalculations'
 
 interface RankingCardListProps {
   teams: any[]
@@ -152,7 +153,7 @@ const RankingCardList: React.FC<RankingCardListProps> = ({
                           className="justify-start"
                         />
                       ) : (
-                        (getSeasonPoints(team, season) || 0).toFixed(2)
+                        formatPoints(getSeasonPoints(team, season) || 0, 2)
                       )}
                     </dd>
                   </div>

@@ -19,7 +19,7 @@ import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
 import TabsSkeleton from '@/components/ui/TabsSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import AnimatedPoints from '@/components/ui/AnimatedPoints'
-import { formatBestGlobalPositionWhen } from '@/utils/rankingCalculations'
+import { formatBestGlobalPositionWhen, formatPoints } from '@/utils/rankingCalculations'
 import { usePageMeta } from '@/hooks/usePageMeta'
 import { useUrlState } from '@/hooks/useUrlState'
 
@@ -357,7 +357,7 @@ const TeamDetailPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-line">
                   <span className="text-sm text-content-muted font-medium">Acumulación histórica:</span>
-                  <span className="text-sm font-semibold text-content">{statistics.totalPoints.toFixed(1)}</span>
+                  <span className="text-sm font-semibold text-content">{formatPoints(statistics.totalPoints, 1)}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-line">
                   <span className="text-sm text-content-muted font-medium">Temporadas activas:</span>
@@ -453,7 +453,7 @@ const TeamDetailPage: React.FC = () => {
                         <span className="text-sm font-medium text-content">#{ranking.position}</span>
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-content">{ranking.points.toFixed(1)}</span>
+                        <span className="text-sm text-content">{formatPoints(ranking.points, 1)}</span>
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                         {ranking.change !== 0 ? (
@@ -689,7 +689,7 @@ const TeamDetailPage: React.FC = () => {
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
                     <h4 className="text-md font-medium text-content">{season.season}</h4>
                     <span className="text-sm font-medium text-content-muted">
-                      {season.totalPoints.toFixed(1)} puntos totales
+                      {formatPoints(season.totalPoints, 1)} puntos totales
                     </span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -704,7 +704,7 @@ const TeamDetailPage: React.FC = () => {
                           </span>
                         </div>
                         <div className="text-sm text-content-muted">
-                          <div>{data.points.toFixed(1)} puntos</div>
+                          <div>{formatPoints(data.points, 1)} puntos</div>
                           <div>{data.tournaments} campeonatos</div>
                           <div>Mejor: {data.bestPosition}º</div>
                         </div>

@@ -4,6 +4,7 @@ import { ArrowLeft, Save, MapPin, Calculator } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { regionsService } from '@/services/apiService'
 import { useQueryClient } from '@tanstack/react-query'
+import { formatCoefficient } from '@/utils/rankingCalculations'
 
 const NewRegionPage: React.FC = () => {
   const navigate = useNavigate()
@@ -160,7 +161,7 @@ const NewRegionPage: React.FC = () => {
               <div className="flex items-center justify-center">
                 <div className="text-center p-4 bg-surface-muted rounded-lg">
                   <div className="page-header-title">
-                    {formData.coefficient.toFixed(2)}
+                    {formatCoefficient(formData.coefficient)}
                   </div>
                   <div className="text-sm text-content-muted">
                     {formData.coefficient < 1.0 ? 'Dificultad reducida' : 

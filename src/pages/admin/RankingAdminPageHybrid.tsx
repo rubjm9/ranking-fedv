@@ -10,6 +10,7 @@ import hybridRankingService from '@/services/hybridRankingService'
 import TeamLogo from '@/components/ui/TeamLogo'
 import ActionButtonGroup from '@/components/ui/ActionButtonGroup'
 import { getTeamPublicUrl } from '@/services/apiService'
+import { formatPoints, formatCoefficient } from '@/utils/rankingCalculations'
 
 const filterSelectClass =
   'h-7 w-full min-w-[5.5rem] rounded-md border border-line bg-surface px-2 text-xs text-content-muted focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
@@ -217,45 +218,45 @@ const RankingAdminPageHybrid: React.FC = () => {
                     {selectedSeason === 'current' && (
                       <>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-content">
-                          {team.season_breakdown?.['2024-25']?.weighted_points?.toFixed(1) || '0.0'}
+                          {formatPoints(team.season_breakdown?.['2024-25']?.weighted_points ?? 0, 1)}
                           {team.season_breakdown?.['2024-25'] && (
                             <div className="text-xs text-content-subtle">
-                              (x{team.season_breakdown['2024-25'].coefficient?.toFixed(1)})
+                              (x{formatCoefficient(team.season_breakdown['2024-25'].coefficient ?? 0, 1)})
                             </div>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-content">
-                          {team.season_breakdown?.['2023-24']?.weighted_points?.toFixed(1) || '0.0'}
+                          {formatPoints(team.season_breakdown?.['2023-24']?.weighted_points ?? 0, 1)}
                           {team.season_breakdown?.['2023-24'] && (
                             <div className="text-xs text-content-subtle">
-                              (x{team.season_breakdown['2023-24'].coefficient?.toFixed(1)})
+                              (x{formatCoefficient(team.season_breakdown['2023-24'].coefficient ?? 0, 1)})
                             </div>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-content">
-                          {team.season_breakdown?.['2022-23']?.weighted_points?.toFixed(1) || '0.0'}
+                          {formatPoints(team.season_breakdown?.['2022-23']?.weighted_points ?? 0, 1)}
                           {team.season_breakdown?.['2022-23'] && (
                             <div className="text-xs text-content-subtle">
-                              (x{team.season_breakdown['2022-23'].coefficient?.toFixed(1)})
+                              (x{formatCoefficient(team.season_breakdown['2022-23'].coefficient ?? 0, 1)})
                             </div>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-content">
-                          {team.season_breakdown?.['2021-22']?.weighted_points?.toFixed(1) || '0.0'}
+                          {formatPoints(team.season_breakdown?.['2021-22']?.weighted_points ?? 0, 1)}
                           {team.season_breakdown?.['2021-22'] && (
                             <div className="text-xs text-content-subtle">
-                              (x{team.season_breakdown['2021-22'].coefficient?.toFixed(1)})
+                              (x{formatCoefficient(team.season_breakdown['2021-22'].coefficient ?? 0, 1)})
                             </div>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-content">
-                          {team.total_points?.toFixed(1) || '0.0'}
+                          {formatPoints(team.total_points ?? 0, 1)}
                         </td>
                       </>
                     )}
                     {selectedSeason !== 'current' && (
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-content">
-                        {team.total_points?.toFixed(1) || '0.0'}
+                        {formatPoints(team.total_points ?? 0, 1)}
                       </td>
                     )}
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
