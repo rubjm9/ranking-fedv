@@ -108,3 +108,8 @@ uploads/
 # Test files
 test-results/
 playwright-report/
+
+# Copias de seguridad de entorno: .env.local.backup llegó a publicarse
+# en el repo con una clave service_role dentro.
+*.backup
+.env*.backup
