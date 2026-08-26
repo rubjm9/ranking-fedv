@@ -53,8 +53,9 @@ const RegionalCoefficientMatrix: React.FC<RegionalCoefficientMatrixProps> = ({
           <tr className="bg-surface-muted">
             <th className="text-left p-2 font-medium text-content-muted sticky left-0 bg-surface-muted">Región</th>
             {MODALITIES.map(mod => (
-              <th key={mod} className="text-center p-2 font-medium text-content-muted text-xs" title={MODALITY_LABELS[mod]}>
-                {MODALITY_SHORT[mod]}
+              <th key={mod} scope="col" className="text-center p-2 font-medium text-content-muted text-xs" title={MODALITY_LABELS[mod]}>
+                <abbr title={MODALITY_LABELS[mod]} className="no-underline">{MODALITY_SHORT[mod]}</abbr>
+                <span className="sr-only">{MODALITY_LABELS[mod]}</span>
               </th>
             ))}
           </tr>

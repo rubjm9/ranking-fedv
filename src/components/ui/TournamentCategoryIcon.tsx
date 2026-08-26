@@ -50,6 +50,8 @@ const TournamentCategoryIcon: React.FC<TournamentCategoryIconProps> = ({
   return (
     <div
       className={`relative flex flex-shrink-0 items-center justify-center rounded-xl ring-1 ring-inset ring-black/5 ${boxSize} ${surfaceStyle.bg} ${className}`}
+      role="img"
+      aria-label={title}
       title={title}
     >
       <CategoryIcon className={`${iconSize} ${surfaceStyle.color}`} />

@@ -260,10 +260,12 @@ const RegionsAdminPage: React.FC = () => {
                 {MODALITIES.map(mod => (
                   <th
                     key={mod}
+                    scope="col"
                     title={MODALITY_LABELS[mod]}
                     className="px-2 py-2 text-center text-xs font-medium text-content-muted border-r border-line last:border-r-0 min-w-[3rem]"
                   >
-                    {MODALITY_SHORT[mod]}
+                    <span className="sr-only">{MODALITY_LABELS[mod]}</span>
+                    <span aria-hidden="true">{MODALITY_SHORT[mod]}</span>
                   </th>
                 ))}
               </tr>

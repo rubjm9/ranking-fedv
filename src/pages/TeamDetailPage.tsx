@@ -628,9 +628,9 @@ const TeamDetailPage: React.FC = () => {
                         return (
                           <td key={year} className="px-3 py-2 text-center border-r border-line last:border-r-0">
                             {cell === '✕' ? (
-                              <span className="text-content-subtle font-medium" title="El campeonato no se disputó">✕</span>
+                              <span className="text-content-subtle font-medium" title="El campeonato no se disputó"><span aria-hidden="true">✕</span><span className="sr-only">El campeonato no se disputó</span></span>
                             ) : cell === 'No p.' ? (
-                              <span className="text-content-subtle text-xs" title="El equipo no participó">No p.</span>
+                              <span className="text-content-subtle text-xs" title="El equipo no participó"><span aria-hidden="true">No p.</span><span className="sr-only">El equipo no participó</span></span>
                             ) : typeof cell === 'number' && cell <= 3 ? (
                               <span
                                 className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border ${

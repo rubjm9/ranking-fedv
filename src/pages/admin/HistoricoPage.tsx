@@ -104,9 +104,9 @@ export default function HistoricoPage() {
                     return (
                       <td key={year} className="px-3 py-2 text-center border-r border-line last:border-r-0">
                         {cell === '✕' ? (
-                          <span className="text-red-500 font-medium" title="Temporada cerrada, campeonato no disputado">✕</span>
+                          <span className="text-red-500 font-medium" title="Temporada cerrada, campeonato no disputado"><span aria-hidden="true">✕</span><span className="sr-only">Temporada cerrada, campeonato no disputado</span></span>
                         ) : cell === '' ? (
-                          <span className="text-gray-300">—</span>
+                          <span className="text-content-subtle" aria-hidden="true">—</span>
                         ) : (
                           cell
                         )}

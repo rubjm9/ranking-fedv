@@ -297,7 +297,8 @@ const RegionsPage = () => {
                             title={MODALITY_LABELS[mod]}
                           >
                             <div className="text-xs font-bold">{formatCoefficient(coef)}</div>
-                            <div className="text-[10px] opacity-75">{short}</div>
+                            <div className="text-[10px] opacity-75" aria-hidden="true">{short}</div>
+                            <span className="sr-only">{MODALITY_LABELS[mod]}</span>
                           </div>
                         )
                       })}

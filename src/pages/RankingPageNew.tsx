@@ -3353,8 +3353,9 @@ const RankingPageNew: React.FC = () => {
             <div className="flex flex-wrap items-center justify-end gap-3">
               <ViewModeToggle value={rankingViewMode} onChange={setRankingViewMode} />
               <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-content-muted">Temporada:</label>
+                <label htmlFor="temporada-general" className="text-sm font-medium text-content-muted">Temporada:</label>
                 <select
+                  id="temporada-general"
                   value={selectedSeasonForGeneralView || defaultGeneralSeason || referenceSeason || ''}
                   onChange={(e) => setTemporadaSeleccionada(e.target.value)}
                   className="text-sm border border-line-strong rounded px-3 py-1 bg-surface"
@@ -3441,9 +3442,9 @@ const RankingPageNew: React.FC = () => {
           {/* Selector de equipos múltiple */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-content-muted">
+              <p className="block text-sm font-medium text-content-muted">
                 Seleccionar equipos para análisis:
-              </label>
+              </p>
               <span className="text-sm text-content-subtle">
                 {selectedTeamsForAnalysis.length} equipos seleccionados
               </span>
@@ -3452,8 +3453,9 @@ const RankingPageNew: React.FC = () => {
             {/* Barra de búsqueda */}
             <div className="mb-3">
               <input
-                type="text"
+                type="search"
                 placeholder="Buscar equipos..."
+                aria-label="Buscar equipos para el análisis"
                 value={teamSearchTerm}
                 onChange={(e) => setTeamSearchTerm(e.target.value)}
                 className="input-field text-sm"
@@ -4014,8 +4016,9 @@ const RankingPageNew: React.FC = () => {
             <div className="flex flex-wrap items-center justify-end gap-3">
               <ViewModeToggle value={rankingViewMode} onChange={setRankingViewMode} />
                 <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-content-muted">Temporada:</label>
+                <label htmlFor="temporada-categoria" className="text-sm font-medium text-content-muted">Temporada:</label>
                   <select 
+                id="temporada-categoria"
                 value={selectedSeasonForDetailedView || referenceSeason || ''}
                 onChange={(e) => setTemporadaSeleccionada(e.target.value)}
                     className="text-sm border border-line-strong rounded px-3 py-1 bg-surface"
@@ -4112,9 +4115,9 @@ const RankingPageNew: React.FC = () => {
           {/* Selector de equipos múltiple */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-content-muted">
+              <p className="block text-sm font-medium text-content-muted">
                 Seleccionar equipos para análisis:
-              </label>
+              </p>
               <span className="text-sm text-content-subtle">
                 {selectedTeamsForAnalysis.length} equipos seleccionados
               </span>
@@ -4123,8 +4126,9 @@ const RankingPageNew: React.FC = () => {
             {/* Barra de búsqueda */}
             <div className="mb-3">
               <input
-                type="text"
+                type="search"
                 placeholder="Buscar equipos..."
+                aria-label="Buscar equipos para el análisis"
                 value={teamSearchTerm}
                 onChange={(e) => setTeamSearchTerm(e.target.value)}
                 className="input-field text-sm"

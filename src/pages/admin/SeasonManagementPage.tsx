@@ -227,21 +227,24 @@ const SeasonManagementPage: React.FC = () => {
   const renderCellIcon = (state: CellState) => {
     if (state === 'none') {
       return (
-        <span className="inline-flex text-gray-300" title="Sin campeonato">
-          <Minus className="h-4 w-4" />
+        <span className="inline-flex text-content-subtle" title="Sin campeonato">
+          <Minus className="h-4 w-4" aria-hidden="true" />
+          <span className="sr-only">Sin campeonato</span>
         </span>
       )
     }
     if (state === 'scheduled') {
       return (
         <span className="inline-flex text-amber-500" title="Programado, sin resultados todavía">
-          <Timer className="h-4 w-4" />
+          <Timer className="h-4 w-4" aria-hidden="true" />
+          <span className="sr-only">Programado, sin resultados todavía</span>
         </span>
       )
     }
     return (
       <span className="inline-flex text-green-600 dark:text-green-300" title="Jugado, con resultados registrados">
-        <CheckCircle className="h-4 w-4" />
+        <CheckCircle className="h-4 w-4" aria-hidden="true" />
+        <span className="sr-only">Jugado, con resultados registrados</span>
       </span>
     )
   }
