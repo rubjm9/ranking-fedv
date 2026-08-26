@@ -1,13 +1,15 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Search, UsersRound, MapPin, Trophy, ChevronUp, ChevronDown, Loader2, ArrowUpDown, X, Grid, List, Shield } from 'lucide-react'
+import { Search, UsersRound, MapPin, Trophy, Grid, List, Shield } from 'lucide-react'
 import { teamsService, regionsService, getTeamPublicUrl } from '@/services/apiService'
 import { homePageService } from '@/services/homePageService'
 import hybridRankingService from '@/services/hybridRankingService'
 import teamSeasonRankingsService from '@/services/teamSeasonRankingsService'
-import { useDebounce } from '@/hooks/useDebounce'
+import { supabase } from '@/services/supabaseService'
+import { ALL_RANKING_SURFACES } from '@/utils/coefficientCalculator'
 import { useViewMode } from '@/hooks/useViewMode'
+import { useUrlState, useUrlDebouncedState, useUrlBatch } from '@/hooks/useUrlState'
 import TeamLogo from '@/components/ui/TeamLogo'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import EmptyState from '@/components/ui/EmptyState'
@@ -18,44 +20,56 @@ import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
 import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
 import DataTable from '@/components/ui/DataTable'
+import TableColumnFilter from '@/components/ui/TableColumnFilter'
 import TeamModalityNames from '@/components/teams/TeamModalityNames'
 import { getTeamModalityNameEntries } from '@/utils/teamNames'
+import { formatPoints } from '@/utils/rankingCalculations'
 import { usePageMeta } from '@/hooks/usePageMeta'
+
+type SortField = 'name' | 'region' | 'location' | 'points' | 'historicalPoints'
+type SortDirection = 'asc' | 'desc'
+
+const ORDEN_POR_DEFECTO: SortField = 'name'
+const DIRECCION_POR_DEFECTO: SortDirection = 'asc'
+
+const filterSelectClass =
+  'h-7 w-full min-w-[5.5rem] rounded-md border border-line bg-surface px-2 text-xs text-content-muted focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400'
+
+/** Misma fórmula que el ranking histórico general: suma de puntos base sin coeficientes temporales. */
+const sumHistoricalPointsFromRow = (row: Record<string, unknown>): number =>
+  ALL_RANKING_SURFACES.reduce(
+    (sum, surface) => sum + (Number(row[`${surface}_points`]) || 0),
+    0
+  )
 
 const TeamsPage = () => {
   usePageMeta({ title: 'Equipos', description: 'Todos los equipos de ultimate frisbee de España, con su región y su posición en el ranking FEDV.' })
 
   const navigate = useNavigate()
-  const [searchTerm, setSearchTerm] = useState('')
-  const debouncedSearchTerm = useDebounce(searchTerm, 300)
-  const [selectedRegion, setSelectedRegion] = useState('')
+  const [teamSearch, setTeamSearch] = useUrlDebouncedState('q')
+  const [locationSearch, setLocationSearch] = useUrlDebouncedState('ubicacion')
+  const [selectedRegion, setSelectedRegion] = useUrlState<string>('region', '')
+  const [sortField] = useUrlState<SortField>('orden', ORDEN_POR_DEFECTO)
+  const [sortDirection] = useUrlState<SortDirection>('dir', DIRECCION_POR_DEFECTO)
+  const escribirUrl = useUrlBatch()
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(20)
-  const [sortField, setSortField] = useState<keyof any>('name')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [viewMode, setViewMode] = useViewMode()
 
-  // Resetear página cuando cambian los filtros
   useEffect(() => {
     setCurrentPage(1)
-  }, [selectedRegion, debouncedSearchTerm])
+  }, [selectedRegion, teamSearch, locationSearch])
 
-  // Obtener equipos desde la API
   const { data: teamsData, isLoading, error } = useQuery({
-    queryKey: ['teams', debouncedSearchTerm, selectedRegion],
-    queryFn: () => teamsService.getAll({
-      search: debouncedSearchTerm || undefined,
-      region: selectedRegion || undefined
-    })
+    queryKey: ['teams'],
+    queryFn: () => teamsService.getAll(),
   })
 
-  // Obtener regiones desde la API
   const { data: regionsData } = useQuery({
     queryKey: ['regions'],
     queryFn: () => regionsService.getAll()
   })
 
-  // Obtener estadísticas reales
   const { data: statsData, isLoading: statsLoading } = useQuery({
     queryKey: ['teams-stats'],
     queryFn: () => homePageService.getMainStats()
@@ -79,6 +93,31 @@ const TeamsPage = () => {
     },
   })
 
+  // Puntos históricos: suma en cliente desde team_season_points (no hay columna precalculada).
+  // Misma lógica que la pestaña "Ranking histórico" del ranking general.
+  const { data: historicalPointsByTeamId } = useQuery({
+    queryKey: ['teams-historical-points'],
+    queryFn: async () => {
+      if (!supabase) return new Map<string, number>()
+
+      const pointColumns = ALL_RANKING_SURFACES.map((surface) => `${surface}_points`).join(', ')
+      const { data, error: pointsError } = await supabase
+        .from('team_season_points')
+        .select(`team_id, ${pointColumns}`)
+
+      if (pointsError) throw pointsError
+
+      const map = new Map<string, number>()
+      data?.forEach((row) => {
+        const seasonTotal = sumHistoricalPointsFromRow(row as Record<string, unknown>)
+        if (seasonTotal <= 0) return
+        map.set(row.team_id, (map.get(row.team_id) || 0) + seasonTotal)
+      })
+      return map
+    },
+    staleTime: 10 * 60 * 1000,
+  })
+
   const generalPointsByTeamId = useMemo(() => {
     const map = new Map<string, number>()
     generalRankingPoints?.forEach((entry) => {
@@ -94,102 +133,95 @@ const TeamsPage = () => {
     return generalPointsByTeamId.get(team.id) ?? 0
   }, [generalPointsByTeamId])
 
-  // Filtrar y ordenar equipos
+  const getTeamHistoricalPoints = useCallback((team: { id: string }) => {
+    return historicalPointsByTeamId?.get(team.id) ?? 0
+  }, [historicalPointsByTeamId])
+
   const filteredAndSortedTeams = useMemo(() => {
+    const nameQuery = teamSearch.toLowerCase().trim()
+    const locationQuery = locationSearch.toLowerCase().trim()
+
     const filtered = teams.filter(team => {
-      const search = debouncedSearchTerm.toLowerCase()
       const modalityNames = getTeamModalityNameEntries(team, team.name)
         .map((entry) => entry.name.toLowerCase())
-      const matchesSearch =
-        !search ||
-        team.name.toLowerCase().includes(search) ||
-        team.location?.toLowerCase().includes(search) ||
-        modalityNames.some((name) => name.includes(search))
+      const matchesName =
+        !nameQuery ||
+        team.name.toLowerCase().includes(nameQuery) ||
+        modalityNames.some((name) => name.includes(nameQuery))
+      const matchesLocation =
+        !locationQuery ||
+        (team.location || '').toLowerCase().includes(locationQuery)
       const matchesRegion = !selectedRegion || team.region?.id === selectedRegion
-      return matchesSearch && matchesRegion
+      return matchesName && matchesLocation && matchesRegion
     })
 
-    // Ordenar
     filtered.sort((a, b) => {
-      let aValue = a[sortField]
-      let bValue = b[sortField]
-      
-      // Manejar valores anidados
+      if (sortField === 'points' || sortField === 'historicalPoints') {
+        const aPoints =
+          sortField === 'points' ? getTeamTotalPoints(a) : getTeamHistoricalPoints(a)
+        const bPoints =
+          sortField === 'points' ? getTeamTotalPoints(b) : getTeamHistoricalPoints(b)
+        return sortDirection === 'asc' ? aPoints - bPoints : bPoints - aPoints
+      }
+
+      let aValue = ''
+      let bValue = ''
       if (sortField === 'region') {
         aValue = a.region?.name || ''
         bValue = b.region?.name || ''
-      } else if (sortField === 'points') {
-        aValue = getTeamTotalPoints(a)
-        bValue = getTeamTotalPoints(b)
-      }
-      
-      // Para puntos, comparar numéricamente
-      if (sortField === 'points') {
-        if (sortDirection === 'asc') {
-          return aValue - bValue
-        } else {
-          return bValue - aValue
-        }
-      }
-      
-      // Para otros campos, convertir a string para comparación
-      aValue = String(aValue || '').toLowerCase()
-      bValue = String(bValue || '').toLowerCase()
-      
-      if (sortDirection === 'asc') {
-        return aValue.localeCompare(bValue)
+      } else if (sortField === 'location') {
+        aValue = a.location || ''
+        bValue = b.location || ''
       } else {
-        return bValue.localeCompare(aValue)
+        aValue = a.name || ''
+        bValue = b.name || ''
       }
+
+      const comparison = aValue.localeCompare(bValue, 'es', { sensitivity: 'base' })
+      return sortDirection === 'asc' ? comparison : -comparison
     })
 
     return filtered
-  }, [teams, debouncedSearchTerm, selectedRegion, sortField, sortDirection, getTeamTotalPoints])
+  }, [teams, teamSearch, locationSearch, selectedRegion, sortField, sortDirection, getTeamTotalPoints, getTeamHistoricalPoints])
 
-  // Paginación
   const totalPages = Math.ceil(filteredAndSortedTeams.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedTeams = filteredAndSortedTeams.slice(startIndex, startIndex + itemsPerPage)
 
-  // Verificar si hay filtros activos
-  const hasActiveFilters = searchTerm !== '' || selectedRegion !== ''
+  const hasActiveFilters = teamSearch !== '' || locationSearch !== '' || selectedRegion !== ''
 
-  // Función para limpiar filtros
-  const clearFilters = useCallback(() => {
-    setSearchTerm('')
-    setSelectedRegion('')
-    setCurrentPage(1)
-  }, [])
+  const aplicarOrden = (campo: SortField, direccion: SortDirection) =>
+    escribirUrl({
+      orden: campo === ORDEN_POR_DEFECTO ? null : campo,
+      dir: direccion === DIRECCION_POR_DEFECTO ? null : direccion,
+    })
 
-  // Regiones únicas para el filtro (ya no se usa, pero mantenemos para compatibilidad)
-  const regions = Array.from(new Set(teams.map(team => team.region?.name))).filter(Boolean)
-
-  // Función para manejar el ordenamiento
-  const handleSort = (field: keyof any) => {
+  const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+      aplicarOrden(field, sortDirection === 'asc' ? 'desc' : 'asc')
     } else {
-      setSortField(field)
-      setSortDirection('asc')
+      aplicarOrden(field, field === 'points' || field === 'historicalPoints' ? 'desc' : 'asc')
     }
   }
 
-  // Función para obtener el icono de ordenamiento
-  const getSortIcon = (field: keyof any) => {
-    if (sortField !== field) {
-      return <ArrowUpDown className="h-4 w-4 text-content-subtle" />
-    }
-    return sortDirection === 'asc' 
-      ? <ChevronUp className="h-4 w-4 text-link" />
-      : <ChevronDown className="h-4 w-4 text-link" />
+  const getSortState = (field: SortField): 'inactive' | 'asc' | 'desc' => {
+    if (sortField !== field) return 'inactive'
+    return sortDirection
   }
 
-  // Función para obtener tooltip de ordenamiento
-  const getSortTooltip = (field: keyof any) => {
-    if (sortField !== field) {
-      return 'Haz clic para ordenar'
-    }
-    return sortDirection === 'asc' ? 'Ordenado ascendente (haz clic para descendente)' : 'Ordenado descendente (haz clic para ascendente)'
+  const clearFilters = useCallback(() => {
+    escribirUrl({
+      q: null,
+      ubicacion: null,
+      region: null,
+    })
+    setTeamSearch('')
+    setLocationSearch('')
+    setCurrentPage(1)
+  }, [escribirUrl, setTeamSearch, setLocationSearch])
+
+  const stopPropagation = (event: React.SyntheticEvent) => {
+    event.stopPropagation()
   }
 
   if (error) {
@@ -247,102 +279,56 @@ const TeamsPage = () => {
         }
       />
 
-      {/* Filtros y contador */}
-      <div className="mb-6 rounded-xl border border-line bg-surface-muted/70 px-4 py-3">
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-content-subtle" />
-          <input
-            type="text"
-            placeholder="Buscar equipos por nombre o ubicación..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-9 w-full rounded-lg border border-line bg-surface pl-9 pr-3 text-sm text-content placeholder:text-content-subtle focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-400"
-            aria-label="Buscar equipos"
-          />
-        </div>
-
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div
-            className="flex flex-wrap items-center gap-1.5"
-            role="group"
-            aria-label="Filtrar por región"
-          >
+      {/* Contador, limpiar filtros y vista */}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-content-subtle">
+          {!isLoading && (
+            <>
+              {filteredAndSortedTeams.length}{' '}
+              {filteredAndSortedTeams.length === 1 ? 'equipo encontrado' : 'equipos encontrados'}
+            </>
+          )}
+        </p>
+        <div className="flex shrink-0 items-center gap-3">
+          {hasActiveFilters && (
             <button
               type="button"
-              onClick={() => setSelectedRegion('')}
-              className={`inline-flex items-center rounded-lg px-3 py-1.5 min-h-[44px] touch-manipulation text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-                selectedRegion === ''
-                  ? 'bg-brand-subtle text-brand-strong ring-1 ring-brand-strong/30'
-                  : 'bg-surface text-content-muted ring-1 ring-line hover:bg-surface-muted'
-              }`}
+              onClick={clearFilters}
+              className="text-xs text-content-subtle hover:text-link transition-colors"
             >
-              Todas las regiones
+              Limpiar filtros
             </button>
-            {regionsData?.data?.map(region => (
+          )}
+          {!isLoading && filteredAndSortedTeams.length > 0 && (
+            <div className="flex items-center gap-1">
               <button
-                key={region.id}
                 type="button"
-                onClick={() => setSelectedRegion(region.id)}
-                className={`inline-flex items-center rounded-lg px-3 py-1.5 min-h-[44px] touch-manipulation text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-                  selectedRegion === region.id
-                    ? 'bg-brand-subtle text-brand-strong ring-1 ring-brand-strong/30'
-                    : 'bg-surface text-content-muted ring-1 ring-line hover:bg-surface-muted'
+                onClick={() => setViewMode('table')}
+                className={`inline-flex items-center justify-center rounded-lg min-h-[44px] min-w-[44px] touch-manipulation transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                  viewMode === 'table' ? 'bg-brand-subtle text-link' : 'text-content-muted hover:bg-surface'
                 }`}
+                aria-label="Vista de tabla"
               >
-                {region.name}
+                <List className="h-4 w-4" />
               </button>
-            ))}
-          </div>
-
-          <div className="flex shrink-0 items-center gap-3 self-end sm:self-auto">
-            {!isLoading && (
-              <p className="text-xs text-content-subtle">
-                {filteredAndSortedTeams.length}{' '}
-                {filteredAndSortedTeams.length === 1 ? 'equipo encontrado' : 'equipos encontrados'}
-              </p>
-            )}
-            {hasActiveFilters && (
               <button
                 type="button"
-                onClick={clearFilters}
-                className="inline-flex items-center gap-1 min-h-[44px] touch-manipulation text-xs text-content-muted transition-colors hover:text-content focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                aria-label="Limpiar filtros"
+                onClick={() => setViewMode('cards')}
+                className={`inline-flex items-center justify-center rounded-lg min-h-[44px] min-w-[44px] touch-manipulation transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                  viewMode === 'cards' ? 'bg-brand-subtle text-link' : 'text-content-muted hover:bg-surface'
+                }`}
+                aria-label="Vista de tarjetas"
               >
-                <X className="h-3.5 w-3.5" />
-                Limpiar
+                <Grid className="h-4 w-4" />
               </button>
-            )}
-            {!isLoading && filteredAndSortedTeams.length > 0 && (
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setViewMode('table')}
-                  className={`inline-flex items-center justify-center rounded-lg min-h-[44px] min-w-[44px] touch-manipulation transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-                    viewMode === 'table' ? 'bg-brand-subtle text-link' : 'text-content-muted hover:bg-surface'
-                  }`}
-                  aria-label="Vista de tabla"
-                >
-                  <List className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('cards')}
-                  className={`inline-flex items-center justify-center rounded-lg min-h-[44px] min-w-[44px] touch-manipulation transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-                    viewMode === 'cards' ? 'bg-brand-subtle text-link' : 'text-content-muted hover:bg-surface'
-                  }`}
-                  aria-label="Vista de tarjetas"
-                >
-                  <Grid className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Contenido: Tabla o Cards */}
       {isLoading ? (
-        viewMode === 'table' ? <TableSkeleton rows={10} columns={4} /> : <CardSkeleton count={10} />
+        viewMode === 'table' ? <TableSkeleton rows={10} columns={5} /> : <CardSkeleton count={10} />
       ) : filteredAndSortedTeams.length === 0 ? (
         <EmptyState
           icon={UsersRound}
@@ -358,48 +344,85 @@ const TeamsPage = () => {
         <>
           {viewMode === 'table' ? (
             <DataTable caption="Listado de equipos" darkHeader={false}>
-              <thead className="bg-surface-muted">
-                    <tr>
-                      <th 
-                        className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider cursor-pointer hover:bg-surface-muted transition-colors"
-                        onClick={() => handleSort('name')}
-                        title={getSortTooltip('name')}
-                        aria-label="Ordenar por nombre"
-                      >
-                        <div className="flex items-center space-x-1">
-                          <span>Equipo</span>
-                          {getSortIcon('name')}
-                        </div>
-                      </th>
-                      <th 
-                        className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider cursor-pointer hover:bg-surface-muted transition-colors"
-                        onClick={() => handleSort('region')}
-                        title={getSortTooltip('region')}
-                        aria-label="Ordenar por región"
-                      >
-                        <div className="flex items-center space-x-1">
-                          <span>Región</span>
-                          {getSortIcon('region')}
-                        </div>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider">
-                        Ubicación
-                      </th>
-                      <th 
-                        className="px-6 py-3 text-left text-xs font-medium text-content-subtle uppercase tracking-wider cursor-pointer hover:bg-surface-muted transition-colors"
-                        onClick={() => handleSort('points')}
-                        title={getSortTooltip('points')}
-                        aria-label="Ordenar por puntos"
-                      >
-                        <div className="flex items-center space-x-1">
-                          <span>Puntos ranking general</span>
-                          {getSortIcon('points')}
-                        </div>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-surface divide-y divide-line">
-                    {paginatedTeams.map((team) => (
+              <thead className="bg-surface-muted border-b border-line">
+                <tr>
+                  <TableColumnFilter
+                    label="Equipo"
+                    sortIcon={getSortState('name')}
+                    onSort={() => handleSort('name')}
+                    active={!!teamSearch}
+                  >
+                    <div className="relative min-w-[10rem]">
+                      <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-content-subtle" />
+                      <input
+                        type="text"
+                        placeholder="Buscar..."
+                        value={teamSearch}
+                        onChange={(e) => setTeamSearch(e.target.value)}
+                        onClick={stopPropagation}
+                        className={`${filterSelectClass} pl-7`}
+                        aria-label="Filtrar por equipo"
+                      />
+                    </div>
+                  </TableColumnFilter>
+
+                  <TableColumnFilter
+                    label="Región"
+                    sortIcon={getSortState('region')}
+                    onSort={() => handleSort('region')}
+                    active={!!selectedRegion}
+                  >
+                    <select
+                      value={selectedRegion}
+                      onChange={(e) => setSelectedRegion(e.target.value)}
+                      onClick={stopPropagation}
+                      className={filterSelectClass}
+                      aria-label="Filtrar por región"
+                    >
+                      <option value="">Todas</option>
+                      {regionsData?.data?.map((region) => (
+                        <option key={region.id} value={region.id}>
+                          {region.name}
+                        </option>
+                      ))}
+                    </select>
+                  </TableColumnFilter>
+
+                  <TableColumnFilter
+                    label="Ubicación"
+                    sortIcon={getSortState('location')}
+                    onSort={() => handleSort('location')}
+                    active={!!locationSearch}
+                  >
+                    <div className="relative min-w-[8rem]">
+                      <Search className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-content-subtle" />
+                      <input
+                        type="text"
+                        placeholder="Buscar..."
+                        value={locationSearch}
+                        onChange={(e) => setLocationSearch(e.target.value)}
+                        onClick={stopPropagation}
+                        className={`${filterSelectClass} pl-7`}
+                        aria-label="Filtrar por ubicación"
+                      />
+                    </div>
+                  </TableColumnFilter>
+
+                  <TableColumnFilter
+                    label="Puntos ranking general"
+                    sortIcon={getSortState('points')}
+                    onSort={() => handleSort('points')}
+                  />
+
+                  <TableColumnFilter
+                    label="Puntos históricos"
+                    sortIcon={getSortState('historicalPoints')}
+                    onSort={() => handleSort('historicalPoints')}
+                  />
+                </tr>
+              </thead>
+              <tbody className="bg-surface divide-y divide-line">
+                {paginatedTeams.map((team) => (
                     <tr 
                       key={team.id}
                       className="hover:bg-surface-muted cursor-pointer transition-colors duration-150 focus-within:bg-brand-subtle focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-inset"
@@ -450,7 +473,12 @@ const TeamsPage = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-content">
-                            {getTeamTotalPoints(team).toFixed(1)}
+                            {formatPoints(getTeamTotalPoints(team), 1)}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-content">
+                            {formatPoints(getTeamHistoricalPoints(team), 1)}
                           </div>
                         </td>
                       </tr>
@@ -499,7 +527,10 @@ const TeamsPage = () => {
                         </div>
                       )}
                       <div className="text-sm font-medium text-content mt-2">
-                        {(generalPointsByTeamId.get(team.id) ?? 0).toFixed(1)} puntos
+                        {formatPoints(getTeamTotalPoints(team), 1)} pts actuales
+                      </div>
+                      <div className="text-xs text-content-subtle mt-0.5">
+                        {formatPoints(getTeamHistoricalPoints(team), 1)} pts históricos
                       </div>
                     </div>
                   </div>

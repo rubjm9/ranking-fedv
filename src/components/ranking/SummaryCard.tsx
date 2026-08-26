@@ -112,7 +112,6 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
                       >
                         {team.team_name}
                       </RankingTeamLink>
-                      <div className="text-xs text-content-subtle">{team.region_name || 'N/A'}</div>
                     </div>
                   </div>
                 </td>

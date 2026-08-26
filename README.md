@@ -88,9 +88,9 @@ JWT_SECRET="tu-secreto-jwt-super-seguro"
 PORT=3001
 NODE_ENV=development
 
-# Admin por defecto
-ADMIN_EMAIL="admin@fedv.es"
-ADMIN_PASSWORD="admin123"
+# Admin inicial del seed (elige tus propios valores, no los subas al repositorio)
+ADMIN_EMAIL="tu-email-de-admin@ejemplo.com"
+ADMIN_PASSWORD="<contraseña-segura>"
 
 # Frontend URL (para CORS)
 FRONTEND_URL="http://localhost:5173"
@@ -119,14 +119,14 @@ npm run dev
 
 ### 🔐 Acceso al Sistema
 - **URL Frontend**: http://localhost:5173
-- **Admin por defecto**: admin@fedv.es / admin123
+- **Acceso**: los usuarios se crean en Supabase Auth; no hay credenciales por defecto en el código.
 - **Roles**: `admin` (gestión de usuarios) y `editor` (resto del backoffice). El rol vive en `app_metadata.role` de Supabase Auth.
 - **Usuarios**: la sección `/admin/users` solo es visible para admins. Si no hay ningún admin, asígnalo una vez en SQL:
 
 ```sql
 UPDATE auth.users
 SET raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb) || '{"role":"admin"}'::jsonb
-WHERE email = 'admin@fedv.es';
+WHERE email = 'tu-email-de-admin@ejemplo.com';
 ```
 
 Tras el primer admin, el resto de usuarios se gestiona desde el backoffice. Hay que cerrar sesión y volver a entrar para que el JWT recoja el rol nuevo.
