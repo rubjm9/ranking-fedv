@@ -21,10 +21,10 @@ export function getTeamPublicUrl(team: { slug?: string | null; id?: string }): s
 }
 
 /**
- * Las URL públicas de campeonato son por id (`/campeonatos/:id`), a diferencia
- * de equipos y regiones (slug). Se construían a mano en cada punto de uso.
+ * Las URL públicas de campeonato usan slug cuando está disponible; si no, id (UUID).
  */
-export function getTournamentPublicUrl(tournament: { id?: string }): string {
+export function getTournamentPublicUrl(tournament: { slug?: string | null; id?: string }): string {
+  if (tournament.slug) return `/campeonatos/${tournament.slug}`
   if (tournament.id) return `/campeonatos/${tournament.id}`
   return '/campeonatos'
 }

@@ -1,3 +1,4 @@
+import { SURFACE_LABELS } from '@/constants/surfaces'
 import { formatSeasonFromYear } from '@/utils/rankingCalculations'
 import { translateModality, translateSurface } from '@/utils/translations'
 
@@ -59,4 +60,47 @@ export function buildTournamentPageTitle(tournament: TournamentSeoSource): strin
 export function buildTournamentPageDescription(tournament: TournamentSeoSource): string {
   const title = buildTournamentPageTitle(tournament)
   return `Clasificación y puntos de Ultimate Frisbee en ${title}.`
+}
+
+export interface RegionSeoSource {
+  name: string
+}
+
+export function buildRegionPageTitle({ name }: RegionSeoSource): string {
+  return `${name}, Ultimate Frisbee España`
+}
+
+export function buildRegionPageDescription({ name }: RegionSeoSource): string {
+  return `Equipos, campeonatos y coeficiente regional de ${name} en el ranking de Ultimate Frisbee FEDV.`
+}
+
+const RANKING_DESCRIPTIONS: Partial<Record<string, string>> = {
+  resumen:
+    'Resumen del ranking de Ultimate Frisbee en España: clasificación general, modalidades y evolución de equipos.',
+  general:
+    'Ranking general de Ultimate Frisbee en España con puntos ponderados por temporada y coeficiente regional.',
+  playa: 'Ranking de Ultimate Frisbee en playa: clasificación por modalidad y puntos de equipos en España.',
+  cesped: 'Ranking de Ultimate Frisbee en césped: clasificación por modalidad y puntos de equipos en España.',
+  mixto: 'Ranking mixto de Ultimate Frisbee en España: posiciones y puntos por temporada.',
+  open: 'Ranking open de Ultimate Frisbee en España: posiciones y puntos por temporada.',
+  women: 'Ranking women de Ultimate Frisbee en España: posiciones y puntos por temporada.',
+  'beach-mixed': 'Ranking de Ultimate Frisbee playa mixto en España.',
+  'beach-women': 'Ranking de Ultimate Frisbee playa women en España.',
+  'beach-open': 'Ranking de Ultimate Frisbee playa open en España.',
+  'grass-mixed': 'Ranking de Ultimate Frisbee césped mixto en España.',
+  'grass-women': 'Ranking de Ultimate Frisbee césped women en España.',
+  'grass-open': 'Ranking de Ultimate Frisbee césped open en España.',
+}
+
+/** Parte del título antes del sufijo «· Ranking FEDV». El h1 del hero puede diferir (UX). */
+export function buildRankingPageTitle(surface: string): string {
+  const label = SURFACE_LABELS[surface] ?? 'Ranking'
+  return `${label} de Ultimate Frisbee`
+}
+
+export function buildRankingPageDescription(surface: string): string {
+  return (
+    RANKING_DESCRIPTIONS[surface] ??
+    'Ranking de Ultimate Frisbee en España: puntos por temporada, coeficiente regional y evolución de cada equipo.'
+  )
 }

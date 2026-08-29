@@ -179,7 +179,7 @@ const HomePage: React.FC = () => {
               Ranking <span className="text-accent-400">FEDV</span>
             </h1>
             <p className="text-lg md:text-xl text-content-subtle max-w-2xl mx-auto">
-              Propuesta de sistema de ranking de equipos, pendiente de aprobación en su formato definitivo
+              Sistema oficial de ranking de Ultimate Frisbee en España, de la Federación Española de Disco Volador (FEDV).
             </p>
             <p className="mt-3 mb-10">
               <span className="inline-block bg-primary-600/20 text-primary-300 text-sm font-semibold px-3 py-1 rounded-full border border-primary-600/30">

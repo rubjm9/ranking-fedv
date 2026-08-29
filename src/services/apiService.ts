@@ -11,6 +11,7 @@ import {
   getTournamentPublicUrl,
   buildRegionPublicSlugById,
 } from '@/utils/publicUrls'
+import { buildTournamentPageTitle } from '@/utils/seoTitles'
 
 export type { RegionSlugSource }
 export { getTeamPublicUrl, getRegionPublicUrl, getTournamentPublicUrl, buildRegionPublicSlugById }
@@ -56,6 +57,7 @@ export interface Region {
 export interface Tournament {
   id: string
   name: string
+  slug?: string | null
   type: string
   year: number
   surface: string
@@ -187,6 +189,21 @@ async function resolveUniqueTeamSlug(name: string, excludeTeamId?: string): Prom
   )
 
   return generateUniqueSlug(name, existingSlugs)
+}
+
+async function resolveUniqueTournamentSlug(title: string, excludeTournamentId?: string): Promise<string> {
+  const { data: existingTournaments } = await supabase
+    .from('tournaments')
+    .select('id, slug')
+    .not('slug', 'is', null)
+
+  const existingSlugs = new Set(
+    (existingTournaments || [])
+      .filter((t) => t.id !== excludeTournamentId && t.slug)
+      .map((t) => t.slug as string)
+  )
+
+  return generateUniqueSlug(title, existingSlugs)
 }
 
 function assignSlugInBatch(name: string, usedSlugs: Set<string>, previousSlug?: string | null): string {
@@ -653,6 +670,47 @@ export const tournamentsService = {
     return { success: true, data: withCount, message: 'OK' }
   },
 
+  // Obtener un torneo por slug o ID (UUID legacy)
+  getBySlugOrId: async (param: string) => {
+    if (!supabase) {
+      throw new Error('Supabase client not initialized')
+    }
+
+    const selectQuery = `
+        *,
+        region:regions(id, name, coefficient),
+        positions(
+          *,
+          teams(id, name, nameOpen, nameWomen, nameMixed, logo, regionId, region:regions(id, name))
+        )
+      `
+
+    const { data: bySlug, error: slugError } = await supabase
+      .from('tournaments')
+      .select(selectQuery)
+      .eq('slug', param)
+      .maybeSingle()
+
+    const slugColumnMissing =
+      slugError?.code === '42703' ||
+      (slugError?.message?.includes('slug') && slugError.message.includes('does not exist'))
+
+    if (slugError && !slugColumnMissing) throw slugError
+    if (bySlug) {
+      return { success: true, data: bySlug, message: 'Campeonato obtenido exitosamente' }
+    }
+
+    const { data, error } = await supabase
+      .from('tournaments')
+      .select(selectQuery)
+      .eq('id', param)
+      .single()
+
+    if (error) throw error
+
+    return { success: true, data, message: 'Campeonato obtenido exitosamente' }
+  },
+
   // Obtener un torneo por ID
   getById: async (id: string) => {
     if (!supabase) {
@@ -721,9 +779,30 @@ export const tournamentsService = {
       throw new DuplicateTournamentError(existing)
     }
 
+    let region: { name: string } | null = tournamentData.region?.name
+      ? { name: tournamentData.region.name }
+      : null
+    if (!region && tournamentData.regionId) {
+      const { data: regionRow } = await supabase
+        .from('regions')
+        .select('name')
+        .eq('id', tournamentData.regionId)
+        .maybeSingle()
+      if (regionRow?.name) region = { name: regionRow.name }
+    }
+
+    const seoTitle = buildTournamentPageTitle({
+      type: tournamentData.type,
+      year: tournamentData.year,
+      surface: tournamentData.surface,
+      category: tournamentData.category,
+      region,
+    })
+    const slug = tournamentData.slug || (await resolveUniqueTournamentSlug(seoTitle))
+
     const { data, error } = await supabase
       .from('tournaments')
-      .insert(tournamentData)
+      .insert({ ...tournamentData, slug })
       .select()
       .single()
 

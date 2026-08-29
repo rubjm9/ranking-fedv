@@ -20,9 +20,11 @@ import TabsSkeleton from '@/components/ui/TabsSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import AnimatedPoints from '@/components/ui/AnimatedPoints'
 import { formatBestGlobalPositionWhen, formatPoints } from '@/utils/rankingCalculations'
-import { usePageMeta } from '@/hooks/usePageMeta'
+import { resolveSiteBaseUrl, usePageMeta } from '@/hooks/usePageMeta'
 import { useUrlState } from '@/hooks/useUrlState'
 import { buildTeamPageDescription, buildTeamPageTitle } from '@/utils/seoTitles'
+import JsonLd from '@/components/seo/JsonLd'
+import { buildBreadcrumbListSchema, buildSportsTeamSchema } from '@/utils/structuredData'
 
 const renderHistoricalGlobalPositionValue = (
   position: number,
@@ -85,6 +87,8 @@ const TeamDetailPage: React.FC = () => {
 
   // El nombre llega de forma asíncrona, así que el hook se llama siempre y
   // el título queda en el genérico mientras no haya dato.
+  const isNotFound = !isLoading && !teamData
+
   usePageMeta({
     title: teamData?.team
       ? buildTeamPageTitle({
@@ -92,7 +96,9 @@ const TeamDetailPage: React.FC = () => {
           location: teamData.team.location,
           regionName: teamData.team.region?.name,
         })
-      : undefined,
+      : isNotFound
+        ? 'Equipo no encontrado'
+        : undefined,
     description: teamData?.team
       ? buildTeamPageDescription({
           name: teamData.team.name,
@@ -100,6 +106,7 @@ const TeamDetailPage: React.FC = () => {
           regionName: teamData.team.region?.name,
         })
       : undefined,
+    robots: isNotFound ? 'noindex' : undefined,
   })
 
   // Derivado de la URL, sin estado espejo: antes activeTab y la query se
@@ -762,6 +769,25 @@ const TeamDetailPage: React.FC = () => {
 
   return (
     <>
+      <JsonLd
+        data={[
+          buildBreadcrumbListSchema(
+            [{ name: 'Equipos', url: '/equipos' }, { name: team.name }],
+            resolveSiteBaseUrl()
+          ),
+          buildSportsTeamSchema(
+            {
+              name: team.name,
+              slug: team.slug,
+              id: team.id,
+              location: team.location,
+              regionName: team.region?.name,
+              logo: team.logo,
+            },
+            resolveSiteBaseUrl()
+          ),
+        ]}
+      />
       {/* Sticky Header */}
       <StickyHeader
         teamName={team.name}

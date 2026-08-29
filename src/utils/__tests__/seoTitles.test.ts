@@ -5,6 +5,10 @@ import {
   buildTeamPageTitle,
   buildTournamentPageDescription,
   buildTournamentPageTitle,
+  buildRegionPageTitle,
+  buildRegionPageDescription,
+  buildRankingPageTitle,
+  buildRankingPageDescription,
 } from '../seoTitles'
 
 describe('buildTeamPageTitle', () => {
@@ -84,5 +88,33 @@ describe('buildTournamentPageDescription', () => {
     expect(buildTournamentPageDescription(tournament)).toBe(
       'Clasificación y puntos de Ultimate Frisbee en Campeonato de España Ultimate Playa Mixto, Div 1 2024-25.'
     )
+  })
+})
+
+describe('buildRegionPageTitle', () => {
+  it('incluye keyword Ultimate Frisbee España', () => {
+    expect(buildRegionPageTitle({ name: 'Cataluña' })).toBe('Cataluña, Ultimate Frisbee España')
+  })
+})
+
+describe('buildRegionPageDescription', () => {
+  it('menciona equipos y coeficiente regional', () => {
+    expect(buildRegionPageDescription({ name: 'Cataluña' })).toBe(
+      'Equipos, campeonatos y coeficiente regional de Cataluña en el ranking de Ultimate Frisbee FEDV.'
+    )
+  })
+})
+
+describe('buildRankingPageTitle', () => {
+  it('combina SURFACE_LABELS con Ultimate Frisbee', () => {
+    expect(buildRankingPageTitle('general')).toBe('Ranking general de Ultimate Frisbee')
+    expect(buildRankingPageTitle('resumen')).toBe('Resumen de Ultimate Frisbee')
+  })
+})
+
+describe('buildRankingPageDescription', () => {
+  it('devuelve descripción específica por superficie', () => {
+    expect(buildRankingPageDescription('general')).toContain('Ranking general de Ultimate Frisbee')
+    expect(buildRankingPageDescription('beach-mixed')).toContain('playa mixto')
   })
 })

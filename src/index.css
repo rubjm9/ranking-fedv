@@ -1,3 +1,6 @@
+@import '@fontsource-variable/dm-sans/wght.css';
+@import '@fontsource-variable/space-grotesk/wght.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -471,6 +474,62 @@
 
   .onboarding-ledger-bump {
     animation: onboardingLedgerBump 0.45s ease-out;
+  }
+
+  .seo-static {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 2rem;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: #334155;
+  }
+
+  .seo-static h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: #0f172a;
+  }
+
+  .seo-static h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 1rem 0 0.5rem;
+    color: #1e293b;
+  }
+
+  .seo-static p {
+    margin-bottom: 0.75rem;
+  }
+
+  .seo-static table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0 1rem;
+    font-size: 0.875rem;
+  }
+
+  .seo-static th,
+  .seo-static td {
+    border: 1px solid #e2e8f0;
+    padding: 0.375rem 0.5rem;
+    text-align: left;
+  }
+
+  .seo-static th {
+    background: #f8fafc;
+    font-weight: 600;
+  }
+
+  .seo-static ul {
+    margin: 0.5rem 0 1rem;
+    padding-left: 1.25rem;
+  }
+
+  .seo-static a {
+    color: #4f46e5;
+    text-decoration: underline;
   }
 }
 

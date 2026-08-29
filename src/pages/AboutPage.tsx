@@ -7,6 +7,9 @@ import PointsCurveTable from '@/components/about/PointsCurveTable'
 import { nationalCurvePoints, regionalCurvePoints, getPointsForPosition } from '@/utils/tournamentUtils'
 import { DEFAULT_TEMPORAL_WEIGHTS } from '@/utils/rankingCalculations'
 import { usePageMeta } from '@/hooks/usePageMeta'
+import JsonLd from '@/components/seo/JsonLd'
+import { buildFaqPageSchema } from '@/utils/structuredData'
+import { ABOUT_FAQ_ITEMS } from '@/constants/aboutFaq'
 
 const AboutPage: React.FC = () => {
   usePageMeta({ title: 'Cómo funciona', description: 'Cómo se calcula el ranking FEDV: puntos por puesto, coeficiente regional y ponderación por temporada.' })
@@ -16,6 +19,7 @@ const AboutPage: React.FC = () => {
 
   return (
     <PageContainer>
+      <JsonLd data={buildFaqPageSchema(ABOUT_FAQ_ITEMS)} />
       <PageHeader
         title="Cómo funciona el ranking FEDV"
         subtitle="Una guía sencilla para entender cómo se puntúan los campeonatos, cómo se suman los resultados y cómo se construye el ranking oficial."

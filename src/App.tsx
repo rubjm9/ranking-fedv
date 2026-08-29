@@ -35,6 +35,7 @@ const TeamDetailPage = lazy(() => import('@/pages/TeamDetailPage'))
 const RegionDetailPage = lazy(() => import('@/pages/RegionDetailPage'))
 const TournamentDetailPage = lazy(() => import('@/pages/TournamentDetailPage'))
 const AboutPage = lazy(() => import('@/pages/AboutPage'))
+const GlosarioPage = lazy(() => import('@/pages/GlosarioPage'))
 const PrivacyPage = lazy(() => import('@/pages/PrivacyPage'))
 const TermsPage = lazy(() => import('@/pages/TermsPage'))
 const DiscGolfPage = lazy(() => import('@/pages/DiscGolfPage'))
@@ -67,6 +68,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import AdminOnlyRoute from '@/components/auth/AdminOnlyRoute'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import AnalyticsRoot from '@/components/layout/AnalyticsRoot'
+import CanonicalSync from '@/components/layout/CanonicalSync'
 
 // Configurar React Query
 const queryClient = new QueryClient({
@@ -99,6 +101,7 @@ function App() {
       <ErrorBoundary>
         <AuthProvider>
           <AnalyticsRoot />
+          <CanonicalSync />
           <Suspense fallback={<CargandoRuta />}>
           <Routes>
             {/* Rutas públicas */}
@@ -124,6 +127,7 @@ function App() {
               <Route path="tournaments" element={<Navigate to="/campeonatos" replace />} />
               <Route path="tournaments/:id" element={<TournamentLegacyRedirect />} />
               <Route path="como-funciona" element={<AboutPage />} />
+              <Route path="glosario" element={<GlosarioPage />} />
               <Route path="about" element={<Navigate to="/como-funciona" replace />} />
               <Route path="disc-golf" element={<DiscGolfPage />} />
               <Route path="privacy" element={<PrivacyPage />} />

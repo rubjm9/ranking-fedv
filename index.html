@@ -5,7 +5,7 @@
     <!-- viewport-fit=cover habilita env(safe-area-inset-*) para el notch y la barra inferior -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Ranking FEDV - Ultimate Frisbee España</title>
-    <meta name="description" content="Sistema de Ranking de Ultimate Frisbee en España - Federación Española de Disco Volador" />
+    <meta name="description" content="Ranking oficial de Ultimate Frisbee en España — clasificaciones, equipos y campeonatos de la FEDV." />
     <link rel="canonical" href="%VITE_SITE_URL%/" />
     <meta name="robots" content="index,follow" />
     <meta name="google-site-verification" content="KeyqbUddoOdC_mgQ1RhLzeKVrRa7SeiOe2V-7y-zbGs" />
@@ -25,7 +25,7 @@
     <meta property="og:site_name" content="Ranking FEDV" />
     <meta property="og:locale" content="es_ES" />
     <meta property="og:title" content="Ranking FEDV — Ultimate frisbee en España" />
-    <meta property="og:description" content="Clasificaciones, campeonatos y equipos de ultimate frisbee en España. Federación Española de Disco Volador." />
+    <meta property="og:description" content="Ranking oficial de Ultimate Frisbee en España — clasificaciones, equipos y campeonatos de la FEDV." />
     <meta property="og:url" content="%VITE_SITE_URL%/" />
     <meta property="og:image" content="%VITE_SITE_URL%/og-image.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
@@ -34,7 +34,7 @@
     <meta property="og:image:alt" content="Ranking FEDV — Ultimate frisbee en España" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Ranking FEDV — Ultimate frisbee en España" />
-    <meta name="twitter:description" content="Clasificaciones, campeonatos y equipos de ultimate frisbee en España." />
+    <meta name="twitter:description" content="Ranking oficial de Ultimate Frisbee en España — clasificaciones, equipos y campeonatos de la FEDV." />
     <meta name="twitter:image" content="%VITE_SITE_URL%/og-image.jpg" />
 
     <!--
@@ -59,12 +59,7 @@
       })()
     </script>
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
-
-    <!-- Iconos y PWA -->
+    <!-- Fuentes self-hosted vía @fontsource en src/index.css -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -73,6 +68,41 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Ranking FEDV">
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "%VITE_SITE_URL%/#organization",
+            "name": "Federación Española de Disco Volador",
+            "alternateName": "FEDV",
+            "url": "https://fedv.es",
+            "logo": "%VITE_SITE_URL%/og-image.jpg",
+            "email": "comitedeportivo@fedv.es",
+            "sameAs": ["https://fedv.es"]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "%VITE_SITE_URL%/#website",
+            "url": "%VITE_SITE_URL%/",
+            "name": "Ranking FEDV — Ultimate Frisbee España",
+            "description": "Sistema oficial de ranking de Ultimate Frisbee en España",
+            "publisher": { "@id": "%VITE_SITE_URL%/#organization" },
+            "inLanguage": "es-ES",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "%VITE_SITE_URL%/equipos?q={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -6,7 +6,7 @@ import PageHeader from '@/components/layout/PageHeader'
 import { usePageMeta } from '@/hooks/usePageMeta'
 
 const DiscGolfPage: React.FC = () => {
-  usePageMeta({ title: 'Disc golf', description: 'Disc golf en España, dentro de la Federación Española de Disco Volador.' })
+  usePageMeta({ title: 'Disc golf', description: 'Disc golf en España, dentro de la Federación Española de Disco Volador.', robots: 'noindex' })
 
   return (
     <PageContainer>

@@ -10,6 +10,11 @@ function PaginaNormal() {
   return <div>Página normal</div>
 }
 
+function PaginaNoindex() {
+  usePageMeta({ title: 'Equipo no encontrado', robots: 'noindex' })
+  return <div>No encontrado</div>
+}
+
 function seedHead() {
   document.head.innerHTML = `
     <title>Ranking FEDV - Ultimate Frisbee España</title>
@@ -58,5 +63,11 @@ describe('usePageMeta — robots', () => {
     expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('index,follow')
 
     unmountNormal()
+  })
+
+  it('robots noindex se aplica cuando se pasa explícitamente', () => {
+    const unmount = renderUi(<PaginaNoindex />)
+    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('noindex')
+    unmount()
   })
 })

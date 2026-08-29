@@ -26,7 +26,10 @@ import DataTable, {
 import SeasonNavigator, { useSelectedSeason } from '@/components/regions/SeasonNavigator'
 import RegionalCoefficientBreakdown from '@/components/regions/RegionalCoefficientBreakdown'
 import { MODALITIES, MODALITY_LABELS, getCoefficientStyle } from '@/components/regions/constants'
-import { usePageMeta } from '@/hooks/usePageMeta'
+import { usePageMeta, resolveSiteBaseUrl } from '@/hooks/usePageMeta'
+import { buildRegionPageDescription, buildRegionPageTitle } from '@/utils/seoTitles'
+import JsonLd from '@/components/seo/JsonLd'
+import { buildBreadcrumbListSchema, buildPlaceSchema } from '@/utils/structuredData'
 import { useChartTheme, SERIES_DASH } from '@/utils/chartTheme'
 
 
@@ -147,11 +150,16 @@ const RegionDetailPage: React.FC = () => {
 
   const region = regionResponse?.data
 
+  const isNotFound = notFound || (!!error && !isLoading)
+
   usePageMeta({
-    title: region?.name,
-    description: region?.name
-      ? `Equipos, campeonatos y coeficiente regional de ${region.name} en el ranking FEDV.`
-      : undefined,
+    title: region?.name
+      ? buildRegionPageTitle({ name: region.name })
+      : isNotFound
+        ? 'Región no encontrada'
+        : undefined,
+    description: region?.name ? buildRegionPageDescription({ name: region.name }) : undefined,
+    robots: isNotFound ? 'noindex' : undefined,
   })
 
   const { data: coeffSeasonInfo } = useQuery({
@@ -501,6 +509,24 @@ const RegionDetailPage: React.FC = () => {
 
   return (
     <PageContainer>
+      <JsonLd
+        data={[
+          buildBreadcrumbListSchema(
+            [{ name: 'Regiones', url: '/regiones' }, { name: region.name }],
+            resolveSiteBaseUrl()
+          ),
+          buildPlaceSchema(
+            {
+              name: region.name,
+              slug: region.slug,
+              id: region.id,
+              description: `Equipos, campeonatos y coeficiente regional de ${region.name} en el ranking de Ultimate Frisbee FEDV.`,
+              publicPath: getRegionPublicUrl(region),
+            },
+            resolveSiteBaseUrl()
+          ),
+        ]}
+      />
       <PageHeader
         title={region.name}
         subtitle={

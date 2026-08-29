@@ -28,6 +28,7 @@ import {
   TEAM_RANKING_NAME_SELECT,
 } from '@/utils/teamNames'
 import { usePageMeta } from '@/hooks/usePageMeta'
+import { buildRankingPageDescription, buildRankingPageTitle } from '@/utils/seoTitles'
 import { useUrlState } from '@/hooks/useUrlState'
 import { useChartTheme } from '@/utils/chartTheme'
 
@@ -587,9 +588,10 @@ const RankingPageNew: React.FC = () => {
   const location = useLocation()
 
   usePageMeta({
-    title: (surface && SURFACE_LABELS[surface]) || 'Ranking',
-    description:
-      'Ranking de ultimate frisbee de España: puntos por temporada, coeficiente regional y evolución de cada equipo.',
+    title: surface ? buildRankingPageTitle(surface) : 'Ranking',
+    description: surface
+      ? buildRankingPageDescription(surface)
+      : 'Ranking de Ultimate Frisbee en España: puntos por temporada, coeficiente regional y evolución de cada equipo.',
   })
 
   const [activeTab, setActiveTab] = useState<RankingActiveTab>(() => resolveTabFromSurface(surface))

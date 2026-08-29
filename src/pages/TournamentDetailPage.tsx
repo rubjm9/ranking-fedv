@@ -1,5 +1,5 @@
-import React from 'react'
-import { useParams, Link } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Calendar, MapPin, Trophy, UsersRound, Users, BarChart3, Award, Clock } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { useQuery } from '@tanstack/react-query'
@@ -18,13 +18,16 @@ import DataTable from '@/components/ui/DataTable'
 import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
 import ContentGridSkeleton from '@/components/ui/ContentGridSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
-import { usePageMeta } from '@/hooks/usePageMeta'
+import { resolveSiteBaseUrl, usePageMeta } from '@/hooks/usePageMeta'
 import { useChartTheme } from '@/utils/chartTheme'
 import { buildTournamentPageDescription, buildTournamentPageTitle } from '@/utils/seoTitles'
+import JsonLd from '@/components/seo/JsonLd'
+import { buildBreadcrumbListSchema, buildSportsEventSchema } from '@/utils/structuredData'
 
 interface Tournament {
   id: string
   name: string
+  slug?: string | null
   year: number
   type: string
   surface: string
@@ -178,26 +181,39 @@ const IconSpain = ({ className = iconClass }: { className?: string }) => (
 
 const TournamentDetailPage: React.FC = () => {
   const chart = useChartTheme()
+  const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   
   // Obtener datos del torneo usando React Query
   const { data: tournamentData, isLoading: tournamentLoading, error: tournamentError } = useQuery({
     queryKey: ['tournament', id],
-    queryFn: () => tournamentsService.getById(id!),
+    queryFn: () => tournamentsService.getBySlugOrId(id!),
     enabled: !!id,
     retry: 1
   })
 
   const tournament = tournamentData?.data
 
+  useEffect(() => {
+    if (!tournament?.slug || !id || id === tournament.slug) return
+    navigate(getTournamentPublicUrl(tournament), { replace: true })
+  }, [tournament, id, navigate])
+
   const heroTitle = tournament ? buildTournamentHeroTitle(tournament) : undefined
   const heroSubtitle = tournament ? buildTournamentHeroSubtitle(tournament) : undefined
   const breadcrumbLabel = tournament ? buildTournamentBreadcrumbLabel(tournament) : undefined
 
+  const isNotFound = !tournamentLoading && !tournament && !tournamentError
+
   usePageMeta({
-    title: tournament ? buildTournamentPageTitle(tournament) : undefined,
+    title: tournament
+      ? buildTournamentPageTitle(tournament)
+      : isNotFound
+        ? 'Campeonato no encontrado'
+        : undefined,
     omitBrandSuffix: true,
     description: tournament ? buildTournamentPageDescription(tournament) : undefined,
+    robots: isNotFound ? 'noindex' : undefined,
   })
 
   const isRegional = tournament?.type === 'REGIONAL'
@@ -356,6 +372,43 @@ const TournamentDetailPage: React.FC = () => {
 
   return (
     <PageContainer>
+      <JsonLd
+        data={[
+          buildBreadcrumbListSchema(
+            [
+              { name: 'Campeonatos', url: '/campeonatos' },
+              { name: breadcrumbLabel || tournament.name },
+            ],
+            resolveSiteBaseUrl()
+          ),
+          buildSportsEventSchema(
+            {
+              id: tournament.id,
+              slug: tournament.slug,
+              type: tournament.type,
+              year: tournament.year,
+              surface: tournament.surface,
+              category: tournament.category,
+              region: tournament.region,
+              startDate: tournament.startDate,
+              endDate: tournament.endDate,
+              location: tournament.location,
+            },
+            resolveSiteBaseUrl(),
+            buildTournamentPageTitle(tournament),
+            tournament.positions
+              ?.slice()
+              .sort((a, b) => a.position - b.position)
+              .slice(0, 15)
+              .map((pos) => ({
+                position: pos.position,
+                teamName: pos.teams?.name ?? `Equipo posición ${pos.position}`,
+                teamId: pos.teams?.id,
+                points: pos.points,
+              }))
+          ),
+        ]}
+      />
       <PageHeader
         title={heroTitle || tournament.name}
         subtitle={heroSubtitle}
