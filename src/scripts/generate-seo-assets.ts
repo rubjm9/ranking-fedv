@@ -18,6 +18,12 @@ import {
   getTeamPublicUrl,
   getTournamentPublicUrl,
 } from '../utils/publicUrls'
+import {
+  buildTeamPageDescription,
+  buildTeamPageTitle,
+  buildTournamentPageDescription,
+  buildTournamentPageTitle,
+} from '../utils/seoTitles'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DIST_DIR = path.resolve(__dirname, '../../dist')
@@ -37,9 +43,30 @@ const STATIC_PATHS = [
 
 type SitemapEntry = { loc: string; lastmod?: string }
 
-type TeamRow = { id: string; name: string; slug: string | null; updatedAt: string | null }
+type TeamRow = {
+  id: string
+  name: string
+  slug: string | null
+  location: string | null
+  updatedAt: string | null
+  region: { name: string } | { name: string }[] | null
+}
 type RegionRow = { id: string; name: string; slug: string | null; createdAt: string | null; updatedAt: string | null }
-type TournamentRow = { id: string; name: string; updatedAt: string | null }
+type TournamentRow = {
+  id: string
+  name: string
+  type: string
+  year: number
+  surface: string
+  category: string
+  updatedAt: string | null
+  region: { name: string } | { name: string }[] | null
+}
+
+const unwrapRelation = <T,>(value: T | T[] | null | undefined): T | null => {
+  if (!value) return null
+  return Array.isArray(value) ? value[0] ?? null : value
+}
 
 const escapeXml = (text: string): string =>
   text.replace(/[&<>"']/g, (ch) => {
@@ -109,9 +136,10 @@ const buildEntityHtml = (
     title,
     description,
     canonicalUrl,
-  }: { title: string; description: string; canonicalUrl: string }
+    omitBrandSuffix = false,
+  }: { title: string; description: string; canonicalUrl: string; omitBrandSuffix?: boolean }
 ): string => {
-  const fullTitle = `${title} · Ranking FEDV`
+  const fullTitle = omitBrandSuffix ? title : `${title} · Ranking FEDV`
   let html = template
 
   html = html.replace(/<title>[^<]*<\/title>/, () => `<title>${escapeHtmlAttr(fullTitle)}</title>`)
@@ -195,9 +223,11 @@ const main = async () => {
       const supabase = createClient(url, key)
 
       const [teamsResult, regionsResult, tournamentsResult] = await Promise.all([
-        supabase.from('teams').select('id, name, slug, updatedAt'),
+        supabase.from('teams').select('id, name, slug, location, updatedAt, region:regions(name)'),
         supabase.from('regions').select('id, name, createdAt, updatedAt'),
-        supabase.from('tournaments').select('id, name, updatedAt'),
+        supabase
+          .from('tournaments')
+          .select('id, name, type, year, surface, category, updatedAt, region:regions(name)'),
       ])
 
       if (teamsResult.error) throw teamsResult.error
@@ -222,9 +252,11 @@ const main = async () => {
         }
 
         const canonicalUrl = `${siteUrl}${publicPath}`
-        const description = `Resultados, evolución y puntos de ${team.name} en el ranking FEDV.`
+        const regionName = unwrapRelation(team.region)?.name
+        const teamSeo = { name: team.name, location: team.location, regionName }
+        const description = buildTeamPageDescription(teamSeo)
         const html = buildEntityHtml(template, {
-          title: team.name,
+          title: buildTeamPageTitle(teamSeo),
           description,
           canonicalUrl,
         })
@@ -267,11 +299,19 @@ const main = async () => {
 
         const publicPath = getTournamentPublicUrl(tournament)
         const canonicalUrl = `${siteUrl}${publicPath}`
-        const description = `Clasificación y puntos otorgados en ${tournament.name}.`
+        const tournamentSeo = {
+          type: tournament.type,
+          year: tournament.year,
+          surface: tournament.surface,
+          category: tournament.category,
+          region: unwrapRelation(tournament.region),
+        }
+        const description = buildTournamentPageDescription(tournamentSeo)
         const html = buildEntityHtml(template, {
-          title: tournament.name,
+          title: buildTournamentPageTitle(tournamentSeo),
           description,
           canonicalUrl,
+          omitBrandSuffix: true,
         })
 
         const relativeDir = publicPath.replace(/^\//, '')

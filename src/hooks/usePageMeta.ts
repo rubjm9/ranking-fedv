@@ -5,6 +5,8 @@ const SUFIJO = 'Ranking FEDV'
 interface PageMeta {
   /** Sin título se conserva el de `index.html`. */
   title?: string
+  /** Si true, no añade «· Ranking FEDV» (p. ej. títulos largos de campeonatos). */
+  omitBrandSuffix?: boolean
   description?: string
   /** URL canónica absoluta, sin query string. Solo actualiza el href existente. */
   canonical?: string
@@ -60,12 +62,14 @@ export function buildCanonicalUrl(pathname: string, siteBase?: string): string {
  * el script anti-destello de `index.html` y `useTheme`. Escribirlo desde un
  * tercer sitio hace parpadear la barra del sistema.
  */
-export function usePageMeta({ title, description, canonical, robots }: PageMeta): void {
+export function usePageMeta({ title, omitBrandSuffix, description, canonical, robots }: PageMeta): void {
   useLayoutEffect(() => {
     const tituloPrevio = document.title
     const descripcionPrevia = leerDescripcion()
 
-    if (title) document.title = `${title} · ${SUFIJO}`
+    if (title) {
+      document.title = omitBrandSuffix ? title : `${title} · ${SUFIJO}`
+    }
     if (description) escribirDescripcion(description)
     if (canonical) escribirCanonical(canonical)
     escribirRobots(robots ?? 'index,follow')
@@ -76,5 +80,5 @@ export function usePageMeta({ title, description, canonical, robots }: PageMeta)
         escribirDescripcion(descripcionPrevia)
       }
     }
-  }, [title, description, canonical, robots])
+  }, [title, omitBrandSuffix, description, canonical, robots])
 }

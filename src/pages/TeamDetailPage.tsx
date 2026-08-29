@@ -22,6 +22,7 @@ import AnimatedPoints from '@/components/ui/AnimatedPoints'
 import { formatBestGlobalPositionWhen, formatPoints } from '@/utils/rankingCalculations'
 import { usePageMeta } from '@/hooks/usePageMeta'
 import { useUrlState } from '@/hooks/useUrlState'
+import { buildTeamPageDescription, buildTeamPageTitle } from '@/utils/seoTitles'
 
 const renderHistoricalGlobalPositionValue = (
   position: number,
@@ -85,9 +86,19 @@ const TeamDetailPage: React.FC = () => {
   // El nombre llega de forma asíncrona, así que el hook se llama siempre y
   // el título queda en el genérico mientras no haya dato.
   usePageMeta({
-    title: teamData?.team?.name,
-    description: teamData?.team?.name
-      ? `Resultados, evolución y puntos de ${teamData.team.name} en el ranking FEDV.`
+    title: teamData?.team
+      ? buildTeamPageTitle({
+          name: teamData.team.name,
+          location: teamData.team.location,
+          regionName: teamData.team.region?.name,
+        })
+      : undefined,
+    description: teamData?.team
+      ? buildTeamPageDescription({
+          name: teamData.team.name,
+          location: teamData.team.location,
+          regionName: teamData.team.region?.name,
+        })
       : undefined,
   })
 

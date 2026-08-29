@@ -20,6 +20,7 @@ import ContentGridSkeleton from '@/components/ui/ContentGridSkeleton'
 import TableSkeleton from '@/components/ui/TableSkeleton'
 import { usePageMeta } from '@/hooks/usePageMeta'
 import { useChartTheme } from '@/utils/chartTheme'
+import { buildTournamentPageDescription, buildTournamentPageTitle } from '@/utils/seoTitles'
 
 interface Tournament {
   id: string
@@ -194,10 +195,9 @@ const TournamentDetailPage: React.FC = () => {
   const breadcrumbLabel = tournament ? buildTournamentBreadcrumbLabel(tournament) : undefined
 
   usePageMeta({
-    title: heroTitle || tournament?.name,
-    description: heroTitle
-      ? `Clasificación y puntos otorgados en ${heroTitle}.`
-      : undefined,
+    title: tournament ? buildTournamentPageTitle(tournament) : undefined,
+    omitBrandSuffix: true,
+    description: tournament ? buildTournamentPageDescription(tournament) : undefined,
   })
 
   const isRegional = tournament?.type === 'REGIONAL'
