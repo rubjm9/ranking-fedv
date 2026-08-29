@@ -5,7 +5,7 @@ import PageContainer from '@/components/layout/PageContainer'
 import { usePageMeta } from '@/hooks/usePageMeta'
 
 const NotFoundPage: React.FC = () => {
-  usePageMeta({ title: 'Página no encontrada' })
+  usePageMeta({ title: 'Página no encontrada', robots: 'noindex' })
 
   return (
     <PageContainer className="flex items-center justify-center min-h-[60vh]">

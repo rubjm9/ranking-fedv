@@ -8,6 +8,7 @@ import AdminLayout from '@/components/layout/AdminLayout'
 // Páginas públicas
 import HomePage from '@/pages/HomePage'
 import RankingPageNew from '@/pages/RankingPageNew'
+import { SURFACES } from '@/constants/surfaces'
 import TeamsPage from '@/pages/TeamsPage'
 import RegionsPage from '@/pages/RegionsPage'
 import TournamentsPage from '@/pages/TournamentsPage'
@@ -105,7 +106,9 @@ function App() {
               <Route index element={<HomePage />} />
               <Route path="ranking">
                 <Route index element={<Navigate to="/ranking/resumen" replace />} />
-                <Route path=":surface" element={<RankingPageNew />} />
+                {SURFACES.map((surface) => (
+                  <Route key={surface} path={surface} element={<RankingPageNew />} />
+                ))}
               </Route>
               <Route path="ranking-old" element={<Navigate to="/ranking" replace />} />
               <Route path="equipos" element={<TeamsPage />} />

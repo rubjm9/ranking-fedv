@@ -281,23 +281,7 @@ const COMBINED_TO_SLUG: Record<CombinedType, string> = {
   women: 'women',
 }
 
-/** Etiqueta legible de cada slug, para el título de la pestaña del navegador. */
-const SURFACE_LABELS: Record<string, string> = {
-  resumen: 'Resumen',
-  summary: 'Resumen',
-  general: 'Ranking general',
-  playa: 'Ranking de playa',
-  cesped: 'Ranking de césped',
-  mixto: 'Ranking mixto',
-  open: 'Ranking open',
-  women: 'Ranking women',
-  'beach-mixed': 'Playa mixto',
-  'beach-women': 'Playa women',
-  'beach-open': 'Playa open',
-  'grass-mixed': 'Césped mixto',
-  'grass-women': 'Césped women',
-  'grass-open': 'Césped open',
-}
+import { SURFACE_LABELS } from '@/constants/surfaces'
 
 /** Etiquetas de categoría (coinciden con las pestañas) para el H1 del hero. */
 const CATEGORY_TAB_LABELS: Record<(typeof VALID_CATEGORY_TABS)[number], string> = {
