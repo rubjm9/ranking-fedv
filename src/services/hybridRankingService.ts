@@ -141,6 +141,7 @@ const hybridRankingService = {
         team_id: entry.team_id,
         team_name: entry.team_name,
         region_name: entry.region_name || '',
+        location: entry.location ?? null,
         ranking_category: surface,
         current_season_points: entry.points, // Puntos totales con coeficientes
         previous_season_points: 0,
@@ -190,6 +191,7 @@ const hybridRankingService = {
       const teamTotals: { [teamId: string]: {
         team_name: string
         region_name: string
+        location?: string | null
         total_points: number
         surface_points: { [surface: string]: number }
       }} = {}
@@ -201,6 +203,7 @@ const hybridRankingService = {
             teamTotals[team.team_id] = {
               team_name: team.team_name,
               region_name: team.region_name || '',
+              location: team.location ?? null,
               total_points: 0,
               surface_points: {}
             }
@@ -217,6 +220,7 @@ const hybridRankingService = {
           total_points: data.total_points,
           team_name: data.team_name,
           region_name: data.region_name,
+          location: data.location ?? null,
           surface_points: data.surface_points
         }))
         .sort((a, b) => b.total_points - a.total_points)
@@ -225,6 +229,7 @@ const hybridRankingService = {
         team_id: team.team_id,
         team_name: team.team_name,
         region_name: team.region_name,
+        location: team.location ?? null,
         ranking_category: 'general_all' as any,
         current_season_points: team.total_points,
         previous_season_points: 0,
@@ -356,6 +361,7 @@ const hybridRankingService = {
         .select(`
           id,
           logo,
+          location,
           ${TEAM_RANKING_NAME_SELECT},
           regionId,
           regions:regionId(
@@ -376,6 +382,7 @@ const hybridRankingService = {
         team_name: getTeamDisplayNameForCategory(team, surface),
         logo: team.logo ?? null,
         region_name: team.regions?.name || 'N/A',
+        location: team.location?.trim() || null,
         ranking_category: surface,
         current_season_points: teamPointsMap[team.id].current_season_points,
         previous_season_points: teamPointsMap[team.id].previous_season_points,
@@ -583,6 +590,7 @@ const hybridRankingService = {
         .from('teams')
         .select(`
           id,
+          location,
           ${TEAM_RANKING_NAME_SELECT},
           regionId,
           regions:regionId(
@@ -602,6 +610,7 @@ const hybridRankingService = {
         team_id: team.id,
         team_name: getTeamDisplayNameForCategory(team, null, surfaces),
         region_name: team.regions?.name || 'N/A',
+        location: team.location?.trim() || null,
         ranking_category: surfaces.join('_'), // Superficie combinada
         current_season_points: teamPointsMap[team.id].current_season_points,
         previous_season_points: teamPointsMap[team.id].previous_season_points,

@@ -6,6 +6,7 @@ import PointsBreakdown from '@/components/ranking/PointsBreakdown'
 import TotalBreakdown from '@/components/ranking/TotalBreakdown'
 import { cn } from '@/utils/cn'
 import { formatPoints } from '@/utils/rankingCalculations'
+import { getTeamCityLabel } from '@/utils/teamNames'
 
 interface RankingCardListProps {
   teams: any[]
@@ -62,6 +63,7 @@ const RankingCardList: React.FC<RankingCardListProps> = ({
         const change = team.position_change || 0
         const isOpen = expanded === team.team_id
         const panelId = `ranking-card-${team.team_id}`
+        const cityLabel = getTeamCityLabel(team)
 
         return (
           <li key={team.team_id} className="bg-surface">
@@ -80,7 +82,7 @@ const RankingCardList: React.FC<RankingCardListProps> = ({
                   {team.team_name}
                 </RankingTeamLink>
                 <div className="flex items-center gap-2 text-xs text-content-subtle">
-                  {team.region_name && <span className="truncate">{team.region_name}</span>}
+                  {cityLabel && <span className="truncate">{cityLabel}</span>}
                   <span className="flex items-center gap-0.5">
                     {getChangeIcon(change)}
                     <span

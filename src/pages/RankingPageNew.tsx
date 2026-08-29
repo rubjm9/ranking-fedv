@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Trophy, Medal, TrendingUp, TrendingDown, UsersRound, Shield, Calendar, RefreshCw, BarChart3, LineChart, Star, MapPin, ChevronRight, Info } from 'lucide-react'
@@ -400,6 +400,7 @@ const buildOutOfRankingTeams = (
     team_id: string
     team_name: string
     region_name: string
+    location?: string | null
     logo?: string | null
     season_breakdown: Record<string, { base_points: number; weighted_points: number; coefficient: number }>
     total_points: number
@@ -419,6 +420,7 @@ const buildOutOfRankingTeams = (
       nameWomen?: string
       nameMixed?: string
       logo?: string | null
+      location?: string | null
       region?: { name?: string }
     } | null
 
@@ -427,6 +429,7 @@ const buildOutOfRankingTeams = (
         team_id: teamId,
         team_name: getTeamDisplayNameForCategory(teams, surface),
         region_name: teams?.region?.name || 'Sin región',
+        location: teams?.location?.trim() || null,
         logo: teams?.logo || null,
         season_breakdown: {},
         total_points: 0,
@@ -463,6 +466,7 @@ const buildOutOfRankingTeams = (
     existing.logo = (team.logo as string | null | undefined) ?? existing.logo
     existing.team_name = (team.team_name as string) || existing.team_name
     existing.region_name = (team.region_name as string) || existing.region_name
+    existing.location = (team.location as string | null | undefined) ?? existing.location
   })
 
   return Array.from(teamMap.values())
@@ -594,10 +598,9 @@ const RankingPageNew: React.FC = () => {
       : 'Ranking de Ultimate Frisbee en España: puntos por temporada, coeficiente regional y evolución de cada equipo.',
   })
 
-  const [activeTab, setActiveTab] = useState<RankingActiveTab>(() => resolveTabFromSurface(surface))
-  const [selectedCombinedType, setSelectedCombinedType] = useState<CombinedType>(() => resolveCombinedTypeFromSurface(surface))
-  // Nota: selectedSurface almacena superficies (beach_mixed, etc.)
-  const [selectedSurface, setSelectedSurface] = useState<string>(() => resolveSurfaceFromParam(surface))
+  const activeTab = useMemo(() => resolveTabFromSurface(surface), [surface])
+  const selectedCombinedType = useMemo(() => resolveCombinedTypeFromSurface(surface), [surface])
+  const selectedSurface = useMemo(() => resolveSurfaceFromParam(surface), [surface])
   // highlightStats ahora viene de una query cacheada más abajo
   const [selectedRankingType, setSelectedRankingType] = useState<string>('current')
   const [showAllResults, setShowAllResults] = useState<boolean>(false)
@@ -621,27 +624,6 @@ const RankingPageNew: React.FC = () => {
   const selectedSeasonForDetailedView = temporadaSeleccionada
   const selectedSeasonForGeneralView = temporadaSeleccionada
   // categoryHighlightStats ahora viene de una query cacheada más abajo
-
-  // Sync URL param :surface → component state
-  useEffect(() => {
-    if (!surface) return
-    const tab = SLUG_TO_TAB[surface]
-    if (tab) {
-      setActiveTab(tab as RankingActiveTab)
-      if (VALID_CATEGORY_TABS.includes(tab as typeof VALID_CATEGORY_TABS[number])) {
-        setSelectedSurface(tab)
-      }
-      // Antes forzaba setDetailedViewMode('ranking') aquí. Ya no hace falta: el
-      // cambio de pestaña descarta `vista` al navegar, y forzarlo en el montaje
-      // borraba la sub-vista de cualquier enlace compartido.
-    }
-    const combined = SLUG_TO_COMBINED[surface]
-    if (combined) {
-      setSelectedCombinedType(combined)
-    } else if (tab && tab !== 'general') {
-      setSelectedCombinedType('all')
-    }
-  }, [surface])
 
   // Obtener la temporada más reciente dinámicamente (para ranking general)
   const { data: referenceSeason, isLoading: isLoadingSeason } = useQuery({
@@ -803,6 +785,7 @@ const RankingPageNew: React.FC = () => {
             team_id: item.team_id,
             team_name: item.team_name,
             region_name: item.region_name,
+            location: item.location ?? null,
             logo: item.logo,
             total_points: item.points,
             ranking_position: item.rank,
@@ -976,6 +959,7 @@ const RankingPageNew: React.FC = () => {
             team_id: item.team_id,
             team_name: item.team_name,
             region_name: item.region_name,
+            location: item.location ?? null,
             logo: item.logo,
             total_points: item.points,
             ranking_position: item.rank,
@@ -1045,7 +1029,7 @@ const RankingPageNew: React.FC = () => {
 
       const { data: teamRows, error: teamsError } = await supabase
         .from('teams')
-        .select(`id, ${TEAM_RANKING_NAME_SELECT}, logo, region:regions(name)`)
+        .select(`id, ${TEAM_RANKING_NAME_SELECT}, location, logo, region:regions(name)`)
         .in('id', teamIds)
 
       if (teamsError) throw teamsError
@@ -1080,14 +1064,18 @@ const RankingPageNew: React.FC = () => {
     
     const { data: teamsData } = await supabase
       .from('teams')
-      .select('id, logo')
+      .select('id, logo, location')
       .in('id', teamIds)
     
     const logoMap = new Map(teamsData?.map(team => [team.id, team.logo]) || [])
+    const locationMap = new Map(
+      teamsData?.map(team => [team.id, team.location?.trim() || null]) || []
+    )
     
     return rankingData.map(team => ({
       ...team,
-      logo: logoMap.get(team.team_id) || null
+      logo: logoMap.get(team.team_id) ?? team.logo ?? null,
+      location: team.location ?? locationMap.get(team.team_id) ?? null,
     }))
   }
 
@@ -1096,6 +1084,7 @@ const RankingPageNew: React.FC = () => {
     team_id: item.team_id,
     team_name: item.team_name,
     region_name: item.region_name,
+    location: item.location ?? null,
     logo: item.logo,
     total_points: item.points,
     ranking_position: item.rank,
@@ -1245,11 +1234,21 @@ const RankingPageNew: React.FC = () => {
   })
   
   const categoryHighlightStats = categoryHighlightStatsQuery || null
+  const lastCategoryHighlightStatsRef = useRef(categoryHighlightStats)
+  if (categoryHighlightStats) {
+    lastCategoryHighlightStatsRef.current = categoryHighlightStats
+  }
+  const categoryHighlightsForView =
+    categoryHighlightStats ?? lastCategoryHighlightStatsRef.current
+  const categoryHighlightsAreStale =
+    activeTab !== 'summary' &&
+    activeTab !== 'general' &&
+    !categoryHighlightStats &&
+    !!lastCategoryHighlightStatsRef.current
 
   // Calcular estadísticas destacadas del ranking general / combinado activo
   useEffect(() => {
     if (activeTab !== 'general') {
-      setGeneralHighlightStats(null)
       return
     }
 
@@ -1277,6 +1276,15 @@ const RankingPageNew: React.FC = () => {
     previousGeneralSeasonData,
     generalSeasonToUse,
   ])
+
+  const lastGeneralHighlightStatsRef = useRef(generalHighlightStats)
+  if (generalHighlightStats) {
+    lastGeneralHighlightStatsRef.current = generalHighlightStats
+  }
+  const generalHighlightsForView =
+    generalHighlightStats ?? lastGeneralHighlightStatsRef.current
+  const generalHighlightsAreStale =
+    activeTab === 'general' && !generalHighlightStats && !!lastGeneralHighlightStatsRef.current
 
   // Calcular position_change para ranking general cuando es histórico o clubes
   useEffect(() => {
@@ -1621,6 +1629,7 @@ const RankingPageNew: React.FC = () => {
             team_id: mainTeam.team_id,
             team_name: clubName,
             region_name: mainTeam.region_name,
+            location: mainTeam.location ?? null,
             logo: mainTeam.logo || null,
             total_points: totalClubPoints,
             tournaments_count: totalTournaments,
@@ -1771,6 +1780,7 @@ const RankingPageNew: React.FC = () => {
             team_id: mainTeam.team_id,
             team_name: clubName,
             region_name: mainTeam.region_name,
+            location: mainTeam.location ?? null,
             logo: mainTeam.logo || null,
             total_points: totalClubPoints,
             tournaments_count: totalTournaments,
@@ -2084,7 +2094,8 @@ const RankingPageNew: React.FC = () => {
 
   // Query para estadísticas destacadas
   const { data: stats } = useQuery({
-    queryKey: ['ranking-stats', selectedSurface, rankingData],
+    queryKey: ['ranking-stats', selectedSurface, seasonToUse, rankingData?.length ?? 0],
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       if (!rankingData) return null;
       
@@ -2137,7 +2148,8 @@ const RankingPageNew: React.FC = () => {
 
   // Query para estadísticas del ranking general
   const { data: generalStats } = useQuery({
-    queryKey: ['general-ranking-stats', generalRankingData],
+    queryKey: ['general-ranking-stats', generalSeasonToUse, generalRankingData?.length ?? 0],
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       if (!generalRankingData) return null;
       
@@ -3121,7 +3133,6 @@ const RankingPageNew: React.FC = () => {
             key={type}
             type="button"
             onClick={() => {
-              setSelectedCombinedType(type)
               navigate({
                 pathname: `/ranking/${COMBINED_TO_SLUG[type]}`,
                 search: rankingSearchAlCambiarPestana(location.search),
@@ -3231,68 +3242,70 @@ const RankingPageNew: React.FC = () => {
     return (
       <div className="space-y-6">
         {/* Estadísticas destacadas del ranking general / combinado activo */}
-        {generalHighlightStats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-4 items-stretch">
+        {generalHighlightsForView && (
+          <div
+            className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-4 items-stretch transition-opacity duration-150 ${generalHighlightsAreStale ? 'opacity-60' : ''}`}
+          >
             <StatsBlock
               title="Líder Actual"
-              value={generalHighlightStats.generalLeader?.team_name || 'N/A'}
-              subtitle={`${formatPoints(generalHighlightStats.generalLeader?.global_points ?? 0, 1)} pts`}
+              value={generalHighlightsForView.generalLeader?.team_name || 'N/A'}
+              subtitle={`${formatPoints(generalHighlightsForView.generalLeader?.global_points ?? 0, 1)} pts`}
               icon={Trophy}
               color="blue"
-              logo={generalHighlightStats.generalLeader?.logo}
-              teamName={generalHighlightStats.generalLeader?.team_name}
+              logo={generalHighlightsForView.generalLeader?.logo}
+              teamName={generalHighlightsForView.generalLeader?.team_name}
               tooltip="El equipo con más puntos en este ranking, considerando las modalidades de la vista y coeficientes de antigüedad."
               useLogoAsBackground={true}
             />
             <StatsBlock
               title="Equipo Revelación"
-              value={generalHighlightStats.generalRevelation?.team_name || 'N/A'}
-              subtitle={`+${formatPoints(generalHighlightStats.generalRevelation?.points_gained ?? 0, 1)} pts`}
+              value={generalHighlightsForView.generalRevelation?.team_name || 'N/A'}
+              subtitle={`+${formatPoints(generalHighlightsForView.generalRevelation?.points_gained ?? 0, 1)} pts`}
               icon={BarChart3}
               color="yellow"
-              logo={generalHighlightStats.generalRevelation?.logo}
-              teamName={generalHighlightStats.generalRevelation?.team_name}
+              logo={generalHighlightsForView.generalRevelation?.logo}
+              teamName={generalHighlightsForView.generalRevelation?.team_name}
               tooltip="El equipo que ha ganado más puntos en este ranking comparando la temporada actual con la anterior."
               useLogoAsBackground={true}
             />
             <StatsBlock
               title="Subida en el ranking"
-              value={generalHighlightStats.generalBiggestRise?.team_name || 'N/A'}
-              subtitle={`+${generalHighlightStats.generalBiggestRise?.positions_gained || 0} puestos`}
+              value={generalHighlightsForView.generalBiggestRise?.team_name || 'N/A'}
+              subtitle={`+${generalHighlightsForView.generalBiggestRise?.positions_gained || 0} puestos`}
               icon={TrendingUp}
               color="green"
-              logo={generalHighlightStats.generalBiggestRise?.logo}
-              teamName={generalHighlightStats.generalBiggestRise?.team_name}
+              logo={generalHighlightsForView.generalBiggestRise?.logo}
+              teamName={generalHighlightsForView.generalBiggestRise?.team_name}
               tooltip="El equipo que ha subido más posiciones en este ranking comparando la temporada actual con la anterior."
               useLogoAsBackground={true}
             />
             <StatsBlock
               title="Mejor Filial"
-              value={generalHighlightStats.generalBestFilial?.team_name || 'Sin filiales'}
-              subtitle={generalHighlightStats.generalBestFilial ? `${formatPoints(generalHighlightStats.generalBestFilial.global_points ?? 0, 1)} pts` : 'No hay filiales'}
+              value={generalHighlightsForView.generalBestFilial?.team_name || 'Sin filiales'}
+              subtitle={generalHighlightsForView.generalBestFilial ? `${formatPoints(generalHighlightsForView.generalBestFilial.global_points ?? 0, 1)} pts` : 'No hay filiales'}
               icon={UsersRound}
               color="purple"
-              logo={generalHighlightStats.generalBestFilial?.logo}
-              teamName={generalHighlightStats.generalBestFilial?.team_name}
+              logo={generalHighlightsForView.generalBestFilial?.logo}
+              teamName={generalHighlightsForView.generalBestFilial?.team_name}
               tooltip="El equipo filial mejor clasificado en este ranking."
               useLogoAsBackground={true}
             />
             <StatsBlock
               title="Líder histórico"
-              value={generalHighlightStats.generalBestHistorical?.team_name || 'N/A'}
-              subtitle={`${formatPoints(generalHighlightStats.generalBestHistorical?.historical_points ?? 0, 1)} pts`}
+              value={generalHighlightsForView.generalBestHistorical?.team_name || 'N/A'}
+              subtitle={`${formatPoints(generalHighlightsForView.generalBestHistorical?.historical_points ?? 0, 1)} pts`}
               icon={Star}
               color="orange"
-              logo={generalHighlightStats.generalBestHistorical?.logo}
-              teamName={generalHighlightStats.generalBestHistorical?.team_name}
+              logo={generalHighlightsForView.generalBestHistorical?.logo}
+              teamName={generalHighlightsForView.generalBestHistorical?.team_name}
               tooltip="El equipo con más puntos acumulados desde que se registran datos, en las modalidades de esta vista, sin aplicar coeficientes."
               useLogoAsBackground={true}
             />
             <StatsBlock
               title="Equipos Nuevos"
-              value={generalHighlightStats.generalNewTeams || 0}
-              subtitle={generalHighlightStats.generalNewTeamsNames && generalHighlightStats.generalNewTeamsNames.length > 0
-                ? generalHighlightStats.generalNewTeamsNames.join(', ')
+              value={generalHighlightsForView.generalNewTeams || 0}
+              subtitle={generalHighlightsForView.generalNewTeamsNames && generalHighlightsForView.generalNewTeamsNames.length > 0
+                ? generalHighlightsForView.generalNewTeamsNames.join(', ')
                 : 'En esta temporada'}
               icon={UsersRound}
               color="red"
@@ -3894,68 +3907,70 @@ const RankingPageNew: React.FC = () => {
     return (
       <div className="space-y-6">
         {/* Estadísticas destacadas de la categoría */}
-        {categoryHighlightStats && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-4 items-stretch">
+        {categoryHighlightsForView && (
+          <div
+            className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-4 items-stretch transition-opacity duration-150 ${categoryHighlightsAreStale ? 'opacity-60' : ''}`}
+          >
             <StatsBlock
               title="Líder Actual"
-              value={categoryHighlightStats.categoryLeader?.team_name || 'N/A'}
-              subtitle={`${formatPoints(categoryHighlightStats.categoryLeader?.category_points ?? 0, 1)} pts`}
+              value={categoryHighlightsForView.categoryLeader?.team_name || 'N/A'}
+              subtitle={`${formatPoints(categoryHighlightsForView.categoryLeader?.category_points ?? 0, 1)} pts`}
               icon={Trophy}
               color="blue"
-              logo={categoryHighlightStats.categoryLeader?.logo}
-              teamName={categoryHighlightStats.categoryLeader?.team_name}
+              logo={categoryHighlightsForView.categoryLeader?.logo}
+              teamName={categoryHighlightsForView.categoryLeader?.team_name}
               tooltip="El equipo con más puntos en el ranking actual de esta categoría."
               useLogoAsBackground={true}
             />
             <StatsBlock
               title="Equipo Revelación"
-              value={categoryHighlightStats.categoryRevelation?.team_name || 'N/A'}
-              subtitle={`+${formatPoints(categoryHighlightStats.categoryRevelation?.points_gained ?? 0, 1)} pts`}
+              value={categoryHighlightsForView.categoryRevelation?.team_name || 'N/A'}
+              subtitle={`+${formatPoints(categoryHighlightsForView.categoryRevelation?.points_gained ?? 0, 1)} pts`}
               icon={BarChart3}
               color="yellow"
-              logo={categoryHighlightStats.categoryRevelation?.logo}
-              teamName={categoryHighlightStats.categoryRevelation?.team_name}
+              logo={categoryHighlightsForView.categoryRevelation?.logo}
+              teamName={categoryHighlightsForView.categoryRevelation?.team_name}
               tooltip="El equipo que ha ganado más puntos en esta categoría comparando la temporada actual con la anterior."
               useLogoAsBackground={true}
             />
             <StatsBlock
               title="Subida en el ranking"
-              value={categoryHighlightStats.categoryBiggestRise?.team_name || 'N/A'}
-              subtitle={`+${categoryHighlightStats.categoryBiggestRise?.positions_gained || 0} puestos`}
+              value={categoryHighlightsForView.categoryBiggestRise?.team_name || 'N/A'}
+              subtitle={`+${categoryHighlightsForView.categoryBiggestRise?.positions_gained || 0} puestos`}
               icon={TrendingUp}
               color="green"
-              logo={categoryHighlightStats.categoryBiggestRise?.logo}
-              teamName={categoryHighlightStats.categoryBiggestRise?.team_name}
+              logo={categoryHighlightsForView.categoryBiggestRise?.logo}
+              teamName={categoryHighlightsForView.categoryBiggestRise?.team_name}
               tooltip="El equipo que ha subido más posiciones en esta categoría comparando la temporada actual con la anterior."
               useLogoAsBackground={true}
             />
             <StatsBlock
               title="Mejor Filial"
-              value={categoryHighlightStats.categoryBestFilial?.team_name || 'Sin filiales'}
-              subtitle={categoryHighlightStats.categoryBestFilial ? `${formatPoints(categoryHighlightStats.categoryBestFilial.category_points ?? 0, 1)} pts` : 'No hay filiales'}
+              value={categoryHighlightsForView.categoryBestFilial?.team_name || 'Sin filiales'}
+              subtitle={categoryHighlightsForView.categoryBestFilial ? `${formatPoints(categoryHighlightsForView.categoryBestFilial.category_points ?? 0, 1)} pts` : 'No hay filiales'}
               icon={UsersRound}
               color="purple"
-              logo={categoryHighlightStats.categoryBestFilial?.logo}
-              teamName={categoryHighlightStats.categoryBestFilial?.team_name}
+              logo={categoryHighlightsForView.categoryBestFilial?.logo}
+              teamName={categoryHighlightsForView.categoryBestFilial?.team_name}
               tooltip="El equipo filial mejor clasificado en esta categoría."
               useLogoAsBackground={true}
             />
             <StatsBlock
               title="Líder histórico"
-              value={categoryHighlightStats.categoryBestHistorical?.team_name || 'N/A'}
-              subtitle={`${formatPoints(categoryHighlightStats.categoryBestHistorical?.historical_points ?? 0, 1)} pts`}
+              value={categoryHighlightsForView.categoryBestHistorical?.team_name || 'N/A'}
+              subtitle={`${formatPoints(categoryHighlightsForView.categoryBestHistorical?.historical_points ?? 0, 1)} pts`}
               icon={Star}
               color="orange"
-              logo={categoryHighlightStats.categoryBestHistorical?.logo}
-              teamName={categoryHighlightStats.categoryBestHistorical?.team_name}
+              logo={categoryHighlightsForView.categoryBestHistorical?.logo}
+              teamName={categoryHighlightsForView.categoryBestHistorical?.team_name}
               tooltip="El equipo con más puntos acumulados en esta categoría desde que se registran datos en el ranking, en todas las temporadas sin aplicar coeficientes."
               useLogoAsBackground={true}
             />
             <StatsBlock
               title="Equipos Nuevos"
-              value={categoryHighlightStats.categoryNewTeams || 0}
-              subtitle={categoryHighlightStats.categoryNewTeamsNames && categoryHighlightStats.categoryNewTeamsNames.length > 0
-                ? categoryHighlightStats.categoryNewTeamsNames.join(', ')
+              value={categoryHighlightsForView.categoryNewTeams || 0}
+              subtitle={categoryHighlightsForView.categoryNewTeamsNames && categoryHighlightsForView.categoryNewTeamsNames.length > 0
+                ? categoryHighlightsForView.categoryNewTeamsNames.join(', ')
                 : 'En esta temporada'}
               icon={UsersRound}
               color="red"

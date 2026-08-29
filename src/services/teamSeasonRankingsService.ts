@@ -69,6 +69,7 @@ export interface RankingEntry {
   team_id: string
   team_name: string
   region_name: string
+  location?: string | null
   rank: number
   points: number
   breakdown?: {
@@ -560,7 +561,7 @@ const teamSeasonRankingsService = {
           team_id,
           ${surface}_rank,
           ${surface}_points,
-          teams(${TEAM_RANKING_NAME_SELECT}, region:regions(name))
+          teams(${TEAM_RANKING_NAME_SELECT}, location, region:regions(name))
         `)
         .eq('season', season)
         .not(`${surface}_rank`, 'is', null)
@@ -575,6 +576,7 @@ const teamSeasonRankingsService = {
         team_id: row.team_id,
         team_name: getTeamDisplayNameForCategory(row.teams, surface),
         region_name: row.teams?.region?.name || 'Sin región',
+        location: row.teams?.location?.trim() || null,
         rank: row[`${surface}_rank`],
         points: row[`${surface}_points`]
       }))
@@ -760,6 +762,7 @@ const teamSeasonRankingsService = {
     team_id: string
     team_name: string
     region_name: string
+    location?: string | null
     logo?: string
     rank: number
     points: number
@@ -779,7 +782,7 @@ const teamSeasonRankingsService = {
           ${surface}_points,
           ${surface}_position_change,
           ${surface}_points_change,
-          teams(${TEAM_RANKING_NAME_SELECT}, logo, region:regions(name))
+          teams(${TEAM_RANKING_NAME_SELECT}, location, logo, region:regions(name))
         `)
         .eq('season', season)
         .not(`${surface}_rank`, 'is', null)
@@ -794,6 +797,7 @@ const teamSeasonRankingsService = {
         team_id: row.team_id,
         team_name: getTeamDisplayNameForCategory(row.teams, surface),
         region_name: row.teams?.region?.name || 'Sin región',
+        location: row.teams?.location?.trim() || null,
         logo: row.teams?.logo || null,
         rank: row[`${surface}_rank`],
         points: row[`${surface}_points`],
@@ -818,6 +822,7 @@ const teamSeasonRankingsService = {
     team_id: string
     team_name: string
     region_name: string
+    location?: string | null
     logo?: string
     rank: number
     points: number
@@ -862,7 +867,7 @@ const teamSeasonRankingsService = {
           ${pointsCol},
           ${posChangeCol},
           ${ptsChangeCol},
-          teams(${TEAM_RANKING_NAME_SELECT}, logo, region:regions(name))
+          teams(${TEAM_RANKING_NAME_SELECT}, location, logo, region:regions(name))
         `)
         .eq('season', season)
         .not(rankCol, 'is', null)
@@ -877,6 +882,7 @@ const teamSeasonRankingsService = {
         team_id: row.team_id,
         team_name: getTeamDisplayNameForCategory(row.teams),
         region_name: row.teams?.region?.name || 'Sin región',
+        location: row.teams?.location?.trim() || null,
         logo: row.teams?.logo || null,
         rank: row[rankCol],
         points: row[pointsCol],

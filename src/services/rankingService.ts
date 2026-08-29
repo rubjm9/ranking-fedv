@@ -14,6 +14,7 @@ export interface RankingEntry {
   team_name: string
   logo?: string | null
   region_name?: string
+  location?: string | null
   ranking_category: string
   current_season_points: number
   previous_season_points: number

@@ -14,6 +14,14 @@ export interface TeamNameSource {
 export const TEAM_RANKING_NAME_SELECT =
   'name, nameOpen, nameWomen, nameMixed'
 
+/** Ciudad del equipo para subtítulos en tablas de ranking. */
+export const getTeamCityLabel = (
+  team: { location?: string | null } | null | undefined
+): string | null => {
+  const city = team?.location?.trim()
+  return city || null
+}
+
 const getModalityFromCategory = (category?: string | null): TeamModality | null => {
   if (!category) return null
   if (category === 'open' || category.endsWith('_open')) return 'open'

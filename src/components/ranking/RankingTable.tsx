@@ -5,6 +5,7 @@ import PointsBreakdown from '@/components/ranking/PointsBreakdown'
 import TotalBreakdown from '@/components/ranking/TotalBreakdown'
 import RankingCardList from '@/components/ranking/RankingCardList'
 import type { ViewMode } from '@/hooks/useViewMode'
+import { getTeamCityLabel } from '@/utils/teamNames'
 
 interface RankingTableProps {
   teams: any[]
@@ -99,6 +100,8 @@ const RankingTable: React.FC<RankingTableProps> = ({
           {teams.map((team, index) => {
             const filaPar = index % 2 === 1
             const cambio = team.position_change || 0
+            const cityLabel = getTeamCityLabel(team)
+
             return (
               <tr
                 key={team.team_id}
@@ -133,8 +136,8 @@ const RankingTable: React.FC<RankingTableProps> = ({
                       >
                         {team.team_name}
                       </RankingTeamLink>
-                      {team.region_name && (
-                        <div className="text-xs text-content-subtle">{team.region_name}</div>
+                      {cityLabel && (
+                        <div className="text-xs text-content-subtle">{cityLabel}</div>
                       )}
                       {rankingType === 'clubs' && team.teams_count > 1 && (
                         <div className="text-xs text-link">{team.teams_count} equipos</div>

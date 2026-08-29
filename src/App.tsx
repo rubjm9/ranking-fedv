@@ -8,7 +8,8 @@ import AdminLayout from '@/components/layout/AdminLayout'
 // Páginas públicas
 import HomePage from '@/pages/HomePage'
 import RankingPageNew from '@/pages/RankingPageNew'
-import { SURFACES } from '@/constants/surfaces'
+import NotFoundPageSync from '@/pages/NotFoundPage'
+import { SURFACES, type SurfaceSlug } from '@/constants/surfaces'
 import TeamsPage from '@/pages/TeamsPage'
 import RegionsPage from '@/pages/RegionsPage'
 import TournamentsPage from '@/pages/TournamentsPage'
@@ -25,6 +26,14 @@ function TournamentLegacyRedirect() {
   return <Navigate to={`/campeonatos/${id}`} replace />
 }
 
+/** Valida :surface antes de montar el ranking (evita soft-404 en slugs inventados). */
+function RankingSurfaceGate() {
+  const { surface } = useParams<{ surface: string }>()
+  if (!surface || !SURFACES.includes(surface as SurfaceSlug)) {
+    return <NotFoundPageSync />
+  }
+  return <RankingPageNew />
+}
 
 /*
  * Carga bajo demanda. El panel completo (con exceljs y @dnd-kit) y las páginas
@@ -109,9 +118,7 @@ function App() {
               <Route index element={<HomePage />} />
               <Route path="ranking">
                 <Route index element={<Navigate to="/ranking/resumen" replace />} />
-                {SURFACES.map((surface) => (
-                  <Route key={surface} path={surface} element={<RankingPageNew />} />
-                ))}
+                <Route path=":surface" element={<RankingSurfaceGate />} />
               </Route>
               <Route path="ranking-old" element={<Navigate to="/ranking" replace />} />
               <Route path="equipos" element={<TeamsPage />} />
