@@ -73,8 +73,8 @@ export default {
         }
       },
       fontFamily: {
-        display: ['Space Grotesk', 'system-ui', 'sans-serif'],
-        sans: ['DM Sans', 'system-ui', 'sans-serif'],
+        display: ['"Space Grotesk Variable"', 'system-ui', 'sans-serif'],
+        sans: ['"DM Sans Variable"', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
