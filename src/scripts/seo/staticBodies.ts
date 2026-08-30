@@ -5,6 +5,7 @@ import {
   type TeamSeasonRankingRow,
 } from '../../constants/rankingSurfaces'
 import { ABOUT_FAQ_ITEMS } from '../../constants/aboutFaq'
+import { GLOSSARY_TERMS } from '../../constants/glossary'
 import {
   getRegionPublicUrl,
   getTeamPublicUrl,
@@ -33,36 +34,6 @@ const MODALITY_ROWS = [
   { label: 'Césped open', rankKey: 'grass_open_rank', pointsKey: 'grass_open_points' },
   { label: 'Césped women', rankKey: 'grass_women_rank', pointsKey: 'grass_women_points' },
 ] as const
-
-const GLOSSARY_TERMS: Array<{ term: string; definition: string }> = [
-  {
-    term: 'CE1',
-    definition:
-      'Campeonato de España de 1ª división. Los equipos suman puntos directos de la curva nacional según el puesto obtenido.',
-  },
-  {
-    term: 'CE2',
-    definition:
-      'Campeonato de España de 2ª división (ascenso). Usa la misma escala que CE1, pero el campeón recibe los puntos del puesto posterior al último equipo de 1ª.',
-  },
-  {
-    term: 'Campeonato regional',
-    definition:
-      'Campeonato autonómico oficial. El campeón parte de 100 puntos base, multiplicados por el coeficiente regional del equipo.',
-  },
-  {
-    term: 'Coeficiente regional',
-    definition:
-      'Factor entre 0.80 y 1.20 que refleja la fortaleza relativa de cada región en el ámbito nacional.',
-  },
-  { term: 'Ultimate Frisbee', definition: 'Deporte de equipo con disco volador organizado por la FEDV en playa y césped.' },
-  {
-    term: 'FEDV',
-    definition: 'Federación Española de Disco Volador. Organismo que gestiona el ranking oficial de Ultimate Frisbee en España.',
-  },
-  { term: 'Modalidad Open', definition: 'Categoría masculina/open en campeonatos de Ultimate Frisbee.' },
-  { term: 'Modalidad Women', definition: 'Categoría femenina en campeonatos de Ultimate Frisbee.' },
-]
 
 export const getRankingItems = (
   surface: string,
@@ -287,12 +258,22 @@ export const buildTournamentsListStaticBody = (ctx: SeoBuildContext): string => 
   return lines.join('\n')
 }
 
-export const buildAboutStaticBody = (siteUrl: string): string =>
-  [
+export const buildAboutStaticBody = (siteUrl: string): string => {
+  const faqLines = ABOUT_FAQ_ITEMS.flatMap(({ question, answer }) => [
+    `<dt>${escapeHtml(question)}</dt>`,
+    `<dd>${escapeHtml(answer)}</dd>`,
+  ])
+
+  return [
     '<h1>Cómo funciona el ranking FEDV</h1>',
     '<p>El ranking oficial de Ultimate Frisbee en España suma puntos por puesto en campeonatos CE1, CE2 y regionales, con coeficiente regional y ponderación por temporada.</p>',
     `<p><a href="${escapeHtmlAttr(`${siteUrl}/como-funciona`)}">Ver explicación completa</a></p>`,
+    '<h2>Preguntas frecuentes</h2>',
+    '<dl>',
+    ...faqLines,
+    '</dl>',
   ].join('\n')
+}
 
 export const buildGlosarioStaticBody = (): string => {
   const lines = ['<h1>Glosario de Ultimate Frisbee</h1>', '<dl>']

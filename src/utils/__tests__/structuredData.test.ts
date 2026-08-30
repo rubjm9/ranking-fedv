@@ -4,9 +4,11 @@ import {
   buildBreadcrumbListSchema,
   buildSportsTeamSchema,
   buildSportsEventSchema,
+  buildDefinedTermSetSchema,
   buildFaqPageSchema,
   buildPlaceSchema,
 } from '../structuredData'
+import { GLOSSARY_TERMS } from '../../constants/glossary'
 
 const SITE = 'https://ranking.fedv.es'
 
@@ -118,6 +120,20 @@ describe('buildFaqPageSchema', () => {
         acceptedAnswer: { '@type': 'Answer', text: 'Campeonato de España 1ª división.' },
       },
     ])
+  })
+})
+
+describe('buildDefinedTermSetSchema', () => {
+  it('genera DefinedTermSet con 16 términos', () => {
+    const schema = buildDefinedTermSetSchema(GLOSSARY_TERMS, SITE)
+    expect(schema['@type']).toBe('DefinedTermSet')
+    expect(schema.url).toBe(`${SITE}/glosario`)
+    expect(schema.hasDefinedTerm).toHaveLength(16)
+    expect(schema.hasDefinedTerm[0]).toMatchObject({
+      '@type': 'DefinedTerm',
+      name: GLOSSARY_TERMS[0].term,
+      description: GLOSSARY_TERMS[0].definition,
+    })
   })
 })
 

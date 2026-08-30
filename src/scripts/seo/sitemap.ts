@@ -11,7 +11,6 @@ export const STATIC_PATHS = [
   '/campeonatos',
   '/como-funciona',
   '/glosario',
-  '/disc-golf',
   '/privacy',
   '/terms',
   ...SURFACES.map((s) => `/ranking/${s}`),

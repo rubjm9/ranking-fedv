@@ -235,6 +235,23 @@ export function buildWebPageSchema(
   return schema
 }
 
+export function buildDefinedTermSetSchema(
+  terms: Array<{ term: string; definition: string }>,
+  siteUrl: string
+): Record<string, unknown> {
+  const base = siteUrl.replace(/\/$/, '')
+  return {
+    '@type': 'DefinedTermSet',
+    name: 'Glosario de Ultimate Frisbee — Ranking FEDV',
+    url: `${base}/glosario`,
+    hasDefinedTerm: terms.map((t) => ({
+      '@type': 'DefinedTerm',
+      name: t.term,
+      description: t.definition,
+    })),
+  }
+}
+
 export function buildItemListSchema(
   name: string,
   items: ItemListEntry[],

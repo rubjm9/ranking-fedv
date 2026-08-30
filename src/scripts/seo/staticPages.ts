@@ -4,8 +4,10 @@ import {
   buildRankingPageDescription,
   buildRankingPageTitle,
 } from '../../utils/seoTitles'
+import { GLOSSARY_TERMS } from '../../constants/glossary'
 import {
   buildBreadcrumbListSchema,
+  buildDefinedTermSetSchema,
   buildFaqPageSchema,
   buildItemListSchema,
   buildWebPageSchema,
@@ -107,17 +109,18 @@ export const STATIC_PAGE_CONFIG: StaticPageConfig[] = [
     title: 'Glosario',
     description:
       'Glosario de términos del ranking de Ultimate Frisbee en España: CE1, CE2, coeficiente regional, modalidades y más.',
+    jsonLd: (ctx) => [buildDefinedTermSetSchema(GLOSSARY_TERMS, ctx.siteUrl)],
     buildBody: () => buildGlosarioStaticBody(),
   },
   {
     path: '/privacy',
     title: 'Privacidad',
-    description: 'Política de privacidad del ranking FEDV.',
+    description: 'Política de privacidad del ranking FEDV: tratamiento de datos, cookies y contacto.',
   },
   {
     path: '/terms',
     title: 'Términos',
-    description: 'Términos de uso del ranking FEDV.',
+    description: 'Términos de uso del ranking oficial de Ultimate Frisbee de la FEDV.',
   },
   {
     path: '/disc-golf',

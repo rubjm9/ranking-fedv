@@ -78,6 +78,7 @@ import AdminOnlyRoute from '@/components/auth/AdminOnlyRoute'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import AnalyticsRoot from '@/components/layout/AnalyticsRoot'
 import CanonicalSync from '@/components/layout/CanonicalSync'
+import HideSeoStaticOnHydrate from '@/components/seo/HideSeoStaticOnHydrate'
 
 // Configurar React Query
 const queryClient = new QueryClient({
@@ -111,6 +112,7 @@ function App() {
         <AuthProvider>
           <AnalyticsRoot />
           <CanonicalSync />
+          <HideSeoStaticOnHydrate />
           <Suspense fallback={<CargandoRuta />}>
           <Routes>
             {/* Rutas públicas */}

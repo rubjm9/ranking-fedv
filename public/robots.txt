@@ -2,3 +2,6 @@ User-agent: *
 Allow: /
 
 Sitemap: https://ranking.fedv.es/sitemap.xml
+
+# Documentación para asistentes de IA
+# https://ranking.fedv.es/llms.txt

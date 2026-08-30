@@ -36,6 +36,7 @@ import {
   buildTeamStaticBody,
   buildTournamentStaticBody,
 } from './seo/staticBodies'
+import { writeLlmsTxt } from './seo/llmsTxt'
 import { buildStaticSitemapEntries, formatLastmod, resolveBuildDate, writeSitemap } from './seo/sitemap'
 import { buildSeoContext, generateStaticPages } from './seo/staticPages'
 import { createSeoSupabaseClient, loadSeoData, unwrapRelation } from './seo/supabase'
@@ -286,6 +287,7 @@ const main = async () => {
   }
 
   await writeSitemap(entries, partial)
+  await writeLlmsTxt()
 }
 
 const resolveSiteUrl = (): string => {

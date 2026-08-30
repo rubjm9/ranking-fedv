@@ -531,6 +531,10 @@
     color: #4f46e5;
     text-decoration: underline;
   }
+
+  html.app-hydrated #seo-static {
+    display: none;
+  }
 }
 
 /* Hero dot pattern */

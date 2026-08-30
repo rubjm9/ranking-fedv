@@ -10,6 +10,7 @@ import { usePageMeta } from '@/hooks/usePageMeta'
 import JsonLd from '@/components/seo/JsonLd'
 import { buildFaqPageSchema } from '@/utils/structuredData'
 import { ABOUT_FAQ_ITEMS } from '@/constants/aboutFaq'
+import FaqSection from '@/components/about/FaqSection'
 
 const AboutPage: React.FC = () => {
   usePageMeta({ title: 'Cómo funciona', description: 'Cómo se calcula el ranking FEDV: puntos por puesto, coeficiente regional y ponderación por temporada.' })
@@ -324,6 +325,8 @@ const AboutPage: React.FC = () => {
             </table>
           </div>
         </div>
+
+        <FaqSection items={ABOUT_FAQ_ITEMS} />
 
         {/* Contacto */}
         <div className="card text-center">

@@ -4,7 +4,10 @@ import PageHeader from '@/components/layout/PageHeader'
 import { usePageMeta } from '@/hooks/usePageMeta'
 
 const TermsPage: React.FC = () => {
-  usePageMeta({ title: 'Términos' })
+  usePageMeta({
+    title: 'Términos',
+    description: 'Términos de uso del ranking oficial de Ultimate Frisbee de la FEDV.',
+  })
 
   return (
     <PageContainer>

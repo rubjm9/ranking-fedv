@@ -4,7 +4,10 @@ import PageHeader from '@/components/layout/PageHeader'
 import { usePageMeta } from '@/hooks/usePageMeta'
 
 const PrivacyPage: React.FC = () => {
-  usePageMeta({ title: 'Privacidad' })
+  usePageMeta({
+    title: 'Privacidad',
+    description: 'Política de privacidad del ranking FEDV: tratamiento de datos, cookies y contacto.',
+  })
 
   return (
     <PageContainer>
