@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { buildRegionPublicSlugById } from '../../utils/publicUrls'
+import { isMissingColumnError } from '../../utils/supabaseErrors'
 import type {
   LoadedSeoData,
   PositionRow,
@@ -105,9 +106,9 @@ const loadRegionTeams = async (
   return byRegion
 }
 
-const isMissingColumnError = (error: { code?: string; message?: string }, column: string): boolean =>
-  error.code === '42703' ||
-  Boolean(error.message?.includes(column) && error.message.includes('does not exist'))
+const REGION_SELECT_WITH_SLUG = 'id, name, slug, createdAt, updatedAt'
+
+const REGION_SELECT_WITHOUT_SLUG = 'id, name, createdAt, updatedAt'
 
 const TOURNAMENT_SELECT_WITH_SLUG =
   'id, name, slug, type, year, surface, category, startDate, endDate, location, updatedAt, region:regions(name)'
@@ -130,14 +131,20 @@ export const loadSeoData = async (supabase: SupabaseClient): Promise<LoadedSeoDa
   const [teamsResult, regionsResult, tournamentsResult, teamCountResult, tournamentCountResult] =
     await Promise.all([
       supabase.from('teams').select('id, name, slug, location, logo, regionId, updatedAt, region:regions(name)'),
-      supabase.from('regions').select('id, name, slug, createdAt, updatedAt'),
+      supabase.from('regions').select(REGION_SELECT_WITH_SLUG),
       supabase.from('tournaments').select(TOURNAMENT_SELECT_WITH_SLUG),
       supabase.from('teams').select('id', { count: 'exact', head: true }),
       supabase.from('tournaments').select('id', { count: 'exact', head: true }),
     ])
 
   if (teamsResult.error) throw teamsResult.error
-  if (regionsResult.error) throw regionsResult.error
+
+  let regionsResultFinal = regionsResult
+  if (regionsResult.error && isMissingColumnError(regionsResult.error, 'slug')) {
+    console.warn('⚠️  Columna regions.slug ausente (migración 018 pendiente); SEO con slugs derivados del nombre.')
+    regionsResultFinal = await supabase.from('regions').select(REGION_SELECT_WITHOUT_SLUG)
+  }
+  if (regionsResultFinal.error) throw regionsResultFinal.error
 
   let tournamentsResultFinal = tournamentsResult
   if (tournamentsResult.error && isMissingColumnError(tournamentsResult.error, 'slug')) {
@@ -147,7 +154,10 @@ export const loadSeoData = async (supabase: SupabaseClient): Promise<LoadedSeoDa
   if (tournamentsResultFinal.error) throw tournamentsResultFinal.error
 
   const teams = (teamsResult.data ?? []) as TeamRow[]
-  const regions = (regionsResult.data ?? []) as RegionRow[]
+  const regions = ((regionsResultFinal.data ?? []) as Omit<RegionRow, 'slug'>[]).map((region) => ({
+    ...region,
+    slug: 'slug' in region ? (region as RegionRow).slug : null,
+  })) as RegionRow[]
   const tournaments = (tournamentsResultFinal.data ?? []) as TournamentRow[]
 
   if (regions.length !== 5) {

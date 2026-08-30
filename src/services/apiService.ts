@@ -12,6 +12,7 @@ import {
   buildRegionPublicSlugById,
 } from '@/utils/publicUrls'
 import { buildTournamentPageTitle } from '@/utils/seoTitles'
+import { isMissingColumnError } from '@/utils/supabaseErrors'
 
 export type { RegionSlugSource }
 export { getTeamPublicUrl, getRegionPublicUrl, getTournamentPublicUrl, buildRegionPublicSlugById }
@@ -162,18 +163,14 @@ function buildRegionSlugLookup(
 }
 
 async function resolveUniqueRegionSlug(name: string, excludeRegionId?: string): Promise<string> {
-  const { data: existingRegions } = await supabase
-    .from('regions')
-    .select('id, slug')
-    .not('slug', 'is', null)
-
-  const existingSlugs = new Set(
-    (existingRegions || [])
+  const regions = await fetchRegionsForSlugResolution()
+  const usedSlugs = new Set(
+    regions
       .filter((r) => r.id !== excludeRegionId && r.slug)
       .map((r) => r.slug as string)
   )
 
-  return generateUniqueSlug(name, existingSlugs)
+  return generateUniqueSlug(name, usedSlugs)
 }
 
 async function resolveUniqueTeamSlug(name: string, excludeTeamId?: string): Promise<string> {
@@ -326,53 +323,27 @@ export const regionsService = {
   },
 
   getBySlug: async (slug: string) => {
-    const { data, error } = await supabase
-      .from('regions')
-      .select(`
-        *,
-        teams(
-          id,
-          name,
-          slug,
-          email,
-          logo,
-          isFilial,
-          positions(count)
-        ),
-        tournaments(
-          id,
-          name,
-          type,
-          year,
-          surface,
-          category
-        )
-      `)
-      .eq('slug', slug)
-      .single()
-
-    if (error) throw error
-
-    const transformedData = {
-      ...data,
-      _count: {
-        teams: data.teams?.length || 0,
-        tournaments: data.tournaments?.length || 0,
-      },
-    }
-
-    return { success: true, data: transformedData, message: 'Región obtenida exitosamente' }
+    const regionRef = await regionsService.resolveRegion(slug)
+    return regionsService.getById(regionRef.id)
   },
 
   // Crear una nueva región
   create: async (regionData: Omit<Region, 'id' | 'createdAt' | 'updatedAt'> & { description?: string }) => {
     const slug = regionData.slug || await resolveUniqueRegionSlug(regionData.name)
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('regions')
       .insert({ ...regionData, slug })
       .select()
       .single()
-    
+
+    if (error && isMissingColumnError(error, 'slug')) {
+      ;({ data, error } = await supabase
+        .from('regions')
+        .insert(regionData)
+        .select()
+        .single())
+    }
+
     if (error) throw error
     return { success: true, data, message: 'Región creada exitosamente' }
   },
@@ -383,13 +354,23 @@ export const regionsService = {
     if (regionData.name && !regionData.slug) {
       payload.slug = await resolveUniqueRegionSlug(regionData.name, id)
     }
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('regions')
       .update(payload)
       .eq('id', id)
       .select()
       .single()
-    
+
+    if (error && isMissingColumnError(error, 'slug')) {
+      const { slug: _slug, ...payloadWithoutSlug } = payload
+      ;({ data, error } = await supabase
+        .from('regions')
+        .update(payloadWithoutSlug)
+        .eq('id', id)
+        .select()
+        .single())
+    }
+
     if (error) throw error
     return { success: true, data, message: 'Región actualizada exitosamente' }
   },
@@ -692,8 +673,7 @@ export const tournamentsService = {
       .maybeSingle()
 
     const slugColumnMissing =
-      slugError?.code === '42703' ||
-      (slugError?.message?.includes('slug') && slugError.message.includes('does not exist'))
+      isMissingColumnError(slugError, 'slug')
 
     if (slugError && !slugColumnMissing) throw slugError
     if (bySlug) {
