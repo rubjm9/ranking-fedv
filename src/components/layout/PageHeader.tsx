@@ -9,6 +9,8 @@ interface PageHeaderProps {
   actions?: ReactNode
   statsBar?: ReactNode
   className?: string
+  /** Título y subtítulo centrados (p. ej. Cómo funciona). */
+  centered?: boolean
 }
 
 const PageHeader: React.FC<PageHeaderProps> = ({
@@ -19,6 +21,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   actions,
   statsBar,
   className = '',
+  centered = false,
 }) => {
   const innerClassName = statsBar ? 'pb-6' : ''
 
@@ -30,13 +33,21 @@ const PageHeader: React.FC<PageHeaderProps> = ({
           {breadcrumbActions && <div className="flex-shrink-0">{breadcrumbActions}</div>}
         </div>
       )}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-white md:text-3xl">
+      <div
+        className={
+          centered
+            ? 'flex flex-col items-center text-center'
+            : 'flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'
+        }
+      >
+        <div className={centered ? 'max-w-3xl' : undefined}>
+          <h1 className="page-header-title font-display text-2xl font-bold tracking-tight text-white md:text-3xl">
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-2 max-w-3xl text-sm text-content-subtle md:text-base">{subtitle}</p>
+            <p className="page-header-subtitle mt-2 max-w-3xl text-sm text-content-subtle md:text-base">
+              {subtitle}
+            </p>
           )}
         </div>
         {actions && <div className="flex-shrink-0">{actions}</div>}

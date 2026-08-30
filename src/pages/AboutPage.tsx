@@ -22,9 +22,9 @@ const AboutPage: React.FC = () => {
     <PageContainer>
       <JsonLd data={buildFaqPageSchema(ABOUT_FAQ_ITEMS)} />
       <PageHeader
+        centered
         title="Cómo funciona el ranking FEDV"
         subtitle="Una guía sencilla para entender cómo se puntúan los campeonatos, cómo se suman los resultados y cómo se construye el ranking oficial."
-        className="text-center [&_.page-header-title]:text-center [&_.page-header-subtitle]:mx-auto"
       />
 
       <div className="space-y-8">
