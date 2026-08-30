@@ -10,7 +10,9 @@ export const NAV_HERO_ATTR = 'data-nav-hero'
 const isHeroUnderNav = () => {
   const hero = document.querySelector<HTMLElement>(`[${NAV_HERO_ATTR}]`)
   if (!hero) return false
-  return hero.getBoundingClientRect().bottom > NAV_BAND_PX
+  const { top, bottom } = hero.getBoundingClientRect()
+  // El hero debe solapar la franja de la navbar (0…NAV_BAND_PX), no solo quedar por debajo.
+  return top < NAV_BAND_PX && bottom > 0
 }
 
 /**

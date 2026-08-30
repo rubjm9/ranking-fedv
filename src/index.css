@@ -158,6 +158,7 @@
   }
 
   .page-container:has(> .page-header-hero:first-child),
+  .page-container:has(> script:first-child + .page-header-hero),
   .page-container:has(> header:first-child .page-header-hero),
   .page-container:has(> *:first-child > .page-header-hero:first-child) {
     @apply pt-0;
