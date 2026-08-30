@@ -370,16 +370,22 @@ const TournamentDetailPage: React.FC = () => {
     )
   }
 
+  const siteBase = resolveSiteBaseUrl()
+  const tournamentPath = getTournamentPublicUrl(tournament)
+  const eventSchemaId = `${siteBase}${tournamentPath}#event`
+  const tournamentTitle = buildTournamentPageTitle(tournament)
+
   return (
     <PageContainer>
       <JsonLd
+        dedupeById={eventSchemaId}
         data={[
           buildBreadcrumbListSchema(
             [
               { name: 'Campeonatos', url: '/campeonatos' },
               { name: breadcrumbLabel || tournament.name },
             ],
-            resolveSiteBaseUrl()
+            siteBase
           ),
           buildSportsEventSchema(
             {
@@ -394,8 +400,8 @@ const TournamentDetailPage: React.FC = () => {
               endDate: tournament.endDate,
               location: tournament.location,
             },
-            resolveSiteBaseUrl(),
-            buildTournamentPageTitle(tournament),
+            siteBase,
+            tournamentTitle,
             tournament.positions
               ?.slice()
               .sort((a, b) => a.position - b.position)

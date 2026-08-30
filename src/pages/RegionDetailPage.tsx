@@ -507,13 +507,18 @@ const RegionDetailPage: React.FC = () => {
     )
   }
 
+  const siteBase = resolveSiteBaseUrl()
+  const regionPath = getRegionPublicUrl(region)
+  const placeSchemaId = `${siteBase}${regionPath}#place`
+
   return (
     <PageContainer>
       <JsonLd
+        dedupeById={placeSchemaId}
         data={[
           buildBreadcrumbListSchema(
             [{ name: 'Regiones', url: '/regiones' }, { name: region.name }],
-            resolveSiteBaseUrl()
+            siteBase
           ),
           buildPlaceSchema(
             {
@@ -521,9 +526,9 @@ const RegionDetailPage: React.FC = () => {
               slug: region.slug,
               id: region.id,
               description: `Equipos, campeonatos y coeficiente regional de ${region.name} en el ranking de Ultimate Frisbee FEDV.`,
-              publicPath: getRegionPublicUrl(region),
+              publicPath: regionPath,
             },
-            resolveSiteBaseUrl()
+            siteBase
           ),
         ]}
       />

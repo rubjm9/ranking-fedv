@@ -25,7 +25,7 @@ const LLMS_HEADER = `# Ranking FEDV — Ultimate Frisbee España
 
 ## Feeds JSON (generados en cada deploy)
 - Índice: https://ranking.fedv.es/data/index.json
-- Equipo: https://ranking.fedv.es/data/teams/{slug}.json
+- Equipo: https://ranking.fedv.es/data/teams/{slug|id}.json
 - Región: https://ranking.fedv.es/data/regions/{slug}.json
 - Campeonato: https://ranking.fedv.es/data/tournaments/{slug}.json
 - Ranking: https://ranking.fedv.es/data/ranking/{surface}.json

@@ -1,4 +1,11 @@
 import { useLayoutEffect } from 'react'
+import {
+  defaultOgImageUrl,
+  escribirMetaName,
+  escribirMetaProperty,
+  leerMetaName,
+  leerMetaProperty,
+} from '@/utils/socialMeta'
 
 const SUFIJO = 'Ranking FEDV'
 
@@ -12,6 +19,14 @@ interface PageMeta {
   canonical?: string
   /** Por defecto `index,follow`. Solo NotFoundPage pasa `noindex`. */
   robots?: string
+  /** Por defecto: título con sufijo de marca. */
+  ogTitle?: string
+  /** Por defecto: description. */
+  ogDescription?: string
+  /** Por defecto: canonical o URL absoluta del pathname actual. */
+  ogUrl?: string
+  /** URL absoluta; por defecto og-image.jpg del sitio. */
+  ogImage?: string
 }
 
 const leerDescripcion = () =>
@@ -32,6 +47,9 @@ const escribirRobots = (content: string) => {
   if (meta) meta.content = content
 }
 
+const leerCanonical = () =>
+  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href
+
 /** Resuelve la URL base del sitio para canonical absoluto. */
 export function resolveSiteBaseUrl(): string {
   const fromEnv = import.meta.env.VITE_SITE_URL as string | undefined
@@ -48,8 +66,38 @@ export function buildCanonicalUrl(pathname: string, siteBase?: string): string {
   return `${base}${path}`
 }
 
+type MetaSnapshot = {
+  ogTitle?: string
+  ogDescription?: string
+  ogUrl?: string
+  ogImage?: string
+  twitterTitle?: string
+  twitterDescription?: string
+  twitterImage?: string
+}
+
+const leerSnapshotSocial = (): MetaSnapshot => ({
+  ogTitle: leerMetaProperty('og:title'),
+  ogDescription: leerMetaProperty('og:description'),
+  ogUrl: leerMetaProperty('og:url'),
+  ogImage: leerMetaProperty('og:image'),
+  twitterTitle: leerMetaName('twitter:title'),
+  twitterDescription: leerMetaName('twitter:description'),
+  twitterImage: leerMetaName('twitter:image'),
+})
+
+const restaurarSnapshotSocial = (snapshot: MetaSnapshot) => {
+  if (snapshot.ogTitle !== undefined) escribirMetaProperty('og:title', snapshot.ogTitle)
+  if (snapshot.ogDescription !== undefined) escribirMetaProperty('og:description', snapshot.ogDescription)
+  if (snapshot.ogUrl !== undefined) escribirMetaProperty('og:url', snapshot.ogUrl)
+  if (snapshot.ogImage !== undefined) escribirMetaProperty('og:image', snapshot.ogImage)
+  if (snapshot.twitterTitle !== undefined) escribirMetaName('twitter:title', snapshot.twitterTitle)
+  if (snapshot.twitterDescription !== undefined) escribirMetaName('twitter:description', snapshot.twitterDescription)
+  if (snapshot.twitterImage !== undefined) escribirMetaName('twitter:image', snapshot.twitterImage)
+}
+
 /**
- * Título, descripción, canonical y robots de la página.
+ * Título, descripción, canonical, robots y meta OG/Twitter de la página.
  *
  * Toda la app compartía el título estático de `index.html`, así que cada
  * pestaña, marcador y enlace compartido decía lo mismo, y `trackPageView`
@@ -58,27 +106,66 @@ export function buildCanonicalUrl(pathname: string, siteBase?: string): string {
  * Canonical y robots solo hacen upsert del valor; no se restauran en cleanup
  * para evitar una ventana sin canonical en transiciones entre rutas.
  *
- * Deliberadamente no toca `meta[name="theme-color"]`: de eso se encargan ya
- * el script anti-destello de `index.html` y `useTheme`. Escribirlo desde un
- * tercer sitio hace parpadear la barra del sistema.
+ * OG/Twitter sí se restauran al desmontar para no dejar meta de la ruta anterior.
  */
-export function usePageMeta({ title, omitBrandSuffix, description, canonical, robots }: PageMeta): void {
+export function usePageMeta({
+  title,
+  omitBrandSuffix,
+  description,
+  canonical,
+  robots,
+  ogTitle,
+  ogDescription,
+  ogUrl,
+  ogImage,
+}: PageMeta): void {
   useLayoutEffect(() => {
     const tituloPrevio = document.title
     const descripcionPrevia = leerDescripcion()
+    const socialPrevia = leerSnapshotSocial()
+    const siteBase = resolveSiteBaseUrl()
 
-    if (title) {
-      document.title = omitBrandSuffix ? title : `${title} · ${SUFIJO}`
-    }
+    const tituloCompleto = title
+      ? omitBrandSuffix
+        ? title
+        : `${title} · ${SUFIJO}`
+      : undefined
+
+    if (tituloCompleto) document.title = tituloCompleto
     if (description) escribirDescripcion(description)
     if (canonical) escribirCanonical(canonical)
     escribirRobots(robots ?? 'index,follow')
+
+    const resolvedOgTitle = ogTitle ?? tituloCompleto
+    const resolvedOgDescription = ogDescription ?? description
+    const resolvedOgUrl =
+      ogUrl ?? canonical ?? leerCanonical() ?? buildCanonicalUrl(window.location.pathname, siteBase)
+    const resolvedOgImage = ogImage ?? defaultOgImageUrl(siteBase)
+
+    if (resolvedOgTitle) escribirMetaProperty('og:title', resolvedOgTitle)
+    if (resolvedOgDescription) escribirMetaProperty('og:description', resolvedOgDescription)
+    if (resolvedOgUrl) escribirMetaProperty('og:url', resolvedOgUrl)
+    if (resolvedOgImage) escribirMetaProperty('og:image', resolvedOgImage)
+    if (resolvedOgTitle) escribirMetaName('twitter:title', resolvedOgTitle)
+    if (resolvedOgDescription) escribirMetaName('twitter:description', resolvedOgDescription)
+    if (resolvedOgImage) escribirMetaName('twitter:image', resolvedOgImage)
 
     return () => {
       document.title = tituloPrevio
       if (description && descripcionPrevia !== undefined) {
         escribirDescripcion(descripcionPrevia)
       }
+      restaurarSnapshotSocial(socialPrevia)
     }
-  }, [title, omitBrandSuffix, description, canonical, robots])
+  }, [
+    title,
+    omitBrandSuffix,
+    description,
+    canonical,
+    robots,
+    ogTitle,
+    ogDescription,
+    ogUrl,
+    ogImage,
+  ])
 }

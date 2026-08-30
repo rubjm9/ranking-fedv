@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   acknowledgeCookieNotice,
+  initWebVitals,
   isAnalyticsConfigured,
   isCookieNoticeAcknowledged,
   onOpenCookieNotice,
@@ -25,6 +26,7 @@ const AnalyticsRoot: React.FC = () => {
     if (!configured) return
 
     startAnalytics()
+    initWebVitals()
     if (!isCookieNoticeAcknowledged()) setBannerOpen(true)
 
     return onOpenCookieNotice(() => setBannerOpen(true))
@@ -33,6 +35,7 @@ const AnalyticsRoot: React.FC = () => {
   useEffect(() => {
     if (!configured) return
     startAnalytics()
+    initWebVitals()
     trackPageView(currentPath(location.pathname, location.search))
   }, [configured, location.pathname, location.search])
 
@@ -40,6 +43,7 @@ const AnalyticsRoot: React.FC = () => {
 
   const dismiss = () => {
     acknowledgeCookieNotice()
+    initWebVitals()
     setBannerOpen(false)
   }
 

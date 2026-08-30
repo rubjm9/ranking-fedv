@@ -127,4 +127,23 @@ describe('buildIndexFeed', () => {
     expect(isIso8601(feed.dateModified as string)).toBe(true)
     expect(feed.teams).toEqual([{ slug: 'atis-tirma', url: `${SITE}/data/teams/atis-tirma.json` }])
   })
+
+  it('incluye equipos sin slug usando su id', () => {
+    const data = emptyData()
+    data.teams = [
+      {
+        id: 'uuid-sin-slug',
+        name: 'Equipo nuevo',
+        slug: null,
+        location: null,
+        updatedAt: null,
+        region: null,
+      },
+    ]
+
+    const feed = buildIndexFeed(data, baseCtx(), FALLBACK, false)
+    expect(feed.teams).toEqual([
+      { slug: 'uuid-sin-slug', url: `${SITE}/data/teams/uuid-sin-slug.json` },
+    ])
+  })
 })

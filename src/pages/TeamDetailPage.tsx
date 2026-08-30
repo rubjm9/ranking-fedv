@@ -21,6 +21,7 @@ import TableSkeleton from '@/components/ui/TableSkeleton'
 import AnimatedPoints from '@/components/ui/AnimatedPoints'
 import { formatBestGlobalPositionWhen, formatPoints } from '@/utils/rankingCalculations'
 import { resolveSiteBaseUrl, usePageMeta } from '@/hooks/usePageMeta'
+import { resolveOgImageUrl } from '@/utils/socialMeta'
 import { useUrlState } from '@/hooks/useUrlState'
 import { buildTeamPageDescription, buildTeamPageTitle } from '@/utils/seoTitles'
 import JsonLd from '@/components/seo/JsonLd'
@@ -107,6 +108,9 @@ const TeamDetailPage: React.FC = () => {
         })
       : undefined,
     robots: isNotFound ? 'noindex' : undefined,
+    ogImage: teamData?.team
+      ? resolveOgImageUrl({ logo: teamData.team.logo }, resolveSiteBaseUrl())
+      : undefined,
   })
 
   // Derivado de la URL, sin estado espejo: antes activeTab y la query se
@@ -767,13 +771,18 @@ const TeamDetailPage: React.FC = () => {
   const shareButton = <ShareButton {...shareProps} variant="dark" />
   const stickyShareButton = <ShareButton {...shareProps} variant="light" />
 
+  const siteBase = resolveSiteBaseUrl()
+  const teamPath = getTeamPublicUrl(team)
+  const teamSchemaId = `${siteBase}${teamPath}#team`
+
   return (
     <>
       <JsonLd
+        dedupeById={teamSchemaId}
         data={[
           buildBreadcrumbListSchema(
             [{ name: 'Equipos', url: '/equipos' }, { name: team.name }],
-            resolveSiteBaseUrl()
+            siteBase
           ),
           buildSportsTeamSchema(
             {
@@ -784,7 +793,7 @@ const TeamDetailPage: React.FC = () => {
               regionName: team.region?.name,
               logo: team.logo,
             },
-            resolveSiteBaseUrl()
+            siteBase
           ),
         ]}
       />

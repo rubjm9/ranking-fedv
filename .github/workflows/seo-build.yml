@@ -1,0 +1,36 @@
+name: SEO build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  seo-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build with Supabase credentials
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          VITE_SITE_URL: https://ranking.fedv.es
+
+      - name: Assert SEO build complete
+        run: |
+          ! grep -q 'seo-assets: PARCIAL' dist/sitemap.xml
+          test -f dist/slug-map.json
+          test -f dist/llms.txt
+          node -e "const i=require('./dist/data/index.json'); if(i.partial) process.exit(1)"

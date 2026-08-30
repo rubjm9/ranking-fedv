@@ -141,9 +141,10 @@ export const buildIndexFeed = (
   dateModified,
   source: ctx.siteUrl,
   partial,
-  teams: data.teams
-    .filter((t) => t.slug)
-    .map((t) => ({ slug: t.slug, url: `${ctx.siteUrl}/data/teams/${t.slug}.json` })),
+  teams: data.teams.map((t) => {
+    const key = t.slug || t.id
+    return { slug: key, url: `${ctx.siteUrl}/data/teams/${key}.json` }
+  }),
   regions: data.regions.map((r) => {
     const slug = getRegionPublicUrl(r, ctx.regionSlugById).replace('/regiones/', '')
     return { slug, url: `${ctx.siteUrl}/data/regions/${slug}.json` }
@@ -183,9 +184,9 @@ export const writeJsonFeeds = async (
   }
 
   for (const team of data.teams) {
-    if (!team.slug) continue
+    const key = team.slug || team.id
     const dateModified = resolveFeedDateModified(team.updatedAt, fallbackDate)
-    await writeJson(`data/teams/${team.slug}.json`, buildTeamFeed(team, ctx, dateModified), distDir)
+    await writeJson(`data/teams/${key}.json`, buildTeamFeed(team, ctx, dateModified), distDir)
     count++
   }
 

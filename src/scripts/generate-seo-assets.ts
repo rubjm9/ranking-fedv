@@ -23,6 +23,7 @@ import {
   buildSportsEventSchema,
   buildSportsTeamSchema,
 } from '../utils/structuredData'
+import { resolveOgImageUrl } from '../utils/socialMeta'
 import {
   getRegionPublicUrl,
   getTeamPublicUrl,
@@ -30,7 +31,7 @@ import {
 } from '../utils/publicUrls'
 import { DIST_DIR, buildEntityHtmlWithBody, isSafePathSegment, writeEntityHtml } from './seo/html'
 import { writeJsonFeeds } from './seo/jsonFeeds'
-import { writeTournamentRedirects } from './seo/redirects'
+import { buildSlugMap, writeSlugMap, writeTournamentRedirects } from './seo/entityRedirects'
 import {
   buildRegionStaticBody,
   buildTeamStaticBody,
@@ -94,6 +95,7 @@ const main = async () => {
           title: buildTeamPageTitle(teamSeo),
           description,
           canonicalUrl,
+          ogImage: resolveOgImageUrl(team, siteUrl),
           jsonLd: [
             buildBreadcrumbListSchema(
               [{ name: 'Equipos', url: '/equipos' }, { name: team.name }],
@@ -245,6 +247,7 @@ const main = async () => {
       }
 
       await writeJsonFeeds(data, ctx, false)
+      await writeSlugMap(buildSlugMap(data))
       await writeTournamentRedirects(data.tournaments)
 
       console.log(
@@ -288,6 +291,9 @@ const main = async () => {
 
   await writeSitemap(entries, partial)
   await writeLlmsTxt()
+  if (partial) {
+    await writeSlugMap({ teams: {}, regions: {}, tournaments: {} })
+  }
 }
 
 const resolveSiteUrl = (): string => {

@@ -13,11 +13,9 @@
     <meta name="color-scheme" content="light dark" />
 
     <!--
-      Open Graph y Twitter Card. Son fijas a propósito: los rastreadores de
-      WhatsApp, Twitter y LinkedIn no ejecutan JavaScript, así que lo que
-      inyecte React desde usePageMeta no llega a la previsualización. Esto
-      garantiza que todo enlace compartido muestre al menos la identidad del
-      sitio; el título por entidad exige inyección en servidor.
+      Open Graph y Twitter Card: fallback estático para crawlers sin JS (WhatsApp,
+      LinkedIn, etc.). Tras navegar en la SPA, usePageMeta sobrescribe og:* y
+      twitter:*; el prerender de cada ruta de entidad personaliza el HTML inicial.
 
       VITE_SITE_URL lo sustituye Vite al construir (sintaxis %VAR%).
     -->

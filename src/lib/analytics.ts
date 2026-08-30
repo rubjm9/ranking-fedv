@@ -105,3 +105,36 @@ export function onOpenCookieNotice(handler: () => void): () => void {
 export function resetAnalyticsForTests(): void {
   scriptLoaded = false
 }
+
+type WebVitalMetric = {
+  name: string
+  value: number
+}
+
+let webVitalsInitialized = false
+
+/** Reporta CLS, INP y LCP a GA4 cuando está configurado. */
+export function initWebVitals(): void {
+  if (webVitalsInitialized || typeof window === 'undefined' || !isAnalyticsConfigured()) return
+  webVitalsInitialized = true
+
+  void import('web-vitals').then(({ onCLS, onINP, onLCP }) => {
+    const report = (metric: WebVitalMetric) => {
+      if (typeof window.gtag !== 'function') return
+      window.gtag('event', metric.name, {
+        value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
+        event_category: 'Web Vitals',
+        non_interaction: true,
+      })
+    }
+
+    onCLS(report)
+    onINP(report)
+    onLCP(report)
+  })
+}
+
+/** Solo para tests. */
+export function resetWebVitalsForTests(): void {
+  webVitalsInitialized = false
+}

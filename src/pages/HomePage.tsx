@@ -6,6 +6,7 @@ import hybridRankingService from '@/services/hybridRankingService'
 import SummaryCard from '@/components/ranking/SummaryCard'
 import RankingOnboarding from '@/components/home/RankingOnboarding'
 import { getCurrentSeasonValue } from '@/utils/tournamentUtils'
+import { resolveSiteBaseUrl, usePageMeta } from '@/hooks/usePageMeta'
 
 const mapTeamsToSummaryData = (teams: HomePageTeam[]) =>
   teams.map((team) => ({
@@ -46,6 +47,13 @@ const HomePage: React.FC = () => {
   })
   const [isLoading, setIsLoading] = useState(true)
   const [currentSeason, setCurrentSeason] = useState(getCurrentSeasonValue)
+
+  usePageMeta({
+    title: 'Ranking FEDV',
+    description:
+      'Ranking oficial de Ultimate Frisbee en España — clasificaciones, equipos y campeonatos de la FEDV.',
+    ogUrl: `${resolveSiteBaseUrl()}/`,
+  })
 
   useEffect(() => {
     loadData()

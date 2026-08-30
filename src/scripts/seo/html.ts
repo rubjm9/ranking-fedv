@@ -53,12 +53,14 @@ export const buildEntityHtml = (
     canonicalUrl,
     omitBrandSuffix = false,
     robots,
+    ogImage,
   }: {
     title: string
     description: string
     canonicalUrl: string
     omitBrandSuffix?: boolean
     robots?: string
+    ogImage?: string
   }
 ): string => {
   const fullTitle = omitBrandSuffix ? title : `${title} · Ranking FEDV`
@@ -70,6 +72,10 @@ export const buildEntityHtml = (
   html = replaceMetaContent(html, /(<meta\s+property="og:title"\s+content=")[^"]*(")/, fullTitle)
   html = replaceMetaContent(html, /(<meta\s+property="og:description"\s+content=")[^"]*(")/, description)
   html = replaceMetaContent(html, /(<meta\s+property="og:url"\s+content=")[^"]*(")/, canonicalUrl)
+  if (ogImage) {
+    html = replaceMetaContent(html, /(<meta\s+property="og:image"\s+content=")[^"]*(")/, ogImage)
+    html = replaceMetaContent(html, /(<meta\s+name="twitter:image"\s+content=")[^"]*(")/, ogImage)
+  }
   html = replaceMetaContent(html, /(<meta\s+name="twitter:title"\s+content=")[^"]*(")/, fullTitle)
   html = replaceMetaContent(html, /(<meta\s+name="twitter:description"\s+content=")[^"]*(")/, description)
 
@@ -97,6 +103,7 @@ export const buildEntityHtmlWithBody = (
     canonicalUrl,
     omitBrandSuffix = false,
     robots,
+    ogImage,
     jsonLd,
     staticBody,
   }: {
@@ -105,11 +112,19 @@ export const buildEntityHtmlWithBody = (
     canonicalUrl: string
     omitBrandSuffix?: boolean
     robots?: string
+    ogImage?: string
     jsonLd?: Record<string, unknown>[]
     staticBody?: string
   }
 ): string => {
-  let html = buildEntityHtml(template, { title, description, canonicalUrl, omitBrandSuffix, robots })
+  let html = buildEntityHtml(template, {
+    title,
+    description,
+    canonicalUrl,
+    omitBrandSuffix,
+    robots,
+    ogImage,
+  })
 
   if (jsonLd && jsonLd.length > 0) {
     const script = `<script type="application/ld+json">${serializeJsonLd(jsonLd)}</script>`

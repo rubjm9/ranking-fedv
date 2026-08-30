@@ -337,11 +337,13 @@ export const regionsService = {
       .single()
 
     if (error && isMissingColumnError(error, 'slug')) {
-      ;({ data, error } = await supabase
+      const retry = await supabase
         .from('regions')
         .insert(regionData)
         .select()
-        .single())
+        .single()
+      data = retry.data
+      error = retry.error
     }
 
     if (error) throw error
