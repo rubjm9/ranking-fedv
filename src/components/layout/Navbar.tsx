@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/SimpleAuthContext'
-import { Menu, X, Trophy, UsersRound, MapPin, Calendar, Settings, Home, ChevronDown, Info, Disc3, BookOpen } from 'lucide-react'
+import { Menu, X, Trophy, UsersRound, MapPin, Calendar, Settings, Home, ChevronDown, Info, Disc3 } from 'lucide-react'
 import RankingMegaMenu from './RankingMegaMenu'
 import RegionsMenu from './RegionsMenu'
 import ThemeToggle from './ThemeToggle'
@@ -60,7 +60,6 @@ const Navbar: React.FC = () => {
     { name: 'Campeonatos', href: '/campeonatos', icon: Calendar },
     { name: 'Disc golf', href: '/disc-golf', icon: Disc3 },
     { name: 'Cómo funciona', href: '/como-funciona', icon: Info },
-    { name: 'Glosario', href: '/glosario', icon: BookOpen },
   ]
 
   /*
