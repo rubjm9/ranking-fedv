@@ -252,11 +252,13 @@ const EditTournamentPage: React.FC = () => {
       
       // Cargar posiciones existentes si las hay
       if (tournament.positions && tournament.positions.length > 0) {
-        const existingPositions = tournament.positions.map((pos: any) => ({
-          position: pos.position,
-          teamId: pos.teamId,
-          points: pos.points
-        }))
+        const existingPositions = tournament.positions
+          .map((pos: any) => ({
+            position: pos.position,
+            teamId: pos.teamId,
+            points: pos.points
+          }))
+          .sort((a: PositionRow, b: PositionRow) => a.position - b.position)
         setPositions(existingPositions)
       }
     } catch (error) {
@@ -280,13 +282,6 @@ const EditTournamentPage: React.FC = () => {
     )
     setGeneratedName(name)
   }, [formData.type, formData.regionId, formData.surface, formData.category, formData.season, regions])
-
-  // Generar posiciones por defecto cuando cambie el tipo de torneo
-  useEffect(() => {
-    if (formData.type) {
-      setPositions(generateDefaultPositions(formData.type, offset))
-    }
-  }, [formData.type])
 
   // Recalcular puntos de las posiciones cuando cambie el offset (p. ej. al asociar la 1ª)
   useEffect(() => {
@@ -490,6 +485,12 @@ const EditTournamentPage: React.FC = () => {
       if (field === 'type') {
         next.divisionSize = value === 'CE1' || value === 'CE2' ? DEFAULT_DIVISION_SIZE : undefined
         next.parentTournamentId = undefined
+        // Solo regenerar al cambiar el tipo en el formulario (no al cargar el torneo)
+        const nextOffset = getOffsetForTournament(
+          value,
+          value === 'CE1' || value === 'CE2' ? DEFAULT_DIVISION_SIZE : undefined
+        )
+        setPositions(generateDefaultPositions(value, nextOffset))
       }
       return next
     })
