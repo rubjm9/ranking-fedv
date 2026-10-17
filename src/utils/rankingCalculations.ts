@@ -45,6 +45,14 @@ export const getRegionalCoefficientBaseSeason = (currentSeason: string): string 
   getPreviousSeasonLabel(currentSeason)
 
 /**
+ * Edición de los regionales a la que aplica una temporada de cálculo: con datos
+ * hasta 2024-25 se hace el seeding y se fijan los coeficientes de los regionales
+ * 2025-26. Es la etiqueta que busca quien consulta el ranking de una región.
+ */
+export const getRegionalEditionLabel = (calculationSeason: string): string =>
+  `Regionales ${getNextSeasonLabel(calculationSeason)}`
+
+/**
  * Temporada de referencia para rankings: la temporada en curso del calendario,
  * salvo que existan datos de una temporada posterior (caso excepcional).
  */

@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { UsersRound, Trophy, BarChart3, TrendingUp, Loader2, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { regionsService, getTeamPublicUrl, getRegionPublicUrl } from '@/services/apiService'
 import hybridRankingService from '@/services/hybridRankingService'
 import seasonService from '@/services/seasonService'
-import { getRegionalCoefficientBaseSeason, formatCoefficient, formatPoints, formatInteger } from '@/utils/rankingCalculations'
+import { getRegionalCoefficientBaseSeason, getRegionalEditionLabel, getNextSeasonLabel, formatCoefficient, formatPoints, formatInteger } from '@/utils/rankingCalculations'
 import { supabase } from '@/services/supabaseService'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
@@ -23,7 +23,8 @@ import DataTable, {
   DataTableRow,
   DataTableCell,
 } from '@/components/ui/DataTable'
-import SeasonNavigator, { useSelectedSeason } from '@/components/regions/SeasonNavigator'
+import { useSelectedSeason } from '@/components/regions/SeasonNavigator'
+import RegionSeasonSelector from '@/components/regions/RegionSeasonSelector'
 import RegionalCoefficientBreakdown from '@/components/regions/RegionalCoefficientBreakdown'
 import { MODALITIES, MODALITY_LABELS, MODALITY_ITEMS, getCoefficientStyle } from '@/components/regions/constants'
 import RankingTabNav from '@/components/ranking/RankingTabNav'
@@ -205,14 +206,18 @@ const RegionDetailPage: React.FC = () => {
     enabled: !!regionId && !!selectedSeason,
   })
 
-  const { data: teamRankingPoints } = useQuery({
-    queryKey: ['region-team-points', regionId],
+  /*
+    Puntos de la temporada elegida en el selector. Antes usaba siempre
+    getMostRecentSeason(), así que el selector de temporada movía los
+    coeficientes pero no la tabla. Ahora el ranking sigue la misma regla que
+    los coeficientes: datos hasta la temporada elegida, que es con lo que se
+    hace el seeding de la edición siguiente de los regionales.
+  */
+  const { data: seasonPointsByTeam, isPlaceholderData: isSeasonPointsStale } = useQuery({
+    queryKey: ['region-team-points', regionId, selectedSeason],
     queryFn: async () => {
-      const refSeason = await hybridRankingService.getMostRecentSeason()
-      const categories = MODALITIES.map(m => m)
-
       const allCategoryData = await Promise.all(
-        categories.map(cat => hybridRankingService.getRankingFromSeasonPoints(cat as never, refSeason))
+        MODALITIES.map(cat => hybridRankingService.getRankingFromSeasonPoints(cat as never, selectedSeason))
       )
       const currentByTeam: Record<string, number> = {}
       allCategoryData.forEach(categoryData => {
@@ -220,7 +225,18 @@ const RegionDetailPage: React.FC = () => {
           currentByTeam[team.team_id] = (currentByTeam[team.team_id] || 0) + (team.total_points || 0)
         })
       })
+      return currentByTeam
+    },
+    enabled: !!regionId && !!selectedSeason,
+    // Cambiar de temporada no colapsa la tabla a un spinner.
+    placeholderData: keepPreviousData,
+  })
 
+  /* Acumulada de siempre: no depende de la temporada, así que vive en su
+     propia consulta y no se vuelve a pedir en cada cambio. */
+  const { data: historicalPointsByTeam } = useQuery({
+    queryKey: ['region-team-historical', regionId],
+    queryFn: async () => {
       const { data: regionTeams } = await supabase
         .from('teams')
         .select('id')
@@ -230,14 +246,14 @@ const RegionDetailPage: React.FC = () => {
       const historicalByTeam: Record<string, number> = {}
 
       if (teamIds.length > 0) {
-        const pointColumns = categories.map(cat => `${cat}_points`).join(', ')
+        const pointColumns = MODALITIES.map(cat => `${cat}_points`).join(', ')
         const { data: seasonPoints } = await supabase
           .from('team_season_points')
           .select(`team_id, ${pointColumns}`)
           .in('team_id', teamIds)
 
         seasonPoints?.forEach(row => {
-          const seasonTotal = categories.reduce(
+          const seasonTotal = MODALITIES.reduce(
             (sum, cat) => sum + (Number(row[`${cat}_points`]) || 0),
             0
           )
@@ -245,17 +261,28 @@ const RegionDetailPage: React.FC = () => {
           historicalByTeam[row.team_id] = (historicalByTeam[row.team_id] || 0) + seasonTotal
         })
       }
-
-      return { current: currentByTeam, historical: historicalByTeam }
+      return historicalByTeam
     },
     enabled: !!regionId,
   })
 
+  // Misma forma que antes para no tocar a los consumidores.
+  const teamRankingPoints = useMemo(
+    () =>
+      seasonPointsByTeam && historicalPointsByTeam
+        ? { current: seasonPointsByTeam, historical: historicalPointsByTeam }
+        : undefined,
+    [seasonPointsByTeam, historicalPointsByTeam]
+  )
+
+  /** La temporada elegida aún no tiene puntos: mejor decirlo que listar ceros. */
+  const seasonHasNoData =
+    !!seasonPointsByTeam && !isSeasonPointsStale && Object.keys(seasonPointsByTeam).length === 0
+
   const { data: modalityRankingData } = useQuery({
-    queryKey: ['region-modality-ranking', regionId, activeRankingView],
+    queryKey: ['region-modality-ranking', regionId, activeRankingView, selectedSeason],
     queryFn: async () => {
-      const refSeason = await hybridRankingService.getMostRecentSeason()
-      const allTeams = await hybridRankingService.getRankingFromSeasonPoints(activeRankingView as never, refSeason)
+      const allTeams = await hybridRankingService.getRankingFromSeasonPoints(activeRankingView as never, selectedSeason)
 
       const { data: regionTeams } = await supabase
         .from('teams')
@@ -268,7 +295,8 @@ const RegionDetailPage: React.FC = () => {
         .map((t, idx) => ({ ...t, national_position: idx + 1 }))
         .filter(t => regionTeamIds.has(t.team_id))
     },
-    enabled: !!regionId && activeRankingView !== 'global',
+    enabled: !!regionId && !!selectedSeason && activeRankingView !== 'global',
+    placeholderData: keepPreviousData,
   })
 
   /* Mismas pastillas que /ranking: icono, etiqueta a dos líneas y subrayado
@@ -589,12 +617,12 @@ const RegionDetailPage: React.FC = () => {
               },
               {
                 icon: BarChart3,
-                label: 'Total puntos',
+                label: `Total puntos ${selectedSeason}`,
                 value: totalPoints,
               },
               {
                 icon: TrendingUp,
-                label: 'Promedio puntos',
+                label: `Promedio ${selectedSeason}`,
                 value: averagePoints,
               },
             ]}
@@ -608,14 +636,20 @@ const RegionDetailPage: React.FC = () => {
         quedaba por debajo de los coeficientes y de dos gráficas.
       */}
       <section className="mb-8" aria-labelledby="titulo-ranking-region">
-        <h2 id="titulo-ranking-region" className="font-display text-xl font-semibold text-content">
-          Ranking de {region.name}
-        </h2>
-        <p className="mt-1 mb-4 max-w-2xl text-sm text-content-muted">
-          Clasificación con los equipos de esta región únicamente, ordenados por su
-          puntuación en el ranking nacional. Es la referencia que se usa para el
-          seeding de los campeonatos regionales.
-        </p>
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 id="titulo-ranking-region" className="font-display text-xl font-semibold text-content">
+              Ranking de {region.name}
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm text-content-muted">
+              Clasificación con los equipos de esta región únicamente, ordenados por su
+              puntuación en el ranking nacional. Es la referencia que se usa para el
+              seeding de los campeonatos regionales.
+            </p>
+          </div>
+          {/* Controla toda la página: ranking y coeficientes a la vez. */}
+          <RegionSeasonSelector seasons={availableSeasons} selectedSeason={selectedSeason} />
+        </div>
 
         <RankingTabNav
           tabs={rankingRegionTabs}
@@ -640,6 +674,13 @@ const RegionDetailPage: React.FC = () => {
             <div className="card flex items-center justify-center py-8">
               <Loader2 className="w-5 h-5 animate-spin text-link mr-2" />
               <span className="text-sm text-content-subtle">Cargando clasificación...</span>
+            </div>
+          ) : seasonHasNoData ? (
+            <div className="card">
+              <EmptyState
+                title={`Todavía no hay ranking para los ${getRegionalEditionLabel(selectedSeason).toLowerCase()}`}
+                description={`Aún no hay puntos de la temporada ${selectedSeason}. Elige una edición anterior en el selector.`}
+              />
             </div>
           ) : displayedTeams.length === 0 ? (
             <div className="card">
@@ -690,7 +731,7 @@ const RegionDetailPage: React.FC = () => {
                       onClick={() => handleTeamSort(isGlobalView ? 'currentPoints' : 'modalityPoints')}
                       className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                     >
-                      {isGlobalView ? 'Ranking general actual' : 'Puntos'}
+                      {isGlobalView ? `Puntos ${selectedSeason}` : 'Puntos'}
                       {getTeamSortIcon(isGlobalView ? 'currentPoints' : 'modalityPoints')}
                     </button>
                   </DataTableHeaderCell>
@@ -764,12 +805,12 @@ const RegionDetailPage: React.FC = () => {
 
       <div className="card mb-8">
         <h2 className="font-display text-lg font-semibold text-content mb-4">Coeficientes por temporada</h2>
-        <SeasonNavigator
-          seasons={availableSeasons}
-          defaultSeason={referenceSeason}
-          calculationSeason={breakdown?.calculationSeason || selectedSeason}
-          appliesToSeason={breakdown?.appliesToSeason}
-        />
+        {/* El selector vive arriba, en la cabecera del ranking, y controla
+            toda la página. Aquí solo queda la explicación de la regla. */}
+        <p className="text-sm text-content-muted">
+          Calculado con datos hasta <strong>{breakdown?.calculationSeason || selectedSeason}</strong> → aplica
+          a regionales <strong>{breakdown?.appliesToSeason || getNextSeasonLabel(selectedSeason)}</strong>
+        </p>
 
         <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
           {MODALITIES.map(key => {
@@ -858,7 +899,7 @@ const RegionDetailPage: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-8 mb-8 lg:grid-cols-2">
         <div className="card">
-          <h2 className="font-display text-lg font-semibold text-content mb-4">Ranking general actual</h2>
+          <h2 className="font-display text-lg font-semibold text-content mb-4">Ranking general {selectedSeason}</h2>
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={chartData}>
