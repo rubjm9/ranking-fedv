@@ -627,132 +627,138 @@ const RegionDetailPage: React.FC = () => {
         />
 
         <div
-          className="card mt-4"
+          /* Sin `card`: DataTable ya trae su propio borde redondeado, y
+             envolverlo dejaba dos bordes y dos redondeos concéntricos. Los
+             estados de carga y vacío sí la necesitan, porque no tienen
+             superficie propia. */
+          className="mt-4"
           role="tabpanel"
           id={`region-ranking-panel-${activeRankingView}`}
           aria-labelledby={`region-ranking-tab-${activeRankingView}`}
         >
-        {isRankingLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-5 h-5 animate-spin text-link mr-2" />
-            <span className="text-sm text-content-subtle">Cargando clasificación...</span>
-          </div>
-        ) : displayedTeams.length === 0 ? (
-          <EmptyState
-            title="Sin datos"
-            description={
-              isGlobalView
-                ? 'Esta región no tiene equipos registrados.'
-                : `No hay equipos de ${region.name} en el ranking de ${MODALITY_LABELS[activeRankingView as ModalityKey]}.`
-            }
-          />
-        ) : (
-          <DataTable
-            caption={
-              isGlobalView
-                ? `Ranking global — ${region.name}`
-                : `Clasificación ${MODALITY_LABELS[activeRankingView as ModalityKey]} — ${region.name}`
-            }
-          >
-            <DataTableHead>
-              <tr>
-                {!isGlobalView && (
+          {isRankingLoading ? (
+            <div className="card flex items-center justify-center py-8">
+              <Loader2 className="w-5 h-5 animate-spin text-link mr-2" />
+              <span className="text-sm text-content-subtle">Cargando clasificación...</span>
+            </div>
+          ) : displayedTeams.length === 0 ? (
+            <div className="card">
+              <EmptyState
+                title="Sin datos"
+                description={
+                  isGlobalView
+                    ? 'Esta región no tiene equipos registrados.'
+                    : `No hay equipos de ${region.name} en el ranking de ${MODALITY_LABELS[activeRankingView as ModalityKey]}.`
+                }
+              />
+            </div>
+          ) : (
+            <DataTable
+              caption={
+                isGlobalView
+                  ? `Ranking global — ${region.name}`
+                  : `Clasificación ${MODALITY_LABELS[activeRankingView as ModalityKey]} — ${region.name}`
+              }
+            >
+              <DataTableHead>
+                <tr>
+                  {!isGlobalView && (
+                    <DataTableHeaderCell>
+                      <button
+                        type="button"
+                        onClick={() => handleTeamSort('nationalPosition')}
+                        className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                      >
+                        Posición nacional
+                        {getTeamSortIcon('nationalPosition')}
+                      </button>
+                    </DataTableHeaderCell>
+                  )}
                   <DataTableHeaderCell>
                     <button
                       type="button"
-                      onClick={() => handleTeamSort('nationalPosition')}
+                      onClick={() => handleTeamSort('name')}
                       className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                     >
-                      Posición nacional
-                      {getTeamSortIcon('nationalPosition')}
+                      Equipo
+                      {getTeamSortIcon('name')}
                     </button>
                   </DataTableHeaderCell>
-                )}
-                <DataTableHeaderCell>
-                  <button
-                    type="button"
-                    onClick={() => handleTeamSort('name')}
-                    className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                  >
-                    Equipo
-                    {getTeamSortIcon('name')}
-                  </button>
-                </DataTableHeaderCell>
-                <DataTableHeaderCell>
-                  <button
-                    type="button"
-                    onClick={() => handleTeamSort(isGlobalView ? 'currentPoints' : 'modalityPoints')}
-                    className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                  >
-                    {isGlobalView ? 'Ranking general actual' : 'Puntos'}
-                    {getTeamSortIcon(isGlobalView ? 'currentPoints' : 'modalityPoints')}
-                  </button>
-                </DataTableHeaderCell>
-                <DataTableHeaderCell>
-                  <button
-                    type="button"
-                    onClick={() => handleTeamSort('historicalPoints')}
-                    className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                  >
-                    Puntuación histórica
-                    {getTeamSortIcon('historicalPoints')}
-                  </button>
-                </DataTableHeaderCell>
-                {isGlobalView && (
                   <DataTableHeaderCell>
                     <button
                       type="button"
-                      onClick={() => handleTeamSort('tournaments')}
+                      onClick={() => handleTeamSort(isGlobalView ? 'currentPoints' : 'modalityPoints')}
                       className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                     >
-                      Campeonatos
-                      {getTeamSortIcon('tournaments')}
+                      {isGlobalView ? 'Ranking general actual' : 'Puntos'}
+                      {getTeamSortIcon(isGlobalView ? 'currentPoints' : 'modalityPoints')}
                     </button>
                   </DataTableHeaderCell>
-                )}
-              </tr>
-            </DataTableHead>
-            <DataTableBody>
-              {isGlobalView
-                ? globalTeams.map(team => (
-                    <DataTableRow key={team.id}>
-                      <DataTableCell>
-                        <Link
-                          to={getTeamPublicUrl(team)}
-                          className="flex items-center gap-3 font-medium text-content hover:text-link"
-                        >
-                          <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                          {team.name}
-                        </Link>
-                      </DataTableCell>
-                      <DataTableCell>{formatPoints(team.points, 1)}</DataTableCell>
-                      <DataTableCell>{formatPoints(team.historicalPoints, 1)}</DataTableCell>
-                      <DataTableCell className="text-content-subtle">{team.tournaments}</DataTableCell>
-                    </DataTableRow>
-                  ))
-                : modalityTeams.map(team => (
-                    <DataTableRow key={team.id}>
-                      <DataTableCell>
-                        <span className={`font-bold ${team.nationalPosition <= 3 ? 'text-amber-600 dark:text-amber-300' : team.nationalPosition <= 8 ? 'text-link' : 'text-content-muted'}`}>
-                          #{team.nationalPosition}
-                        </span>
-                      </DataTableCell>
-                      <DataTableCell>
-                        <Link
-                          to={getTeamPublicUrl({ id: team.id })}
-                          className="flex items-center gap-3 font-medium text-content hover:text-link"
-                        >
-                          <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                          {team.name}
-                        </Link>
-                      </DataTableCell>
-                      <DataTableCell>{formatPoints(team.modalityPoints, 1)}</DataTableCell>
-                      <DataTableCell>{formatPoints(team.historicalPoints, 1)}</DataTableCell>
-                    </DataTableRow>
-                  ))}
-            </DataTableBody>
-          </DataTable>
-        )}
+                  <DataTableHeaderCell>
+                    <button
+                      type="button"
+                      onClick={() => handleTeamSort('historicalPoints')}
+                      className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                    >
+                      Puntuación histórica
+                      {getTeamSortIcon('historicalPoints')}
+                    </button>
+                  </DataTableHeaderCell>
+                  {isGlobalView && (
+                    <DataTableHeaderCell>
+                      <button
+                        type="button"
+                        onClick={() => handleTeamSort('tournaments')}
+                        className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                      >
+                        Campeonatos
+                        {getTeamSortIcon('tournaments')}
+                      </button>
+                    </DataTableHeaderCell>
+                  )}
+                </tr>
+              </DataTableHead>
+              <DataTableBody>
+                {isGlobalView
+                  ? globalTeams.map(team => (
+                      <DataTableRow key={team.id}>
+                        <DataTableCell>
+                          <Link
+                            to={getTeamPublicUrl(team)}
+                            className="flex items-center gap-3 font-medium text-content hover:text-link"
+                          >
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            {team.name}
+                          </Link>
+                        </DataTableCell>
+                        <DataTableCell>{formatPoints(team.points, 1)}</DataTableCell>
+                        <DataTableCell>{formatPoints(team.historicalPoints, 1)}</DataTableCell>
+                        <DataTableCell className="text-content-subtle">{team.tournaments}</DataTableCell>
+                      </DataTableRow>
+                    ))
+                  : modalityTeams.map(team => (
+                      <DataTableRow key={team.id}>
+                        <DataTableCell>
+                          <span className={`font-bold ${team.nationalPosition <= 3 ? 'text-amber-600 dark:text-amber-300' : team.nationalPosition <= 8 ? 'text-link' : 'text-content-muted'}`}>
+                            #{team.nationalPosition}
+                          </span>
+                        </DataTableCell>
+                        <DataTableCell>
+                          <Link
+                            to={getTeamPublicUrl({ id: team.id })}
+                            className="flex items-center gap-3 font-medium text-content hover:text-link"
+                          >
+                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                            {team.name}
+                          </Link>
+                        </DataTableCell>
+                        <DataTableCell>{formatPoints(team.modalityPoints, 1)}</DataTableCell>
+                        <DataTableCell>{formatPoints(team.historicalPoints, 1)}</DataTableCell>
+                      </DataTableRow>
+                    ))}
+              </DataTableBody>
+            </DataTable>
+          )}
         </div>
       </section>
 
