@@ -14,6 +14,8 @@ import PageHeroStatsBar from '@/components/layout/PageHeroStatsBar'
 import Breadcrumbs from '@/components/ui/Breadcrumbs'
 import EmptyState from '@/components/ui/EmptyState'
 import TeamLogo from '@/components/ui/TeamLogo'
+// Con alias: la página ya importa `Tooltip` de recharts para las gráficas.
+import InfoTooltip from '@/components/ui/Tooltip'
 import ShareButton from '@/components/ui/ShareButton'
 import DetailHeaderSkeleton from '@/components/ui/DetailHeaderSkeleton'
 import DataTable, {
@@ -775,25 +777,49 @@ const RegionDetailPage: React.FC = () => {
             >
               <DataTableHead>
                 <tr>
+                  {/*
+                    Etiqueta corta y explicación en el tooltip: el nombre completo
+                    ocupaba tres líneas y ensanchaba las dos primeras columnas. El
+                    tooltip va junto al botón de ordenar, no dentro: no se pueden
+                    anidar botones.
+                  */}
                   <DataTableHeaderCell>
-                    <button
-                      type="button"
-                      onClick={() => handleTeamSort('regionPosition')}
-                      className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                    >
-                      Posición en la región
-                      {getTeamSortIcon('regionPosition')}
-                    </button>
+                    <span className="inline-flex items-center">
+                      <button
+                        type="button"
+                        onClick={() => handleTeamSort('regionPosition')}
+                        className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                      >
+                        <span aria-hidden="true" className="whitespace-nowrap">Pos. región</span>
+                        <span className="sr-only">Posición en la región</span>
+                        {getTeamSortIcon('regionPosition')}
+                      </button>
+                      <InfoTooltip
+                        variant="onDark"
+                        content={`Puesto del equipo entre los equipos de ${region.name}, según sus puntos de la temporada ${selectedSeason}. Es la referencia para el seeding de los regionales.`}
+                      />
+                    </span>
                   </DataTableHeaderCell>
                   <DataTableHeaderCell>
-                    <button
-                      type="button"
-                      onClick={() => handleTeamSort('nationalPosition')}
-                      className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                    >
-                      Posición en el Ranking nacional
-                      {getTeamSortIcon('nationalPosition')}
-                    </button>
+                    <span className="inline-flex items-center">
+                      <button
+                        type="button"
+                        onClick={() => handleTeamSort('nationalPosition')}
+                        className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                      >
+                        <span aria-hidden="true" className="whitespace-nowrap">Pos. nacional</span>
+                        <span className="sr-only">Posición en el ranking nacional</span>
+                        {getTeamSortIcon('nationalPosition')}
+                      </button>
+                      <InfoTooltip
+                        variant="onDark"
+                        content={
+                          isGlobalView
+                            ? `Puesto del equipo en el ranking general nacional de la temporada ${selectedSeason}, entre todos los equipos de España.`
+                            : `Puesto del equipo en el ranking nacional de ${MODALITY_LABELS[activeRankingView as ModalityKey]} de la temporada ${selectedSeason}, entre todos los equipos de España.`
+                        }
+                      />
+                    </span>
                   </DataTableHeaderCell>
                   <DataTableHeaderCell>
                     <button

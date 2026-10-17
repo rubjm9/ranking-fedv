@@ -6,6 +6,11 @@ interface TooltipProps {
   content: string
   children?: React.ReactNode
   className?: string
+  /**
+   * 'onDark' para colocarlo sobre superficies siempre oscuras, como la cabecera
+   * de las tablas: el punto gris por defecto se pierde ahí en modo oscuro.
+   */
+  variant?: 'default' | 'onDark'
 }
 
 /** Ancho del panel (w-64) y margen mínimo al borde del viewport. */
@@ -14,7 +19,7 @@ const VIEWPORT_MARGIN = 8
 /** Espacio necesario encima del disparador para no salir por arriba. */
 const FLIP_THRESHOLD = 140
 
-const Tooltip: React.FC<TooltipProps> = ({ content, children, className = '' }) => {
+const Tooltip: React.FC<TooltipProps> = ({ content, children, className = '', variant = 'default' }) => {
   const id = useId()
   const [visible, setVisible] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -89,8 +94,17 @@ const Tooltip: React.FC<TooltipProps> = ({ content, children, className = '' }) 
           onFocus={() => setVisible(true)}
           onBlur={() => setVisible(false)}
         >
-          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-line transition-colors group-hover:bg-line-strong">
-            {children ?? <Info className="w-2.5 h-2.5 text-content-muted" aria-hidden="true" />}
+          <span
+            className={`flex h-4 w-4 items-center justify-center rounded-full transition-colors ${
+              variant === 'onDark' ? 'bg-white/20 group-hover:bg-white/30' : 'bg-line group-hover:bg-line-strong'
+            }`}
+          >
+            {children ?? (
+              <Info
+                className={`w-2.5 h-2.5 ${variant === 'onDark' ? 'text-white' : 'text-content-muted'}`}
+                aria-hidden="true"
+              />
+            )}
           </span>
           <span className="sr-only">Más información</span>
         </button>
