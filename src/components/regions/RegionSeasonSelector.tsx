@@ -1,10 +1,10 @@
 import React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useUrlBatch } from '@/hooks/useUrlState'
-import { getRegionalEditionLabel } from '@/utils/rankingCalculations'
+import { getPreviousSeasonLabel } from '@/utils/rankingCalculations'
 
 interface RegionSeasonSelectorProps {
-  /** Temporadas de cálculo, de la más reciente a la más antigua. */
+  /** Temporadas, de la más reciente a la más antigua. */
   seasons: string[]
   selectedSeason: string
 }
@@ -20,9 +20,8 @@ const flecha =
  * modalidad, serían dos filas de pastillas compitiendo. El `<select>` nativo
  * abre además el selector del sistema en móvil.
  *
- * Las opciones se rotulan por edición de los regionales, que es lo que busca
- * quien consulta el seeding; el valor sigue siendo la temporada de cálculo, así
- * que los `?temporada=` que ya circulan siguen funcionando.
+ * «Temporada X» significa lo mismo que en /ranking: el ranking de esa
+ * temporada y los coeficientes que aplican a sus regionales.
  */
 const RegionSeasonSelector: React.FC<RegionSeasonSelectorProps> = ({ seasons, selectedSeason }) => {
   const escribirUrl = useUrlBatch()
@@ -40,13 +39,13 @@ const RegionSeasonSelector: React.FC<RegionSeasonSelectorProps> = ({ seasons, se
           onClick={() => irA(seasons[indice + 1])}
           disabled={indice < 0 || indice >= seasons.length - 1}
           className={flecha}
-          aria-label="Edición anterior"
+          aria-label="Temporada anterior"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
         </button>
 
         <label htmlFor="temporada-region" className="sr-only">
-          Edición de los regionales
+          Temporada
         </label>
         <select
           id="temporada-region"
@@ -56,7 +55,7 @@ const RegionSeasonSelector: React.FC<RegionSeasonSelectorProps> = ({ seasons, se
         >
           {seasons.map(season => (
             <option key={season} value={season}>
-              {getRegionalEditionLabel(season)}
+              Temporada {season}
             </option>
           ))}
         </select>
@@ -66,13 +65,14 @@ const RegionSeasonSelector: React.FC<RegionSeasonSelectorProps> = ({ seasons, se
           onClick={() => irA(seasons[indice - 1])}
           disabled={indice <= 0}
           className={flecha}
-          aria-label="Edición siguiente"
+          aria-label="Temporada siguiente"
         >
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
       <p className="text-xs text-content-subtle">
-        Ranking y coeficientes con datos hasta <strong className="text-content-muted">{selectedSeason}</strong>
+        Coeficientes calculados con datos hasta{' '}
+        <strong className="text-content-muted">{getPreviousSeasonLabel(selectedSeason)}</strong>
       </p>
     </div>
   )

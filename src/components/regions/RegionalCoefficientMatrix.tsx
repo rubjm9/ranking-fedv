@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { getRegionPublicUrl } from '@/services/apiService'
 import { RegionalCoefficient } from '@/services/seasonService'
 import { MODALITIES, MODALITY_LABELS, getCoefficientColor } from './constants'
-import { formatCoefficient } from '@/utils/rankingCalculations'
+import { formatCoefficient, getNextSeasonLabel } from '@/utils/rankingCalculations'
 
 interface RegionRow {
   id: string
@@ -74,8 +74,10 @@ const RegionalCoefficientMatrix: React.FC<RegionalCoefficientMatrixProps> = ({
             return (
               <tr key={region.id} className="hover:bg-surface-muted">
                 <td className="p-2 font-medium text-content sticky left-0 bg-surface">
+                  {/* Aquí la temporada es la de cálculo; en la ficha, `temporada` es
+                      aquella a la que aplican los coeficientes: la siguiente. */}
                   <Link
-                    to={`${getRegionPublicUrl(region, slugById)}?temporada=${encodeURIComponent(season)}`}
+                    to={`${getRegionPublicUrl(region, slugById)}?temporada=${encodeURIComponent(getNextSeasonLabel(season))}`}
                     className="hover:text-link transition-colors"
                   >
                     {region.name}
