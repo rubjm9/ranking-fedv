@@ -1,8 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { getRegionPublicUrl, buildRegionPublicSlugById } from '@/services/apiService'
+import { getRegionPublicUrl } from '@/services/apiService'
 import { RegionalCoefficient } from '@/services/seasonService'
-import { MODALITIES, MODALITY_LABELS, MODALITY_SHORT, getCoefficientColor } from './constants'
+import { MODALITIES, MODALITY_LABELS, getCoefficientColor } from './constants'
 import { formatCoefficient } from '@/utils/rankingCalculations'
 
 interface RegionRow {
@@ -52,12 +52,20 @@ const RegionalCoefficientMatrix: React.FC<RegionalCoefficientMatrixProps> = ({
         <thead>
           <tr className="bg-surface-muted">
             <th className="text-left p-2 font-medium text-content-muted sticky left-0 bg-surface-muted">Región</th>
-            {MODALITIES.map(mod => (
-              <th key={mod} scope="col" className="text-center p-2 font-medium text-content-muted text-xs" title={MODALITY_LABELS[mod]}>
-                <abbr title={MODALITY_LABELS[mod]} className="no-underline">{MODALITY_SHORT[mod]}</abbr>
-                <span className="sr-only">{MODALITY_LABELS[mod]}</span>
-              </th>
-            ))}
+            {/*
+              Etiqueta completa en vez de la abreviatura: «PM» no se entiende sin
+              descifrarla, y la pista vivía en un `title` que en táctil no se
+              muestra nunca. Se parte en dos líneas para no ensanchar la columna.
+            */}
+            {MODALITIES.map(mod => {
+              const [superficie, ...resto] = MODALITY_LABELS[mod].split(' ')
+              return (
+                <th key={mod} scope="col" className="p-2 text-center text-xs font-medium leading-tight text-content-muted">
+                  <span className="block">{superficie}</span>
+                  {resto.length > 0 && <span className="block">{resto.join(' ')}</span>}
+                </th>
+              )
+            })}
           </tr>
         </thead>
         <tbody className="divide-y divide-line">

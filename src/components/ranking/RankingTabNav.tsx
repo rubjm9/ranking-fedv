@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from 'react'
-import { LucideIcon } from 'lucide-react'
 
 export interface RankingTab {
   id: string
   label: string
   /** Segunda línea opcional; si no se pasa, se parte `label` en el primer espacio. */
   labelSecondary?: string
-  icon?: LucideIcon
+  /** Acepta iconos de lucide y los SVG propios de superficie. */
+  icon?: React.ComponentType<{ className?: string }>
 }
 
 interface RankingTabNavProps {
@@ -14,6 +14,14 @@ interface RankingTabNavProps {
   activeTab: string
   onTabChange: (tabId: string) => void
   sticky?: boolean
+  /**
+   * Prefijo de los id de ARIA. Hay que cambiarlo cuando se usa fuera del
+   * ranking, o dos navegaciones en la misma página compartirían id y el
+   * aria-controls apuntaría al panel equivocado.
+   */
+  idPrefix?: string
+  /** Nombre accesible de la navegación. */
+  ariaLabel?: string
 }
 
 function getLabelLines(tab: RankingTab): { primary: string; secondary?: string } {
@@ -35,6 +43,8 @@ const RankingTabNav: React.FC<RankingTabNavProps> = ({
   activeTab,
   onTabChange,
   sticky = true,
+  idPrefix = 'ranking',
+  ariaLabel = 'Secciones del ranking',
 }) => {
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const navRef = useRef<HTMLElement | null>(null)
@@ -83,7 +93,7 @@ const RankingTabNav: React.FC<RankingTabNavProps> = ({
       <nav
         ref={navRef}
         className="flex gap-1.5 overflow-x-auto snap-x snap-mandatory px-1 py-2 scrollbar-thin md:w-full md:gap-2 md:overflow-x-visible md:snap-none md:px-0"
-        aria-label="Secciones del ranking"
+        aria-label={ariaLabel}
         role="tablist"
       >
         {tabs.map((tab, index) => {
@@ -102,8 +112,8 @@ const RankingTabNav: React.FC<RankingTabNavProps> = ({
               }}
               role="tab"
               aria-selected={isActive}
-              aria-controls={`ranking-panel-${tab.id}`}
-              id={`ranking-tab-${tab.id}`}
+              aria-controls={`${idPrefix}-panel-${tab.id}`}
+              id={`${idPrefix}-tab-${tab.id}`}
               type="button"
               onClick={() => onTabChange(tab.id)}
               className={[

@@ -25,7 +25,9 @@ import DataTable, {
 } from '@/components/ui/DataTable'
 import SeasonNavigator, { useSelectedSeason } from '@/components/regions/SeasonNavigator'
 import RegionalCoefficientBreakdown from '@/components/regions/RegionalCoefficientBreakdown'
-import { MODALITIES, MODALITY_LABELS, getCoefficientStyle } from '@/components/regions/constants'
+import { MODALITIES, MODALITY_LABELS, MODALITY_ITEMS, getCoefficientStyle } from '@/components/regions/constants'
+import RankingTabNav from '@/components/ranking/RankingTabNav'
+import { IconBeach, IconGrass } from '@/components/ui/SurfaceIcons'
 import { usePageMeta, resolveSiteBaseUrl } from '@/hooks/usePageMeta'
 import { buildRegionPageDescription, buildRegionPageTitle } from '@/utils/seoTitles'
 import JsonLd from '@/components/seo/JsonLd'
@@ -268,6 +270,20 @@ const RegionDetailPage: React.FC = () => {
     },
     enabled: !!regionId && activeRankingView !== 'global',
   })
+
+  /* Mismas pastillas que /ranking: icono, etiqueta a dos líneas y subrayado
+     en la activa. Antes eran botones planos que se perdían sobre la tarjeta. */
+  const rankingRegionTabs = useMemo(
+    () => [
+      { id: 'global' as const, label: 'Ranking', labelSecondary: 'global', icon: BarChart3 },
+      ...MODALITY_ITEMS.map(({ key, label, surface }) => ({
+        id: key,
+        label,
+        icon: surface === 'BEACH' ? IconBeach : IconGrass,
+      })),
+    ],
+    []
+  )
 
   const handleRankingViewChange = (view: RankingView) => {
     setActiveRankingView(view)
@@ -586,6 +602,160 @@ const RegionDetailPage: React.FC = () => {
         }
       />
 
+      {/*
+        El ranking va primero: es la referencia que se usa para el seeding de
+        los campeonatos regionales, así que es a lo que viene la gente. Antes
+        quedaba por debajo de los coeficientes y de dos gráficas.
+      */}
+      <section className="mb-8" aria-labelledby="titulo-ranking-region">
+        <h2 id="titulo-ranking-region" className="font-display text-xl font-semibold text-content">
+          Ranking de {region.name}
+        </h2>
+        <p className="mt-1 mb-4 max-w-2xl text-sm text-content-muted">
+          Clasificación con los equipos de esta región únicamente, ordenados por su
+          puntuación en el ranking nacional. Es la referencia que se usa para el
+          seeding de los campeonatos regionales.
+        </p>
+
+        <RankingTabNav
+          tabs={rankingRegionTabs}
+          activeTab={activeRankingView}
+          onTabChange={(id) => handleRankingViewChange(id as RankingView)}
+          sticky={false}
+          idPrefix="region-ranking"
+          ariaLabel="Modalidad del ranking regional"
+        />
+
+        <div
+          className="card mt-4"
+          role="tabpanel"
+          id={`region-ranking-panel-${activeRankingView}`}
+          aria-labelledby={`region-ranking-tab-${activeRankingView}`}
+        >
+        {isRankingLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-5 h-5 animate-spin text-link mr-2" />
+            <span className="text-sm text-content-subtle">Cargando clasificación...</span>
+          </div>
+        ) : displayedTeams.length === 0 ? (
+          <EmptyState
+            title="Sin datos"
+            description={
+              isGlobalView
+                ? 'Esta región no tiene equipos registrados.'
+                : `No hay equipos de ${region.name} en el ranking de ${MODALITY_LABELS[activeRankingView as ModalityKey]}.`
+            }
+          />
+        ) : (
+          <DataTable
+            caption={
+              isGlobalView
+                ? `Ranking global — ${region.name}`
+                : `Clasificación ${MODALITY_LABELS[activeRankingView as ModalityKey]} — ${region.name}`
+            }
+          >
+            <DataTableHead>
+              <tr>
+                {!isGlobalView && (
+                  <DataTableHeaderCell>
+                    <button
+                      type="button"
+                      onClick={() => handleTeamSort('nationalPosition')}
+                      className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                    >
+                      Posición nacional
+                      {getTeamSortIcon('nationalPosition')}
+                    </button>
+                  </DataTableHeaderCell>
+                )}
+                <DataTableHeaderCell>
+                  <button
+                    type="button"
+                    onClick={() => handleTeamSort('name')}
+                    className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  >
+                    Equipo
+                    {getTeamSortIcon('name')}
+                  </button>
+                </DataTableHeaderCell>
+                <DataTableHeaderCell>
+                  <button
+                    type="button"
+                    onClick={() => handleTeamSort(isGlobalView ? 'currentPoints' : 'modalityPoints')}
+                    className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  >
+                    {isGlobalView ? 'Ranking general actual' : 'Puntos'}
+                    {getTeamSortIcon(isGlobalView ? 'currentPoints' : 'modalityPoints')}
+                  </button>
+                </DataTableHeaderCell>
+                <DataTableHeaderCell>
+                  <button
+                    type="button"
+                    onClick={() => handleTeamSort('historicalPoints')}
+                    className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  >
+                    Puntuación histórica
+                    {getTeamSortIcon('historicalPoints')}
+                  </button>
+                </DataTableHeaderCell>
+                {isGlobalView && (
+                  <DataTableHeaderCell>
+                    <button
+                      type="button"
+                      onClick={() => handleTeamSort('tournaments')}
+                      className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                    >
+                      Campeonatos
+                      {getTeamSortIcon('tournaments')}
+                    </button>
+                  </DataTableHeaderCell>
+                )}
+              </tr>
+            </DataTableHead>
+            <DataTableBody>
+              {isGlobalView
+                ? globalTeams.map(team => (
+                    <DataTableRow key={team.id}>
+                      <DataTableCell>
+                        <Link
+                          to={getTeamPublicUrl(team)}
+                          className="flex items-center gap-3 font-medium text-content hover:text-link"
+                        >
+                          <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                          {team.name}
+                        </Link>
+                      </DataTableCell>
+                      <DataTableCell>{formatPoints(team.points, 1)}</DataTableCell>
+                      <DataTableCell>{formatPoints(team.historicalPoints, 1)}</DataTableCell>
+                      <DataTableCell className="text-content-subtle">{team.tournaments}</DataTableCell>
+                    </DataTableRow>
+                  ))
+                : modalityTeams.map(team => (
+                    <DataTableRow key={team.id}>
+                      <DataTableCell>
+                        <span className={`font-bold ${team.nationalPosition <= 3 ? 'text-amber-600 dark:text-amber-300' : team.nationalPosition <= 8 ? 'text-link' : 'text-content-muted'}`}>
+                          #{team.nationalPosition}
+                        </span>
+                      </DataTableCell>
+                      <DataTableCell>
+                        <Link
+                          to={getTeamPublicUrl({ id: team.id })}
+                          className="flex items-center gap-3 font-medium text-content hover:text-link"
+                        >
+                          <TeamLogo name={team.name} logo={team.logo} size="sm" />
+                          {team.name}
+                        </Link>
+                      </DataTableCell>
+                      <DataTableCell>{formatPoints(team.modalityPoints, 1)}</DataTableCell>
+                      <DataTableCell>{formatPoints(team.historicalPoints, 1)}</DataTableCell>
+                    </DataTableRow>
+                  ))}
+            </DataTableBody>
+          </DataTable>
+        )}
+        </div>
+      </section>
+
       <div className="card mb-8">
         <h2 className="font-display text-lg font-semibold text-content mb-4">Coeficientes por temporada</h2>
         <SeasonNavigator
@@ -680,194 +850,42 @@ const RegionDetailPage: React.FC = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        <div className="lg:col-span-2 card">
-          <h2 className="font-display text-lg font-semibold text-content mb-4">Equipos de la región</h2>
-          <div className="flex flex-wrap gap-2 mb-4">
-            <button
-              onClick={() => handleRankingViewChange('global')}
-              className={`inline-flex items-center px-3 py-1.5 min-h-[44px] touch-manipulation rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-                isGlobalView
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-surface-muted text-content-muted hover:bg-line'
-              }`}
-            >
-              Ranking global
-            </button>
-            {MODALITIES.map(m => (
-              <button
-                key={m}
-                onClick={() => handleRankingViewChange(m)}
-                className={`inline-flex items-center px-3 py-1.5 min-h-[44px] touch-manipulation rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
-                  activeRankingView === m
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-surface-muted text-content-muted hover:bg-line'
-                }`}
-              >
-                {MODALITY_LABELS[m]}
-              </button>
-            ))}
-          </div>
-
-          {isRankingLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-5 h-5 animate-spin text-link mr-2" />
-              <span className="text-sm text-content-subtle">Cargando clasificación...</span>
-            </div>
-          ) : displayedTeams.length === 0 ? (
-            <EmptyState
-              title="Sin datos"
-              description={
-                isGlobalView
-                  ? 'Esta región no tiene equipos registrados.'
-                  : `No hay equipos de ${region.name} en el ranking de ${MODALITY_LABELS[activeRankingView as ModalityKey]}.`
-              }
-            />
+      <div className="grid grid-cols-1 gap-8 mb-8 lg:grid-cols-2">
+        <div className="card">
+          <h2 className="font-display text-lg font-semibold text-content mb-4">Ranking general actual</h2>
+          {chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} tickFormatter={formatChartAxis} />
+                <Tooltip formatter={(v: number) => formatPoints(v, 1)} />
+                <Bar dataKey="points" fill={chart.series[0]} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           ) : (
-            <DataTable
-              caption={
-                isGlobalView
-                  ? `Ranking global — ${region.name}`
-                  : `Clasificación ${MODALITY_LABELS[activeRankingView as ModalityKey]} — ${region.name}`
-              }
-            >
-              <DataTableHead>
-                <tr>
-                  {!isGlobalView && (
-                    <DataTableHeaderCell>
-                      <button
-                        type="button"
-                        onClick={() => handleTeamSort('nationalPosition')}
-                        className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                      >
-                        Posición nacional
-                        {getTeamSortIcon('nationalPosition')}
-                      </button>
-                    </DataTableHeaderCell>
-                  )}
-                  <DataTableHeaderCell>
-                    <button
-                      type="button"
-                      onClick={() => handleTeamSort('name')}
-                      className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                    >
-                      Equipo
-                      {getTeamSortIcon('name')}
-                    </button>
-                  </DataTableHeaderCell>
-                  <DataTableHeaderCell>
-                    <button
-                      type="button"
-                      onClick={() => handleTeamSort(isGlobalView ? 'currentPoints' : 'modalityPoints')}
-                      className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                    >
-                      {isGlobalView ? 'Ranking general actual' : 'Puntos'}
-                      {getTeamSortIcon(isGlobalView ? 'currentPoints' : 'modalityPoints')}
-                    </button>
-                  </DataTableHeaderCell>
-                  <DataTableHeaderCell>
-                    <button
-                      type="button"
-                      onClick={() => handleTeamSort('historicalPoints')}
-                      className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                    >
-                      Puntuación histórica
-                      {getTeamSortIcon('historicalPoints')}
-                    </button>
-                  </DataTableHeaderCell>
-                  {isGlobalView && (
-                    <DataTableHeaderCell>
-                      <button
-                        type="button"
-                        onClick={() => handleTeamSort('tournaments')}
-                        className="inline-flex items-center gap-1.5 min-h-[44px] touch-manipulation hover:text-white/90 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                      >
-                        Campeonatos
-                        {getTeamSortIcon('tournaments')}
-                      </button>
-                    </DataTableHeaderCell>
-                  )}
-                </tr>
-              </DataTableHead>
-              <DataTableBody>
-                {isGlobalView
-                  ? globalTeams.map(team => (
-                      <DataTableRow key={team.id}>
-                        <DataTableCell>
-                          <Link
-                            to={getTeamPublicUrl(team)}
-                            className="flex items-center gap-3 font-medium text-content hover:text-link"
-                          >
-                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                            {team.name}
-                          </Link>
-                        </DataTableCell>
-                        <DataTableCell>{formatPoints(team.points, 1)}</DataTableCell>
-                        <DataTableCell>{formatPoints(team.historicalPoints, 1)}</DataTableCell>
-                        <DataTableCell className="text-content-subtle">{team.tournaments}</DataTableCell>
-                      </DataTableRow>
-                    ))
-                  : modalityTeams.map(team => (
-                      <DataTableRow key={team.id}>
-                        <DataTableCell>
-                          <span className={`font-bold ${team.nationalPosition <= 3 ? 'text-amber-600 dark:text-amber-300' : team.nationalPosition <= 8 ? 'text-link' : 'text-content-muted'}`}>
-                            #{team.nationalPosition}
-                          </span>
-                        </DataTableCell>
-                        <DataTableCell>
-                          <Link
-                            to={getTeamPublicUrl({ id: team.id })}
-                            className="flex items-center gap-3 font-medium text-content hover:text-link"
-                          >
-                            <TeamLogo name={team.name} logo={team.logo} size="sm" />
-                            {team.name}
-                          </Link>
-                        </DataTableCell>
-                        <DataTableCell>{formatPoints(team.modalityPoints, 1)}</DataTableCell>
-                        <DataTableCell>{formatPoints(team.historicalPoints, 1)}</DataTableCell>
-                      </DataTableRow>
-                    ))}
-              </DataTableBody>
-            </DataTable>
+            <p className="text-sm text-content-subtle text-center py-8">Sin datos de puntos</p>
           )}
         </div>
 
-        <div className="space-y-6">
-          <div className="card">
-            <h2 className="font-display text-lg font-semibold text-content mb-4">Ranking general actual</h2>
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} tickFormatter={formatChartAxis} />
-                  <Tooltip formatter={(v: number) => formatPoints(v, 1)} />
-                  <Bar dataKey="points" fill={chart.series[0]} radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-sm text-content-subtle text-center py-8">Sin datos de puntos</p>
-            )}
-          </div>
-
-          <div className="card">
-            <h2 className="font-display text-lg font-semibold text-content mb-4">Puntuación histórica</h2>
-            {historicalChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={historicalChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} tickFormatter={formatChartAxis} />
-                  <Tooltip formatter={(v: number) => formatPoints(v, 1)} />
-                  <Bar dataKey="points" fill={chart.series[1]} radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="text-sm text-content-subtle text-center py-8">Sin datos históricos</p>
-            )}
-          </div>
+        <div className="card">
+          <h2 className="font-display text-lg font-semibold text-content mb-4">Puntuación histórica</h2>
+          {historicalChartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={historicalChartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 10 }} tickFormatter={formatChartAxis} />
+                <Tooltip formatter={(v: number) => formatPoints(v, 1)} />
+                <Bar dataKey="points" fill={chart.series[1]} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-sm text-content-subtle text-center py-8">Sin datos históricos</p>
+          )}
         </div>
       </div>
+
 
       <div>
         <h2 className="font-display text-lg font-semibold text-content mb-4">Campeonatos regionales</h2>
