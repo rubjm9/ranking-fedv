@@ -27,6 +27,7 @@ import DataTable, {
 } from '@/components/ui/DataTable'
 import { useSelectedSeason } from '@/components/regions/SeasonNavigator'
 import RegionSeasonSelector from '@/components/regions/RegionSeasonSelector'
+import RegionRankingMobileList, { PositionBadge } from '@/components/regions/RegionRankingMobileList'
 import RegionalCoefficientBreakdown from '@/components/regions/RegionalCoefficientBreakdown'
 import { MODALITIES, MODALITY_LABELS, MODALITY_ITEMS, getCoefficientStyle } from '@/components/regions/constants'
 import RankingTabNav from '@/components/ranking/RankingTabNav'
@@ -83,20 +84,6 @@ const comparePositions = (a: number | null, b: number | null, direction: 'asc' |
   if (b === null) return -1
   return direction === 'asc' ? a - b : b - a
 }
-
-/** Mismos colores que ya usaba la posición nacional: podio, top 8, resto. */
-const PositionBadge: React.FC<{ position: number | null }> = ({ position }) =>
-  position === null ? (
-    <span className="text-content-subtle" aria-label="Sin posición">—</span>
-  ) : (
-    <span
-      className={`font-bold ${
-        position <= 3 ? 'text-amber-600 dark:text-amber-300' : position <= 8 ? 'text-link' : 'text-content-muted'
-      }`}
-    >
-      #{position}
-    </span>
-  )
 
 interface RegionRedirectState {
   resolvedRegionId?: string
@@ -768,6 +755,39 @@ const RegionDetailPage: React.FC = () => {
               />
             </div>
           ) : (
+            <>
+            <div className="md:hidden">
+              <RegionRankingMobileList
+                label={
+                  isGlobalView
+                    ? `Ranking global — ${region.name}`
+                    : `Clasificación ${MODALITY_LABELS[activeRankingView as ModalityKey]} — ${region.name}`
+                }
+                pointsLabel={isGlobalView ? `Puntos ${selectedSeason}` : 'Puntos'}
+                rows={
+                  isGlobalView
+                    ? globalTeams.map(t => ({
+                        id: t.id,
+                        name: t.name,
+                        logo: t.logo,
+                        href: getTeamPublicUrl(t),
+                        regionPosition: t.regionPosition,
+                        nationalPosition: t.nationalPosition,
+                        points: t.points,
+                      }))
+                    : modalityTeams.map(t => ({
+                        id: t.id,
+                        name: t.name,
+                        logo: t.logo,
+                        href: getTeamPublicUrl({ id: t.id }),
+                        regionPosition: t.regionPosition,
+                        nationalPosition: t.nationalPosition,
+                        points: t.modalityPoints,
+                      }))
+                }
+              />
+            </div>
+            <div className="hidden md:block">
             <DataTable
               caption={
                 isGlobalView
@@ -912,6 +932,8 @@ const RegionDetailPage: React.FC = () => {
                     ))}
               </DataTableBody>
             </DataTable>
+            </div>
+            </>
           )}
         </div>
       </section>
